@@ -95,6 +95,8 @@ class ServerTest(unittest.TestCase):
             code, body = self.req("/api/camera/stream")
             self.assertEqual(code, 200)
             self.assertEqual(body.count(b"--frame"), 3)
+            code, jpg = self.req("/api/camera/snapshot.jpg")
+            self.assertEqual((code, jpg), (200, b"\xff\xd8FAKE0\xff\xd9"))
             h = {"X-PCPI": "1"}
             self.assertEqual(self.req("/api/camera", json.dumps({"show": True}).encode())[0], 403)
             self.assertEqual(self.req("/api/camera", json.dumps({"show": True}).encode(), h)[0], 200)

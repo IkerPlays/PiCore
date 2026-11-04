@@ -94,6 +94,9 @@ if [ "$VOICE" = 1 ]; then
     curl -fL "https://alphacephei.com/vosk/models/$MODEL.zip" -o "/tmp/$MODEL.zip"
     sudo unzip -q "/tmp/$MODEL.zip" -d "$PREFIX/models" && rm -f "/tmp/$MODEL.zip"
   fi
+  # modelos de activacion propios del repo (p. ej. oye_pi.onnx)
+  sudo mkdir -p "$PREFIX/models/wake"
+  ls "$SRC"/models/wake/*.onnx >/dev/null 2>&1 && sudo cp -f "$SRC"/models/wake/*.onnx "$PREFIX/models/wake/"
   # servicio de usuario: necesita tu sesion de audio (PipeWire)
   mkdir -p "$HOME_DIR/.config/systemd/user"
   cp "$SRC/systemd/pcpi-voice.service" "$HOME_DIR/.config/systemd/user/"

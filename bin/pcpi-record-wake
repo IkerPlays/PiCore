@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Graba tus propias muestras de "oye pi" para mejorar el modelo (training/README.md).
+#   pcpi-record-wake [N=30] [carpeta=~/oye_pi_samples]
+N="${1:-30}"; DIR="${2:-$HOME/oye_pi_samples}"
+DEV="$(sed -n 's/^device *= *//p' /etc/pcpi/pcpi.conf 2>/dev/null | head -1)"; DEV="${DEV:-default}"
+mkdir -p "$DIR"
+hints=("normal" "normal" "mas rapido" "mas lento" "susurrando" "mas alto" "desde lejos (2 m)" "con la tele puesta" "de lado al micro")
+echo "Vas a grabar $N veces «oye pi» (2 s cada una). Varia el tono, la distancia y el ruido de fondo."
+for i in $(seq 1 "$N"); do
+  f="$DIR/$(printf '%03d' "$i").wav"
+  read -r -p "[$i/$N] (${hints[$((i % ${#hints[@]}))]}) Pulsa Enter y di «oye pi»... " _
+  arecord -q -D "$DEV" -f S16_LE -r 16000 -c 1 -d 2 "$f" && echo "  guardado $f"
+done
+echo "Listo. Copia $DIR a tu PC y reentrena: python3 training/train_wake.py ... --real-pos $DIR"

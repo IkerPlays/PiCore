@@ -24,15 +24,30 @@ class OpenWakeWord:
         self.name = os.path.splitext(os.path.basename(spec))[0].replace("_", " ")
         self.model = Model(wakeword_model_paths=[self.resolve(spec, openwakeword.get_pretrained_model_paths())])
         self._buf = b""
+        self.last_score = 0.0
 
     @staticmethod
-    def resolve(spec, packaged):
+    def model_dirs():
+        """Carpetas con modelos propios (.onnx): instalada, del repo, o la de PCPI_WAKE_DIR."""
+        here = os.path.dirname(os.path.abspath(__file__))
+        return [d for d in (os.environ.get("PCPI_WAKE_DIR"), "/opt/pcpi/models/wake",
+                            os.path.join(here, "..", "models", "wake")) if d]
+
+    @staticmethod
+    def resolve(spec, packaged, extra_dirs=None):
         if os.path.isfile(spec):
             return spec
+        for d in (OpenWakeWord.model_dirs() if extra_dirs is None else extra_dirs):
+            cand = os.path.join(d, spec if spec.endswith(".onnx") else spec + ".onnx")
+            if os.path.isfile(cand):
+                return cand
         for p in packaged:
             if os.path.basename(p).startswith(spec):
                 return p
         names = sorted(os.path.basename(p).split("_v")[0] for p in packaged)
+        for d in (OpenWakeWord.model_dirs() if extra_dirs is None else extra_dirs):
+            if os.path.isdir(d):
+                names += [f[:-5] for f in sorted(os.listdir(d)) if f.endswith(".onnx")]
         raise ValueError("modelo de activacion desconocido %r. Disponibles: %s" % (spec, ", ".join(names)))
 
     def feed(self, data):
@@ -41,7 +56,8 @@ class OpenWakeWord:
         while len(self._buf) >= self.FRAME_BYTES:
             chunk, self._buf = self._buf[: self.FRAME_BYTES], self._buf[self.FRAME_BYTES:]
             scores = self.model.predict(self._np.frombuffer(chunk, dtype=self._np.int16))
-            if max(scores.values()) >= self.threshold:
+            self.last_score = float(max(scores.values()))
+            if self.last_score >= self.threshold:
                 hit = True
         return hit
 

@@ -11,6 +11,14 @@ Un PC portátil con **Raspberry Pi 5 (8 GB)** y pantalla táctil de 7" con tres 
 - 🛒 Qué comprar (≤ 250 €): [docs/SHOPPING_LIST.md](docs/SHOPPING_LIST.md)
 - 🧱 Cómo funciona y hoja de ruta: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
+## Probar sin Raspberry Pi (emulador)
+
+```bash
+make emulate        # o: python3 tools/emulate.py
+```
+
+Abre <http://127.0.0.1:8080> y tienes el modo Casa funcionando en tu ordenador con un Pi-hole falso, tiempo, cámara de prueba y Spotify de mentira. En la misma terminal **escribes lo que dirías**: `oye pi qué hora es`, `oye pi` + (siguiente línea) `muestra la cámara`, `/spotify play Canción - Artista`, `/mode gaming`... Usa el mismo código que la Pi (máquina de estados, intérprete de órdenes y acciones). Detalles en `python3 tools/emulate.py --help`.
+
 ## Instalar
 
 En Raspberry Pi OS con escritorio (64 bits), como usuario normal:
@@ -21,7 +29,7 @@ cd PCRaspberryPI5
 ./install.sh --all        # o solo lo que quieras: --battery --pihole --spotify --voice --camera
 ```
 
-Después cierra sesión y vuelve a entrar.
+Después cierra sesión y vuelve a entrar. Para comprobar que todo va: `pcpi-doctor`. Para quitarlo: `./uninstall.sh`.
 
 ## Usar
 

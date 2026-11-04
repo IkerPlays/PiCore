@@ -8,6 +8,11 @@ Environment=PCPI_CONF=/etc/pcpi/pcpi.conf
 ExecStart=/usr/bin/python3 /opt/pcpi/home/server.py
 Restart=always
 RestartSec=2
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/etc/pcpi /var/lib/pcpi
 
 [Install]
 WantedBy=multi-user.target

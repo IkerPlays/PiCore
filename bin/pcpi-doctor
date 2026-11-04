@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# Diagnostico rapido de PCPi: que funciona y que no (y como arreglarlo).
+PORT="${PCPI_PORT:-8080}"
+ok()   { printf '  \033[32m✔\033[0m %s\n' "$*"; }
+warn() { printf '  \033[33m!\033[0m %s\n' "$*"; WARN=1; }
+bad()  { printf '  \033[31m✘\033[0m %s\n' "$*"; BAD=1; }
+WARN=0; BAD=0
+
+echo "Modo y servidor"
+mode="$(cat /etc/pcpi/mode 2>/dev/null)" && ok "modo actual: $mode" || bad "no existe /etc/pcpi/mode (¿ejecutaste ./install.sh?)"
+if systemctl is-active --quiet pcpi-home 2>/dev/null; then ok "servicio pcpi-home activo"; else warn "pcpi-home no esta activo: sudo systemctl status pcpi-home"; fi
+if st="$(curl -sf -m 4 "http://127.0.0.1:$PORT/api/status")"; then
+  ok "API responde en :$PORT"
+  python3 - "$st" <<'PY'
+import json, sys
+d = json.loads(sys.argv[1])
+p = d["pihole"]
+print("  %s Pi-hole: %s" % ("\033[32m✔\033[0m" if p["ok"] else "\033[33m!\033[0m",
+      ("bloquea %s%% (%s)" % (p["percent"], p["blocking"])) if p["ok"] else "sin conexion (%s). Revisa [pihole] en /etc/pcpi/pcpi.conf" % p.get("error")))
+w = d["weather"]
+print("  %s Tiempo: %s" % ("\033[32m✔\033[0m" if w["ok"] else "\033[33m!\033[0m", "ok" if w["ok"] else "no configurado/sin red"))
+c = d["camera"]
+print("  %s Camara: %s" % ("\033[32m✔\033[0m" if c["available"] else "\033[33m!\033[0m", "disponible" if c["available"] else "no detectada (/dev/video0)"))
+PY
+else bad "la API no responde en :$PORT"; fi
+
+echo "Alimentacion y temperatura (Raspberry Pi)"
+if command -v vcgencmd >/dev/null; then
+  thr="$(vcgencmd get_throttled | cut -d= -f2)"
+  if [ "$thr" = "0x0" ]; then ok "sin avisos de voltaje ni temperatura"
+  else warn "vcgencmd get_throttled=$thr (voltaje bajo o limitacion por calor): usa la fuente oficial de 27 W y revisa el ventilador"; fi
+  ok "$(vcgencmd measure_temp)"
+else warn "vcgencmd no existe (¿no es una Raspberry Pi?)"; fi
+
+echo "Audio"
+if command -v arecord >/dev/null; then
+  mics="$(arecord -l 2>/dev/null | grep -c '^card')"
+  [ "$mics" -gt 0 ] && ok "$mics dispositivo(s) de captura: $(arecord -l | grep '^card' | sed 's/,.*//' | tr '\n' ' ')" \
+                    || bad "no hay microfono. Conectalo y mira 'arecord -l'"
+else warn "arecord no instalado (sudo apt install alsa-utils)"; fi
+command -v espeak-ng >/dev/null && ok "espeak-ng instalado" || warn "falta espeak-ng (voz): ./install.sh --voice"
+
+echo "Asistente de voz"
+if [ -x /opt/pcpi/venv/bin/python ]; then
+  /opt/pcpi/venv/bin/python -c "import vosk, openwakeword" 2>/dev/null && ok "vosk y openwakeword instalados" || bad "faltan vosk/openwakeword en /opt/pcpi/venv"
+  [ -d /opt/pcpi/models/vosk-model-small-es-0.42 ] && ok "modelo de voz español" || bad "falta el modelo Vosk en /opt/pcpi/models"
+  wm="$(sed -n 's/^wake_model *= *//p' /etc/pcpi/pcpi.conf 2>/dev/null | head -1)"
+  ok "palabra de activacion: ${wm:-oye_pi}"
+  if systemctl --user is-active --quiet pcpi-voice 2>/dev/null; then ok "servicio pcpi-voice activo"; else warn "pcpi-voice parado: systemctl --user status pcpi-voice"; fi
+else warn "voz no instalada (./install.sh --voice)"; fi
+
+echo "Camara"
+ls /dev/video* >/dev/null 2>&1 && ok "$(ls /dev/video* | tr '\n' ' ')" || warn "sin /dev/video*"
+command -v ffmpeg >/dev/null && ok "ffmpeg instalado" || warn "falta ffmpeg: ./install.sh --camera"
+id -nG | grep -qw video && ok "usuario en el grupo video" || warn "tu usuario no esta en el grupo video (cierra sesion tras ./install.sh --camera)"
+
+echo "Pi-hole y Spotify"
+systemctl is-active --quiet pihole-FTL 2>/dev/null && ok "Pi-hole activo" || warn "Pi-hole no instalado/activo (./install.sh --pihole)"
+systemctl is-active --quiet raspotify 2>/dev/null && ok "Raspotify (Spotify Connect) activo" || warn "Raspotify no activo (./install.sh --spotify)"
+
+echo
+[ $BAD = 1 ] && { echo "Hay errores (✘)."; exit 1; }
+[ $WARN = 1 ] && echo "Todo lo esencial va; hay avisos (!)." || echo "Todo correcto."

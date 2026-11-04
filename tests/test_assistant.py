@@ -116,9 +116,17 @@ class WakeTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(suffix=".onnx") as f:
             self.assertEqual(wake.OpenWakeWord.resolve(f.name, self.PACKAGED), f.name)
 
+    def test_resolve_own_model_in_dir(self):
+        with tempfile.TemporaryDirectory() as d:
+            Path(d, "oye_pi.onnx").write_bytes(b"x")
+            self.assertEqual(wake.OpenWakeWord.resolve("oye_pi", self.PACKAGED, [d]), os.path.join(d, "oye_pi.onnx"))
+            with self.assertRaises(ValueError) as ctx:
+                wake.OpenWakeWord.resolve("otro", self.PACKAGED, [d])
+            self.assertIn("oye_pi", str(ctx.exception))
+
     def test_resolve_unknown_lists_options(self):
         with self.assertRaises(ValueError) as ctx:
-            wake.OpenWakeWord.resolve("oye_pi", self.PACKAGED)
+            wake.OpenWakeWord.resolve("oye_pi", self.PACKAGED, [])
         self.assertIn("hey_jarvis", str(ctx.exception))
 
     def test_beep_is_valid_wav(self):

@@ -136,9 +136,9 @@ def weather(cp):
     if not lat or not lon:
         return {"ok": False, "error": "no configurado"}
     try:
+        base = cp.get("weather", "api_url", fallback="https://api.open-meteo.com/v1/forecast")
         d = http_json(
-            "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s"
-            "&current=temperature_2m,weather_code" % (lat, lon),
+            "%s?latitude=%s&longitude=%s&current=temperature_2m,weather_code" % (base, lat, lon),
             timeout=4,
         )
         cur = d["current"]
@@ -183,6 +183,37 @@ def camera_cmd(cp, snapshot=False):
     if snapshot:
         return cmd + ["-frames:v", "1", "-f", "image2pipe", "-"]
     return cmd + ["-f", "mpjpeg", "-boundary_tag", "frame", "-"]
+
+
+def _run(cmd):
+    try:
+        return subprocess.run(cmd, capture_output=True, timeout=8).stdout
+    except (OSError, subprocess.TimeoutExpired):
+        return b""
+
+
+def first_jpeg(cmd, timeout=8):
+    """Primer fotograma JPEG de un comando que emite MJPEG sin fin (se mata en cuanto llega)."""
+    try:
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    except OSError:
+        return b""
+    deadline, buf = time.time() + timeout, b""
+    try:
+        while time.time() < deadline:
+            chunk = proc.stdout.read1(65536)
+            if not chunk:
+                break
+            buf += chunk
+            a = buf.find(b"\xff\xd8")
+            b = buf.find(b"\xff\xd9", a + 2) if a >= 0 else -1
+            if b >= 0:
+                return buf[a:b + 2]
+    finally:
+        proc.kill()
+        proc.wait()
+        proc.stdout.close()
+    return b""
 
 
 def camera_status(cp):
@@ -256,12 +287,10 @@ class Handler(BaseHTTPRequestHandler):
         cp = read_conf()
         if not camera_status(cp)["available"]:
             return self._send(404, {"error": "camara no disponible"})
-        cmd = camera_cmd(cp, snapshot)
+        custom = bool(cp.get("camera", "command", fallback="").strip())
+        cmd = camera_cmd(cp, snapshot and not custom)
         if snapshot:
-            try:
-                out = subprocess.run(cmd, capture_output=True, timeout=8).stdout
-            except (OSError, subprocess.TimeoutExpired):
-                out = b""
+            out = first_jpeg(cmd) if custom else _run(cmd)
             if not out:
                 return self._send(503, {"error": "sin imagen"})
             return self._send(200, out, "image/jpeg")
