@@ -13,3 +13,11 @@ password =
 # Open-Meteo (sin API key). Vacio = sin tiempo. Ejemplo: Madrid
 lat = 40.4168
 lon = -3.7038
+
+[voice]
+# Asistente de voz local (./install.sh --voice). Palabras de activacion separadas por comas.
+wake = oye pi,hey pi,oye casa
+# Dispositivo de captura de arecord ("arecord -l" para listarlos). default = el del sistema.
+device = default
+# Voz de espeak-ng
+tts_voice = es

@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 # Instalador PCPi para Raspberry Pi OS (Bookworm/Trixie). Ejecutalo como usuario normal (usa sudo).
-#   ./install.sh [--battery] [--pihole] [--spotify] [--all]
+#   ./install.sh [--battery] [--pihole] [--spotify] [--voice] [--all]
 #     --battery  sube el limite de corriente USB (power bank sin 5V/5A)
 #     --pihole   lanza el instalador oficial de Pi-hole (interactivo)
+#     --voice    asistente de voz local (Vosk + espeak-ng): "Oye Pi, que hora es"
 #     --spotify  instala Raspotify (Spotify Connect, requiere Premium) y el hook de "sonando ahora"
 set -euo pipefail
 
-BATTERY=0; PIHOLE=0; SPOTIFY=0
+BATTERY=0; PIHOLE=0; SPOTIFY=0; VOICE=0
 for a in "$@"; do
   case "$a" in
-    --battery) BATTERY=1 ;; --pihole) PIHOLE=1 ;; --spotify) SPOTIFY=1 ;;
-    --all) BATTERY=1; PIHOLE=1; SPOTIFY=1 ;;
+    --battery) BATTERY=1 ;; --pihole) PIHOLE=1 ;; --spotify) SPOTIFY=1 ;; --voice) VOICE=1 ;;
+    --all) BATTERY=1; PIHOLE=1; SPOTIFY=1; VOICE=1 ;;
     *) echo "Opcion desconocida: $a" >&2; exit 1 ;;
   esac
 done
@@ -27,7 +28,7 @@ sudo apt-get install -y python3 curl zenity "$CHROMIUM_PKG"
 
 echo "==> Archivos en $PREFIX"
 sudo mkdir -p "$PREFIX"
-sudo rsync -a --delete "$SRC/home" "$SRC/bin" "$PREFIX/"
+sudo rsync -a --delete "$SRC/home" "$SRC/bin" "$SRC/voice" "$PREFIX/"
 for f in "$PREFIX"/bin/*; do sudo ln -sf "$f" "/usr/local/bin/$(basename "$f")"; done
 sudo chmod +x "$PREFIX"/bin/*
 
@@ -70,6 +71,27 @@ if [ "$SPOTIFY" = 1 ]; then
   sudo sed -i '/^#\?LIBRESPOT_ONEVENT=/d;/^#\?LIBRESPOT_NAME=/d' "$CONF"
   printf 'LIBRESPOT_NAME="PCPi"\nLIBRESPOT_ONEVENT="/usr/local/bin/pcpi-spotify-event"\n' | sudo tee -a "$CONF" >/dev/null
   sudo systemctl daemon-reload && sudo systemctl restart raspotify
+fi
+
+if [ "$VOICE" = 1 ]; then
+  echo "==> Asistente de voz (Vosk, modelo español pequeño ~40 MB)"
+  sudo apt-get install -y alsa-utils espeak-ng python3-venv unzip
+  sudo usermod -aG audio "$ME"
+  sudo python3 -m venv "$PREFIX/venv"
+  sudo "$PREFIX/venv/bin/pip" install --quiet vosk
+  MODEL=vosk-model-small-es-0.42
+  if [ ! -d "$PREFIX/models/$MODEL" ]; then
+    sudo mkdir -p "$PREFIX/models"
+    curl -fL "https://alphacephei.com/vosk/models/$MODEL.zip" -o "/tmp/$MODEL.zip"
+    sudo unzip -q "/tmp/$MODEL.zip" -d "$PREFIX/models" && rm -f "/tmp/$MODEL.zip"
+  fi
+  # servicio de usuario: necesita tu sesion de audio (PipeWire)
+  mkdir -p "$HOME_DIR/.config/systemd/user"
+  cp "$SRC/systemd/pcpi-voice.service" "$HOME_DIR/.config/systemd/user/"
+  sudo loginctl enable-linger "$ME"
+  XDG_RUNTIME_DIR="/run/user/$(id -u)" systemctl --user daemon-reload || true
+  XDG_RUNTIME_DIR="/run/user/$(id -u)" systemctl --user enable --now pcpi-voice.service || \
+    echo "Aviso: activa el servicio tras reiniciar: systemctl --user enable --now pcpi-voice"
 fi
 
 if [ "$PIHOLE" = 1 ]; then

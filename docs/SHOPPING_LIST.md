@@ -1,50 +1,40 @@
-# Lista de la compra (Amazon.es)
+# Lista de la compra (todo Amazon.es)
 
-**Presupuesto máximo: 250 € sin contar la Raspberry Pi.** Ya tienes la Pi 5 de 8 GB con fuente de alimentación, ventilador y disipador.
+**Presupuesto máximo: 250 € sin contar la Raspberry Pi.** Ya tienes la Pi 5 de 8 GB con fuente, ventilador y disipador, además de un teclado USB con cable, así que no se compran.
 
-> ⚠️ **Precios y enlaces sin verificar en Amazon.es.** El buscador que usé no devuelve fichas de Amazon, así que los precios salen de otras tiendas europeas o son estimaciones. Para cada línea va un *texto de búsqueda* para pegar en amazon.es. Antes de comprar comprueba precio, stock y que en las opiniones diga que funciona con **Raspberry Pi 5**.
+> ⚠️ Los enlaces son fichas reales de Amazon.es encontradas el 4-nov-2026. Los precios marcados con **~** son estimados; el resto salen de la propia ficha. Antes de comprar comprueba precio, stock y que las opiniones confirmen que funciona con la **Raspberry Pi 5**.
 
-## Pantalla: tamaño Kindle Paperwhite (~7")
+## Lista final
 
-El Paperwhite tiene 6,8". Una pantalla normal táctil de **7" a 1024×600** es el equivalente. Es de LCD/IPS, no e-ink.
-
-| Opción | Qué es | ~€ | Notas |
+| # | Pieza | Producto | ~€ |
 |---|---|---|---|
-| **A (recomendada)** | Monitor táctil IPS 7" HDMI **con altavoces integrados** (tipo RC070P / 52Pi) | 65–85 | Una sola pieza, con soporte. Resuelve la pantalla y los altavoces. |
-| B | Waveshare 7" IPS HDMI táctil (H) | ~99 | Mejor panel, **sin altavoces** (tendrías que añadir uno). |
-| C | Raspberry Pi Touch Display 2 (7", DSI, 720×1280 vertical) | ~65–75 | Oficial y se alimenta desde la Pi. Sin altavoces. Vertical, como un Kindle. |
+| 1 | **Pantalla táctil 7" con altavoces** (tamaño Kindle Paperwhite) | [InnoMaker 7" IPS 1024×600, táctil capacitiva, altavoces duales, compatible Pi 5](https://www.amazon.es/innomaker-Pantalla-capacitiva-altavoces-Raspberry/dp/B0FL6SVLS5) | 45 |
+| 2 | Cable micro-HDMI a HDMI corto (30 cm) | [Silkland Micro HDMI a HDMI 0,3 m 4K@60](https://www.amazon.es/Silkland-Cable-Micro-compatible-Ethernet/dp/B0D1TVFDT8) | ~8 |
+| 3 | **Micrófono** USB pequeño | [SunFounder Mini USB 2.0 (22×18×7 mm, plug and play)](https://www.amazon.es/SUNFOUNDER-Mini-micr%C3%B3fono-Escritorio-reconocimiento/dp/B01KLRBHGM) | ~8 |
+| 4 | **Cámara** pequeña 1080p con tapa de privacidad | [iAmotus Webcam 1080P mini USB](https://www.amazon.es/iAmotus-Micr%C3%B3fono-Cancelaci%C3%B3n-Incorporado-Compatible/dp/B07KFSV2DZ) | ~20 |
+| 5 | **Batería** 20.000 mAh, USB-C PD 65 W | [Baseus Power Bank 65 W 20000 mAh](https://www.amazon.es/Baseus-Cargador-Port%C3%A1til-20000mAh-Pantalla/dp/B08XQ1PLSQ) | ~40 |
+| 6 | Cable USB-C a USB-C 100 W, 1 m (batería → Pi) | [Baseus USB-C 100 W 1 m](https://www.amazon.es/Baseus-100W-USB-Cable-1-2-3M/dp/B09SBH1NWJ) | ~10 |
+| 7 | **SSD** USB 3.2 de 256 GB para arrancar (opcional) | [SSK 256 GB USB 3.2 Gen 2, 550 MB/s](https://www.amazon.es/SSK-Escritura-Adaptador-Inteligente-computadora/dp/B0BS6NTT5Y) | 43 |
+| 8 | Hub USB 3.0 de 4 puertos, 15 cm | [UGREEN Hub USB 3.0 4 puertos](https://www.amazon.es/UGREEN-Velocidad-Adaptador-Compatible-Port%C3%A1til/dp/B0CD1BHXPZ) | ~10 |
+| 9 | Batería del reloj (RTC) de la Pi 5 | [Batería RTC EB82184 para Raspberry Pi 5](https://www.amazon.es/EB82184-Bater%C3%ADa-RTC-para-Raspberry/dp/B0CND716CR) | ~6 |
+| 10 | Velcro para ordenar cables (rollo 10 m) | [MatoSan bridas de velcro](https://www.amazon.es/MatoSan%C2%AE-recortable-gesti%C3%B3n-organizador-reutilizable/dp/B0DT7H74DF) | 6 |
+| | **Total aproximado (con SSD)** | | **~196 €** |
 
-Búsqueda: `monitor táctil 7 pulgadas IPS 1024x600 altavoces Raspberry Pi 5 HDMI`
+Quedan ~54 € de margen bajo el máximo. Sin el SSD (#7) se queda en ~153 €.
 
-## Lista final (opción A)
+## Por qué estas piezas
 
-| # | Pieza | Búsqueda en amazon.es | ~€ |
-|---|---|---|---|
-| 1 | Pantalla táctil 7" HDMI con altavoces | `monitor táctil 7 pulgadas IPS 1024x600 altavoces Raspberry Pi` | 75 |
-| 2 | Cable micro-HDMI a HDMI corto (0,5 m, acodado) | `cable micro HDMI a HDMI 0.5m Raspberry Pi 5` | 8 |
-| 3 | Micro USB pequeñito (tipo "dongle" omnidireccional) | `mini micrófono USB Raspberry Pi omnidireccional` | 8 |
-| 4 | Webcam USB mini 1080p con tapa de privacidad | `webcam mini USB 1080p tapa privacidad` | 20 |
-| 5 | Power bank 20.000 mAh con USB-C PD ≥ 45 W | `power bank 20000mAh USB-C PD 65W` | 40 |
-| 6 | Cable USB-C a USB-C PD, 1 m, 100 W | `cable USB-C a USB-C 100W 1m` | 8 |
-| 7 | Teclado mini Bluetooth con touchpad | `mini teclado bluetooth touchpad` | 20 |
-| 8 | SSD USB 3 portátil 256 GB (arranque rápido) | `SSD portátil USB 3.2 256GB` | 40 |
-| 9 | Hub USB 3.0 de 4 puertos (ultrafino) | `hub USB 3.0 4 puertos` | 10 |
-| 10 | Batería RTC oficial de la Pi 5 (mantiene la hora sin red) | `Raspberry Pi 5 RTC battery` | 6 |
-| 11 | Bridas y velcro | `bridas velcro cables` | 6 |
-| | **Total aproximado** | | **~241 €** |
+- **Pantalla:** un LCD IPS táctil normal con el tamaño de un Paperwhite (7"). Trae altavoces, así que no hace falta comprarlos aparte. El audio le llega por el HDMI. Ya tienes cargador en el kit; la pantalla se alimenta de un USB de la Pi o del hub.
+- **USB:** la Pi 5 tiene 4 puertos y necesitas 5 (teclado, micro, cámara, SSD y táctil de la pantalla). Por eso el hub.
+- **Batería:** no negocia 5 V/5 A con la Pi 5, y se resuelve con `./install.sh --battery`. Con 20.000 mAh cuenta con unas 5–7 h.
+- **Micro y cámara:** cualquier USB estándar sirve. Los micros baratísimos captan poco; si el asistente de voz te oye mal, sube a un micro USB de conferencia.
+- **Fuera de la lista:** teclado Bluetooth (ya tienes uno USB) y mando (modo Gaming aún es "Próximamente").
 
-Notas:
-- **El micro y la cámara** se eligen por tamaño; cualquier modelo USB estándar vale. Los micrófonos baratísimos suelen captar poco, así que mira en las opiniones que sirvan para asistentes de voz. Si más adelante se queda corto, añade un altavoz/micro USB de conferencia.
-- **Cargador:** ya viene en tu kit. Sirve para el uso fijo en casa y la power bank queda como alimentación portátil.
-- **SSD (#8):** es opcional, ~40 € que puedes ahorrar. Sin él, usa una microSD A2 de 64–128 GB (~12 €) si tu kit no la trae.
-- **Mando y Steam:** quedan fuera hasta que el modo Gaming deje de ser "Próximamente".
-- La power bank no negocia 5 V/5 A con la Pi 5. Eso se resuelve en software con `./install.sh --battery`, que sube el límite de corriente USB. Con 20.000 mAh cuenta con unas 5–7 h de uso.
-- **Alimentación de la pantalla:** si es la opción A o B, conéctala a un USB de la Pi o de la power bank con el mismo cable.
+## Alternativas por si algo no está disponible
 
-## Fuentes consultadas
-
-- Monitores táctiles 7" con altavoz (RC070P, 52Pi), en [Robotshop](https://www.robotshop.com/es/products/rc070p-raspberry-pi-7-1024x600-ips-touchscreen-monitor-built-in-speaker-stand) y [52Pi](https://www.robotshop.com/es/products/52pi-7-inch-ips-touch-screen-1024x600-w-speakers-raspberry-pi-windows-pc)
-- [Waveshare 7" HDMI IPS táctil (H), OpenELAB](https://openelab.io/es/products/raspberry-pi4-7-inch-touch-display)
-- [Raspberry Pi Touch Display 2, Farnell España](https://es.farnell.com/raspberry-pi/sc1635/touchscreen-display-7-size-rpi/dp/4550991)
-- [Micrófono USB mini para Pi 5, OpenELAB](https://openelab.io/es/products/usb-mini-microphone-raspberry-pi)
-- [Pantallas e-paper HDMI de Waveshare](https://www.waveshare.com/7.8inch-HDMI-e-Paper.htm), descartadas por precio (≥ 260 €), sin táctil y 15 Hz.
+- Pantalla: [GeeekPi 7" táctil con dos altavoces (Pi 5)](https://www.amazon.es/GeeekPi-capacitivo-pulgadas-Raspberry-pantalla/dp/B0CKMDGFDR) o [iPistBit 7" con altavoces (Pi 5)](https://www.amazon.es/iPistBit-Raspberry-altavoces-integrados-compatible/dp/B0D7HSXY37).
+- Batería: [INIU 20000 mAh 65 W](https://www.amazon.es/INIU-20000mAh-Bateria-Cargador-Portatil/dp/B0DB895CWT).
+- Micro: [Bolwins Q71S](https://amazon.es/micr%C3%B3fono-port%C3%A1til-grabaci%C3%B3n-videoconferencias-controlador/dp/B09PVPPRF2) (declara compatibilidad con Raspberry Pi).
+- Cámara: [Wansview 1080P con enfoque automático](https://www.amazon.es/Wansview-Micr%C3%B3fono-Autom%C3%A1tico-Privacidad-Videoconferencias/dp/B08XQ3TWFX).
+- Cable micro-HDMI: [GeeekPi, pack de 2](https://www.amazon.es/GeeekPi-Micro-HDMI-Cable-Raspberry/dp/B0C4DNJY1C).
+- SSD: [ORICO 256 GB](https://www.amazon.es/ORICO-Unidad-estado-port%C3%A1til-externa/dp/B0DHZVY5VM).

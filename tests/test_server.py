@@ -14,6 +14,7 @@ tmp = tempfile.mkdtemp()
 os.environ["PCPI_CONF"] = os.path.join(tmp, "none.conf")
 os.environ["PCPI_MODE_FILE"] = os.path.join(tmp, "mode")
 os.environ["PCPI_NOWPLAYING"] = os.path.join(tmp, "np.json")
+os.environ["PCPI_VOICE_STATE"] = os.path.join(tmp, "voice.json")
 import server  # noqa: E402
 
 
@@ -63,6 +64,16 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(self.req("/api/mode", json.dumps({"mode": "home"}).encode(), h)[0], 200)
         self.assertEqual(json.loads(self.req("/api/mode")[1])["mode"], "home")
         self.assertEqual(self.req("/api/mode", json.dumps({"mode": "hack"}).encode(), h)[0], 400)
+
+    def test_pihole_post_validation(self):
+        h = {"X-PCPI": "1"}
+        good = json.dumps({"action": "disable", "minutes": 5}).encode()
+        self.assertEqual(self.req("/api/pihole", good)[0], 403)  # sin cabecera
+        self.assertEqual(self.req("/api/pihole", json.dumps({"action": "x"}).encode(), h)[0], 400)
+        self.assertEqual(self.req("/api/pihole", good, h)[0], 502)  # pihole sin configurar
+
+    def test_voice_in_status(self):
+        self.assertEqual(json.loads(self.req("/api/status")[1])["voice"]["state"], "off")
 
     def test_nowplaying(self):
         Path(os.environ["PCPI_NOWPLAYING"]).write_text('{"state":"playing","title":"T","artist":"A"}')

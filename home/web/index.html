@@ -14,6 +14,8 @@
   #time { font-size:clamp(72px,16vw,160px); font-weight:700; letter-spacing:-.04em; line-height:1; }
   #date { font-size:28px; color:var(--dim); margin-top:8px; text-transform:capitalize; }
   #weather { font-size:30px; margin-top:20px; }
+  #voice { font-size:20px; color:var(--dim); margin-top:24px; text-align:center; min-height:56px; }
+  #voice b { color:var(--fg); font-weight:600; }
   .side { display:grid; grid-template-rows:1fr 1fr auto; gap:16px; }
   h2 { font-size:15px; text-transform:uppercase; letter-spacing:.1em; color:var(--dim); margin-bottom:10px; }
   .big { font-size:44px; font-weight:700; }
@@ -32,6 +34,7 @@
     <div id="time">--:--</div>
     <div id="date"></div>
     <div id="weather"></div>
+    <div id="voice"></div>
   </section>
   <section class="side">
     <div class="card">
@@ -89,6 +92,11 @@ async function refresh() {
       $("track").textContent = "Nada sonando";
       $("artist").textContent = 'Elige "PCPi" en Spotify Connect';
     }
+    const v = s.voice || {};
+    if (v.state === "off") $("voice").textContent = "";
+    else if (v.state === "speaking") $("voice").innerHTML = "🔊 <b>" + (v.reply || "") + "</b>";
+    else if (v.heard) $("voice").innerHTML = "🎤 «" + v.heard + "» → <b>" + (v.reply || "") + "</b>";
+    else $("voice").textContent = "🎤 Di «" + (v.wake || "oye pi") + "»…";
     $("cpu").textContent = s.cpu_temp != null ? s.cpu_temp + " °C" : "--";
     $("up").textContent = s.uptime != null ? Math.floor(s.uptime/3600) + " h" : "--";
   } catch (e) { /* servidor reiniciando */ }

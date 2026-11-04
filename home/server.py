@@ -77,20 +77,41 @@ def http_json(url, method="GET", data=None, headers=None, timeout=3):
 _sid = {"sid": None, "exp": 0.0}
 
 
+def pihole_headers(cp, url):
+    """Cabecera de sesion de Pi-hole v6 (vacia si no tiene password)."""
+    pw = cp.get("pihole", "password", fallback="")
+    if not pw:
+        return {}
+    if time.time() > _sid["exp"]:
+        r = http_json(url + "/api/auth", "POST", {"password": pw})
+        _sid["sid"] = r["session"]["sid"]
+        _sid["exp"] = time.time() + max(30, r["session"].get("validity", 300) - 30)
+    return {"sid": _sid["sid"]}
+
+
+def pihole_set_blocking(cp, enabled, minutes=None):
+    """Activa/pausa el bloqueo de Pi-hole. Con minutos, se reactiva solo."""
+    url = cp.get("pihole", "url", fallback="").rstrip("/")
+    if not url:
+        return False
+    body = {"blocking": bool(enabled)}
+    if not enabled and minutes:
+        body["timer"] = int(minutes) * 60
+    try:
+        http_json(url + "/api/dns/blocking", "POST", body, headers=pihole_headers(cp, url))
+    except Exception:
+        return False
+    _cache.pop("pihole", None)
+    return True
+
+
 def pihole_stats(cp):
     """Estadisticas de Pi-hole v6 (API REST). Sin password funciona si Pi-hole no la exige."""
     url = cp.get("pihole", "url", fallback="").rstrip("/")
     if not url:
         return {"ok": False, "error": "no configurado"}
-    pw = cp.get("pihole", "password", fallback="")
     try:
-        headers = {}
-        if pw:
-            if time.time() > _sid["exp"]:
-                r = http_json(url + "/api/auth", "POST", {"password": pw})
-                _sid["sid"] = r["session"]["sid"]
-                _sid["exp"] = time.time() + max(30, r["session"].get("validity", 300) - 30)
-            headers["sid"] = _sid["sid"]
+        headers = pihole_headers(cp, url)
         s = http_json(url + "/api/stats/summary", headers=headers)
         b = http_json(url + "/api/dns/blocking", headers=headers)
         return {
@@ -130,6 +151,13 @@ def nowplaying():
         return {"state": "stopped"}
 
 
+def voice_state():
+    try:
+        return json.loads(Path(os.environ.get("PCPI_VOICE_STATE", "/var/lib/pcpi/voice.json")).read_text())
+    except (OSError, ValueError):
+        return {"state": "off"}
+
+
 def cpu_temp():
     try:
         return round(int(Path("/sys/class/thermal/thermal_zone0/temp").read_text()) / 1000, 1)
@@ -153,6 +181,7 @@ def status():
         "pihole": cached("pihole", 10, lambda: pihole_stats(cp)),
         "weather": cached("weather", 600, lambda: weather(cp)),
         "nowplaying": nowplaying(),
+        "voice": voice_state(),
     }
 
 
@@ -184,19 +213,26 @@ class Handler(BaseHTTPRequestHandler):
         self._send(200, (WEB / name).read_bytes(), "text/html; charset=utf-8")
 
     def do_POST(self):
-        # Solo local y con cabecera propia: una web externa no puede cambiar el modo
+        # Solo local y con cabecera propia: una web externa no puede cambiar nada
         # (la cabecera obliga a preflight CORS, que no respondemos).
         if self.client_address[0] not in ("127.0.0.1", "::1"):
             return self._send(403, {"error": "solo local"})
-        if self.path != "/api/mode" or self.headers.get("X-PCPI") != "1":
+        if self.path not in ("/api/mode", "/api/pihole") or self.headers.get("X-PCPI") != "1":
             return self._send(403, {"error": "prohibido"})
         try:
             n = int(self.headers.get("Content-Length", "0"))
-            mode = json.loads(self.rfile.read(min(n, 1024)))["mode"]
-            set_mode(mode)
+            body = json.loads(self.rfile.read(min(n, 1024)))
+            if self.path == "/api/mode":
+                set_mode(body["mode"])
+                return self._send(200, {"mode": body["mode"]})
+            action = body["action"]
+            if action not in ("enable", "disable"):
+                raise ValueError("accion invalida")
+            minutes = max(1, min(int(body.get("minutes", 5)), 24 * 60))
         except (ValueError, KeyError, TypeError, OSError):
             return self._send(400, {"error": "peticion invalida"})
-        self._send(200, {"mode": mode})
+        ok = pihole_set_blocking(read_conf(), action == "enable", minutes)
+        self._send(200 if ok else 502, {"ok": ok})
 
 
 def make_server(host, port):
