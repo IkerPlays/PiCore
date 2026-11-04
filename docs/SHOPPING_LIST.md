@@ -24,7 +24,7 @@ Sobran unos 160 € del presupuesto. No hace falta gastarlos; si quieres mejorar
 - **Audio:** los altavoces de la pantalla reciben el sonido por el HDMI.
 - **USB:** la Pi 5 tiene 4 puertos y vas a usar 4: teclado, cámara/micro, táctil de la pantalla y uno libre. El hub deja margen y es barato.
 - **Almacenamiento:** el sistema va en la microSD. Mira que tu kit la traiga; si no, compra una de 64–128 GB (Samsung EVO Plus o SanDisk Extreme, tipo A2).
-- **Teclado y mando:** no se compran (tienes teclado USB; el modo Gaming es "Próximamente").
+- **Teclado y mando:** no se compran (tienes teclado USB, que también usarás en el modo Iker).
 
 ## Lo que quitamos
 
@@ -32,7 +32,7 @@ Sobran unos 160 € del presupuesto. No hace falta gastarlos; si quieres mejorar
 
 **Para qué serviría:** la Pi arranca y guarda todo en la microSD, que es lenta (unos 90 MB/s) y se desgasta con escrituras constantes o un corte de luz. Un SSD por USB 3 llega a ~1.000 MB/s, así que el sistema abre las apps y arranca bastante más rápido, y aguanta mucho más. Merece la pena en un PC diario de escritorio con muchos programas.
 
-**Para este proyecto no hace falta:** los modos Casa y Gaming apenas escriben, y el escritorio se usa de forma ligera. Con una microSD de calidad vas bien. Si algún día notas lentitud, se añade sin tocar nada del código (la Pi 5 arranca desde USB) y puedes comprarlo en una tienda de tu isla.
+**Para este proyecto no hace falta:** los modos Casa e Iker apenas escriben, y el escritorio se usa de forma ligera. Con una microSD de calidad vas bien. Si algún día notas lentitud, se añade sin tocar nada del código (la Pi 5 arranca desde USB) y puedes comprarlo en una tienda de tu isla.
 
 ### Batería externa
 

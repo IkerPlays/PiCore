@@ -5,10 +5,11 @@ Un PC portátil con **Raspberry Pi 5 (8 GB)** y pantalla táctil de 7" con tres 
 | Modo | Qué hace | Estado |
 |---|---|---|
 | 🖥 **Escritorio** | Raspberry Pi OS normal | ✅ |
-| 🎮 **Gaming** | Pantalla "Próximamente" (Steam llegará después) | 🚧 placeholder |
+| 📝 **Iker** | Solo dos apps: **bloc de notas** (guardar/cargar notas) e **Internet** | ✅ |
 | 🏠 **Casa** | Estilo Alexa con pantalla: hora, tiempo, Pi-hole, Spotify Connect, asistente de voz local y cámara | ✅ base |
 
 - 🛒 Qué comprar (≤ 250 €): [docs/SHOPPING_LIST.md](docs/SHOPPING_LIST.md)
+- 📖 **Tutorial desde cero (qué comprar, montar, instalar, configurar):** [docs/TUTORIAL.md](docs/TUTORIAL.md)
 - 🧱 Cómo funciona y hoja de ruta: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ## Probar sin Raspberry Pi (emulador)
@@ -17,7 +18,7 @@ Un PC portátil con **Raspberry Pi 5 (8 GB)** y pantalla táctil de 7" con tres 
 make emulate        # o: python3 tools/emulate.py
 ```
 
-Abre <http://127.0.0.1:8080> y tienes el modo Casa funcionando en tu ordenador con un Pi-hole falso, tiempo, cámara de prueba y Spotify de mentira. En la misma terminal **escribes lo que dirías**: `oye pi qué hora es`, `oye pi` + (siguiente línea) `muestra la cámara`, `/spotify play Canción - Artista`, `/mode gaming`... Usa el mismo código que la Pi (máquina de estados, intérprete de órdenes y acciones). Detalles en `python3 tools/emulate.py --help`.
+Abre <http://127.0.0.1:8080> y tienes el modo Casa funcionando en tu ordenador con un Pi-hole falso, tiempo, cámara de prueba y Spotify de mentira. En la misma terminal **escribes lo que dirías**: `oye pi qué hora es`, `oye pi` + (siguiente línea) `muestra la cámara`, `/spotify play Canción - Artista`, `/mode iker`... Usa el mismo código que la Pi (máquina de estados, intérprete de órdenes y acciones). Detalles en `python3 tools/emulate.py --help`.
 
 ## Instalar
 
@@ -35,12 +36,12 @@ Después cierra sesión y vuelve a entrar. Para comprobar que todo va: `pcpi-doc
 
 ```bash
 pcpi-mode home      # modo Casa
-pcpi-mode gaming    # modo Gaming (Próximamente)
+pcpi-mode iker      # modo Iker (notas + internet)
 pcpi-mode desktop   # escritorio normal
 pcpi-mode status
 ```
 
-También hay un icono **"PCPi · Elegir modo"** en el menú de aplicaciones, y botones táctiles dentro de la UI de Casa y Gaming. El modo se recuerda entre reinicios.
+También hay un icono **"PCPi · Elegir modo"** en el menú de aplicaciones, y botones táctiles dentro de la UI de Casa y de Iker. El modo se recuerda entre reinicios.
 
 Configuración (Pi-hole, ciudad del tiempo): `/etc/pcpi/pcpi.conf`. Hay una plantilla en [config/pcpi.conf.example](config/pcpi.conf.example).
 
@@ -52,7 +53,7 @@ Con `--camera` (usa `ffmpeg`), el botón **📷 Cámara** del modo Casa abre la 
 
 Con `--voice` queda un asistente 100 % local (sin nube) con **detector dedicado de palabra de activación** ([openWakeWord](https://github.com/dscripka/openWakeWord)) + Vosk + espeak-ng. Di **«Hey Jarvis»**, espera el pitido y pide:
 
-> «qué hora es» · «qué día es hoy» · «qué tiempo hace» · «modo casa / escritorio / gaming» · «muestra la cámara» · «pausa el Pi-hole diez minutos» · «activa el Pi-hole» · «sube / baja el volumen» · «volumen al cincuenta»
+> «qué hora es» · «qué día es hoy» · «qué tiempo hace» · «modo casa / escritorio / iker» · «muestra la cámara» · «pausa el Pi-hole diez minutos» · «activa el Pi-hole» · «sube / baja el volumen» · «volumen al cincuenta»
 
 La palabra, el umbral y el micro se cambian en `[voice]` de `/etc/pcpi/pcpi.conf`. Detalles, y cómo entrenar tu propio «Oye Pi»: [docs/VOICE.md](docs/VOICE.md).
 

@@ -71,8 +71,8 @@ def parse(text):
     if has("modo"):
         if has("casa", "hogar"):
             return Intent("mode", "home")
-        if has("gaming", "juego", "juegos", "gamer"):
-            return Intent("mode", "gaming")
+        if has("iker", "notas", "bloc"):
+            return Intent("mode", "iker")
         if has("escritorio"):
             return Intent("mode", "desktop")
     if has("volumen", "silencia", "silencio", "mute"):

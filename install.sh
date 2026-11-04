@@ -116,6 +116,6 @@ cat <<EOF
 
 Listo. Cierra sesion y vuelve a entrar (o reinicia) para activar el vigilante.
   pcpi-mode home      -> modo Casa
-  pcpi-mode gaming    -> modo Gaming (Proximamente)
+  pcpi-mode iker      -> modo Iker (bloc de notas + internet)
   pcpi-mode desktop   -> escritorio normal
 EOF

@@ -16,7 +16,7 @@ Comandos en la terminal:
   oye pi qué hora es      -> simula "Oye Pi" + orden (tambien vale "hey jarvis ...")
   oye pi                  -> solo la palabra: te pide la orden en la linea siguiente
   /spotify play Titulo - Artista | /spotify pause | /spotify stop
-  /mode home|gaming|desktop      /quit
+  /mode home|iker|desktop      /quit
 """
 import argparse
 import json
@@ -60,7 +60,9 @@ class FakePiHole(BaseHTTPRequestHandler):
         if path == "/api/dns/blocking":
             return self._json({"blocking": "enabled" if st["enabled"] else "disabled"})
         if path == "/v1/forecast":
-            return self._json({"current": {"temperature_2m": 21.4, "weather_code": 1}})
+            return self._json({"current": {"temperature_2m": 21.4, "weather_code": 1},
+                               "daily": {"temperature_2m_max": [24.1], "temperature_2m_min": [17.6],
+                                         "precipitation_probability_max": [10]}})
         self._json({"error": "no"}, 404)
 
     def do_POST(self):
@@ -80,7 +82,7 @@ def main():
     ap.add_argument("--port", type=int, default=8080)
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--no-repl", action="store_true")
-    ap.add_argument("--mode", default="home", choices=["home", "gaming", "desktop"])
+    ap.add_argument("--mode", default="home", choices=["home", "iker", "desktop"])
     a = ap.parse_args()
 
     tmp = Path(tempfile.mkdtemp(prefix="pcpi-emu-"))
@@ -98,7 +100,7 @@ def main():
         "[camera]\ncommand = %s\n" % (a.host, a.port, fport, fport, cam))
     (tmp / "mode").write_text(a.mode + "\n")
     os.environ.update(PCPI_CONF=str(tmp / "pcpi.conf"), PCPI_MODE_FILE=str(tmp / "mode"),
-                      PCPI_NOWPLAYING=str(tmp / "np.json"), PCPI_VOICE_STATE=str(tmp / "voice.json"))
+                      PCPI_NOWPLAYING=str(tmp / "np.json"), PCPI_VOICE_STATE=str(tmp / "voice.json"), PCPI_NOTES_DIR=str(tmp / "notes"))
     sys.path[:0] = [str(ROOT / "home"), str(ROOT / "voice")]
     import assistant
     import intents
@@ -108,6 +110,8 @@ def main():
         (tmp / "np.json").write_text(json.dumps({"state": state, "title": title, "artist": artist}))
 
     nowplaying("playing", "Bohemian Rhapsody", "Queen")
+    server.save_note(None, "Lista de la compra\n- leche\n- pan\n- café")
+    server.save_note(None, "Ideas para el proyecto\nProbar la voz en la Pi real y ajustar el umbral.")
     srv = server.make_server(a.host, a.port)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     print("PCPi emulado en http://%s:%d   (modo %s, datos en %s)" % (a.host, a.port, a.mode, tmp), flush=True)

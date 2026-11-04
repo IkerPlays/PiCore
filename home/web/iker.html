@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modo Iker · Notas</title>
+<style>
+  :root { --bg:#ece6da; --side:#e3dccd; --card:#fbf8f1; --fg:#23201b; --dim:#7a7468; --line:#d3cab7; --acc:#2f64d8; --acc-fg:#fff; --bad:#d04a3f; --ok:#2f9e5b; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#14161b; --side:#0f1115; --card:#1a1d24; --fg:#f2f4f8; --dim:#8b93a3; --line:#2a2f39; --acc:#7aa7ff; --acc-fg:#07101f; } }
+  * { box-sizing:border-box; margin:0; }
+  html,body { height:100%; background:var(--bg); color:var(--fg); font-family:system-ui,"Segoe UI",sans-serif; }
+  body { display:grid; grid-template-columns:270px 1fr; grid-template-rows:56px 1fr; }
+  header { grid-column:1 / span 2; display:flex; align-items:center; gap:8px; padding:0 12px; background:var(--side); border-bottom:1px solid var(--line); }
+  header .title { font-weight:700; font-size:18px; margin-right:auto; }
+  button { font:inherit; font-size:16px; border:1px solid var(--line); background:var(--card); color:var(--fg); border-radius:12px; padding:9px 14px; cursor:pointer; }
+  button:hover { border-color:var(--acc); }
+  button:active, button.primary { background:var(--acc); color:var(--acc-fg); border-color:var(--acc); }
+  button.danger.armed { background:var(--bad); color:#fff; border-color:var(--bad); }
+  aside { background:var(--side); border-right:1px solid var(--line); overflow:auto; padding:10px; }
+  aside .item { padding:11px 12px; border-radius:12px; cursor:pointer; margin-bottom:4px; }
+  aside .item.sel { background:var(--card); box-shadow:0 0 0 1px var(--acc) inset; }
+  aside .item b { display:block; font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  aside .item span { font-size:13px; color:var(--dim); }
+  aside .empty { color:var(--dim); padding:16px 8px; font-size:15px; line-height:1.4; }
+  main { display:flex; flex-direction:column; min-height:0; }
+  textarea { flex:1; width:100%; border:0; outline:0; resize:none; padding:22px 28px; font:20px/1.55 Georgia,"Times New Roman",serif; background:var(--card); color:var(--fg); }
+  footer { display:flex; gap:16px; padding:6px 16px; font-size:13px; color:var(--dim); background:var(--side); border-top:1px solid var(--line); }
+  #status.ok { color:var(--ok); } #status.err { color:var(--bad); }
+</style>
+</head>
+<body>
+<header>
+  <span class="title">📝 Modo Iker</span>
+  <button id="new">➕ Nueva</button>
+  <button id="save" class="primary">💾 Guardar</button>
+  <button id="del" class="danger">🗑 Borrar</button>
+  <button id="web">🌐 Internet</button>
+  <button id="exit">↩ Salir</button>
+</header>
+<aside id="list"></aside>
+<main>
+  <textarea id="text" placeholder="Escribe aquí…  (se guarda solo)" spellcheck="true" autofocus></textarea>
+  <footer><span id="status">Lista</span><span id="count"></span><span style="margin-left:auto">Ctrl+S guardar · Ctrl+N nueva · Internet se abre en una pestaña nueva</span></footer>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const api = (url, body) => fetch(url, body === undefined ? {} : {method:"POST", headers:{"X-PCPI":"1"}, body:JSON.stringify(body)}).then(r => r.json());
+let cur = null, dirty = false, timer = 0, armed = 0;
+
+function when(t) {
+  const d = new Date(t * 1000), now = new Date();
+  return d.toDateString() === now.toDateString()
+    ? d.toLocaleTimeString("es-ES", {hour:"2-digit", minute:"2-digit"})
+    : d.toLocaleDateString("es-ES", {day:"numeric", month:"short"});
+}
+function setStatus(msg, cls) { $("status").textContent = msg; $("status").className = cls || ""; }
+function counts() {
+  const t = $("text").value, w = t.trim() ? t.trim().split(/\s+/).length : 0;
+  $("count").textContent = w + " palabras · " + t.length + " caracteres";
+}
+
+async function refresh() {
+  const notes = await api("/api/notes");
+  const l = $("list"); l.innerHTML = "";
+  if (!notes.length) l.innerHTML = '<div class="empty">Aún no hay notas.<br>Pulsa «Nueva» y empieza a escribir.</div>';
+  for (const n of notes) {
+    const d = document.createElement("div");
+    d.className = "item" + (n.id === cur ? " sel" : "");
+    const b = document.createElement("b"); b.textContent = n.title;
+    const s = document.createElement("span"); s.textContent = when(n.updated);
+    d.append(b, s);
+    d.onclick = () => openNote(n.id);
+    l.append(d);
+  }
+}
+
+async function save() {
+  clearTimeout(timer);
+  if (!dirty) return;
+  const text = $("text").value;
+  if (!text.trim() && !cur) { dirty = false; return; }       // no guardes notas vacias nuevas
+  try {
+    const r = await api("/api/notes", {id: cur, text});
+    cur = r.id; dirty = false;
+    setStatus("Guardado ✓", "ok");
+    refresh();
+  } catch (e) { setStatus("No se pudo guardar", "err"); }
+}
+
+async function openNote(id) {
+  await save();
+  if (id) {
+    const n = await api("/api/notes/" + id);
+    $("text").value = n.text; cur = id;
+  } else { $("text").value = ""; cur = null; }
+  dirty = false; setStatus(id ? "Nota abierta" : "Nota nueva"); counts(); refresh(); $("text").focus();
+}
+
+$("text").addEventListener("input", () => {
+  dirty = true; setStatus("Escribiendo…"); counts();
+  clearTimeout(timer); timer = setTimeout(save, 1200);
+});
+$("new").onclick = () => openNote(null);
+$("save").onclick = save;
+$("del").onclick = async () => {
+  const b = $("del");
+  if (!cur) { $("text").value = ""; dirty = false; counts(); return; }
+  if (!b.classList.contains("armed")) {                         // doble toque para confirmar
+    b.classList.add("armed"); b.textContent = "¿Seguro?";
+    armed = setTimeout(() => { b.classList.remove("armed"); b.textContent = "🗑 Borrar"; }, 3000); return;
+  }
+  clearTimeout(armed); b.classList.remove("armed"); b.textContent = "🗑 Borrar";
+  await api("/api/notes/delete", {id: cur});
+  cur = null; $("text").value = ""; dirty = false; counts(); setStatus("Nota borrada"); refresh();
+};
+$("web").onclick = () => window.open("https://www.google.com/", "_blank");
+$("exit").onclick = async () => { await save(); api("/api/mode", {mode:"home"}); };
+document.addEventListener("keydown", e => {
+  if (e.ctrlKey && e.key === "s") { e.preventDefault(); save(); }
+  if (e.ctrlKey && e.key === "n") { e.preventDefault(); openNote(null); }
+});
+window.addEventListener("beforeunload", () => { if (dirty) save(); });
+refresh(); counts();
+</script>
+</body>
+</html>

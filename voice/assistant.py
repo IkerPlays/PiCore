@@ -97,7 +97,7 @@ def execute(cfg, intent):
                 return intents.say_weather(json.load(r).get("weather"))
         if n == "mode":
             api(cfg, "/api/mode", {"mode": a})
-            return "Cambiando a modo " + {"home": "casa", "gaming": "gaming", "desktop": "escritorio"}[a]
+            return "Cambiando a modo " + {"home": "casa", "iker": "iker", "desktop": "escritorio"}[a]
         if n in ("camera_show", "camera_hide"):
             api(cfg, "/api/camera", {"show": n == "camera_show"})
             return "Abriendo la cámara" if n == "camera_show" else "Cámara cerrada"

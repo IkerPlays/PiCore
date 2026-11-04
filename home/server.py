@@ -6,18 +6,23 @@ Solo usa la libreria estandar de Python. Escucha en 127.0.0.1 por defecto.
 import configparser
 import json
 import os
+import re
 import shlex
+import socket
 import subprocess
 import threading
 import time
 import urllib.request
+import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 WEB = ROOT / "web"
-MODES = ("desktop", "gaming", "home")
-PAGES = {"/": "index.html", "/gaming": "gaming.html"}
+MODES = ("desktop", "iker", "home")
+PAGES = {"/": "index.html", "/iker": "iker.html"}
+NOTE_ID = re.compile(r"^[0-9a-f]{16}$")
+MAX_NOTE = 1_000_000
 
 
 def conf_path():
@@ -53,6 +58,74 @@ def set_mode(mode):
     tmp = f.with_name(f.name + ".tmp")
     tmp.write_text(mode + "\n")
     os.replace(tmp, f)
+
+
+def notes_dir():
+    d = Path(os.environ.get("PCPI_NOTES_DIR", "/var/lib/pcpi/notes"))
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _note_title(text):
+    for line in text.splitlines():
+        if line.strip():
+            return line.strip()[:60]
+    return "Nota sin título"
+
+
+def list_notes():
+    out = []
+    for f in notes_dir().glob("*.json"):
+        try:
+            d = json.loads(f.read_text())
+            out.append({"id": f.stem, "title": _note_title(d["text"]), "updated": d["updated"]})
+        except (OSError, ValueError, KeyError):
+            continue
+    return sorted(out, key=lambda n: n["updated"], reverse=True)
+
+
+def read_note(nid):
+    if not NOTE_ID.match(nid):
+        raise KeyError(nid)
+    try:
+        d = json.loads((notes_dir() / (nid + ".json")).read_text())
+    except (OSError, ValueError):
+        raise KeyError(nid)
+    return {"id": nid, "text": d["text"], "updated": d["updated"]}
+
+
+def save_note(nid, text):
+    """Crea (nid vacio) o actualiza una nota. Devuelve su id."""
+    if not isinstance(text, str) or len(text.encode()) > MAX_NOTE:
+        raise ValueError("texto invalido o demasiado grande")
+    if not nid:
+        nid = uuid.uuid4().hex[:16]
+    if not NOTE_ID.match(nid):
+        raise ValueError("id invalido")
+    f = notes_dir() / (nid + ".json")
+    tmp = f.with_suffix(".tmp")
+    tmp.write_text(json.dumps({"text": text, "updated": time.time()}))
+    os.replace(tmp, f)
+    return nid
+
+
+def delete_note(nid):
+    if not NOTE_ID.match(nid):
+        raise ValueError("id invalido")
+    try:
+        (notes_dir() / (nid + ".json")).unlink()
+    except FileNotFoundError:
+        pass
+
+
+def local_ip():
+    """IP de la Pi en la red local (para mostrarla en pantalla)."""
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sk:
+            sk.connect(("10.255.255.255", 1))
+            return sk.getsockname()[0]
+    except OSError:
+        return None
 
 
 _cache = {}
@@ -138,11 +211,17 @@ def weather(cp):
     try:
         base = cp.get("weather", "api_url", fallback="https://api.open-meteo.com/v1/forecast")
         d = http_json(
-            "%s?latitude=%s&longitude=%s&current=temperature_2m,weather_code" % (base, lat, lon),
+            "%s?latitude=%s&longitude=%s&current=temperature_2m,weather_code"
+            "&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=1"
+            % (base, lat, lon),
             timeout=4,
         )
         cur = d["current"]
-        return {"ok": True, "temp": cur["temperature_2m"], "code": cur["weather_code"]}
+        day = d.get("daily", {})
+        first = lambda k: (day.get(k) or [None])[0]
+        return {"ok": True, "temp": cur["temperature_2m"], "code": cur["weather_code"],
+                "tmax": first("temperature_2m_max"), "tmin": first("temperature_2m_min"),
+                "rain": first("precipitation_probability_max")}
     except Exception as e:
         return {"ok": False, "error": type(e).__name__}
 
@@ -248,6 +327,8 @@ def status():
         "nowplaying": nowplaying(),
         "voice": voice_state(),
         "camera": camera_status(cp),
+        "ip": local_ip(),
+        "host": socket.gethostname(),
     }
 
 
@@ -273,12 +354,30 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, status())
         if path == "/api/mode":
             return self._send(200, {"mode": get_mode()})
+        if path == "/api/notes" or path.startswith("/api/notes/"):
+            return self._notes_get(path)
         if path in ("/api/camera/stream", "/api/camera/snapshot.jpg"):
             return self._camera(path.endswith(".jpg"))
         name = PAGES.get(path)
         if name is None:
             return self._send(404, {"error": "no encontrado"})
         self._send(200, (WEB / name).read_bytes(), "text/html; charset=utf-8")
+
+    def _local(self):
+        if self.client_address[0] not in ("127.0.0.1", "::1"):
+            self._send(403, {"error": "solo local"})
+            return False
+        return True
+
+    def _notes_get(self, path):
+        if not self._local():  # las notas son privadas
+            return
+        if path == "/api/notes":
+            return self._send(200, list_notes())
+        try:
+            return self._send(200, read_note(path.rsplit("/", 1)[1]))
+        except KeyError:
+            return self._send(404, {"error": "nota no encontrada"})
 
     def _camera(self, snapshot):
         # La camara es privada: solo desde esta misma maquina, aunque el servidor escuche en la LAN.
@@ -323,19 +422,28 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         # Solo local y con cabecera propia: una web externa no puede cambiar nada
         # (la cabecera obliga a preflight CORS, que no respondemos).
-        if self.client_address[0] not in ("127.0.0.1", "::1"):
-            return self._send(403, {"error": "solo local"})
-        if self.path not in ("/api/mode", "/api/pihole", "/api/camera") or self.headers.get("X-PCPI") != "1":
+        if not self._local():
+            return
+        paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete")
+        if self.path not in paths or self.headers.get("X-PCPI") != "1":
             return self._send(403, {"error": "prohibido"})
         try:
             n = int(self.headers.get("Content-Length", "0"))
-            body = json.loads(self.rfile.read(min(n, 1024)))
+            limit = MAX_NOTE + 4096 if self.path == "/api/notes" else 1024
+            if n > limit:
+                return self._send(413, {"error": "demasiado grande"})
+            body = json.loads(self.rfile.read(n))
             if self.path == "/api/mode":
                 set_mode(body["mode"])
                 return self._send(200, {"mode": body["mode"]})
             if self.path == "/api/camera":
                 CAMERA["show"] = bool(body["show"])
                 return self._send(200, {"show": CAMERA["show"]})
+            if self.path == "/api/notes":
+                return self._send(200, {"id": save_note(body.get("id"), body["text"])})
+            if self.path == "/api/notes/delete":
+                delete_note(body["id"])
+                return self._send(200, {"ok": True})
             action = body["action"]
             if action not in ("enable", "disable"):
                 raise ValueError("accion invalida")

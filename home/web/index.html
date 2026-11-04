@@ -5,136 +5,236 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PCPi · Casa</title>
 <style>
-  :root { --bg:#0f1115; --card:#1a1d24; --fg:#f2f4f8; --dim:#8b93a3; --ok:#4ade80; --bad:#f87171; --acc:#60a5fa; }
+  :root { --bg:#0e1014; --card:#181b22; --fg:#f2f4f8; --dim:#8b93a3; --line:#252a33; --ok:#4ade80; --bad:#f87171; --acc:#7aa7ff; --acc-fg:#07101f; }
+  html[data-theme=light] { --bg:#ece6da; --card:#fbf8f1; --fg:#23201b; --dim:#7a7468; --line:#ded6c6; --ok:#2f9e5b; --bad:#d04a3f; --acc:#2f64d8; --acc-fg:#fff; }
   * { box-sizing:border-box; margin:0; user-select:none; -webkit-user-select:none; }
-  html,body { height:100%; background:var(--bg); color:var(--fg); font-family:system-ui,sans-serif; overflow:hidden; cursor:none; }
-  main { height:100%; display:grid; grid-template-columns:1.2fr 1fr; gap:16px; padding:16px; grid-template-rows:minmax(0,1fr) 64px; }
-  .card { background:var(--card); border-radius:20px; padding:16px 20px; }
-  .clock { grid-row:1; display:flex; flex-direction:column; justify-content:center; align-items:center; }
-  #time { font-size:clamp(72px,16vw,160px); font-weight:700; letter-spacing:-.04em; line-height:1; }
-  #date { font-size:28px; color:var(--dim); margin-top:8px; }
-  #weather { font-size:30px; margin-top:20px; }
-  #voice { font-size:20px; color:var(--dim); margin-top:24px; text-align:center; min-height:56px; }
-  #voice b { color:var(--fg); font-weight:600; }
-  .side { display:grid; grid-template-rows:minmax(0,1fr) minmax(0,1fr) auto; gap:16px; min-height:0; }
-  .card { overflow:hidden; }
-  h2 { font-size:15px; text-transform:uppercase; letter-spacing:.1em; color:var(--dim); margin-bottom:10px; }
-  .big { font-size:38px; font-weight:700; }
-  .row { display:flex; justify-content:space-between; font-size:20px; margin-top:6px; }
+  html,body { height:100%; background:var(--bg); color:var(--fg); font-family:system-ui,"Segoe UI",sans-serif; overflow:hidden; cursor:none; transition:background .6s,color .6s; }
+  body.night main { filter:brightness(.62); }
+  main { height:100%; display:grid; grid-template-columns:1.25fr 1fr; grid-template-rows:minmax(0,1fr) 64px; gap:14px; padding:14px; transition:filter 1s; }
+  .card { background:var(--card); border-radius:22px; padding:16px 20px; overflow:hidden; transition:background .6s; border:1px solid var(--line); }
+  h2 { font-size:13px; text-transform:uppercase; letter-spacing:.12em; color:var(--dim); font-weight:600; }
   .dim { color:var(--dim); }
-  #track { font-size:26px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  #artist { font-size:20px; color:var(--dim); margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  /* reloj */
+  .clock { position:relative; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; }
+  #greet { position:absolute; top:16px; left:22px; font-size:19px; color:var(--dim); }
+  #chips { position:absolute; top:16px; right:18px; display:flex; gap:8px; font-size:14px; color:var(--dim); }
+  #chips span { background:var(--bg); border-radius:999px; padding:4px 11px; }
+  #time { font-size:clamp(84px,17vw,172px); font-weight:700; letter-spacing:-.045em; line-height:.95; font-variant-numeric:tabular-nums; }
+  #date { font-size:27px; color:var(--dim); margin-top:10px; }
+  #weather { margin-top:18px; font-size:28px; display:flex; align-items:center; gap:14px; }
+  #wsub { font-size:17px; color:var(--dim); margin-top:6px; min-height:22px; }
+  #hint { position:absolute; bottom:14px; left:0; right:0; font-size:16px; color:var(--dim); }
+
+  /* columna derecha */
+  .side { display:grid; grid-template-rows:minmax(0,1.05fr) minmax(0,1fr); gap:14px; min-height:0; }
+  .ph { display:grid; grid-template-columns:116px 1fr; gap:16px; align-items:center; }
+  .ring { position:relative; width:116px; height:116px; }
+  .ring svg { transform:rotate(-90deg); }
+  .ring circle { fill:none; stroke-width:11; }
+  .ring .bg { stroke:var(--line); }
+  .ring .fg { stroke:var(--ok); stroke-linecap:round; transition:stroke-dashoffset .8s, stroke .4s; }
+  .ring b { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:26px; }
+  .row { display:flex; justify-content:space-between; font-size:18px; margin-top:5px; }
+  button { font:inherit; border-radius:16px; background:var(--card); color:var(--fg); border:1px solid var(--line); }
+  button:active { background:var(--acc); color:var(--acc-fg); }
+  #ph-btn { margin-top:10px; width:100%; padding:11px; font-size:17px; }
+  .music { display:grid; grid-template-columns:auto 1fr; gap:16px; align-items:center; }
+  #cover { width:112px; height:112px; border-radius:14px; background:var(--bg); display:flex; align-items:center; justify-content:center; font-size:46px; }
+  #track { font-size:25px; font-weight:650; line-height:1.15; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  #artist { font-size:18px; color:var(--dim); margin-top:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #pstate { font-size:14px; margin-top:8px; color:var(--acc); }
+
+  /* barra inferior */
+  nav { grid-column:1 / span 2; display:flex; gap:12px; }
+  nav button { flex:1; font-size:20px; }
+
+  /* voz */
+  #voice { position:fixed; left:50%; bottom:92px; transform:translate(-50%,20px); opacity:0; pointer-events:none; transition:all .25s;
+           background:var(--acc); color:var(--acc-fg); padding:12px 26px; border-radius:999px; font-size:21px; max-width:88vw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; box-shadow:0 8px 30px #0006; z-index:5; }
+  #voice.on { opacity:1; transform:translate(-50%,0); }
+  #voice.pulse::before { content:""; display:inline-block; width:12px; height:12px; border-radius:50%; background:currentColor; margin-right:12px; animation:pulse 1s infinite; }
+  @keyframes pulse { 0%,100% { transform:scale(.7); opacity:.6 } 50% { transform:scale(1.2); opacity:1 } }
+
+  /* camara */
   #cam { position:fixed; inset:0; background:#000; display:none; z-index:10; }
   #cam img { width:100%; height:100%; object-fit:contain; }
-  #cam button { position:absolute; top:16px; right:16px; flex:none; padding:14px 24px; background:rgba(26,29,36,.85); }
-  #cam .msg { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--dim); font-size:24px; z-index:-1; }
-  nav { grid-column:1 / span 2; display:flex; gap:12px; }
-  button { flex:1; font:inherit; font-size:20px; border:0; border-radius:16px; background:var(--card); color:var(--fg); }
-  button:active { background:var(--acc); color:#000; }
+  #cam button { position:absolute; top:16px; right:16px; padding:14px 24px; background:rgba(26,29,36,.88); color:#fff; border-color:#fff3; }
+  #cam .msg { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#8b93a3; font-size:24px; z-index:-1; }
 </style>
 </head>
 <body>
 <main>
-  <section class="card clock">
+  <section class="card clock" id="clock">
+    <div id="greet"></div>
+    <div id="chips"><span id="chip-cpu" hidden></span><span id="chip-ip" hidden></span></div>
     <div id="time">--:--</div>
     <div id="date"></div>
     <div id="weather"></div>
-    <div id="voice"></div>
+    <div id="wsub"></div>
+    <div id="hint"></div>
   </section>
+
   <section class="side">
     <div class="card">
       <h2>Pi-hole</h2>
-      <div class="big" id="ph-pct">--</div>
-      <div class="row"><span class="dim">Bloqueadas hoy</span><span id="ph-blocked">--</span></div>
-      <div class="row"><span class="dim">Consultas</span><span id="ph-total">--</span></div>
-      <div class="row"><span class="dim">Estado</span><span id="ph-state">--</span></div>
+      <div class="ph" style="margin-top:8px">
+        <div class="ring">
+          <svg width="116" height="116" viewBox="0 0 116 116"><circle class="bg" cx="58" cy="58" r="50"/><circle class="fg" id="ring" cx="58" cy="58" r="50" stroke-dasharray="314.16" stroke-dashoffset="314.16"/></svg>
+          <b id="ph-pct">--</b>
+        </div>
+        <div>
+          <div class="row" style="margin-top:0"><span class="dim">Bloqueadas</span><span id="ph-blocked">--</span></div>
+          <div class="row"><span class="dim">Consultas</span><span id="ph-total">--</span></div>
+          <div class="row"><span class="dim">Estado</span><span id="ph-state">--</span></div>
+          <button id="ph-btn" hidden>⏸ Pausar 5 min</button>
+        </div>
+      </div>
     </div>
     <div class="card">
       <h2>Spotify</h2>
-      <div id="track">Nada sonando</div>
-      <div id="artist">Elige "PCPi" en Spotify Connect</div>
-    </div>
-    <div class="card row" style="margin:0">
-      <span class="dim">CPU</span><span id="cpu">--</span>
-      <span class="dim">Encendida</span><span id="up">--</span>
+      <div class="music" style="margin-top:10px">
+        <div id="cover">🎵</div>
+        <div style="min-width:0">
+          <div id="track">Nada sonando</div>
+          <div id="artist">Elige «PCPi» en Spotify Connect</div>
+          <div id="pstate"></div>
+        </div>
+      </div>
     </div>
   </section>
+
   <nav>
     <button id="open-cam">📷 Cámara</button>
+    <button data-mode="iker">📝 Modo Iker</button>
     <button data-mode="desktop">🖥 Escritorio</button>
-    <button data-mode="gaming">🎮 Gaming</button>
   </nav>
 </main>
+
+<div id="voice"></div>
 <div id="cam">
   <div class="msg">Conectando con la cámara…</div>
   <img id="cam-img" alt="">
   <button id="close-cam">✕ Cerrar</button>
 </div>
+
 <script>
 const $ = id => document.getElementById(id);
-const WMO = {0:"☀️ Despejado",1:"🌤 Poco nuboso",2:"⛅ Nuboso",3:"☁️ Cubierto",45:"🌫 Niebla",48:"🌫 Niebla",
-  51:"🌦 Llovizna",53:"🌦 Llovizna",55:"🌦 Llovizna",61:"🌧 Lluvia",63:"🌧 Lluvia",65:"🌧 Lluvia fuerte",
-  71:"❄️ Nieve",73:"❄️ Nieve",75:"❄️ Nieve",80:"🌦 Chubascos",81:"🌧 Chubascos",82:"🌧 Chubascos",95:"⛈ Tormenta"};
+const post = (url, body) => fetch(url, {method:"POST", headers:{"X-PCPI":"1"}, body:JSON.stringify(body)});
+const fmt = n => (n ?? "--").toLocaleString("es-ES");
+const WMO = {0:["☀️","Despejado"],1:["🌤","Poco nuboso"],2:["⛅","Nuboso"],3:["☁️","Cubierto"],45:["🌫","Niebla"],48:["🌫","Niebla"],
+  51:["🌦","Llovizna"],53:["🌦","Llovizna"],55:["🌦","Llovizna"],61:["🌧","Lluvia"],63:["🌧","Lluvia"],65:["🌧","Lluvia fuerte"],
+  71:["❄️","Nieve"],73:["❄️","Nieve"],75:["❄️","Nieve"],80:["🌦","Chubascos"],81:["🌧","Chubascos"],82:["🌧","Chubascos"],95:["⛈","Tormenta"]};
+
+/* ---- tema: claro de dia (papel), oscuro de noche; toca la hora para cambiarlo, el saludo para volver a auto ---- */
+let themeOverride = null;
+try { themeOverride = localStorage.getItem("pcpi-theme"); } catch (e) {}
+function applyTheme() {
+  const h = new Date().getHours();
+  const auto = (h >= 8 && h < 20) ? "light" : "dark";
+  document.documentElement.dataset.theme = themeOverride || auto;
+  document.body.classList.toggle("night", !themeOverride && (h >= 23 || h < 7));
+}
+$("time").onclick = () => {
+  themeOverride = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+  try { localStorage.setItem("pcpi-theme", themeOverride); } catch (e) {}
+  applyTheme();
+};
+$("greet").onclick = () => { themeOverride = null; try { localStorage.removeItem("pcpi-theme"); } catch (e) {} applyTheme(); };
+
 function tick() {
-  const d = new Date();
+  const d = new Date(), h = d.getHours();
   $("time").textContent = d.toLocaleTimeString("es-ES", {hour:"2-digit", minute:"2-digit"});
   const ds = d.toLocaleDateString("es-ES", {weekday:"long", day:"numeric", month:"long"});
   $("date").textContent = ds.charAt(0).toUpperCase() + ds.slice(1);
+  $("greet").textContent = h < 6 ? "Buenas noches" : h < 13 ? "Buenos días" : h < 20 ? "Buenas tardes" : "Buenas noches";
+  applyTheme();
 }
-const fmt = n => (n ?? "--").toLocaleString("es-ES");
-async function refresh() {
-  try {
-    const s = await (await fetch("/api/status")).json();
-    const p = s.pihole;
-    if (p.ok) {
-      $("ph-pct").textContent = p.percent + " %";
-      $("ph-blocked").textContent = fmt(p.blocked);
-      $("ph-total").textContent = fmt(p.total);
-      $("ph-state").textContent = p.blocking === "enabled" ? "Activo" : p.blocking;
-    } else {
-      $("ph-pct").textContent = "--"; $("ph-state").textContent = "Sin conexión";
-    }
-    const w = s.weather;
-    $("weather").textContent = w.ok ? `${WMO[w.code] || "🌡"} · ${Math.round(w.temp)}°C` : "";
-    const n = s.nowplaying;
-    if (n.state === "playing" || n.state === "paused") {
-      $("track").textContent = (n.state === "paused" ? "⏸ " : "▶ ") + (n.title || "");
-      $("artist").textContent = n.artist || "";
-    } else {
-      $("track").textContent = "Nada sonando";
-      $("artist").textContent = 'Elige "PCPi" en Spotify Connect';
-    }
-    const v = s.voice || {};
-    if (v.state === "off") $("voice").textContent = "";
-    else if (v.state === "awake") $("voice").innerHTML = "🎤 <b>Te escucho…</b>";
-    else if (v.state === "speaking") $("voice").innerHTML = "🔊 <b>" + (v.reply || "") + "</b>";
-    else if (v.heard) $("voice").innerHTML = "🎤 «" + v.heard + "» → <b>" + (v.reply || "") + "</b>";
-    else $("voice").textContent = "🎤 Di «" + (v.wake || "hey jarvis") + "»…";
-    const c = s.camera || {};
-    $("open-cam").style.display = c.available ? "" : "none";
-    if (c.available && c.show) openCam(); else closeCam();
-    $("cpu").textContent = s.cpu_temp != null ? s.cpu_temp + " °C" : "--";
-    $("up").textContent = s.uptime != null ? Math.floor(s.uptime/3600) + " h" : "--";
-  } catch (e) { /* servidor reiniciando */ }
-}
+
+/* ---- Pi-hole ---- */
+let phEnabled = true;
+$("ph-btn").onclick = async () => {
+  await post("/api/pihole", phEnabled ? {action:"disable", minutes:5} : {action:"enable"});
+  refresh();
+};
+
+/* ---- camara ---- */
 const camShown = () => $("cam").style.display === "block";
-function openCam() {
-  if (camShown()) return;
-  $("cam").style.display = "block";
-  $("cam-img").src = "/api/camera/stream?" + Date.now();
+function openCam() { if (!camShown()) { $("cam").style.display = "block"; $("cam-img").src = "/api/camera/stream?" + Date.now(); } }
+function closeCam() { if (camShown()) { $("cam-img").removeAttribute("src"); $("cam").style.display = "none"; } }
+$("open-cam").onclick = () => { openCam(); post("/api/camera", {show:true}); };
+$("close-cam").onclick = () => { closeCam(); post("/api/camera", {show:false}); };
+document.querySelectorAll("button[data-mode]").forEach(b => b.onclick = () => post("/api/mode", {mode:b.dataset.mode}));
+
+/* ---- voz ---- */
+let hideVoice = 0;
+function showVoice(text, pulse, ms) {
+  const v = $("voice"); v.textContent = text; v.classList.add("on"); v.classList.toggle("pulse", pulse);
+  clearTimeout(hideVoice); if (ms) hideVoice = setTimeout(() => v.classList.remove("on"), ms);
 }
-function closeCam() {
-  if (!camShown()) return;
-  $("cam-img").removeAttribute("src");  // corta la conexion: el servidor apaga la camara
-  $("cam").style.display = "none";
+
+async function refresh() {
+  let s;
+  try { s = await (await fetch("/api/status")).json(); } catch (e) { return; }
+  const p = s.pihole;
+  if (p.ok) {
+    phEnabled = p.blocking === "enabled";
+    $("ph-pct").textContent = Math.round(p.percent) + "%";
+    $("ring").style.strokeDashoffset = 314.16 * (1 - Math.min(p.percent, 100) / 100);
+    $("ring").style.stroke = phEnabled ? "var(--ok)" : "var(--bad)";
+    $("ph-blocked").textContent = fmt(p.blocked);
+    $("ph-total").textContent = fmt(p.total);
+    $("ph-state").textContent = phEnabled ? "Activo" : "En pausa";
+    $("ph-state").style.color = phEnabled ? "var(--ok)" : "var(--bad)";
+    $("ph-btn").hidden = false;
+    $("ph-btn").textContent = phEnabled ? "⏸ Pausar 5 min" : "▶ Activar ya";
+  } else {
+    $("ph-pct").textContent = "--"; $("ring").style.strokeDashoffset = 314.16;
+    $("ph-blocked").textContent = $("ph-total").textContent = "--";
+    $("ph-state").textContent = "Sin conexión"; $("ph-state").style.color = "var(--dim)"; $("ph-btn").hidden = true;
+  }
+  const w = s.weather;
+  if (w.ok) {
+    const [ic, tx] = WMO[w.code] || ["🌡", ""];
+    $("weather").innerHTML = `<span style="font-size:44px">${ic}</span><span><b>${Math.round(w.temp)}°C</b> <span class="dim">${tx}</span></span>`;
+    const bits = [];
+    if (w.tmax != null) bits.push(`Máx ${Math.round(w.tmax)}° · Mín ${Math.round(w.tmin)}°`);
+    if (w.rain != null) bits.push(`💧 ${w.rain}%`);
+    $("wsub").textContent = bits.join("   ");
+  } else { $("weather").textContent = ""; $("wsub").textContent = ""; }
+
+  const n = s.nowplaying || {};
+  const on = n.state === "playing" || n.state === "paused";
+  $("track").textContent = on ? (n.title || "") : "Nada sonando";
+  $("artist").textContent = on ? (n.artist || "") : "Elige «PCPi» en Spotify Connect";
+  $("pstate").textContent = on ? (n.state === "playing" ? "▶ Reproduciendo" : "⏸ En pausa") : "";
+  const cv = $("cover");
+  if (on && n.cover) { cv.textContent = ""; cv.style.backgroundImage = `url("${n.cover}")`; cv.style.backgroundSize = "cover"; }
+  else { cv.style.backgroundImage = ""; cv.textContent = "🎵"; }
+
+  if (s.cpu_temp != null) { $("chip-cpu").hidden = false; $("chip-cpu").textContent = "🌡 " + s.cpu_temp + "°"; }
+  if (s.ip) { $("chip-ip").hidden = false; $("chip-ip").textContent = s.ip; }
+
+  const c = s.camera || {};
+  $("open-cam").style.display = c.available ? "" : "none";
+  if (c.available && c.show) openCam(); else closeCam();
+
+  const v = s.voice || {};
+  const fresh = v.ts && (Date.now() / 1000 - v.ts) < 8;
+  if (v.state === "awake") showVoice("Te escucho…", true, 0);
+  else if (v.state === "speaking") showVoice(v.reply || "", true, 0);
+  else if (v.heard && fresh) showVoice("«" + v.heard + "» → " + (v.reply || ""), false, 5000);
+  else if (!fresh) $("voice").classList.remove("on");
+  $("hint").textContent = (v.state && v.state !== "off") ? "🎤 Di «" + (v.wake || "oye pi") + "»" : "";
 }
-const setCam = show => fetch("/api/camera", {method:"POST", headers:{"X-PCPI":"1"}, body:JSON.stringify({show})});
-$("open-cam").onclick = () => { openCam(); setCam(true); };
-$("close-cam").onclick = () => { closeCam(); setCam(false); };
-document.querySelectorAll("button[data-mode]").forEach(b => b.onclick = () =>
-  fetch("/api/mode", {method:"POST", headers:{"X-PCPI":"1"}, body:JSON.stringify({mode:b.dataset.mode})}));
+
+/* mantener la pantalla encendida */
+async function keepAwake() { try { await navigator.wakeLock.request("screen"); } catch (e) {} }
+document.addEventListener("visibilitychange", () => { if (!document.hidden) keepAwake(); });
+keepAwake();
+
 tick(); refresh();
-setInterval(tick, 1000); setInterval(refresh, 5000);
+setInterval(tick, 1000); setInterval(refresh, 4000);
 </script>
 </body>
 </html>

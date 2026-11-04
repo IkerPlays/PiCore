@@ -47,9 +47,10 @@ class ServerTest(unittest.TestCase):
 
     def test_pages(self):
         self.assertEqual(self.req("/")[0], 200)
-        code, body = self.req("/gaming")
+        code, body = self.req("/iker")
         self.assertEqual(code, 200)
-        self.assertIn("Próximamente".encode(), body)
+        self.assertIn("Modo Iker".encode(), body)
+        self.assertEqual(self.req("/gaming")[0], 404)
 
     def test_unknown_and_traversal(self):
         self.assertEqual(self.req("/../server.py")[0], 404)
@@ -64,6 +65,31 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(self.req("/api/mode", json.dumps({"mode": "home"}).encode(), h)[0], 200)
         self.assertEqual(json.loads(self.req("/api/mode")[1])["mode"], "home")
         self.assertEqual(self.req("/api/mode", json.dumps({"mode": "hack"}).encode(), h)[0], 400)
+
+    def test_notes_crud(self):
+        os.environ["PCPI_NOTES_DIR"] = os.path.join(tmp, "notes")
+        h = {"X-PCPI": "1"}
+        j = lambda o: json.dumps(o).encode()
+        self.assertEqual(json.loads(self.req("/api/notes")[1]), [])
+        self.assertEqual(self.req("/api/notes", j({"text": "x"}))[0], 403)  # sin cabecera
+        nid = json.loads(self.req("/api/notes", j({"text": "Compra\nleche"}), h)[1])["id"]
+        notes = json.loads(self.req("/api/notes")[1])
+        self.assertEqual([(n["id"], n["title"]) for n in notes], [(nid, "Compra")])
+        self.assertEqual(json.loads(self.req("/api/notes/" + nid)[1])["text"], "Compra\nleche")
+        # actualizar la misma nota
+        self.assertEqual(json.loads(self.req("/api/notes", j({"id": nid, "text": "Otra"}), h)[1])["id"], nid)
+        self.assertEqual(json.loads(self.req("/api/notes/" + nid)[1])["text"], "Otra")
+        # ids raros no pueden salir de la carpeta
+        self.assertEqual(self.req("/api/notes/..%2F..%2Fetc%2Fpasswd")[0], 404)
+        self.assertEqual(self.req("/api/notes", j({"id": "../../x", "text": "x"}), h)[0], 400)
+        self.assertEqual(self.req("/api/notes", j({"text": 5}), h)[0], 400)
+        self.assertEqual(self.req("/api/notes/delete", j({"id": nid}), h)[0], 200)
+        self.assertEqual(json.loads(self.req("/api/notes")[1]), [])
+
+    def test_status_extras(self):
+        d = json.loads(self.req("/api/status")[1])
+        self.assertIn("ip", d)
+        self.assertIn("host", d)
 
     def test_pihole_post_validation(self):
         h = {"X-PCPI": "1"}
