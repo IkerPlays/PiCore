@@ -86,7 +86,8 @@ if [ "$VOICE" = 1 ]; then
   sudo apt-get install -y alsa-utils espeak-ng python3-venv unzip
   sudo usermod -aG audio "$ME"
   sudo python3 -m venv "$PREFIX/venv"
-  sudo "$PREFIX/venv/bin/pip" install --quiet vosk
+  # openwakeword 0.4.0 lleva sus modelos ONNX dentro del paquete (no necesita tflite ni descargas)
+  sudo "$PREFIX/venv/bin/pip" install --quiet vosk "openwakeword==0.4.0"
   MODEL=vosk-model-small-es-0.42
   if [ ! -d "$PREFIX/models/$MODEL" ]; then
     sudo mkdir -p "$PREFIX/models"

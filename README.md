@@ -42,12 +42,12 @@ Con `--camera` (usa `ffmpeg`), el botón **📷 Cámara** del modo Casa abre la 
 
 ## Voz
 
-Con `--voice` queda un asistente 100 % local (Vosk + espeak-ng, sin nube). Di la palabra de activación y una orden:
+Con `--voice` queda un asistente 100 % local (sin nube) con **detector dedicado de palabra de activación** ([openWakeWord](https://github.com/dscripka/openWakeWord)) + Vosk + espeak-ng. Di **«Hey Jarvis»**, espera el pitido y pide:
 
-> «Oye Pi, ¿qué hora es?» · «qué día es hoy» · «qué tiempo hace» · «modo casa / escritorio / gaming» · «pausa el Pi-hole diez minutos» · «activa el Pi-hole» · «sube / baja el volumen» · «volumen al cincuenta»
+> «qué hora es» · «qué día es hoy» · «qué tiempo hace» · «modo casa / escritorio / gaming» · «muestra la cámara» · «pausa el Pi-hole diez minutos» · «activa el Pi-hole» · «sube / baja el volumen» · «volumen al cincuenta»
 
-Si dices solo «Oye Pi», responde «Dime» y espera la orden 8 s. La palabra de activación y el micro se cambian en `/etc/pcpi/pcpi.conf`, sección `[voice]`.
+La palabra, el umbral y el micro se cambian en `[voice]` de `/etc/pcpi/pcpi.conf`. Detalles, y cómo entrenar tu propio «Oye Pi»: [docs/VOICE.md](docs/VOICE.md).
 
 ## Estado
 
-> ⚠️ El código está probado con tests del servidor (`python3 -m unittest discover tests`, 15 tests, incluido el intérprete de órdenes de voz), pero **aún no en una Raspberry Pi real**. El instalador, el kiosk de Chromium, el hook de Spotify y la cámara, el reconocimiento de voz (calidad del micro, activaciones falsas) necesitan una prueba en el hardware.
+> ⚠️ El código está probado con tests del servidor (`python3 -m unittest discover tests`, 24 tests, incluido el intérprete de órdenes de voz), pero **aún no en una Raspberry Pi real**. El instalador, el kiosk de Chromium, el hook de Spotify y la cámara, el reconocimiento de voz (calidad del micro, activaciones falsas) necesitan una prueba en el hardware.

@@ -104,9 +104,10 @@ async function refresh() {
     }
     const v = s.voice || {};
     if (v.state === "off") $("voice").textContent = "";
+    else if (v.state === "awake") $("voice").innerHTML = "🎤 <b>Te escucho…</b>";
     else if (v.state === "speaking") $("voice").innerHTML = "🔊 <b>" + (v.reply || "") + "</b>";
     else if (v.heard) $("voice").innerHTML = "🎤 «" + v.heard + "» → <b>" + (v.reply || "") + "</b>";
-    else $("voice").textContent = "🎤 Di «" + (v.wake || "oye pi") + "»…";
+    else $("voice").textContent = "🎤 Di «" + (v.wake || "hey jarvis") + "»…";
     const c = s.camera || {};
     $("open-cam").style.display = c.available ? "" : "none";
     if (c.available && c.show) openCam(); else closeCam();

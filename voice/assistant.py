@@ -1,27 +1,31 @@
 #!/usr/bin/env python3
-"""Asistente de voz PCPi: palabra de activacion + ordenes, todo en local (Vosk).
+"""Asistente de voz PCPi, todo en local.
 
-Captura con `arecord`, reconoce con Vosk (modelo español pequeño) y habla con espeak-ng.
-Escribe su estado en /var/lib/pcpi/voice.json para que la UI del modo Casa lo muestre.
+  1. Un detector DEDICADO de palabra de activacion (openWakeWord) escucha siempre. Es muy
+     ligero y casi no da falsos positivos. Si no esta instalado, cae a Vosk con gramatica.
+  2. Al detectarla suena un pitido y Vosk (español) transcribe UNA orden.
+  3. Se ejecuta (modo, Pi-hole, volumen, camara...) y se contesta con espeak-ng.
+
+El estado va a /var/lib/pcpi/voice.json para que la UI del modo Casa lo muestre.
 """
 import configparser
 import datetime
+import io
 import json
 import os
 import subprocess
 import sys
 import time
 import urllib.request
+import wave
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import intents  # noqa: E402
 
 CONF = Path(os.environ.get("PCPI_CONF", "/etc/pcpi/pcpi.conf"))
-MODE_FILE = Path(os.environ.get("PCPI_MODE_FILE", "/etc/pcpi/mode"))
 STATE = Path(os.environ.get("PCPI_VOICE_STATE", "/var/lib/pcpi/voice.json"))
 RATE = 16000
-FOLLOWUP_S = 8  # tras decir solo "oye pi", espera la orden este tiempo
 
 
 def load_conf():
@@ -29,7 +33,11 @@ def load_conf():
     cp.read(CONF)
     g = lambda k, d: cp.get("voice", k, fallback=d)
     return {
+        "engine": g("wake_engine", "openwakeword").strip().lower(),
+        "wake_model": g("wake_model", "hey_jarvis").strip(),
+        "threshold": float(g("wake_threshold", "0.5")),
         "wakes": [w.strip() for w in g("wake", "oye pi,hey pi,oye casa").split(",") if w.strip()],
+        "followup": float(g("followup_s", "8")),
         "device": g("device", "default"),
         "model": g("model", "/opt/pcpi/models/vosk-model-small-es-0.42"),
         "voice": g("tts_voice", "es"),
@@ -61,8 +69,7 @@ def set_volume(arg):
     if arg == "mute":
         cmds = [["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"], ["amixer", "-q", "set", "Master", "toggle"]]
     elif arg[0] in "+-":
-        step = arg[1:] + "%" + arg[0]
-        cmds = [["wpctl", "set-volume", "-l", "1.0", "@DEFAULT_AUDIO_SINK@", step],
+        cmds = [["wpctl", "set-volume", "-l", "1.0", "@DEFAULT_AUDIO_SINK@", arg[1:] + "%" + arg[0]],
                 ["amixer", "-q", "set", "Master", arg[1:] + "%" + arg[0]]]
     else:
         cmds = [["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", arg + "%"],
@@ -108,9 +115,73 @@ def execute(cfg, intent):
     return "No te he entendido"
 
 
-def speak(cfg, text):
-    write_state(state="speaking", reply=text, ts=time.time())
-    subprocess.run(["espeak-ng", "-v", cfg["voice"], "-s", "160", text], capture_output=True)
+def make_beep():
+    """WAV de un pitido corto (880 Hz, 120 ms) en memoria."""
+    import math
+    import struct
+
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(22050)
+        n = int(22050 * 0.12)
+        w.writeframes(b"".join(
+            struct.pack("<h", int(9000 * math.sin(2 * math.pi * 880 * i / 22050) * min(1, (n - i) / 400)))
+            for i in range(n)))
+    return buf.getvalue()
+
+
+class Assistant:
+    """Maquina de estados: idle (esperando la palabra) -> command (esperando UNA orden) -> idle.
+
+    Recibe todo inyectado (detector, reconocedor, acciones) para poder probarla sin audio.
+    """
+
+    def __init__(self, detector, recognizer, execute, speak, beep, restart_capture, wake_name,
+                 followup=8.0, clock=time.time):
+        self.detector, self.rec = detector, recognizer
+        self.execute, self.speak, self.beep = execute, speak, beep
+        self.restart_capture = restart_capture
+        self.wake_name, self.followup, self.clock = wake_name, followup, clock
+        self.state, self.deadline = "idle", 0.0
+        self.heard = self.reply = ""
+        self._publish("listening")
+
+    def _publish(self, st):
+        write_state(state=st, heard=self.heard, reply=self.reply, wake=self.wake_name, ts=time.time())
+
+    def _back_to_idle(self):
+        self.restart_capture()  # descarta el audio de la propia voz / pitido
+        self.detector.reset()
+        self.rec.Reset()
+        self.state = "idle"
+        self._publish("listening")
+
+    def on_audio(self, data):
+        if self.state == "idle":
+            if self.detector.feed(data):
+                self.heard = self.reply = ""
+                self._publish("awake")
+                self.beep()
+                self.restart_capture()
+                self.detector.reset()
+                self.rec.Reset()
+                self.state, self.deadline = "command", self.clock() + self.followup
+            return
+        if self.clock() > self.deadline:  # no dijo nada
+            return self._back_to_idle()
+        if not self.rec.AcceptWaveform(data):
+            return
+        text = json.loads(self.rec.Result()).get("text", "").strip()
+        if not text:
+            return
+        self.heard = intents.norm(text)
+        intent = intents.parse(self.heard)
+        self.reply = self.execute(intent) if intent else "No te he entendido"
+        self._publish("speaking")
+        self.speak(self.reply)
+        self._back_to_idle()
 
 
 def start_capture(cfg):
@@ -120,53 +191,49 @@ def start_capture(cfg):
     )
 
 
+def build_detector(cfg, vosk_model):
+    if cfg["engine"] == "openwakeword":
+        try:
+            import wake
+            return wake.OpenWakeWord(cfg["wake_model"], cfg["threshold"])
+        except ImportError as e:
+            print("openWakeWord no esta instalado (%s): uso Vosk como plan B" % e, file=sys.stderr, flush=True)
+    import wake
+    return wake.VoskWake(vosk_model, cfg["wakes"])
+
+
 def main():
     from vosk import KaldiRecognizer, Model, SetLogLevel  # import tardio: solo en la Pi
 
     SetLogLevel(-1)
     cfg = load_conf()
-    model = Model(cfg["model"])
-    rec = KaldiRecognizer(model, RATE)
-    cap = start_capture(cfg)
-    awaiting_until = 0.0
-    heard = ""
-    write_state(state="listening", heard="", reply="", wake=cfg["wakes"][0])
-    print("Escuchando. Palabra de activacion: %s" % cfg["wakes"], flush=True)
+    vosk_model = Model(cfg["model"])
+    detector = build_detector(cfg, vosk_model)
+    beep_wav = make_beep()
+    cap = [start_capture(cfg)]
 
+    def restart_capture():
+        cap[0].kill()
+        cap[0] = start_capture(cfg)
+
+    def beep():
+        subprocess.run(["aplay", "-q", "-t", "wav", "-"], input=beep_wav, capture_output=True)
+
+    def speak(text):
+        subprocess.run(["espeak-ng", "-v", cfg["voice"], "-s", "160", text], capture_output=True)
+
+    asst = Assistant(
+        detector, KaldiRecognizer(vosk_model, RATE), lambda i: execute(cfg, i), speak, beep,
+        restart_capture, detector.name, cfg["followup"],
+    )
+    print("Escuchando. Palabra de activacion: %r (%s)" % (detector.name, type(detector).__name__), flush=True)
     while True:
-        data = cap.stdout.read(4000)
+        data = cap[0].stdout.read(2560)
         if not data:  # arecord murio (micro desconectado): reintenta
             time.sleep(2)
-            cap = start_capture(cfg)
+            cap[0] = start_capture(cfg)
             continue
-        if not rec.AcceptWaveform(data):
-            continue
-        text = json.loads(rec.Result()).get("text", "").strip()
-        if not text:
-            continue
-
-        if time.time() < awaiting_until:
-            command = intents.norm(text)
-        else:
-            woke, command = intents.strip_wake(text, cfg["wakes"])
-            if not woke:
-                continue
-        heard = command
-        reply = None
-        if not command:
-            awaiting_until = time.time() + FOLLOWUP_S
-            reply = "Dime"
-        else:
-            awaiting_until = 0.0
-            intent = intents.parse(command)
-            reply = execute(cfg, intent) if intent else "No te he entendido"
-        write_state(state="heard", heard=heard, reply=reply, wake=cfg["wakes"][0], ts=time.time())
-        speak(cfg, reply)
-        # evita que el reconocedor oiga su propia voz
-        cap.kill()
-        cap = start_capture(cfg)
-        rec.Reset()
-        write_state(state="listening", heard=heard, reply=reply, wake=cfg["wakes"][0], ts=time.time())
+        asst.on_audio(data)
 
 
 if __name__ == "__main__":

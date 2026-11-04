@@ -15,7 +15,17 @@ lat = 40.4168
 lon = -3.7038
 
 [voice]
-# Asistente de voz local (./install.sh --voice). Palabras de activacion separadas por comas.
+# Asistente de voz local (./install.sh --voice).
+# Motor de la palabra de activacion: openwakeword (modelo dedicado, recomendado) o vosk (plan B).
+wake_engine = openwakeword
+# Modelo incluido: hey_jarvis, alexa, hey_mycroft, hey_marvin, timer, weather.
+# O la ruta a un .onnx propio, p. ej. /opt/pcpi/models/wake/oye_pi.onnx (ver docs/VOICE.md).
+wake_model = hey_jarvis
+# 0-1. Sube si se activa solo; baja si no te hace caso.
+wake_threshold = 0.5
+# Segundos que espera tu orden tras el pitido.
+followup_s = 8
+# Solo para wake_engine = vosk: frases de activacion separadas por comas.
 wake = oye pi,hey pi,oye casa
 # Dispositivo de captura de arecord ("arecord -l" para listarlos). default = el del sistema.
 device = default
