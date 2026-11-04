@@ -1,0 +1,57 @@
+{
+  "model": "oye_pi_v2.onnx",
+  "val_voices": [
+    "es_ES-davefx-medium#0",
+    "es_ES-mls_9972-low#0"
+  ],
+  "n": {
+    "pos_unseen": 288,
+    "pos_seen": 144,
+    "similar_phrases": 154
+  },
+  "hours_real_speech_unseen": 4.11,
+  "by_threshold": {
+    "0.3": {
+      "recall_unseen_voices": 0.5,
+      "recall_training_voices": 0.875,
+      "false_accept_similar_phrases": 0.26,
+      "false_activations_per_hour_real_speech": 158.64
+    },
+    "0.4": {
+      "recall_unseen_voices": 0.462,
+      "recall_training_voices": 0.854,
+      "false_accept_similar_phrases": 0.221,
+      "false_activations_per_hour_real_speech": 124.33
+    },
+    "0.5": {
+      "recall_unseen_voices": 0.413,
+      "recall_training_voices": 0.84,
+      "false_accept_similar_phrases": 0.201,
+      "false_activations_per_hour_real_speech": 96.35
+    },
+    "0.6": {
+      "recall_unseen_voices": 0.372,
+      "recall_training_voices": 0.806,
+      "false_accept_similar_phrases": 0.162,
+      "false_activations_per_hour_real_speech": 78.59
+    },
+    "0.7": {
+      "recall_unseen_voices": 0.34,
+      "recall_training_voices": 0.771,
+      "false_accept_similar_phrases": 0.143,
+      "false_activations_per_hour_real_speech": 61.07
+    },
+    "0.8": {
+      "recall_unseen_voices": 0.295,
+      "recall_training_voices": 0.729,
+      "false_accept_similar_phrases": 0.117,
+      "false_activations_per_hour_real_speech": 43.8
+    },
+    "0.9": {
+      "recall_unseen_voices": 0.247,
+      "recall_training_voices": 0.681,
+      "false_accept_similar_phrases": 0.097,
+      "false_activations_per_hour_real_speech": 25.79
+    }
+  }
+}

@@ -19,7 +19,7 @@ lon = -3.7038
 # Motor de la palabra de activacion: openwakeword (modelo dedicado, recomendado) o vosk (plan B).
 wake_engine = openwakeword
 # Modelo incluido: hey_jarvis, alexa, hey_mycroft, hey_marvin, timer, weather.
-# O la ruta a un .onnx propio, p. ej. /opt/pcpi/models/wake/oye_pi.onnx (ver docs/VOICE.md).
+# O un .onnx propio: oye_pi_experimental (poco fiable, ver training/RESULTADOS.md) o tu ruta, p. ej. /opt/pcpi/models/wake/mi_modelo.onnx.
 wake_model = hey_jarvis
 # 0-1. Sube si se activa solo; baja si no te hace caso.
 wake_threshold = 0.5

@@ -210,7 +210,7 @@ Hace falta una cuenta **Spotify Premium**.
 2. En Spotify, reproduce algo y pulsa el icono de **dispositivos disponibles**: aparecerá **PCPi**. Elígelo.
 3. Si no se oye nada, elige la salida de audio de la Pi: clic derecho en el icono de volumen (arriba a la derecha) → **HDMI** (la pantalla).
 
-### Voz («Oye Pi»)
+### Voz («Hey Jarvis»)
 
 1. Comprueba que ves el micrófono: `arecord -l`. Con la Logitech C270 aparece una tarjeta *C270*.
 2. Prueba la grabación (3 segundos) y escúchala:
@@ -221,8 +221,8 @@ arecord -d 3 -f S16_LE -r 16000 prueba.wav && aplay prueba.wav
 
 3. Si hay varias tarjetas, mira el número de la de la cámara y ponlo en la sección `[voice]`: `device = plughw:2,0` (si es la tarjeta 2).
 4. Reinicia el servicio: `systemctl --user restart pcpi-voice`.
-5. Para **afinar la sensibilidad en vivo**: `/opt/pcpi/venv/bin/python /opt/pcpi/voice/wake_test.py`. Verás barras cuando hablas. Di «oye pi» y comprueba que se activa; si se activa sola, sube `wake_threshold`.
-6. Para **mejorar el reconocimiento de tu voz**, graba tus propias muestras con `pcpi-record-wake` y reentrena el modelo (ver [training/README.md](../training/README.md)).
+5. Para **afinar la sensibilidad en vivo**: `/opt/pcpi/venv/bin/python /opt/pcpi/voice/wake_test.py`. Verás barras cuando hablas. Di «hey jarvis» y comprueba que se activa; si se activa sola, sube `wake_threshold`.
+6. La palabra es **«Hey Jarvis»**, no «Oye Pi»: un «Oye Pi» fiable aún no está conseguido ([por qué](../training/RESULTADOS.md)). Si quieres intentarlo con tu voz, graba muestras con `pcpi-record-wake` y reentrena (ver [training/README.md](../training/README.md)).
 
 Uso: di la palabra, espera el **pitido**, y la orden:
 
@@ -232,7 +232,7 @@ Uso: di la palabra, espera el **pitido**, y la orden:
 
 1. Comprueba que aparece: `ls /dev/video*` (debe salir `/dev/video0`).
 2. Si acabas de instalar con `--camera`, **cierra sesión y vuelve a entrar**: el usuario se añade al grupo `video`.
-3. En el modo Casa pulsa **📷 Cámara**, o di «Oye Pi, muestra la cámara». La cámara solo se enciende mientras la miras.
+3. En el modo Casa pulsa **📷 Cámara**, o di «Hey Jarvis» y, tras el pitido, «muestra la cámara». La cámara solo se enciende mientras la miras.
 
 ### Tiempo
 
@@ -290,8 +290,8 @@ cd ~/PCRaspberryPI5 && git pull && ./install.sh --camera --voice --spotify
 | No suena | Clic derecho en volumen → elige **HDMI**; sube el volumen de la pantalla. |
 | Pi-hole «Sin conexión» | Contraseña en `[pihole]`; `systemctl status pihole-FTL`. |
 | Spotify no ve «PCPi» | Misma red; `systemctl status raspotify`. |
-| «Oye Pi» no responde | `arecord -l`, `device = ...` en `[voice]`, `wake_test.py`; baja `wake_threshold`. |
-| «Oye Pi» se activa solo | Sube `wake_threshold` (0.6–0.7). |
+| «Hey Jarvis» no responde | `arecord -l`, `device = ...` en `[voice]`, `wake_test.py`; baja `wake_threshold`. |
+| «Hey Jarvis» se activa solo | Sube `wake_threshold` (0.6–0.7). |
 | Cámara negra | `ls /dev/video*`; cierra sesión y entra; cámara conectada al hub. |
 | Nada arranca en modo Casa | `pcpi-doctor`; `systemctl status pcpi-home`; vuelve con `pcpi-mode desktop`. |
 | Quiero ver los registros | `journalctl -u pcpi-home -f` (servidor) o `journalctl --user -u pcpi-voice -f` (voz). |
