@@ -4,14 +4,18 @@
 Idea (la misma de openWakeWord): el modelo de embeddings de openWakeWord se queda congelado y solo
 se entrena una red pequeña (1536 -> 128 -> 64 -> 1) sobre las ultimas 16 ventanas de 80 ms.
 
-Datos:
+Datos (v2: negativos DENSOS):
+  * La v1 usaba pocos recortes de voz real como negativos y el modelo se activaba ~75 veces por hora con voz
+    humana que no habia visto. Ahora se calculan los embeddings de TODA la voz real una sola vez y se usan
+    TODAS sus ventanas de 1,28 s (cientos de miles) como negativos, con hard negative mining en el espacio
+    de embeddings (barato: no hay que volver a procesar audio).
   * POSITIVOS  - "oye pi" sintetizado con varias voces españolas de Piper (distintas velocidades,
                  entonaciones y pronunciaciones del "pi"), aumentados con ruido, reverberacion,
                  micros baratos y voz de fondo.
   * NEGATIVOS  - voz humana REAL en español (FLEURS), frases sintetizadas, palabras parecidas
                  ("oye pepe", "pipa", "hoy"...) y ruidos. Una ronda de "hard negative mining".
 
-Uso:  python train_wake.py --work WORK --voices DIR_VOCES_PIPER --fleurs dev.tar.gz [test.tar.gz train.tar.gz]
+Uso:  python train_wake.py --work WORK --voices DIR_VOCES_PIPER --fleurs dev.tar.gz [test.tar.gz train.tar.gz] [--fleurs-tsv ...]
 Salida: WORK/oye_pi.onnx y WORK/report.json
 """
 import argparse
@@ -338,6 +342,76 @@ def count_fires(scores, thr, refractory=25):
     return fires
 
 
+# ----------------------------------------------------------------------------- embeddings en paralelo
+_AF = None
+
+
+def _init_worker():
+    global _AF
+    from openwakeword.utils import AudioFeatures
+    _AF = AudioFeatures(ncpu=1)
+
+
+def _embed_job(arr):
+    return _AF.embed_clips(arr, batch_size=len(arr)).astype(np.float16)
+
+
+def embed_parallel(clips, nproc=4, chunk=64):
+    """(n, muestras) int16 -> (n, frames, 96) float16, repartido entre procesos."""
+    import multiprocessing as mp
+    jobs = [np.stack(clips[i:i + chunk]) for i in range(0, len(clips), chunk)]
+    with mp.Pool(nproc, initializer=_init_worker) as pool:
+        out = pool.map(_embed_job, jobs)
+    return np.concatenate(out)
+
+
+def augment_speech(x, speech_bank, rng):
+    """Voz real con condiciones variadas (reverb, ruido o voz ajena de fondo, micro barato, volumen)."""
+    x = x.astype(np.float64)
+    if rng.random() < 0.4:
+        x = reverb(x, rng)
+    if rng.random() < 0.5:
+        x = mix(x, background(len(x), speech_bank if rng.random() < 0.5 else [], rng, p_speech=1.0), rng.uniform(3, 30))
+    if rng.random() < 0.4:
+        x = color(x, rng)
+    x = x / (np.abs(x).max() + 1e-9) * rng.uniform(0.05, 0.95)
+    return np.clip(x * 32767, -32768, 32767).astype(np.int16)
+
+
+def speech_chunks(utts, rng, seconds=8):
+    """Trozos de 8 s de voz real (sin repetir), listos para augment_speech."""
+    n = seconds * SR
+    chunks = []
+    for u in utts:
+        for o in range(0, max(len(u) - n // 2, 1), n):
+            c = u[o:o + n]
+            if len(c) < n:
+                if len(c) < SR * 2:
+                    continue
+                c = np.pad(c, (0, n - len(c)))
+            chunks.append(c)
+    return chunks
+
+
+def windows(E, idx):
+    """E: (N, T, 96); idx: (M, 2) = (trozo, inicio) -> (M, 16, 96) float32."""
+    ci, ti = idx[:, 0], idx[:, 1]
+    return E[ci[:, None], ti[:, None] + np.arange(N_FRAMES)[None, :]].astype(np.float32)
+
+
+def all_idx(E, stride):
+    N, T = E.shape[:2]
+    ti = np.arange(0, T - N_FRAMES + 1, stride)
+    return np.stack(np.meshgrid(np.arange(N), ti, indexing="ij"), -1).reshape(-1, 2)
+
+
+def mlp_probs(sc, clf, X, batch=20000):
+    out = np.empty(len(X), dtype=np.float32)
+    for i in range(0, len(X), batch):
+        out[i:i + batch] = clf.predict_proba(sc.transform(X[i:i + batch].reshape(len(X[i:i + batch]), -1)))[:, 1]
+    return out
+
+
 # ----------------------------------------------------------------------------- principal
 def main():
     ap = argparse.ArgumentParser()
@@ -346,8 +420,10 @@ def main():
     ap.add_argument("--fleurs", required=True, nargs="+", help="uno o varios *.tar.gz de FLEURS es_419 (audio)")
     ap.add_argument("--fleurs-tsv", nargs="*", default=[], help="*.tsv con las transcripciones (frases para sintetizar)")
     ap.add_argument("--holdout-voices", default="davefx,mls_9972", help="voces que NO se usan al entrenar (validacion)")
-    ap.add_argument("--aug", type=int, default=8, help="aumentos por locucion positiva")
+    ap.add_argument("--aug", type=int, default=14, help="aumentos por locucion positiva")
     ap.add_argument("--real-pos", help="carpeta con TUS grabaciones reales de la frase (*.wav)")
+    ap.add_argument("--neg-stride", type=int, default=3, help="1 de cada N ventanas de voz real entra en la ronda 1")
+    ap.add_argument("--hard-cap", type=int, default=90000, help="maximo de ventanas dificiles anadidas en la ronda 2")
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--quick", action="store_true", help="prueba rapida con muy pocos datos")
     a = ap.parse_args()
@@ -356,17 +432,15 @@ def main():
     random.seed(a.seed)
     t0 = time.time()
     log = lambda *m: print("[%5.0fs]" % (time.time() - t0), *m, flush=True)
+    q = a.quick
 
     voices = load_voices(a.voices)
     hold = tuple(a.holdout_voices.split(","))
     tr_v = [v for v in voices if not any(h in v[0] for h in hold)]
-    va_v = [v for v in voices if any(h in v[0] for h in hold)]
-    log("voces entrenamiento:", [v[0] for v in tr_v], "| validacion:", [v[0] for v in va_v])
-
-    log("cargando FLEURS (voz humana real)...")
-    train_sp, val_sp = load_fleurs(a.fleurs, max_files=40 if a.quick else None)
-    log("  voz real: %d locuciones train, %d val (%.1f h val)" % (
-        len(train_sp), len(val_sp), sum(len(x) for x in val_sp) / SR / 3600))
+    log("voces de entrenamiento:", [v[0] for v in tr_v], "| reservadas:", hold)
+    train_sp, val_sp = load_fleurs(a.fleurs, max_files=60 if q else None)
+    log("voz real: %d locuciones de entrenamiento (%.1f h); %d reservadas" % (
+        len(train_sp), sum(len(x) for x in train_sp) / SR / 3600, len(val_sp)))
     sentences = []
     for tsv in a.fleurs_tsv:
         for line in open(tsv, encoding="utf-8"):
@@ -374,64 +448,71 @@ def main():
             if len(cols) > 3:
                 sentences.append(cols[3])
     random.shuffle(sentences)
-    sentences = sentences[: (20 if a.quick else 700)]
+    sentences = sentences[: (20 if q else 700)]
+    bank = train_sp[: 400]
 
-    def dataset(vs, sp, n_aug, n_real, n_noise, sents, real=()):
-        pos = build_positive_audio(vs, rng, n_aug, sp, real)
-        neg = build_negative_audio(vs, rng, sp, sents, n_real, n_noise)
-        log("  audio: %d positivos, %d negativos -> embeddings..." % (len(pos), len(neg)))
-        X = embed(pos + neg)
-        y = np.r_[np.ones(len(pos)), np.zeros(len(neg))]
-        return X, y
-
+    # ---- A) positivos
     real_pos = load_real_positives(a.real_pos) if a.real_pos else []
-    if real_pos:
-        log("muestras reales propias de la frase: %d" % len(real_pos))
-    log("construyendo conjunto de entrenamiento...")
-    q = a.quick
-    Xtr, ytr = dataset(tr_v[:2] if q else tr_v, train_sp, 1 if q else a.aug, 100 if q else 5000, 50 if q else 1500, sentences, real_pos)
-    log("construyendo validacion (voces NO vistas + voz real NO vista)...")
-    Xva, yva = dataset(va_v[:1] if q else va_v, val_sp, 1, 50 if q else 800, 30 if q else 400, sentences[:200])
+    log("positivos (%d muestras reales propias)..." % len(real_pos))
+    pos_audio = build_positive_audio(tr_v[:2] if q else tr_v, rng, 1 if q else a.aug, bank, real_pos)
+    Xpos = embed_parallel(pos_audio)[:, -N_FRAMES:, :]
+    del pos_audio
+    log("  %d positivos" % len(Xpos))
 
-    log("entrenando (ronda 1)...")
-    sc, clf = fit_mlp(Xtr, ytr, seed=a.seed)
+    # ---- B) negativos con forma de clip (palabras parecidas, ordenes, frases, ruido)
+    log("negativos sinteticos y ruido...")
+    neg_audio = build_negative_audio(tr_v[:2] if q else tr_v, rng, bank, sentences, 0, 100 if q else 2500)
+    Xneg_clip = embed_parallel(neg_audio)[:, -N_FRAMES:, :]
+    del neg_audio
+    log("  %d negativos de clip" % len(Xneg_clip))
+
+    # ---- C) voz real DENSA: embeddings de todo el audio, una sola vez
+    log("voz real densa (embeddings de toda la voz)...")
+    chunks = speech_chunks(train_sp, rng)
+    chunks = [augment_speech(c, bank, rng) for c in chunks]
+    E = embed_parallel(chunks)
+    del chunks
+    log("  %d trozos de 8 s -> %d ventanas de 1,28 s" % (len(E), len(E) * (E.shape[1] - N_FRAMES + 1)))
+    np.save(os.path.join(a.work, "real_embeddings.npy"), E)
+    np.savez_compressed(os.path.join(a.work, "pos_neg_features.npz"), Xpos=Xpos, Xneg_clip=Xneg_clip)
+
+    # ---- ronda 1
+    idx1 = all_idx(E, a.neg_stride)
+    Xr1 = windows(E, idx1)
+    X = np.concatenate([Xpos.astype(np.float32), Xneg_clip.astype(np.float32), Xr1])
+    y = np.r_[np.ones(len(Xpos)), np.zeros(len(Xneg_clip) + len(Xr1))]
+    log("entrenando ronda 1 con %d positivos y %d negativos..." % (len(Xpos), len(y) - len(Xpos)))
+    sc, clf = fit_mlp(X, y, seed=a.seed)
+    del X
+
+    # ---- hard negative mining sobre TODAS las ventanas (stride 1)
+    log("hard negative mining sobre todas las ventanas de voz real...")
+    idx_all = all_idx(E, 1)
+    p_all = np.empty(len(idx_all), dtype=np.float32)
+    step = 200000
+    for i in range(0, len(idx_all), step):
+        p_all[i:i + step] = mlp_probs(sc, clf, windows(E, idx_all[i:i + step]))
+    for t in (0.1, 0.3, 0.5, 0.9):
+        log("  ronda 1: %.1f%% de las ventanas de voz real puntuan >= %.1f" % (100 * (p_all >= t).mean(), t))
+    order = np.argsort(-p_all)
+    hard = order[: min(a.hard_cap, int((p_all >= 0.05).sum()))]
+    Xh = windows(E, idx_all[hard])
+    log("  %d ventanas dificiles anadidas" % len(Xh))
+
+    X = np.concatenate([Xpos.astype(np.float32), Xneg_clip.astype(np.float32), Xr1, Xh])
+    y = np.r_[np.ones(len(Xpos)), np.zeros(len(X) - len(Xpos))]
+    # los positivos pesan mas: se repiten para compensar los cientos de miles de negativos
+    rep = max(1, int(round(0.15 * (len(X) - len(Xpos)) / max(len(Xpos), 1))))
+    X = np.concatenate([X] + [Xpos.astype(np.float32)] * (rep - 1)) if rep > 1 else X
+    y = np.r_[y, np.ones((rep - 1) * len(Xpos))] if rep > 1 else y
+    log("entrenando ronda 2 (%d muestras, positivos x%d)..." % (len(y), rep))
+    sc, clf = fit_mlp(X, y, seed=a.seed + 1)
     onnx_path = os.path.join(a.work, "oye_pi.onnx")
     export_onnx(sc, clf, onnx_path)
-
-    # ---- hard negative mining: tramos largos de voz real de entrenamiento donde el modelo se activa
-    log("minando falsos positivos sobre voz real de entrenamiento...")
-    stream = np.concatenate([np.r_[x, np.zeros(SR // 2)] for x in train_sp[: (10 if q else 600)]])
-    sc1 = score_stream(onnx_path, stream)
-    hard_idx = np.where(sc1 > 0.2)[0]
-    hard = []
-    for i in hard_idx:
-        end = (i + 1) * 1280
-        seg = stream[max(end - int(CLIP_S * SR), 0):end]
-        if len(seg) == int(CLIP_S * SR):
-            hard.append(np.clip(seg * 32767, -32768, 32767).astype(np.int16))
-    log("  %d ventanas conflictivas" % len(hard))
-    if hard:
-        Xh = embed(hard * 3)
-        Xtr = np.concatenate([Xtr, Xh])
-        ytr = np.r_[ytr, np.zeros(len(Xh))]
-        sc, clf = fit_mlp(Xtr, ytr, seed=a.seed + 1)
-        export_onnx(sc, clf, onnx_path)
-
-    # ---- evaluacion
-    log("evaluando...")
-    p = clf.predict_proba(sc.transform(Xva.reshape(len(Xva), -1)))[:, 1]
-    rep = {"val_voices": [v[0] for v in va_v], "clips": {"pos": int(yva.sum()), "neg": int((1 - yva).sum())}}
-    rep["clip_level"] = {str(t): {"recall": float((p[yva == 1] >= t).mean()), "fp_rate": float((p[yva == 0] >= t).mean())}
-                         for t in (0.3, 0.5, 0.7, 0.9)}
-    val_stream = np.concatenate([np.r_[x, np.zeros(SR // 2)] for x in val_sp])
-    hours = len(val_stream) / SR / 3600
-    sc2 = score_stream(onnx_path, val_stream)
-    rep["stream"] = {"hours_real_speech_unseen": hours,
-                     "false_activations_per_hour": {str(t): count_fires(sc2, t) / hours for t in (0.3, 0.5, 0.7, 0.9)}}
-    json.dump(rep, open(os.path.join(a.work, "report.json"), "w"), indent=2)
-    log(json.dumps(rep, indent=2))
-    np.savez_compressed(os.path.join(a.work, "features.npz"), Xtr=Xtr, ytr=ytr)
-    log("modelo:", onnx_path)
+    p_all = mlp_probs(sc, clf, windows(E, idx_all[::7]))
+    log("  ronda 2: ventanas de voz real >= 0.5: %.4f%%  >= 0.9: %.4f%%  (de entrenamiento: orientativo)" % (
+        100 * (p_all >= 0.5).mean(), 100 * (p_all >= 0.9).mean()))
+    log("modelo:", onnx_path, "-> evalua con evaluate.py")
 
 
 if __name__ == "__main__":
