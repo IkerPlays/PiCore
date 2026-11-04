@@ -37,6 +37,9 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(P("desactiva pi hole"), ("pihole_disable", 5))
         self.assertEqual(P("activa el pihole"), ("pihole_enable", None))
         self.assertEqual(P("qué tiempo hace"), ("weather", None))
+        self.assertEqual(P("muestra la cámara"), ("camera_show", None))
+        self.assertEqual(P("enséñame la cámara"), ("camera_show", None))
+        self.assertEqual(P("cierra la cámara"), ("camera_hide", None))
         self.assertIsNone(P("cuéntame un chiste"))
         self.assertIsNone(P(""))
 

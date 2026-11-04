@@ -85,6 +85,11 @@ def parse(text):
             return Intent("volume", "+10")
         if has("baja", "menos", "bajo"):
             return Intent("volume", "-10")
+    if has("camara"):
+        if has("cierra", "oculta", "quita", "apaga", "esconde"):
+            return Intent("camera_hide", None)
+        if has("muestra", "ensena", "abre", "enciende", "ver ", "pon", "activa"):
+            return Intent("camera_show", None)
     if has("tiempo", "temperatura", "llover", "llueve", "hace frio", "hace calor"):
         return Intent("weather", None)
     if has("que hora", "la hora", "hora es"):

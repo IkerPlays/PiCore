@@ -21,3 +21,14 @@ wake = oye pi,hey pi,oye casa
 device = default
 # Voz de espeak-ng
 tts_voice = es
+
+[camera]
+# Camara USB en el modo Casa (boton "Camara" o voz). Solo se enciende mientras la ves.
+enabled = true
+device = /dev/video0
+size = 640x480
+fps = 15
+# mjpeg = la webcam ya entrega JPEG (casi sin CPU). Vacio = recodifica (mas CPU).
+input_format = mjpeg
+# Opcional: otro origen, p.ej. una camara IP. Debe sacar MJPEG (mpjpeg, boundary "frame") por stdout.
+# command = ffmpeg -loglevel error -i rtsp://usuario:clave@192.168.1.50/stream -c:v mjpeg -q:v 7 -f mpjpeg -boundary_tag frame -

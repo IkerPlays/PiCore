@@ -6,6 +6,9 @@ Solo usa la libreria estandar de Python. Escucha en 127.0.0.1 por defecto.
 import configparser
 import json
 import os
+import shlex
+import subprocess
+import threading
 import time
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -158,6 +161,37 @@ def voice_state():
         return {"state": "off"}
 
 
+CAMERA = {"show": False}
+_streams = threading.BoundedSemaphore(2)  # como mucho 2 visores a la vez
+
+
+def camera_cmd(cp, snapshot=False):
+    """Comando que escupe MJPEG por stdout. [camera] command lo sustituye (RTSP, pruebas...)."""
+    custom = cp.get("camera", "command", fallback="").strip()
+    if custom:
+        return shlex.split(custom)
+    dev = cp.get("camera", "device", fallback="/dev/video0")
+    size = cp.get("camera", "size", fallback="640x480")
+    fps = cp.get("camera", "fps", fallback="15")
+    fmt = cp.get("camera", "input_format", fallback="mjpeg")
+    cmd = ["ffmpeg", "-loglevel", "error", "-f", "v4l2"]
+    if fmt:
+        cmd += ["-input_format", fmt]
+    cmd += ["-video_size", size, "-framerate", fps, "-i", dev]
+    # webcam que ya entrega MJPEG: se copia sin recodificar (casi 0 % de CPU)
+    cmd += ["-c", "copy"] if fmt == "mjpeg" else ["-c:v", "mjpeg", "-q:v", "7"]
+    if snapshot:
+        return cmd + ["-frames:v", "1", "-f", "image2pipe", "-"]
+    return cmd + ["-f", "mpjpeg", "-boundary_tag", "frame", "-"]
+
+
+def camera_status(cp):
+    enabled = cp.getboolean("camera", "enabled", fallback=True)
+    dev = cp.get("camera", "device", fallback="/dev/video0")
+    custom = cp.get("camera", "command", fallback="").strip()
+    return {"available": enabled and (bool(custom) or os.path.exists(dev)), "show": CAMERA["show"]}
+
+
 def cpu_temp():
     try:
         return round(int(Path("/sys/class/thermal/thermal_zone0/temp").read_text()) / 1000, 1)
@@ -182,6 +216,7 @@ def status():
         "weather": cached("weather", 600, lambda: weather(cp)),
         "nowplaying": nowplaying(),
         "voice": voice_state(),
+        "camera": camera_status(cp),
     }
 
 
@@ -207,17 +242,61 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, status())
         if path == "/api/mode":
             return self._send(200, {"mode": get_mode()})
+        if path in ("/api/camera/stream", "/api/camera/snapshot.jpg"):
+            return self._camera(path.endswith(".jpg"))
         name = PAGES.get(path)
         if name is None:
             return self._send(404, {"error": "no encontrado"})
         self._send(200, (WEB / name).read_bytes(), "text/html; charset=utf-8")
+
+    def _camera(self, snapshot):
+        # La camara es privada: solo desde esta misma maquina, aunque el servidor escuche en la LAN.
+        if self.client_address[0] not in ("127.0.0.1", "::1"):
+            return self._send(403, {"error": "solo local"})
+        cp = read_conf()
+        if not camera_status(cp)["available"]:
+            return self._send(404, {"error": "camara no disponible"})
+        cmd = camera_cmd(cp, snapshot)
+        if snapshot:
+            try:
+                out = subprocess.run(cmd, capture_output=True, timeout=8).stdout
+            except (OSError, subprocess.TimeoutExpired):
+                out = b""
+            if not out:
+                return self._send(503, {"error": "sin imagen"})
+            return self._send(200, out, "image/jpeg")
+        if not _streams.acquire(blocking=False):
+            return self._send(503, {"error": "demasiados visores"})
+        proc = None
+        try:
+            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+            self.send_response(200)
+            self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=frame")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            while True:
+                chunk = proc.stdout.read1(65536)
+                if not chunk:
+                    break
+                self.wfile.write(chunk)
+        except (BrokenPipeError, ConnectionResetError):
+            pass  # el visor cerro la pagina
+        except OSError:
+            if proc is None:
+                self._send(503, {"error": "no se pudo abrir la camara"})
+        finally:
+            if proc is not None:
+                proc.kill()
+                proc.wait()
+                proc.stdout.close()
+            _streams.release()
 
     def do_POST(self):
         # Solo local y con cabecera propia: una web externa no puede cambiar nada
         # (la cabecera obliga a preflight CORS, que no respondemos).
         if self.client_address[0] not in ("127.0.0.1", "::1"):
             return self._send(403, {"error": "solo local"})
-        if self.path not in ("/api/mode", "/api/pihole") or self.headers.get("X-PCPI") != "1":
+        if self.path not in ("/api/mode", "/api/pihole", "/api/camera") or self.headers.get("X-PCPI") != "1":
             return self._send(403, {"error": "prohibido"})
         try:
             n = int(self.headers.get("Content-Length", "0"))
@@ -225,6 +304,9 @@ class Handler(BaseHTTPRequestHandler):
             if self.path == "/api/mode":
                 set_mode(body["mode"])
                 return self._send(200, {"mode": body["mode"]})
+            if self.path == "/api/camera":
+                CAMERA["show"] = bool(body["show"])
+                return self._send(200, {"show": CAMERA["show"]})
             action = body["action"]
             if action not in ("enable", "disable"):
                 raise ValueError("accion invalida")

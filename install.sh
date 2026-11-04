@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 # Instalador PCPi para Raspberry Pi OS (Bookworm/Trixie). Ejecutalo como usuario normal (usa sudo).
-#   ./install.sh [--battery] [--pihole] [--spotify] [--voice] [--all]
+#   ./install.sh [--battery] [--pihole] [--spotify] [--voice] [--camera] [--all]
 #     --battery  sube el limite de corriente USB (power bank sin 5V/5A)
 #     --pihole   lanza el instalador oficial de Pi-hole (interactivo)
 #     --voice    asistente de voz local (Vosk + espeak-ng): "Oye Pi, que hora es"
+#     --camera   camara USB en el modo Casa (ffmpeg)
 #     --spotify  instala Raspotify (Spotify Connect, requiere Premium) y el hook de "sonando ahora"
 set -euo pipefail
 
-BATTERY=0; PIHOLE=0; SPOTIFY=0; VOICE=0
+BATTERY=0; PIHOLE=0; SPOTIFY=0; VOICE=0; CAMERA=0
 for a in "$@"; do
   case "$a" in
-    --battery) BATTERY=1 ;; --pihole) PIHOLE=1 ;; --spotify) SPOTIFY=1 ;; --voice) VOICE=1 ;;
-    --all) BATTERY=1; PIHOLE=1; SPOTIFY=1; VOICE=1 ;;
+    --battery) BATTERY=1 ;; --pihole) PIHOLE=1 ;; --spotify) SPOTIFY=1 ;; --voice) VOICE=1 ;; --camera) CAMERA=1 ;;
+    --all) BATTERY=1; PIHOLE=1; SPOTIFY=1; VOICE=1; CAMERA=1 ;;
     *) echo "Opcion desconocida: $a" >&2; exit 1 ;;
   esac
 done
@@ -71,6 +72,13 @@ if [ "$SPOTIFY" = 1 ]; then
   sudo sed -i '/^#\?LIBRESPOT_ONEVENT=/d;/^#\?LIBRESPOT_NAME=/d' "$CONF"
   printf 'LIBRESPOT_NAME="PCPi"\nLIBRESPOT_ONEVENT="/usr/local/bin/pcpi-spotify-event"\n' | sudo tee -a "$CONF" >/dev/null
   sudo systemctl daemon-reload && sudo systemctl restart raspotify
+fi
+
+if [ "$CAMERA" = 1 ]; then
+  echo "==> Camara (ffmpeg)"
+  sudo apt-get install -y ffmpeg
+  sudo usermod -aG video "$ME"
+  sudo usermod -aG video "$(systemctl show -p User --value pcpi-home.service)" 2>/dev/null || true
 fi
 
 if [ "$VOICE" = 1 ]; then

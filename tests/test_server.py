@@ -75,6 +75,38 @@ class ServerTest(unittest.TestCase):
     def test_voice_in_status(self):
         self.assertEqual(json.loads(self.req("/api/status")[1])["voice"]["state"], "off")
 
+    def test_camera_cmd(self):
+        import configparser
+        cp = configparser.ConfigParser()
+        cmd = server.camera_cmd(cp)
+        self.assertEqual(cmd[0], "ffmpeg")
+        self.assertIn("copy", cmd)
+        self.assertEqual(cmd[-1], "-")
+        self.assertIn("-frames:v", server.camera_cmd(cp, snapshot=True))
+        cp.read_string("[camera]\ninput_format =\n")
+        self.assertIn("mjpeg", server.camera_cmd(cp)[server.camera_cmd(cp).index("-c:v") + 1])
+
+    def test_camera_stream_and_flag(self):
+        fake = os.path.join(os.path.dirname(__file__), "fake_camera.py")
+        Path(os.environ["PCPI_CONF"]).write_text("[camera]\ncommand = %s %s\n" % (sys.executable, fake))
+        try:
+            st = json.loads(self.req("/api/status")[1])["camera"]
+            self.assertTrue(st["available"])
+            code, body = self.req("/api/camera/stream")
+            self.assertEqual(code, 200)
+            self.assertEqual(body.count(b"--frame"), 3)
+            h = {"X-PCPI": "1"}
+            self.assertEqual(self.req("/api/camera", json.dumps({"show": True}).encode())[0], 403)
+            self.assertEqual(self.req("/api/camera", json.dumps({"show": True}).encode(), h)[0], 200)
+            self.assertTrue(json.loads(self.req("/api/status")[1])["camera"]["show"])
+            self.req("/api/camera", json.dumps({"show": False}).encode(), h)
+        finally:
+            Path(os.environ["PCPI_CONF"]).unlink()
+
+    def test_camera_unavailable(self):
+        self.assertFalse(json.loads(self.req("/api/status")[1])["camera"]["available"])
+        self.assertEqual(self.req("/api/camera/stream")[0], 404)
+
     def test_nowplaying(self):
         Path(os.environ["PCPI_NOWPLAYING"]).write_text('{"state":"playing","title":"T","artist":"A"}')
         self.assertEqual(json.loads(self.req("/api/status")[1])["nowplaying"]["title"], "T")

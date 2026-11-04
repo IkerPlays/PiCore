@@ -6,7 +6,7 @@ Un PC portátil con **Raspberry Pi 5 (8 GB)** y pantalla táctil de 7" con tres 
 |---|---|---|
 | 🖥 **Escritorio** | Raspberry Pi OS normal | ✅ |
 | 🎮 **Gaming** | Pantalla "Próximamente" (Steam llegará después) | 🚧 placeholder |
-| 🏠 **Casa** | Estilo Alexa con pantalla: hora, tiempo, Pi-hole, Spotify Connect y asistente de voz local | ✅ base |
+| 🏠 **Casa** | Estilo Alexa con pantalla: hora, tiempo, Pi-hole, Spotify Connect, asistente de voz local y cámara | ✅ base |
 
 - 🛒 Qué comprar (≤ 250 €): [docs/SHOPPING_LIST.md](docs/SHOPPING_LIST.md)
 - 🧱 Cómo funciona y hoja de ruta: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
@@ -18,7 +18,7 @@ En Raspberry Pi OS con escritorio (64 bits), como usuario normal:
 ```bash
 git clone https://github.com/IkerPlays/PCRaspberryPI5.git
 cd PCRaspberryPI5
-./install.sh --all        # o solo lo que quieras: --battery --pihole --spotify --voice
+./install.sh --all        # o solo lo que quieras: --battery --pihole --spotify --voice --camera
 ```
 
 Después cierra sesión y vuelve a entrar.
@@ -36,6 +36,10 @@ También hay un icono **"PCPi · Elegir modo"** en el menú de aplicaciones, y b
 
 Configuración (Pi-hole, ciudad del tiempo): `/etc/pcpi/pcpi.conf`. Hay una plantilla en [config/pcpi.conf.example](config/pcpi.conf.example).
 
+## Cámara
+
+Con `--camera` (usa `ffmpeg`), el botón **📷 Cámara** del modo Casa abre la imagen en pantalla completa, o di «Oye Pi, muestra la cámara» / «cierra la cámara». La cámara solo se enciende mientras la ves, solo se puede ver desde la propia Pi aunque el servidor escuche en la red, y se ajusta en `[camera]` de `/etc/pcpi/pcpi.conf`. Por defecto usa `/dev/video0` en 640×480 a 15 fps y copia el MJPEG de la webcam sin recodificar (casi sin CPU).
+
 ## Voz
 
 Con `--voice` queda un asistente 100 % local (Vosk + espeak-ng, sin nube). Di la palabra de activación y una orden:
@@ -46,4 +50,4 @@ Si dices solo «Oye Pi», responde «Dime» y espera la orden 8 s. La palabra de
 
 ## Estado
 
-> ⚠️ El código está probado con tests del servidor (`python3 -m unittest discover tests`, 12 tests, incluido el intérprete de órdenes de voz), pero **aún no en una Raspberry Pi real**. El instalador, el kiosk de Chromium, el hook de Spotify y el reconocimiento de voz (calidad del micro, activaciones falsas) necesitan una prueba en el hardware.
+> ⚠️ El código está probado con tests del servidor (`python3 -m unittest discover tests`, 15 tests, incluido el intérprete de órdenes de voz), pero **aún no en una Raspberry Pi real**. El instalador, el kiosk de Chromium, el hook de Spotify y la cámara, el reconocimiento de voz (calidad del micro, activaciones falsas) necesitan una prueba en el hardware.

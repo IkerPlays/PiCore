@@ -23,6 +23,10 @@
   .dim { color:var(--dim); }
   #track { font-size:26px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   #artist { font-size:20px; color:var(--dim); margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #cam { position:fixed; inset:0; background:#000; display:none; z-index:10; }
+  #cam img { width:100%; height:100%; object-fit:contain; }
+  #cam button { position:absolute; top:16px; right:16px; flex:none; padding:14px 24px; background:rgba(26,29,36,.85); }
+  #cam .msg { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--dim); font-size:24px; z-index:-1; }
   nav { grid-column:1 / span 2; display:flex; gap:12px; }
   button { flex:1; font:inherit; font-size:20px; border:0; border-radius:16px; background:var(--card); color:var(--fg); }
   button:active { background:var(--acc); color:#000; }
@@ -55,10 +59,16 @@
     </div>
   </section>
   <nav>
+    <button id="open-cam">📷 Cámara</button>
     <button data-mode="desktop">🖥 Escritorio</button>
     <button data-mode="gaming">🎮 Gaming</button>
   </nav>
 </main>
+<div id="cam">
+  <div class="msg">Conectando con la cámara…</div>
+  <img id="cam-img" alt="">
+  <button id="close-cam">✕ Cerrar</button>
+</div>
 <script>
 const $ = id => document.getElementById(id);
 const WMO = {0:"☀️ Despejado",1:"🌤 Poco nuboso",2:"⛅ Nuboso",3:"☁️ Cubierto",45:"🌫 Niebla",48:"🌫 Niebla",
@@ -97,10 +107,27 @@ async function refresh() {
     else if (v.state === "speaking") $("voice").innerHTML = "🔊 <b>" + (v.reply || "") + "</b>";
     else if (v.heard) $("voice").innerHTML = "🎤 «" + v.heard + "» → <b>" + (v.reply || "") + "</b>";
     else $("voice").textContent = "🎤 Di «" + (v.wake || "oye pi") + "»…";
+    const c = s.camera || {};
+    $("open-cam").style.display = c.available ? "" : "none";
+    if (c.available && c.show) openCam(); else closeCam();
     $("cpu").textContent = s.cpu_temp != null ? s.cpu_temp + " °C" : "--";
     $("up").textContent = s.uptime != null ? Math.floor(s.uptime/3600) + " h" : "--";
   } catch (e) { /* servidor reiniciando */ }
 }
+const camShown = () => $("cam").style.display === "block";
+function openCam() {
+  if (camShown()) return;
+  $("cam").style.display = "block";
+  $("cam-img").src = "/api/camera/stream?" + Date.now();
+}
+function closeCam() {
+  if (!camShown()) return;
+  $("cam-img").removeAttribute("src");  // corta la conexion: el servidor apaga la camara
+  $("cam").style.display = "none";
+}
+const setCam = show => fetch("/api/camera", {method:"POST", headers:{"X-PCPI":"1"}, body:JSON.stringify({show})});
+$("open-cam").onclick = () => { openCam(); setCam(true); };
+$("close-cam").onclick = () => { closeCam(); setCam(false); };
 document.querySelectorAll("button[data-mode]").forEach(b => b.onclick = () =>
   fetch("/api/mode", {method:"POST", headers:{"X-PCPI":"1"}, body:JSON.stringify({mode:b.dataset.mode})}));
 tick(); refresh();
