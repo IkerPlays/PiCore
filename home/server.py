@@ -1,0 +1,215 @@
+#!/usr/bin/env python3
+"""PCPi: servidor local de la UI (modo Casa / Gaming) y API de estado.
+
+Solo usa la libreria estandar de Python. Escucha en 127.0.0.1 por defecto.
+"""
+import configparser
+import json
+import os
+import time
+import urllib.request
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+WEB = ROOT / "web"
+MODES = ("desktop", "gaming", "home")
+PAGES = {"/": "index.html", "/gaming": "gaming.html"}
+
+
+def conf_path():
+    return Path(os.environ.get("PCPI_CONF", "/etc/pcpi/pcpi.conf"))
+
+
+def mode_file():
+    return Path(os.environ.get("PCPI_MODE_FILE", "/etc/pcpi/mode"))
+
+
+def nowplaying_file():
+    return Path(os.environ.get("PCPI_NOWPLAYING", "/var/lib/pcpi/nowplaying.json"))
+
+
+def read_conf():
+    cp = configparser.ConfigParser()
+    cp.read(conf_path())
+    return cp
+
+
+def get_mode():
+    try:
+        m = mode_file().read_text().strip()
+    except OSError:
+        return "desktop"
+    return m if m in MODES else "desktop"
+
+
+def set_mode(mode):
+    if mode not in MODES:
+        raise ValueError("modo invalido")
+    f = mode_file()
+    tmp = f.with_name(f.name + ".tmp")
+    tmp.write_text(mode + "\n")
+    os.replace(tmp, f)
+
+
+_cache = {}
+
+
+def cached(key, ttl, fn):
+    now = time.time()
+    hit = _cache.get(key)
+    if hit and now - hit[0] < ttl:
+        return hit[1]
+    val = fn()
+    _cache[key] = (now, val)
+    return val
+
+
+def http_json(url, method="GET", data=None, headers=None, timeout=3):
+    body = json.dumps(data).encode() if data is not None else None
+    req = urllib.request.Request(url, data=body, method=method, headers=headers or {})
+    if body is not None:
+        req.add_header("Content-Type", "application/json")
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r)
+
+
+_sid = {"sid": None, "exp": 0.0}
+
+
+def pihole_stats(cp):
+    """Estadisticas de Pi-hole v6 (API REST). Sin password funciona si Pi-hole no la exige."""
+    url = cp.get("pihole", "url", fallback="").rstrip("/")
+    if not url:
+        return {"ok": False, "error": "no configurado"}
+    pw = cp.get("pihole", "password", fallback="")
+    try:
+        headers = {}
+        if pw:
+            if time.time() > _sid["exp"]:
+                r = http_json(url + "/api/auth", "POST", {"password": pw})
+                _sid["sid"] = r["session"]["sid"]
+                _sid["exp"] = time.time() + max(30, r["session"].get("validity", 300) - 30)
+            headers["sid"] = _sid["sid"]
+        s = http_json(url + "/api/stats/summary", headers=headers)
+        b = http_json(url + "/api/dns/blocking", headers=headers)
+        return {
+            "ok": True,
+            "blocking": b.get("blocking"),
+            "total": s["queries"]["total"],
+            "blocked": s["queries"]["blocked"],
+            "percent": round(s["queries"]["percent_blocked"], 1),
+            "domains": s["gravity"]["domains_being_blocked"],
+        }
+    except Exception as e:  # red caida, pihole apagado, credenciales...
+        return {"ok": False, "error": type(e).__name__}
+
+
+def weather(cp):
+    """Tiempo actual via Open-Meteo (sin API key). Desactivado si no hay coordenadas."""
+    lat = cp.get("weather", "lat", fallback="")
+    lon = cp.get("weather", "lon", fallback="")
+    if not lat or not lon:
+        return {"ok": False, "error": "no configurado"}
+    try:
+        d = http_json(
+            "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s"
+            "&current=temperature_2m,weather_code" % (lat, lon),
+            timeout=4,
+        )
+        cur = d["current"]
+        return {"ok": True, "temp": cur["temperature_2m"], "code": cur["weather_code"]}
+    except Exception as e:
+        return {"ok": False, "error": type(e).__name__}
+
+
+def nowplaying():
+    try:
+        return json.loads(nowplaying_file().read_text())
+    except (OSError, ValueError):
+        return {"state": "stopped"}
+
+
+def cpu_temp():
+    try:
+        return round(int(Path("/sys/class/thermal/thermal_zone0/temp").read_text()) / 1000, 1)
+    except (OSError, ValueError):
+        return None
+
+
+def uptime_s():
+    try:
+        return int(float(Path("/proc/uptime").read_text().split()[0]))
+    except (OSError, ValueError, IndexError):
+        return None
+
+
+def status():
+    cp = read_conf()
+    return {
+        "mode": get_mode(),
+        "cpu_temp": cpu_temp(),
+        "uptime": uptime_s(),
+        "pihole": cached("pihole", 10, lambda: pihole_stats(cp)),
+        "weather": cached("weather", 600, lambda: weather(cp)),
+        "nowplaying": nowplaying(),
+    }
+
+
+class Handler(BaseHTTPRequestHandler):
+    server_version = "PCPi"
+
+    def log_message(self, fmt, *args):  # silencioso
+        pass
+
+    def _send(self, code, body, ctype="application/json"):
+        if isinstance(body, (dict, list)):
+            body = json.dumps(body).encode()
+        self.send_response(code)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_GET(self):
+        path = self.path.split("?", 1)[0]
+        if path == "/api/status":
+            return self._send(200, status())
+        if path == "/api/mode":
+            return self._send(200, {"mode": get_mode()})
+        name = PAGES.get(path)
+        if name is None:
+            return self._send(404, {"error": "no encontrado"})
+        self._send(200, (WEB / name).read_bytes(), "text/html; charset=utf-8")
+
+    def do_POST(self):
+        # Solo local y con cabecera propia: una web externa no puede cambiar el modo
+        # (la cabecera obliga a preflight CORS, que no respondemos).
+        if self.client_address[0] not in ("127.0.0.1", "::1"):
+            return self._send(403, {"error": "solo local"})
+        if self.path != "/api/mode" or self.headers.get("X-PCPI") != "1":
+            return self._send(403, {"error": "prohibido"})
+        try:
+            n = int(self.headers.get("Content-Length", "0"))
+            mode = json.loads(self.rfile.read(min(n, 1024)))["mode"]
+            set_mode(mode)
+        except (ValueError, KeyError, TypeError, OSError):
+            return self._send(400, {"error": "peticion invalida"})
+        self._send(200, {"mode": mode})
+
+
+def make_server(host, port):
+    return ThreadingHTTPServer((host, port), Handler)
+
+
+def main():
+    cp = read_conf()
+    host = cp.get("server", "host", fallback="127.0.0.1")
+    port = cp.getint("server", "port", fallback=8080)
+    print("PCPi escuchando en http://%s:%d" % (host, port), flush=True)
+    make_server(host, port).serve_forever()
+
+
+if __name__ == "__main__":
+    main()

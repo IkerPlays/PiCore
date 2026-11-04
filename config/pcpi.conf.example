@@ -1,0 +1,15 @@
+# /etc/pcpi/pcpi.conf  (el instalador la crea si no existe)
+
+[server]
+host = 127.0.0.1
+port = 8080
+
+[pihole]
+# Pi-hole v6. Deja la password vacia si tu Pi-hole no la pide.
+url = http://localhost
+password =
+
+[weather]
+# Open-Meteo (sin API key). Vacio = sin tiempo. Ejemplo: Madrid
+lat = 40.4168
+lon = -3.7038

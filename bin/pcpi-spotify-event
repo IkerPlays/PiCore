@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Hook de Raspotify/librespot (--onevent): guarda lo que suena para la UI del modo Casa.
+# librespot expone PLAYER_EVENT y, al cambiar de cancion, NAME / ARTISTS.
+OUT="${PCPI_NOWPLAYING:-/var/lib/pcpi/nowplaying.json}"
+esc() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g' | tr '\n\t' '  '; }
+
+write() { printf '{"state":"%s","title":"%s","artist":"%s"}\n' "$1" "$(esc "${NAME:-}")" "$(esc "${ARTISTS:-}")" > "$OUT.tmp" && mv "$OUT.tmp" "$OUT"; }
+
+case "${PLAYER_EVENT:-}" in
+  track_changed) write playing ;;
+  playing)       write playing ;;
+  paused)        write paused ;;
+  stopped|session_disconnected) write stopped ;;
+esac

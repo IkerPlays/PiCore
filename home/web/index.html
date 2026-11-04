@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PCPi · Casa</title>
+<style>
+  :root { --bg:#0f1115; --card:#1a1d24; --fg:#f2f4f8; --dim:#8b93a3; --ok:#4ade80; --bad:#f87171; --acc:#60a5fa; }
+  * { box-sizing:border-box; margin:0; user-select:none; -webkit-user-select:none; }
+  html,body { height:100%; background:var(--bg); color:var(--fg); font-family:system-ui,sans-serif; overflow:hidden; cursor:none; }
+  main { height:100%; display:grid; grid-template-columns:1.2fr 1fr; gap:16px; padding:16px; grid-template-rows:1fr 64px; }
+  .card { background:var(--card); border-radius:20px; padding:20px; }
+  .clock { grid-row:1; display:flex; flex-direction:column; justify-content:center; align-items:center; }
+  #time { font-size:clamp(72px,16vw,160px); font-weight:700; letter-spacing:-.04em; line-height:1; }
+  #date { font-size:28px; color:var(--dim); margin-top:8px; text-transform:capitalize; }
+  #weather { font-size:30px; margin-top:20px; }
+  .side { display:grid; grid-template-rows:1fr 1fr auto; gap:16px; }
+  h2 { font-size:15px; text-transform:uppercase; letter-spacing:.1em; color:var(--dim); margin-bottom:10px; }
+  .big { font-size:44px; font-weight:700; }
+  .row { display:flex; justify-content:space-between; font-size:20px; margin-top:6px; }
+  .dim { color:var(--dim); }
+  #track { font-size:26px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #artist { font-size:20px; color:var(--dim); margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  nav { grid-column:1 / span 2; display:flex; gap:12px; }
+  button { flex:1; font:inherit; font-size:20px; border:0; border-radius:16px; background:var(--card); color:var(--fg); }
+  button:active { background:var(--acc); color:#000; }
+</style>
+</head>
+<body>
+<main>
+  <section class="card clock">
+    <div id="time">--:--</div>
+    <div id="date"></div>
+    <div id="weather"></div>
+  </section>
+  <section class="side">
+    <div class="card">
+      <h2>Pi-hole</h2>
+      <div class="big" id="ph-pct">--</div>
+      <div class="row"><span class="dim">Bloqueadas hoy</span><span id="ph-blocked">--</span></div>
+      <div class="row"><span class="dim">Consultas</span><span id="ph-total">--</span></div>
+      <div class="row"><span class="dim">Estado</span><span id="ph-state">--</span></div>
+    </div>
+    <div class="card">
+      <h2>Spotify</h2>
+      <div id="track">Nada sonando</div>
+      <div id="artist">Elige "PCPi" en Spotify Connect</div>
+    </div>
+    <div class="card row" style="margin:0">
+      <span class="dim">CPU</span><span id="cpu">--</span>
+      <span class="dim">Encendida</span><span id="up">--</span>
+    </div>
+  </section>
+  <nav>
+    <button data-mode="desktop">🖥 Escritorio</button>
+    <button data-mode="gaming">🎮 Gaming</button>
+  </nav>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const WMO = {0:"☀️ Despejado",1:"🌤 Poco nuboso",2:"⛅ Nuboso",3:"☁️ Cubierto",45:"🌫 Niebla",48:"🌫 Niebla",
+  51:"🌦 Llovizna",53:"🌦 Llovizna",55:"🌦 Llovizna",61:"🌧 Lluvia",63:"🌧 Lluvia",65:"🌧 Lluvia fuerte",
+  71:"❄️ Nieve",73:"❄️ Nieve",75:"❄️ Nieve",80:"🌦 Chubascos",81:"🌧 Chubascos",82:"🌧 Chubascos",95:"⛈ Tormenta"};
+function tick() {
+  const d = new Date();
+  $("time").textContent = d.toLocaleTimeString("es-ES", {hour:"2-digit", minute:"2-digit"});
+  $("date").textContent = d.toLocaleDateString("es-ES", {weekday:"long", day:"numeric", month:"long"});
+}
+const fmt = n => (n ?? "--").toLocaleString("es-ES");
+async function refresh() {
+  try {
+    const s = await (await fetch("/api/status")).json();
+    const p = s.pihole;
+    if (p.ok) {
+      $("ph-pct").textContent = p.percent + " %";
+      $("ph-blocked").textContent = fmt(p.blocked);
+      $("ph-total").textContent = fmt(p.total);
+      $("ph-state").textContent = p.blocking === "enabled" ? "Activo" : p.blocking;
+    } else {
+      $("ph-pct").textContent = "--"; $("ph-state").textContent = "Sin conexión";
+    }
+    const w = s.weather;
+    $("weather").textContent = w.ok ? `${WMO[w.code] || "🌡"} · ${Math.round(w.temp)}°C` : "";
+    const n = s.nowplaying;
+    if (n.state === "playing" || n.state === "paused") {
+      $("track").textContent = (n.state === "paused" ? "⏸ " : "▶ ") + (n.title || "");
+      $("artist").textContent = n.artist || "";
+    } else {
+      $("track").textContent = "Nada sonando";
+      $("artist").textContent = 'Elige "PCPi" en Spotify Connect';
+    }
+    $("cpu").textContent = s.cpu_temp != null ? s.cpu_temp + " °C" : "--";
+    $("up").textContent = s.uptime != null ? Math.floor(s.uptime/3600) + " h" : "--";
+  } catch (e) { /* servidor reiniciando */ }
+}
+document.querySelectorAll("button[data-mode]").forEach(b => b.onclick = () =>
+  fetch("/api/mode", {method:"POST", headers:{"X-PCPI":"1"}, body:JSON.stringify({mode:b.dataset.mode})}));
+tick(); refresh();
+setInterval(tick, 1000); setInterval(refresh, 5000);
+</script>
+</body>
+</html>

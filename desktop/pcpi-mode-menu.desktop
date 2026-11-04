@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=PCPi · Elegir modo
+Comment=Escritorio, Gaming o Casa
+Exec=pcpi-mode-menu
+Icon=preferences-desktop
+Categories=Utility;

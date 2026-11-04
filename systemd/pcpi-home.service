@@ -1,0 +1,13 @@
+[Unit]
+Description=PCPi - servidor de la UI (modo Casa / Gaming)
+After=network-online.target
+
+[Service]
+User=__USER__
+Environment=PCPI_CONF=/etc/pcpi/pcpi.conf
+ExecStart=/usr/bin/python3 /opt/pcpi/home/server.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
