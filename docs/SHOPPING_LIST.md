@@ -33,7 +33,7 @@ Pantallita OLED de 0,96" **no táctil**, solo texto blanco, para dejar al lado d
 | Pieza | Enlace | ~€ |
 |---|---|---|
 | **Pantalla OLED HiLetgo 0,96" I2C 128×64** | [HiLetgo I2C (ASIN B06XRCQZRX)](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) | ~7 |
-| **Cables Dupont hembra–hembra** de 20 cm (4 bastan) | [Lumanuby 40 cables](https://www.amazon.es/Lumanuby-40-unidades-conectar-componentes-electr%C3%B3nicos/dp/B0793243TR) | ~7 |
+| **Cables Dupont hembra–hembra** de 20 cm (4 bastan; el kit trae 40 hembra–hembra, 40 macho–hembra y 40 macho–macho) | [ELEGOO kit 120 cables](https://www.amazon.es/Macho-Hembra-Macho-Macho-Hembra-Hembra-Prototipo-Protoboard/dp/B01NGTXASZ) | ~7 |
 | | **Total mini pantalla** | **~14 €** |
 
 > ⚠️ **En la ficha de HiLetgo, elige el color «White-IIC»** (es una de las opciones del selector según la ficha; compruébalo antes de pagar). El que sale por defecto es *Yellow Blue* (franja amarilla arriba y azul abajo), que no es blanco.
@@ -41,6 +41,8 @@ Pantallita OLED de 0,96" **no táctil**, solo texto blanco, para dejar al lado d
 > ⚠️ **Compra la versión I2C («IIC»), no la «SPI».** HiLetgo vende las dos con casi el mismo nombre; la SPI tiene 7 pines y este proyecto no la usa.
 >
 > ℹ️ La ficha no dice qué chip lleva (según las opiniones, SSD1306). Si la imagen sale desplazada 2 columnas, pon `chip = sh1106` en `/etc/pcpi/pcpi.conf`: **ambos chips están soportados**.
+
+> 🔌 **Si los cables no te llegan a Canarias**, prueba otro vendedor (todos son kits de 120 con 40 hembra–hembra de 20 cm): [AZDelivery](https://www.amazon.es/AZDelivery-Puente-Jumper-juegos-cables/dp/B074P726ZR) o [AptoFun](https://www.amazon.es/AptoFun-Hembra-Arduino-Raspberry-Breadboard/dp/B01BKN8UX4). Mira siempre la ficha con tu código postal. Como solo necesitas **4**, también sirven los de cualquier kit de Arduino que tengas, o comprarlos en una tienda de electrónica de tu isla.
 
 **Total del proyecto con la mini pantalla: unos 104 €** (de los 250 € de presupuesto).
 
