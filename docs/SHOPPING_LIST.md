@@ -33,7 +33,7 @@ Pantallita OLED de 0,96" **no táctil**, solo texto blanco, para dejar al lado d
 | Pieza | Enlace | ~€ |
 |---|---|---|
 | **Pantalla OLED HiLetgo 0,96" I2C 128×64** | [HiLetgo I2C (ASIN B06XRCQZRX)](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) | ~7 |
-| **Cables hembra–hembra** (4 bastan) | [Adafruit Premium Female/Female 30 cm, 40 uds](https://www.amazon.es/Premium-Female-Jumper-Wires-300mm/dp/B00LWWM1WA) (recomendado; más opciones [abajo](#cables-opciones-seguras)) | ~10 (a comprobar) |
+| **Cables hembra–hembra** (4 bastan) | **por elegir**: [«cable GPIO 40 pines hembra–hembra» y otras opciones](#cables-opciones-seguras) | ~5–10 (a comprobar) |
 | | **Total mini pantalla** | **~17 €** |
 
 > ⚠️ **En la ficha de HiLetgo, elige el color «White-IIC»** (es una de las opciones del selector según la ficha; compruébalo antes de pagar). El que sale por defecto es *Yellow Blue* (franja amarilla arriba y azul abajo), que no es blanco.
@@ -44,20 +44,32 @@ Pantallita OLED de 0,96" **no táctil**, solo texto blanco, para dejar al lado d
 
 ### Cables: opciones seguras
 
-Necesitas **4 cables con conector HEMBRA en los DOS extremos**. Lo que más importa es **no equivocarte de tipo**, así que ordeno las opciones por **cuánto se fía uno del título de la ficha**: solo pongo arriba las que dicen *«Female/Female»* (hembra–hembra) **en el propio título**, no mezclados con otros tipos. **No puedo comprobar desde aquí a qué sitios envía cada vendedor**: mira cada ficha con tu código postal canario.
+Necesitas **4 cables con conector HEMBRA en los DOS extremos**, de 20 cm si puede ser. Ordeno las opciones por **cuánto se fía uno del título de la ficha**: solo pongo arriba las que dicen *Female to Female* (hembra–hembra) **en el propio título**. **No puedo comprobar desde aquí ni el stock ni a qué sitios envía cada vendedor**: mira cada ficha con tu código postal canario.
 
-| # | Producto | Por qué | Enlace |
+**Prueba primero los «cables GPIO de 40 pines hembra–hembra»**: es otra categoría que los «kits Dupont» (son cintas de 40 hilos hechas para los pines de la Raspberry Pi, de 20 cm), de **vendedores distintos** a los que ya te fallaron, y vienen en packs de 5 cintas, así que sobra:
+
+| # | Producto (título de la ficha) | Longitud | Enlace |
 |---|---|---|---|
-| **1** | **Adafruit «Premium Female/Female Jumper Wires», 40 cables de 30 cm** | El título dice solo *Female/Female*. Marca de electrónica conocida y cables «premium». **30 cm** te da holgura para poner la pantalla al lado de la grande | [Adafruit 40 × 30 cm](https://www.amazon.es/Premium-Female-Jumper-Wires-300mm/dp/B00LWWM1WA) |
-| **2** | Adafruit «Premium Female/Female», **20 cables de 15 cm** | Igual, pero más cortos: sirve solo si la pantalla va muy cerca de la Pi | [Adafruit 20 × 15 cm](https://www.amazon.es/Premium-Female-Jumper-Wires-150mm/dp/B00XW2L2X2) |
-| **3** | AZDelivery «40 Pieces **F2F** Female Pins», 20 cm | El título dice *F2F* (hembra–hembra). Puede estar sin stock | [AZDelivery F2F](https://www.amazon.es/AZDelivery-Jumper-Arduino-Raspberry-Breadboard/dp/B07KYHBVR7) |
-| **4** | **GTIWUNG kit de 240** (el que dices que te llega) | Trae hembra–hembra **mezclados con otros tipos** y el título solo dice «Female Male»: **sin garantía**, ver abajo | [GTIWUNG](https://www.amazon.es/-/en/GTIWUNG-Breadboard-Prototype-Solderless-Protoboard/dp/B0CPS1NLFS) |
+| **1** | «5pcs GPIO Cable for **Female to Female** 40 Pin Wire… 20cm (Female to Female)» (opiky) | 20 cm | [opiky](https://www.amazon.es/opiky-Raspberry-Alambre-Accesorios-computadora/dp/B08H5K2HNN) |
+| **2** | «Cable GPIO de 5 piezas, cable GPIO, **hembra a hembra**» | 20 cm (a comprobar) | [5 piezas](https://www.amazon.es/Cable-piezas-cable-hembra-Raspberry/dp/B08GCDPL51) |
+| **3** | «Ejoyous GPIO Cable, 40 Pin Iris, **Female to Female**» | a comprobar | [Ejoyous](https://www.amazon.es/Ejoyous-Raspberry-hembra-extensi%C3%B3n-adaptador/dp/B0BWF5WWY5) |
+| **4** | «40 Pin **Female to Female** GPIO Cable… Rainbow Look» | 20 cm (a comprobar) | [Rainbow 1](https://www.amazon.es/utilizado-ampliar-compatible-flexible-arco%C3%ADris/dp/B08ZDKJQJC) · [Rainbow 2](https://www.amazon.es/Adaptador-Rainbow-Hembra-Hembra-Raspberry-Interfaz/dp/B07P4LFM14) |
 
-> ⚠️ **Los «macho–hembra» no sirven** (los pines de la pantalla y los de la Pi son machos: cada extremo necesita un casquillo/agujero).
+Otras con el título claro de hembra–hembra, pero **solo de 10 cm** (sirven únicamente si la mini pantalla queda pegada a la Pi; **no se pueden alargar** uniendo dos cables hembra–hembra):
+
+| # | Producto | Enlace |
+|---|---|---|
+| **5** | Hellotronics «Premium **Female to Female** Breadboard Jumper Wires», 130 uds, 10 cm | [Hellotronics](https://www.amazon.es/Premium-Breadboard-100-Pack-Jumpers-Hellotronics/dp/B07YDH8ZL1) |
+| **6** | Bestlus «Jumper Cables Premium 10CM **F/F**», 120 uds | [Bestlus](https://www.amazon.es/Bestlus-Breadboard-Exclusives-Cuadrada-Raspberry/dp/B09KSYJ82P) |
+| **7** | «Jumper 10cm Jumper Cables **Female to Female** For 3pieces 40 Pins» | [3 cintas 10 cm](https://www.amazon.es/Hembra-Arduino-Changor-Cables-puente/dp/B08XQ63DT9) |
+
+**Según tú están sin stock o no llegan:** [Adafruit Premium F/F 30 cm](https://www.amazon.es/Premium-Female-Jumper-Wires-300mm/dp/B00LWWM1WA) · [Adafruit 15 cm](https://www.amazon.es/Premium-Female-Jumper-Wires-150mm/dp/B00XW2L2X2) · [AZDelivery F2F](https://www.amazon.es/AZDelivery-Jumper-Arduino-Raspberry-Breadboard/dp/B07KYHBVR7) · [TECHZOCO](https://www.amazon.es/TECHZOCO-alambre-Prototipo-Raspberry-Breadboard/dp/B0DLV44JHZ) · [SATKIT 30 cm](https://www.amazon.es/SATKIT-Hembra-Arduino-Breadboard-Proyectos/dp/B06Y457TS5) · ELEGOO · Lumanuby. **GTIWUNG** ([kit](https://www.amazon.es/-/en/GTIWUNG-Breadboard-Prototype-Solderless-Protoboard/dp/B0CPS1NLFS)) te llegaba, pero mezcla tipos y su título dice solo «Female Male»: solo con verificación (abajo).
+
+> ⚠️ **Los «macho–hembra» no sirven** (los pines de la pantalla y los de la Pi son machos: cada extremo del cable necesita un casquillo/agujero). Cuidado con los títulos que dicen «Male to Female» o «hombre a mujer» (también existen en la misma categoría, p. ej. el de la búsqueda «GPIO Macho a Hembra»).
 >
-> **Si eliges la opción 4 (GTIWUNG):** según la descripción que leí trae 6 tiras de 40 (3 tipos × 10 y 20 cm), pero **no he podido abrir la ficha** y el título no menciona «Female to Female»: verifica en «Contenido del paquete». **Al recibirlo**, mira los dos extremos de una tira: tienen que ser agujeros, sin puntitas metálicas.
+> **Si usas GTIWUNG:** según la descripción que leí trae 6 tiras de 40 (3 tipos × 10 y 20 cm), pero no he podido abrir la ficha; verifica «Contenido del paquete». **Al recibir cualquier cable**, mira los dos extremos de una cinta: tienen que ser agujeros, sin puntitas metálicas.
 >
-> **Plan B** si ninguna llega: la ruta **Seeed Grove** ([pantalla](https://www.amazon.es/Seeed-Grove-Pantalla-pulgadas-SSD1315/dp/B0821HHGG5) + [cable Grove hembra](https://www.amazon.es/Seeedstudio-conversi%C3%B3n-hembra-unidades-paquete/dp/B01AD62W56), con colores fijos), o 4 cables sueltos en una **tienda de electrónica de tu isla**. **No llegan a Canarias, según tú:** [TECHZOCO](https://www.amazon.es/TECHZOCO-alambre-Prototipo-Raspberry-Breadboard/dp/B0DLV44JHZ), ELEGOO y Lumanuby.
+> **Plan B** si ninguna llega: la ruta **Seeed Grove** ([pantalla](https://www.amazon.es/Seeed-Grove-Pantalla-pulgadas-SSD1315/dp/B0821HHGG5) + [cable Grove hembra](https://www.amazon.es/Seeedstudio-conversi%C3%B3n-hembra-unidades-paquete/dp/B01AD62W56), con colores fijos), o 4 cables sueltos en una **tienda de electrónica de tu isla** (piden «cables Dupont hembra–hembra»; cuestan céntimos).
 
 **Total del proyecto con la mini pantalla: unos 107 €** (de los 250 € de presupuesto).
 

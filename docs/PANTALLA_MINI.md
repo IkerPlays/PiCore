@@ -35,7 +35,7 @@ Una pantallita **no táctil**, solo **texto blanco sobre negro** (sin colores ni
 | Pieza | Enlace | ~€ |
 |---|---|---|
 | **Pantalla OLED HiLetgo 0,96" I2C, 128×64** | [HiLetgo I2C (ASIN B06XRCQZRX)](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) | ~7 |
-| **Cables hembra–hembra** (4 bastan) | [Adafruit Premium Female/Female 30 cm](https://www.amazon.es/Premium-Female-Jumper-Wires-300mm/dp/B00LWWM1WA) (recomendado; [opciones](SHOPPING_LIST.md#cables-opciones-seguras)) | ~10 |
+| **Cables hembra–hembra** (4 bastan) | por elegir: [«cable GPIO 40 pines hembra–hembra» y otras opciones](SHOPPING_LIST.md#cables-opciones-seguras) | ~5–10 |
 
 > ⚠️ **En la ficha elige el color «White-IIC»** (según la ficha, es una de las opciones del selector; si no la ves, elige otra pantalla blanca de la lista).
 >
@@ -45,7 +45,7 @@ Una pantallita **no táctil**, solo **texto blanco sobre negro** (sin colores ni
 >
 > ℹ️ La ficha **no dice qué chip lleva**; según las opiniones, es un SSD1306. **Por si acaso, el software soporta los dos chips más habituales** (SSD1306 y SH1106): si la imagen sale desplazada 2 columnas, pon `chip = sh1106` (ver abajo).
 >
-> 🔌 **Cables:** hembra en los dos extremos; solo necesitas 4. La opción recomendada es la **Adafruit Premium Female/Female de 30 cm** (el título dice solo hembra–hembra, sin mezclas); otras y plan B en [SHOPPING_LIST.md](SHOPPING_LIST.md#cables-opciones-seguras).
+> 🔌 **Cables:** hembra en los dos extremos; solo necesitas 4. Lo primero que probar: los **«cables GPIO de 40 pines hembra–hembra»** de 20 cm (packs de 5 cintas, otra categoría y otros vendedores que los kits Dupont). Opciones, enlaces y plan B en [SHOPPING_LIST.md](SHOPPING_LIST.md#cables-opciones-seguras).
 >
 > Los precios son aproximados y **no he podido comprobar el envío a Canarias**: mete tu código postal en la ficha antes de pagar. Alternativa: [AZDelivery](https://amazon.es/AZDelivery-Pantalla-Display-pulgadas-Raspberry/dp/B01L9GC470) (blanca y SSD1306 según su ficha).
 
