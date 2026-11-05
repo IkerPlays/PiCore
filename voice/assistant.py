@@ -13,6 +13,7 @@ import datetime
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -31,7 +32,7 @@ RATE = 16000
 def load_conf():
     cp = configparser.ConfigParser()
     cp.read(CONF)
-    g = lambda k, d: cp.get("voice", k, fallback=d)
+    g = lambda k, d: re.split(r"\s+#", cp.get("voice", k, fallback=d), maxsplit=1)[0].strip()   # ignora "# comentario" al final
     return {
         "engine": g("wake_engine", "openwakeword").strip().lower(),
         "wake_model": g("wake_model", "hey_jarvis").strip(),

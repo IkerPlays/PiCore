@@ -9,6 +9,7 @@ import argparse
 import configparser
 import datetime
 import os
+import re
 import signal
 import sys
 import time
@@ -22,7 +23,8 @@ import sysstats  # noqa: E402
 def load_conf():
     cp = configparser.ConfigParser()
     cp.read(os.environ.get("PCPI_CONF", "/etc/pcpi/pcpi.conf"))
-    g = lambda k, d: cp.get("mini", k, fallback=d)
+    # tolerante: si alguien escribe "valor   # comentario", se ignora el comentario
+    g = lambda k, d: re.split(r"\s+#", cp.get("mini", k, fallback=d), maxsplit=1)[0].strip()
     return {"address": int(g("address", "0x3C"), 0), "bus": int(g("i2c_bus", "1")),
             "rotate": g("rotate", "false").lower() in ("1", "true", "yes", "si"),
             "interval": float(g("interval", "1")),

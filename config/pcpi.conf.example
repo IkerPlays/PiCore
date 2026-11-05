@@ -47,12 +47,19 @@ input_format = mjpeg
 
 [mini]
 # Mini pantalla OLED I2C de estado (./install.sh --stats). Ver docs/PANTALLA_MINI.md
-address = 0x3C        # algunas pantallas usan 0x3D
-chip = ssd1306        # si la imagen sale desplazada 2 columnas o con basura en el borde: sh1106
+# (Los comentarios van SIEMPRE en su propia linea, nunca al final de un valor.)
+
+# Direccion I2C. Algunas pantallas usan 0x3D (mira 'sudo i2cdetect -y 1').
+address = 0x3C
 i2c_bus = 1
-rotate = false        # true = girar 180 grados
-interval = 1          # segundos entre actualizaciones
-contrast = 120        # 0-255
+# Chip: ssd1306 (lo habitual) o sh1106. Si la imagen sale desplazada 2 columnas o con basura en el borde, pon sh1106.
+chip = ssd1306
+# true = girar la imagen 180 grados
+rotate = false
+# Segundos entre actualizaciones
+interval = 1
+# Brillo 0-255
+contrast = 120
 # Los OLED se desgastan si estan siempre encendidos: apagala por la noche (horas 0-23, -1 = nunca)
 off_from = -1
 off_to = -1

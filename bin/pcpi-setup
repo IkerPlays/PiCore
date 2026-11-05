@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+# Asistente de configuracion de PCPi: te pregunta y escribe /etc/pcpi/pcpi.conf por ti.
+#   pcpi-setup            # todo, paso a paso
+#   pcpi-setup ciudad     # solo el tiempo
+#   pcpi-setup pihole     # solo la contraseña de Pi-hole
+#   pcpi-setup micro      # solo el microfono (con prueba de grabacion)
+#   pcpi-setup pantalla   # solo la mini pantalla OLED
+# Puedes repetirlo cuando quieras. Pulsa Enter para aceptar lo que sale entre [corchetes].
+set -u
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CFG="$HERE/pcpi-config"
+CONF="${PCPI_CONF:-/etc/pcpi/pcpi.conf}"
+export PCPI_CONF="$CONF"
+[ -f "$CONF" ] || { echo "No existe $CONF: ejecuta antes ./install.sh" >&2; exit 1; }
+
+B=$'\033[1m'; G=$'\033[32m'; Y=$'\033[33m'; R=$'\033[31m'; N=$'\033[0m'
+ok()   { printf '%s✔%s %s\n' "$G" "$N" "$*"; }
+warn() { printf '%s!%s %s\n' "$Y" "$N" "$*"; }
+bad()  { printf '%s✘%s %s\n' "$R" "$N" "$*"; }
+title(){ printf '\n%s== %s ==%s\n' "$B" "$*" "$N"; }
+ask()  { local a; read -r -p "$1 " a || a=""; echo "${a:-$2}"; }              # ask "pregunta" "defecto"
+yn()   { local a; read -r -p "$1 [S/n] " a || a=""; case "${a:-s}" in [sS]*|[yY]*) return 0 ;; *) return 1 ;; esac; }
+put()  { "$CFG" set "$@"; }
+CHANGED=""
+
+step_city() {
+  title "1. Ciudad (para el tiempo)"
+  local names=("Las Palmas de Gran Canaria" "Santa Cruz de Tenerife" "San Cristóbal de La Laguna" "Maspalomas" "Arrecife (Lanzarote)"
+               "Puerto del Rosario (Fuerteventura)" "Santa Cruz de La Palma" "San Sebastián de La Gomera" "Valverde (El Hierro)"
+               "Madrid" "Barcelona" "Valencia" "Sevilla")
+  local coords=("28.1235 -15.4363" "28.4636 -16.2518" "28.4874 -16.3141" "27.7606 -15.5860" "28.9630 -13.5477"
+                "28.5004 -13.8627" "28.6835 -17.7642" "28.0916 -17.1133" "27.8063 -17.9158"
+                "40.4168 -3.7038" "41.3874 2.1686" "39.4699 -0.3763" "37.3891 -5.9845")
+  local i; for i in "${!names[@]}"; do printf '  %2d) %s\n' "$((i + 1))" "${names[$i]}"; done
+  echo "   0) Otra (escribo las coordenadas yo)"
+  local c; c="$(ask "¿Cuál es la tuya? [1]" 1)"
+  local lat lon
+  if [ "$c" = 0 ]; then
+    lat="$(ask "Latitud (ej. 28.1235):" "")"; lon="$(ask "Longitud (ej. -15.4363):" "")"
+    [[ "$lat" =~ ^-?[0-9]+(\.[0-9]+)?$ && "$lon" =~ ^-?[0-9]+(\.[0-9]+)?$ ]] || { bad "Coordenadas no válidas: no cambio nada."; return; }
+  elif [[ "$c" =~ ^[0-9]+$ ]] && [ "$c" -ge 1 ] && [ "$c" -le "${#names[@]}" ]; then
+    read -r lat lon <<< "${coords[$((c - 1))]}"
+  else
+    bad "Opción no válida: no cambio nada."; return
+  fi
+  put weather lat "$lat"; put weather lon "$lon"
+  ok "Guardado: $lat, $lon"; CHANGED="$CHANGED home"
+}
+
+step_pihole() {
+  title "2. Pi-hole"
+  echo "La contraseña es la que pusiste con:  sudo pihole setpassword   (al escribirla no se ve nada)."
+  yn "¿Configuro la contraseña ahora?" || return
+  local pw; read -r -s -p "Contraseña de Pi-hole (vacía = Pi-hole sin contraseña): " pw || pw=""; echo
+  local url; url="$("$CFG" get pihole url 2>/dev/null || true)"; url="${url:-http://localhost}"
+  if [ -n "$pw" ]; then
+    local body resp; body="$(python3 -c 'import json,sys; print(json.dumps({"password": sys.argv[1]}))' "$pw")"
+    resp="$(curl -s -m 6 -X POST "$url/api/auth" -H 'Content-Type: application/json' -d "$body" 2>/dev/null || true)"
+    if grep -q '"valid" *: *true' <<< "$resp"; then ok "Pi-hole acepta esa contraseña."
+    elif [ -z "$resp" ]; then warn "No he podido hablar con Pi-hole en $url (¿está instalado y encendido?)."; yn "¿La guardo igualmente?" || return
+    else bad "Pi-hole NO acepta esa contraseña."; yn "¿La guardo igualmente?" || return; fi
+  fi
+  put pihole password "$pw"; ok "Guardado."; CHANGED="$CHANGED home"
+}
+
+step_mic() {
+  title "3. Micrófono"
+  command -v arecord >/dev/null || { bad "Falta arecord (sudo apt install alsa-utils)."; return; }
+  local lines; mapfile -t lines < <(arecord -l 2>/dev/null | sed -n 's/^card \([0-9]*\): [^[]*\[\([^]]*\)\], device \([0-9]*\):.*/\1,\3|\2/p')
+  [ "${#lines[@]}" -gt 0 ] || { bad "No veo ningún micrófono. Conecta la cámara/micro y repite (comprueba con: arecord -l)."; return; }
+  local i; for i in "${!lines[@]}"; do printf '  %d) %s   (plughw:%s)\n' "$((i + 1))" "${lines[$i]#*|}" "${lines[$i]%%|*}"; done
+  local c; c="$(ask "¿Cuál es tu micrófono? [1]" 1)"
+  [[ "$c" =~ ^[0-9]+$ ]] && [ "$c" -ge 1 ] && [ "$c" -le "${#lines[@]}" ] || { bad "Opción no válida: no cambio nada."; return; }
+  local dev="plughw:${lines[$((c - 1))]%%|*}" tmp; tmp="$(mktemp --suffix=.wav)"
+  echo "Voy a grabar 3 segundos. Di algo (por ejemplo: «probando uno dos tres»)."
+  read -r -p "Pulsa Enter y habla... " _ || true
+  if arecord -q -D "$dev" -d 3 -f S16_LE -r 16000 -c 1 "$tmp" 2>/dev/null; then
+    echo "Ahora te reproduzco lo grabado:"; aplay -q "$tmp" 2>/dev/null || warn "No he podido reproducirlo (¿salida de audio?)."
+    if yn "¿Te has oído bien?"; then put voice device "$dev"; ok "Micrófono guardado: $dev"; CHANGED="$CHANGED voice"
+    else warn "No lo guardo. Prueba con otra opción o revisa el volumen del micrófono."; fi
+  else
+    bad "No he podido grabar con $dev."
+  fi
+  rm -f "$tmp"
+  if command -v espeak-ng >/dev/null; then echo "Prueba de voz de la Pi:"; espeak-ng -v es "Hola, soy tu Pi" 2>/dev/null || true; fi
+}
+
+step_screen() {
+  title "4. Mini pantalla OLED (opcional)"
+  yn "¿Has conectado la mini pantalla OLED?" || return
+  if command -v i2cdetect >/dev/null; then
+    local found; found="$(i2cdetect -y 1 2>/dev/null | grep -oiE '\b3[cd]\b' | head -1)"
+    if [ -n "$found" ]; then ok "La veo en el bus I2C (dirección 0x$found)."; put mini address "0x$(tr a-z A-Z <<< "$found")"
+    else warn "No la veo en el bus I2C. Revisa los 4 cables y que el I2C esté activado (y reinicia si acabas de instalarlo)."; fi
+  fi
+  echo "  1) SSD1306 (lo habitual)"; echo "  2) SH1106 (si la imagen sale desplazada 2 columnas)"
+  local c; c="$(ask "¿Qué chip lleva? [1]" 1)"
+  case "$c" in 2) put mini chip sh1106 ;; *) put mini chip ssd1306 ;; esac
+  ok "Guardado."; CHANGED="$CHANGED stats"
+}
+
+apply() {
+  [ -z "${CHANGED// /}" ] && return
+  title "Aplicando los cambios"
+  if [ -n "${PCPI_SETUP_NO_RESTART:-}" ]; then warn "(reinicio de servicios omitido)"; return; fi
+  case "$CHANGED" in *home*) sudo systemctl restart pcpi-home && ok "Servidor reiniciado." ;; esac
+  case "$CHANGED" in *voice*) systemctl --user restart pcpi-voice 2>/dev/null && ok "Voz reiniciada." || warn "La voz no está instalada o no arranca (pcpi-doctor)." ;; esac
+  case "$CHANGED" in *stats*) sudo systemctl restart pcpi-stats 2>/dev/null && ok "Mini pantalla reiniciada." || true ;; esac
+}
+
+case "${1:-todo}" in
+  todo)     step_city; step_pihole; step_mic; step_screen ;;
+  ciudad)   step_city ;;
+  pihole)   step_pihole ;;
+  micro)    step_mic ;;
+  pantalla) step_screen ;;
+  -h|--help) sed -n '2,9p' "$0"; exit 0 ;;
+  *) echo "Uso: pcpi-setup [ciudad|pihole|micro|pantalla]" >&2; exit 1 ;;
+esac
+apply
+printf '\n%sListo.%s Comprueba todo con:  pcpi-doctor\n' "$B" "$N"
