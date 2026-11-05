@@ -75,7 +75,7 @@ En la misma terminal puedes **escribir órdenes de voz**: `hey jarvis qué hora 
 | 3 | **Cámara web con micrófono** (sirve de cámara **y** de micro) | [Logitech C270](https://www.amazon.es/Logitech-C270-Webcam-USB-negro/dp/B003R1O320) | 18–25 |
 | 4 | **Hub USB 3.0** de 4 puertos | [UGREEN 15 cm](https://www.amazon.es/UGREEN-Velocidad-Adaptador-Compatible-Port%C3%A1til/dp/B0CD1BHXPZ) | ~10 |
 | 5 | **Teclado USB** con cable | ya lo tienes | 0 |
-| 6 | **Opcional:** mini pantalla de estado (ver [Paso 8](#paso-8-mini-pantalla-de-estado-opcional)) | [HiLetgo OLED I2C](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) (⚠️ elige el color **White-IIC**) + [cable GPIO 40 pines hembra–hembra «Rainbow»](https://www.amazon.es/utilizado-ampliar-compatible-flexible-arco%C3%ADris/dp/B08ZDKJQJC) | ~14 |
+| 6 | **Opcional:** mini pantalla de estado (ver [Paso 8](#paso-8-mini-pantalla-de-estado-opcional)) | [HiLetgo OLED I2C](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) (⚠️ elige el color **White-IIC**) + [kit de cables Dupont SunFounder](https://www.amazon.es/SunFounder-Raspberry-Macho-Hembra-Macho-Macho-Hembra-Hembra/dp/B0772T35F4) | ~14 |
 
 **Alternativas** por si alguna pieza no está disponible: [iPistBit 7"](https://www.amazon.es/iPistBit-Raspberry-altavoces-integrados-compatible/dp/B0D7HSXY37), [InnoMaker 7"](https://www.amazon.es/innomaker-Pantalla-capacitiva-altavoces-Raspberry/dp/B0FL6SVLS5), micro USB pequeño [SunFounder](https://www.amazon.es/SUNFOUNDER-Mini-micr%C3%B3fono-Escritorio-reconocimiento/dp/B01KLRBHGM). Más detalle en [SHOPPING_LIST.md](SHOPPING_LIST.md).
 
@@ -461,22 +461,23 @@ Una pantallita **no táctil** (OLED de 0,96", ~27 mm) para dejar al lado de la g
 | Pieza | Para qué |
 |---|---|
 | Pantalla **OLED HiLetgo 0,96" I2C** (4 pines) | La pantalla |
-| **4 cables hembra–hembra** (de la cinta de 40 hilos del [cable GPIO «Rainbow»](https://www.amazon.es/utilizado-ampliar-compatible-flexible-arco%C3%ADris/dp/B08ZDKJQJC)). **Casquillo (agujero) individual en los dos extremos de cada hilo** | Unir la pantalla a la Pi |
+| **4 cables hembra–hembra** (de la cinta «hembra–hembra» de 40 hilos del [kit SunFounder](https://www.amazon.es/SunFounder-Raspberry-Macho-Hembra-Macho-Macho-Hembra-Hembra/dp/B0772T35F4)). **Casquillo (agujero) en los dos extremos de cada hilo** | Unir la pantalla a la Pi |
 | La Pi **apagada y desenchufada** | ⚠️ Nunca conectes cables al GPIO con la Pi encendida |
 
 ### 8.2 Prepara los cables
 
-1. **Mira cómo es tu cable.** El «cable GPIO Rainbow» debe ser **una cinta de 40 hilos de colores (arcoíris), pegados entre sí, con un casquillo individual (un agujero) en cada extremo de cada hilo**. Es justo lo que necesitamos.
-   - ✅ **Casquillos individuales** en cada hilo → sigue.
-   - ❌ **Una cinta plana con un conector grande de 2×20 pines en cada extremo** (tipo «extensión GPIO») → **no sirve**: no se pueden sacar 4 pines sueltos. Pide otro (plan B en [SHOPPING_LIST.md](SHOPPING_LIST.md#cables-elegido-el-cable-gpio-rainbow)).
-   - ❌ **Una puntita metálica** en algún extremo → es macho, tampoco sirve.
-2. **Separa 4 hilos seguidos** de la cinta tirando suavemente de un extremo hasta despegarlos de los demás (los colores van en orden arcoíris: coge, por ejemplo, los 4 primeros).
+1. Tu **kit SunFounder** trae **3 cintas de 40 hilos** de colores: macho–hembra, macho–macho y **hembra–hembra** (la que necesitamos). **Para reconocer la correcta, mira los dos extremos de cada cinta**:
+   - ✅ **Agujero (casquillo) en los dos extremos** → es la **hembra–hembra**: úsala.
+   - ❌ Puntita metálica en un extremo (macho–hembra) o en los dos (macho–macho) → déjala, no sirve.
+2. **Separa 4 hilos seguidos** de la cinta hembra–hembra tirando suavemente de un extremo hasta despegarlos de los demás (los colores van en orden arcoíris: coge, por ejemplo, los 4 primeros).
 3. **Déjalos unidos entre sí** (la tira de 4) por el lado de la pantalla: así los 4 casquillos encajan juntos en los 4 pines de la OLED y no se cruzan.
 4. Por el **lado de la Pi**, separa los 4 hilos unos 5 cm (tirando hacia fuera) para que cada uno llegue a un pin distinto.
 
-✅ Tienes **4 hilos hembra–hembra**, con 4 casquillos juntos en un extremo y 4 sueltos en el otro.
+✅ Tienes **4 hilos hembra–hembra de 20 cm**, con 4 casquillos juntos en un extremo y 4 sueltos en el otro.
 
-> ⚠️ Con cables macho–hembra o con una extensión de conector grande **no** se puede conectar la pantalla a la Pi.
+> 💡 Estos cables son algo **rígidos**: empuja cada casquillo **hasta el fondo** del pin (alguna opinión cuenta que un pin se aflojó) y no los doblees en ángulo recto.
+>
+> ⚠️ Con cables macho–hembra **no** se puede conectar la pantalla a la Pi. Si ninguna cinta del kit fuera hembra–hembra, mira el plan B en [SHOPPING_LIST.md](SHOPPING_LIST.md#cables-elegido-el-kit-sunfounder).
 >
 > 🔌 **Si usas la variante con conector Grove** (cable Grove con 4 hilos de colores), el paso es otro: sigue la tabla de colores de [PANTALLA_MINI.md](PANTALLA_MINI.md#variante-con-conector-grove).
 

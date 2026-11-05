@@ -35,7 +35,7 @@ Una pantallita **no táctil**, solo **texto blanco sobre negro** (sin colores ni
 | Pieza | Enlace | ~€ |
 |---|---|---|
 | **Pantalla OLED HiLetgo 0,96" I2C, 128×64** | [HiLetgo I2C (ASIN B06XRCQZRX)](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) | ~7 |
-| **Cables hembra–hembra** (4 bastan) | [Cable GPIO 40 pines hembra–hembra «Rainbow»](https://www.amazon.es/utilizado-ampliar-compatible-flexible-arco%C3%ADris/dp/B08ZDKJQJC) | ~5–8 |
+| **Cables hembra–hembra** (4 bastan; el kit trae 40) | [SunFounder, kit de 120 cables Dupont (40 hembra–hembra, 40 macho–hembra, 40 macho–macho), 20 cm](https://www.amazon.es/SunFounder-Raspberry-Macho-Hembra-Macho-Macho-Hembra-Hembra/dp/B0772T35F4) | ~12 |
 
 > ⚠️ **En la ficha elige el color «White-IIC»** (según la ficha, es una de las opciones del selector; si no la ves, elige otra pantalla blanca de la lista).
 >
@@ -45,7 +45,7 @@ Una pantallita **no táctil**, solo **texto blanco sobre negro** (sin colores ni
 >
 > ℹ️ La ficha **no dice qué chip lleva**; según las opiniones, es un SSD1306. **Por si acaso, el software soporta los dos chips más habituales** (SSD1306 y SH1106): si la imagen sale desplazada 2 columnas, pon `chip = sh1106` (ver abajo).
 >
-> 🔌 **Cables:** el elegido es el **cable GPIO 40 pines hembra–hembra «Rainbow»**: una cinta de 40 hilos de colores con un casquillo individual en cada extremo (de la que se despegan 4). **Mira las fotos de la ficha**: si es una cinta plana con un conector grande 2×20 en cada extremo, no sirve. Detalles y plan B en [SHOPPING_LIST.md](SHOPPING_LIST.md#cables-elegido-el-cable-gpio-rainbow).
+> 🔌 **Cables:** el elegido es el **kit SunFounder de 120 cables Dupont**, cuyo título incluye *40 Pines Hembra-Hembra* (20 cm). La caja trae 3 cintas; usa la que tiene **agujero en los dos extremos**. Comprobación y alternativas en [SHOPPING_LIST.md](SHOPPING_LIST.md#cables-elegido-el-kit-sunfounder).
 >
 > Los precios son aproximados y **no he podido comprobar el envío a Canarias**: mete tu código postal en la ficha antes de pagar. Alternativa: [AZDelivery](https://amazon.es/AZDelivery-Pantalla-Display-pulgadas-Raspberry/dp/B01L9GC470) (blanca y SSD1306 según su ficha).
 

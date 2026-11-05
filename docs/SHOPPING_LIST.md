@@ -33,8 +33,8 @@ Pantallita OLED de 0,96" **no táctil**, solo texto blanco, para dejar al lado d
 | Pieza | Enlace | ~€ |
 |---|---|---|
 | **Pantalla OLED HiLetgo 0,96" I2C 128×64** | [HiLetgo I2C (ASIN B06XRCQZRX)](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) | ~7 |
-| **Cables hembra–hembra** (4 bastan) | [Cable GPIO 40 pines hembra–hembra «Rainbow»](https://www.amazon.es/utilizado-ampliar-compatible-flexible-arco%C3%ADris/dp/B08ZDKJQJC) | ~5–8 (a comprobar) |
-| | **Total mini pantalla** | **~17 €** |
+| **Cables hembra–hembra** (4 bastan; el kit trae 40) | [SunFounder, kit de 120 cables Dupont (40 hembra–hembra, 40 macho–hembra, 40 macho–macho), 20 cm](https://www.amazon.es/SunFounder-Raspberry-Macho-Hembra-Macho-Macho-Hembra-Hembra/dp/B0772T35F4) | ~12 |
+| | **Total mini pantalla** | **~19 €** |
 
 > ⚠️ **En la ficha de HiLetgo, elige el color «White-IIC»** (es una de las opciones del selector según la ficha; compruébalo antes de pagar). El que sale por defecto es *Yellow Blue* (franja amarilla arriba y azul abajo), que no es blanco.
 >
@@ -42,38 +42,22 @@ Pantallita OLED de 0,96" **no táctil**, solo texto blanco, para dejar al lado d
 >
 > ℹ️ La ficha no dice qué chip lleva (según las opiniones, SSD1306). Si la imagen sale desplazada 2 columnas, pon `chip = sh1106` en `/etc/pcpi/pcpi.conf`: **ambos chips están soportados**.
 
-### Cables: elegido el cable GPIO «Rainbow»
+### Cables: elegido el kit SunFounder
 
-**Cable GPIO 40 pines hembra–hembra «Rainbow»** ([ficha](https://www.amazon.es/utilizado-ampliar-compatible-flexible-arco%C3%ADris/dp/B08ZDKJQJC)): el que dices que **sí te llega a Canarias**. Título de la ficha: *«40 Pin Female to Female GPIO Cable, Used to Expand Input and Output Port… Flexible Ribbon Cable, Copper Core, Rainbow Look»*. Hay otra ficha casi igual de 20 cm ([Rainbow 2](https://www.amazon.es/Adaptador-Rainbow-Hembra-Hembra-Raspberry-Interfaz/dp/B07P4LFM14)).
+**[SunFounder, 120 piezas de cable Dupont para Arduino/Raspberry Pi](https://www.amazon.es/SunFounder-Raspberry-Macho-Hembra-Macho-Macho-Hembra-Hembra/dp/B0772T35F4)** (~12 €): el que dices que **sí te llega a Canarias**.
 
-> ⚠️ **Antes de pagar, mira las fotos de la ficha** (no he podido abrirla: Amazon me la bloquea). Hay dos tipos de «cable GPIO hembra–hembra» y **solo uno sirve**:
->
-> - ✅ **Cinta de 40 hilos de colores (arcoíris) con un casquillo individual en cada extremo de cada hilo** (los típicos «Dupont»). **Es el que necesitamos**: se despegan 4 hilos de la cinta.
-> - ❌ **Cinta plana gris con un conector grande de 2×20 pines en cada extremo** (tipo «extensión GPIO»). **No sirve**: no se pueden sacar 4 pines sueltos.
->
-> Por el nombre («Rainbow Look», «Copper Core») y las fotos de las fichas parecidas debería ser el primero, pero **compruébalo en las fotos**. También la **longitud**: la ficha «Rainbow 2» dice 20 cm; en esta no la he podido leer.
->
-> **Al recibirlo:** mira los dos extremos de la cinta: cada hilo tiene que acabar en un **agujero (casquillo)**, sin puntitas metálicas. La ficha dice «compatible con Banana Pi / Orange Pi», no cita la Pi 5, pero es solo la tira de 40 pines con separación estándar de 2,54 mm, **la misma de la Pi 5**.
+**¿Vale? Sí.** Lo que he podido comprobar:
+- El **título de la ficha** lo dice expresamente: *«120 Piezas Cable Dupont… 40 Pines Macho-Hembra, 40 Pines Macho-Macho, **40 Pines Hembra-Hembra**»*.
+- La **web oficial de SunFounder** describe el mismo producto como *«120pcs Breadboard Jumper Wires 20cm Dupont Cable»*: cintas de 40 hilos, **de 40 pines hembra–hembra** (más las de macho–hembra y macho–macho), de **20 cm** y 2,54 mm.
+- Son cables **Dupont de verdad** (una cinta de hilos con un casquillo individual en cada extremo), no extensiones con conector grande. Valoración de la ficha: 4,4/5 con 111 opiniones; alguna dice que los cables son algo **rígidos** y una que un pin se aflojó (empuja los conectores **hasta el fondo** al montarlos).
 
-### Más cables Dupont (kits con la tira «hembra–hembra» claramente indicada)
+**Lo que no he podido ver:** la descripción completa y la lista de «Acerca de este artículo» (Amazon solo las enseña con la página completa). Por eso el control de siempre **al recibirlo**: la caja trae **3 cintas de 40**; la que necesitamos es la que tiene **un agujero (casquillo) en los dos extremos** de todos los hilos; las otras llevan una puntita metálica en un extremo (macho–hembra) o en los dos (macho–macho), y **no sirven**.
 
-Si el Rainbow no fuera el tipo correcto, estos son **kits Dupont de verdad**: traen una tira de **40 hilos hembra–hembra** (casquillo individual en cada extremo) junto a otras de macho–hembra y macho–macho. Solo usas la hembra–hembra. **No puedo comprobar stock ni envío a Canarias**: mira cada ficha con tu código postal.
+Usas **4 hilos de la cinta hembra–hembra**; los otros 36 y las otras dos cintas quedan para otros proyectos.
 
-| # | Producto | Tira hembra–hembra | Enlace |
-|---|---|---|---|
-| **1** | **HiLetgo 120 uds (3 × 40)**, 20 cm | 40 × hembra–hembra, 2,54 mm | [HiLetgo 120](https://www.amazon.es/HiLetgo-Breadboard-Prototype-Assortment-Raspberry/dp/B077X7MKHN) · [HiLetgo 200 (5 × 40)](https://www.amazon.es/Hiletgo-Dupont-pruebas-Breadboard-longitud/dp/B077X99KX1) |
-| **2** | **SunFounder 120 uds** («Dupont Cable for Arduino/Raspberry Pi»), 20 cm | 40 × hembra–hembra | [SunFounder 120](https://www.amazon.es/SunFounder-Raspberry-Macho-Hembra-Macho-Macho-Hembra-Hembra/dp/B0772T35F4) |
-| **3** | **AlmoCN 120 uds**, **30 cm** (más largo) | 40 × hembra–hembra | [AlmoCN 120](https://www.amazon.es/AlmoCN-Dupont-unidades-hembra-Arduino/dp/B08LMKS65V) |
-| **4** | **Kabelmeister**, 3 tiras de 40 de 20 cm (BU-BU = hembra–hembra) | 40 × hembra–hembra | [Kabelmeister](https://www.amazon.es/Kabelmeister-Cable-de-puente/dp/B0BRSFY1FQ) |
-| **5** | **Sourcingmap «DuPont», 40 uds 1P-1P, 20 cm** | **Comprueba el género en la ficha** (la dirección web habla de «macho-hembra») | [Sourcingmap](https://www.amazon.es/Dupont-Cable-puente-macho-hembra/dp/B00D7SDDLU) |
+**Otras opciones** si algún día no hubiera stock: [TECHZOCO «Cable DuPont 40 Pines… Hembra a Hembra, 20 cm»](https://www.amazon.es/dp/B0DLPCQHB5) (otra ficha que me pasaste; el título dice hembra–hembra y 20 cm, no he podido leer más), [cable GPIO «Rainbow»](https://www.amazon.es/utilizado-ampliar-compatible-flexible-arco%C3%ADris/dp/B08ZDKJQJC) (comprueba que sean hilos con casquillos individuales y no una extensión con conector grande), la ruta **Seeed Grove** ([pantalla](https://www.amazon.es/Seeed-Grove-Pantalla-pulgadas-SSD1315/dp/B0821HHGG5) + [cable Grove hembra](https://www.amazon.es/Seeedstudio-conversi%C3%B3n-hembra-unidades-paquete/dp/B01AD62W56)) o cables sueltos de una **tienda de electrónica de tu isla**. **Los macho–hembra no sirven.**
 
-> 💡 **Truco para Canarias:** si la **HiLetgo OLED sí te la envían**, prueba el **kit HiLetgo de cables (n.º 1)**: es el **mismo vendedor** y suele salir del mismo almacén, así que es más probable que también te lo envíen (y a veces se mandan juntos). Lo mismo con SunFounder: sus kits son de la misma marca que algunos productos que sí llegan.
->
-> 🔎 **Búsqueda solo con «Prime» (envío por Amazon, que suele llegar a Canarias):** [cables Dupont hembra–hembra, filtrados por Prime](https://www.amazon.es/s?k=cables+dupont+hembra+hembra+20+cm&rh=p_76%3A831314031). Es un enlace de búsqueda de Amazon con el filtro de «Prime» (`p_76`) copiado de otras páginas de amazon.es; **no he podido probarlo desde aquí**. Si no funciona, en la página de resultados marca «Prime» en la columna de la izquierda.
-
-**Plan B** si el Rainbow no fuera el tipo correcto o fallara: otros «cables GPIO 40 pines hembra–hembra» de 20 cm ([opiky](https://www.amazon.es/opiky-Raspberry-Alambre-Accesorios-computadora/dp/B08H5K2HNN) · [pack de 5](https://www.amazon.es/Cable-piezas-cable-hembra-Raspberry/dp/B08GCDPL51) · [Ejoyous](https://www.amazon.es/Ejoyous-Raspberry-hembra-extensi%C3%B3n-adaptador/dp/B0BWF5WWY5)), la ruta **Seeed Grove** ([pantalla](https://www.amazon.es/Seeed-Grove-Pantalla-pulgadas-SSD1315/dp/B0821HHGG5) + [cable Grove hembra](https://www.amazon.es/Seeedstudio-conversi%C3%B3n-hembra-unidades-paquete/dp/B01AD62W56), con colores fijos), o 4 cables sueltos de una **tienda de electrónica de tu isla**. **Los macho–hembra no sirven.**
-
-**Total del proyecto con la mini pantalla: unos 107 €** (de los 250 € de presupuesto).
+**Total del proyecto con la mini pantalla: unos 109 €** (de los 250 € de presupuesto).
 
 ## Lo que quitamos
 
