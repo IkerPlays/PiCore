@@ -3,7 +3,6 @@
 
 Solo usa la libreria estandar de Python. Escucha en 127.0.0.1 por defecto.
 """
-import configparser
 import json
 import os
 import re
@@ -17,6 +16,8 @@ import urllib.request
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+
+import pcpiconf
 
 ROOT = Path(__file__).resolve().parent
 WEB = ROOT / "web"
@@ -60,8 +61,7 @@ def read_conf():
     hit = _conf_cache.get("v")
     if hit and hit[0] == key:
         return hit[1]
-    cp = configparser.ConfigParser()
-    cp.read(path)
+    cp = pcpiconf.load(path)
     _conf_cache["v"] = (key, cp)
     return cp
 

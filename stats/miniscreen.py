@@ -6,7 +6,6 @@
 Ajustes en /etc/pcpi/pcpi.conf, seccion [mini].
 """
 import argparse
-import configparser
 import datetime
 import os
 import re
@@ -16,13 +15,14 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "home"))  # pcpiconf (instalado: /opt/pcpi/home)
+import pcpiconf  # noqa: E402
 import render  # noqa: E402
 import sysstats  # noqa: E402
 
 
 def load_conf():
-    cp = configparser.ConfigParser()
-    cp.read(os.environ.get("PCPI_CONF", "/etc/pcpi/pcpi.conf"))
+    cp = pcpiconf.load(os.environ.get("PCPI_CONF", "/etc/pcpi/pcpi.conf"))
     # tolerante: si alguien escribe "valor   # comentario", se ignora el comentario
     g = lambda k, d: re.split(r"\s+#", cp.get("mini", k, fallback=d), maxsplit=1)[0].strip()
     return {"address": int(g("address", "0x3C"), 0), "bus": int(g("i2c_bus", "1")),

@@ -80,5 +80,101 @@ class TolerantLoadersTest(unittest.TestCase):
         self.assertEqual(assistant.load_conf()["device"], "plughw:2,0")
 
 
+class RobustConfigTest(unittest.TestCase):
+    """Cosas que pasan al editar a mano y antes tumbaban servicios o dejaban Pi-hole «sin conexion» sin explicacion."""
+
+    def write(self, text):
+        f = Path(tempfile.mkdtemp(), "pcpi.conf")
+        f.write_text(text, encoding="utf-8")
+        os.environ["PCPI_CONF"] = str(f)
+        assistant.CONF = f
+        return f
+
+    def test_percent_in_password(self):
+        import pcpiconf
+        cp = pcpiconf.parse("[pihole]\npassword = 50%off y 100%\n")
+        self.assertEqual(cp.get("pihole", "password"), "50%off y 100%")        # antes: InterpolationSyntaxError
+
+    def test_percent_in_password_reaches_pihole_login(self):
+        """El servidor debe mandar la contraseña tal cual a Pi-hole (con %, # y espacios)."""
+        import http.server
+        import json
+        import threading
+        got = {}
+
+        class Fake(http.server.BaseHTTPRequestHandler):
+            def log_message(self, *a):
+                pass
+
+            def _j(self, o):
+                b = json.dumps(o).encode()
+                self.send_response(200)
+                self.send_header("Content-Length", str(len(b)))
+                self.end_headers()
+                self.wfile.write(b)
+
+            def do_POST(self):
+                got["pw"] = json.loads(self.rfile.read(int(self.headers["Content-Length"])))["password"]
+                self._j({"session": {"sid": "s", "validity": 300}})
+
+            def do_GET(self):
+                if "stats" in self.path:
+                    self._j({"queries": {"total": 10, "blocked": 3, "percent_blocked": 30.0}, "gravity": {"domains_being_blocked": 5}})
+                else:
+                    self._j({"blocking": "enabled"})
+
+        srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Fake)
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        try:
+            self.write("[pihole]\nurl = http://127.0.0.1:%d\npassword = 50%%off #1 x\n" % srv.server_address[1])
+            server._sid.update(sid=None, exp=0.0)
+            st = server.pihole_stats(server.read_conf())
+        finally:
+            srv.shutdown()
+        self.assertTrue(st["ok"], st)
+        self.assertEqual(got["pw"], "50%off #1 x")
+
+    def test_duplicate_keys_last_wins(self):
+        import pcpiconf
+        cp = pcpiconf.parse("[weather]\nlat = 1\nlat = 2\n[weather]\nlon = 3\n")
+        self.assertEqual((cp.get("weather", "lat"), cp.get("weather", "lon")), ("2", "3"))
+
+    def test_garbage_lines_are_ignored_not_fatal(self):
+        import pcpiconf
+        cp = pcpiconf.parse("texto suelto antes de nada\n[server]\nport = 9090\nesto no tiene igual\n[voice]\nwake_threshold = 0.7\n")
+        self.assertEqual(cp.getint("server", "port"), 9090)
+        self.assertEqual(cp.get("voice", "wake_threshold"), "0.7")
+
+    def test_missing_or_unreadable_file(self):
+        import pcpiconf
+        self.assertEqual(pcpiconf.load("/no/existe/pcpi.conf").sections(), [])
+        f = Path(tempfile.mkdtemp(), "bin.conf")
+        f.write_bytes(b"\xff\xfe\x00\x80 no es utf-8")
+        self.assertEqual(pcpiconf.load(f).sections(), [])
+
+    def test_all_loaders_survive_a_messy_file(self):
+        self.write("basura\n[server]\nport = 8080\nport = 8081\n[pihole]\npassword = 100%\n[voice]\nwake_threshold = 0.6 # c\n"
+                   "[mini]\naddress = 0x3D\nlinea mala\n")
+        self.assertEqual(server.read_conf().getint("server", "port"), 8081)
+        self.assertEqual(assistant.load_conf()["threshold"], 0.6)
+        self.assertEqual(miniscreen.load_conf()["address"], 0x3D)
+
+    def test_server_status_survives_messy_config(self):
+        """/api/status debe seguir respondiendo aunque pcpi.conf este hecho un desastre."""
+        import json
+        import threading
+        import urllib.request
+        self.write("[[[\nbasura\n[pihole]\nurl = \npassword = 5%\n[weather]\nlat = abc\nlon = xyz\n")
+        srv = server.make_server("127.0.0.1", 0)
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        try:
+            d = json.load(urllib.request.urlopen("http://127.0.0.1:%d/api/status" % srv.server_address[1], timeout=5))
+        finally:
+            srv.shutdown()
+        self.assertFalse(d["pihole"]["ok"])
+        self.assertFalse(d["weather"]["ok"])
+        self.assertIn("mode", d)
+
+
 if __name__ == "__main__":
     unittest.main()

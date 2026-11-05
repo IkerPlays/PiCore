@@ -8,7 +8,6 @@
 
 El estado va a /run/pcpi/voice.json para que la UI del modo Casa lo muestre.
 """
-import configparser
 import datetime
 import io
 import json
@@ -22,7 +21,9 @@ import wave
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "home"))  # pcpiconf (instalado: /opt/pcpi/home)
 import intents  # noqa: E402
+import pcpiconf  # noqa: E402
 
 CONF = Path(os.environ.get("PCPI_CONF", "/etc/pcpi/pcpi.conf"))
 STATE = Path(os.environ.get("PCPI_VOICE_STATE", "/run/pcpi/voice.json"))
@@ -30,8 +31,7 @@ RATE = 16000
 
 
 def load_conf():
-    cp = configparser.ConfigParser()
-    cp.read(CONF)
+    cp = pcpiconf.load(CONF)
     g = lambda k, d: re.split(r"\s+#", cp.get("voice", k, fallback=d), maxsplit=1)[0].strip()   # ignora "# comentario" al final
     return {
         "engine": g("wake_engine", "openwakeword").strip().lower(),

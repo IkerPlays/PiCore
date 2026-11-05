@@ -62,6 +62,12 @@ La palabra, el umbral y el micro se cambian en `[voice]` de `/etc/pcpi/pcpi.conf
 
 ## Estado
 
-**103 tests** (`make test`): servidor y API, **seguridad (DNS rebinding, cabeceras, entradas raras)**, notas, cámara (con una cámara falsa, incluida una que se cuelga), intérprete de órdenes de voz, máquina de estados del asistente, emulador, arranque automático (`pcpi-autostart`, con el fallo del panel de labwc cubierto) y mini pantalla (métricas, dibujo, bytes del SSD1306 y SH1106, y que el servicio sobrevive a una pantalla desconectada o a un cable suelto). Además se probó a mano el bucle de `pcpi-session` con un Chromium falso (home → iker → escritorio) y la interfaz con capturas a 1024×600.
+**140 tests** (`make test`, unos 40 s):
 
-> ⚠️ **Nada de esto se ha probado todavía en una Raspberry Pi real.** Falta comprobar sobre el hardware: el instalador, el kiosco de Chromium, el hook de Spotify, la cámara, el reconocimiento de voz (calidad del micro, umbral de activación) y la mini pantalla. Si algo falla, `pcpi-doctor` y la sección «Si algo falla» del [tutorial](docs/TUTORIAL.md) son el punto de partida.
+- **Instalador y desinstalador ejecutados de verdad** en un árbol alternativo, con `apt`, `systemctl`, `sudo`… de mentira que anotan lo que se les pide: rutas, permisos, idempotencia (no pisa tu configuración ni tu modo), orden de las llamadas (el servidor se reinicia **después** de añadir los grupos), y que desinstalar deja el panel del escritorio intacto.
+- **Todos los scripts de `bin/`** (modos, selector, hook de Spotify, grabación de muestras, `pcpi-doctor`, y el vigilante de modos con un Chromium de mentira).
+- **Servidor y API**, seguridad (DNS rebinding, cabeceras, entradas raras), notas, cámara, configuración desordenada (contraseñas con `%`, claves repetidas, líneas basura).
+- **Voz** (intérprete de órdenes, máquina de estados) y **mini pantalla** (métricas, dibujo, bytes del SSD1306/SH1106, reconexión).
+- **La interfaz en un navegador real** (26 comprobaciones con Playwright: botones, notas, tema, cámara, XSS, errores de consola/CSP). Se omite si no tienes `node` + `playwright`.
+
+> ⚠️ **Nada de esto se ha probado todavía en una Raspberry Pi real.** Falta comprobar sobre el hardware: el instalador con apt de verdad, el kiosco de Chromium, el hook de Spotify, la cámara, el reconocimiento de voz (calidad del micro, umbral de activación) y la mini pantalla. Si algo falla, `pcpi-doctor` y la sección «Si algo falla» del [tutorial](docs/TUTORIAL.md) son el punto de partida.
