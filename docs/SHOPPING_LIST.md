@@ -33,7 +33,7 @@ Pantallita OLED de 0,96" **no táctil**, solo texto blanco, para dejar al lado d
 | Pieza | Enlace | ~€ |
 |---|---|---|
 | **Pantalla OLED HiLetgo 0,96" I2C 128×64** | [HiLetgo I2C (ASIN B06XRCQZRX)](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) | ~7 |
-| **Cables Dupont hembra–hembra** de 20 cm (4 bastan; el kit trae 40 hembra–hembra, 40 macho–hembra y 40 macho–macho) | [ver opciones abajo](#cables-dupont-opciones-elige-el-que-te-deje-comprar-en-canarias) | ~5–11 |
+| **Cables Dupont hembra–hembra** de 20 cm (la tira trae 40; usas 4) | [TECHZOCO 40 cables hembra–hembra, 20 cm](https://www.amazon.es/TECHZOCO-alambre-Prototipo-Raspberry-Breadboard/dp/B0DLV44JHZ) | ~7 |
 | | **Total mini pantalla** | **~14 €** |
 
 > ⚠️ **En la ficha de HiLetgo, elige el color «White-IIC»** (es una de las opciones del selector según la ficha; compruébalo antes de pagar). El que sale por defecto es *Yellow Blue* (franja amarilla arriba y azul abajo), que no es blanco.
@@ -42,22 +42,13 @@ Pantallita OLED de 0,96" **no táctil**, solo texto blanco, para dejar al lado d
 >
 > ℹ️ La ficha no dice qué chip lleva (según las opiniones, SSD1306). Si la imagen sale desplazada 2 columnas, pon `chip = sh1106` en `/etc/pcpi/pcpi.conf`: **ambos chips están soportados**.
 
-### Cables Dupont: opciones (elige el que te deje comprar en Canarias)
+### Cables Dupont: elegido TECHZOCO
 
-Solo necesitas **4 cables con conector HEMBRA en los DOS extremos** («hembra–hembra», «female to female» o «F2F»), de **20 cm**. Mira siempre la ficha con tu código postal: **no puedo comprobar desde aquí a qué sitios envía cada vendedor**, y por eso te doy varios.
+Tira de **40 cables hembra–hembra de 20 cm** ([TECHZOCO](https://www.amazon.es/TECHZOCO-alambre-Prototipo-Raspberry-Breadboard/dp/B0DLV44JHZ)), confirmada por ti como la que te llega a casa. Solo usas **4**; los demás quedan para otros proyectos.
 
-| Opción | Qué es | Enlace |
-|---|---|---|
-| **A** | Tira de **40 cables solo hembra–hembra**, 20 cm (lo más justo) | [TECHZOCO](https://www.amazon.es/TECHZOCO-alambre-Prototipo-Raspberry-Breadboard/dp/B0DLV44JHZ) |
-| **B** | Tira plana de 40 hilos hembra–hembra, 20 cm (se separan los que quieras) | [Cable plano 40 pines F–F](https://www.amazon.es/Adaptador-Rainbow-Hembra-Hembra-Raspberry-Interfaz/dp/B07P4LFM14) |
-| **C** | Kit 3 × 40 (hembra–hembra, macho–hembra, macho–macho), 20 cm | [QILUCKY](https://www.amazon.es/QILUCKY-hembra-hembra-macho-hembra-macho-macho-Raspberry/dp/B0B1PD6SRH) |
-| **D** | Kit de 240 cables, 10 y 20 cm | [YXPCARS](https://www.amazon.es/YXPCARS-cables-hembra-femenino-Arduino/dp/B08HQ7K6M7) |
-| **E** | Kit de 120 cables, 20 cm (~11 €) | [Kit 120 «Dupont 20 cm»](https://www.amazon.es/Hembra-Hembra-Macho-Hembra-Macho-Macho-Breadboard-Proyectos/dp/B0FGPNMDCL) · [Aihasd](https://www.amazon.es/Aihasd-Macho-Macho-Hembra-Hembra-Hembra-Macho-Connections/dp/B014W7GH4E) |
-| **F** | Kit de 120 de ELEGOO, AZDelivery o AptoFun | [ELEGOO](https://www.amazon.es/Macho-Hembra-Macho-Macho-Hembra-Hembra-Prototipo-Protoboard/dp/B01NGTXASZ) · [AZDelivery](https://www.amazon.es/AZDelivery-Puente-Jumper-juegos-cables/dp/B074P726ZR) · [AptoFun](https://www.amazon.es/AptoFun-Hembra-Arduino-Raspberry-Breadboard/dp/B01BKN8UX4) |
-
-> ⚠️ **Tienen que ser hembra en los dos extremos.** Los cables «macho–hembra» (los que traen algunos packs de pantallas, como FUANA) **no sirven**: tanto los pines de la pantalla como los de la Pi son machos, así que cada extremo del cable necesita un casquillo (agujero), no una puntita.
+> ⚠️ **Tienen que ser hembra en los dos extremos** (casquillo/agujero en ambos lados): tanto los pines de la pantalla como los de la Pi son machos. Los cables «macho–hembra» **no sirven**.
 >
-> Mientras no te llegue ninguno: sirven los cables de cualquier kit de Arduino que ya tengas, o comprarlos **sueltos en una tienda de electrónica de tu isla** (piden «cables Dupont hembra–hembra», y 4 cuestan céntimos).
+> **Plan B** (si algún día no hay stock): otro pack de **hembra–hembra** de 20 cm, como [QILUCKY](https://www.amazon.es/QILUCKY-hembra-hembra-macho-hembra-macho-macho-Raspberry/dp/B0B1PD6SRH), [YXPCARS](https://www.amazon.es/YXPCARS-cables-hembra-femenino-Arduino/dp/B08HQ7K6M7), [ELEGOO](https://www.amazon.es/Macho-Hembra-Macho-Macho-Hembra-Hembra-Prototipo-Protoboard/dp/B01NGTXASZ) o [AZDelivery](https://www.amazon.es/AZDelivery-Puente-Jumper-juegos-cables/dp/B074P726ZR), o cables sueltos de una tienda de electrónica de tu isla.
 
 **Total del proyecto con la mini pantalla: unos 104 €** (de los 250 € de presupuesto).
 

@@ -35,7 +35,7 @@ Una pantallita **no táctil**, solo **texto blanco sobre negro** (sin colores ni
 | Pieza | Enlace | ~€ |
 |---|---|---|
 | **Pantalla OLED HiLetgo 0,96" I2C, 128×64** | [HiLetgo I2C (ASIN B06XRCQZRX)](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) | ~7 |
-| **Cables Dupont hembra–hembra** de 20 cm (el kit trae 40; usas 4) | [varias opciones](SHOPPING_LIST.md#cables-dupont-opciones-elige-el-que-te-deje-comprar-en-canarias) | ~5–11 |
+| **Cables Dupont hembra–hembra** de 20 cm (la tira trae 40; usas 4) | [TECHZOCO 40 cables hembra–hembra, 20 cm](https://www.amazon.es/TECHZOCO-alambre-Prototipo-Raspberry-Breadboard/dp/B0DLV44JHZ) | ~7 |
 
 > ⚠️ **En la ficha elige el color «White-IIC»** (según la ficha, es una de las opciones del selector; si no la ves, elige otra pantalla blanca de la lista).
 >
@@ -45,7 +45,7 @@ Una pantallita **no táctil**, solo **texto blanco sobre negro** (sin colores ni
 >
 > ℹ️ La ficha **no dice qué chip lleva**; según las opiniones, es un SSD1306. **Por si acaso, el software soporta los dos chips más habituales** (SSD1306 y SH1106): si la imagen sale desplazada 2 columnas, pon `chip = sh1106` (ver abajo).
 >
-> 🔌 **Cables:** hay seis opciones de vendedores distintos en [SHOPPING_LIST.md](SHOPPING_LIST.md#cables-dupont-opciones-elige-el-que-te-deje-comprar-en-canarias). Tienen que ser **hembra en los dos extremos**; solo necesitas 4.
+> 🔌 **Cables:** el elegido es el TECHZOCO de la tabla (hembra en los dos extremos; solo necesitas 4). Alternativas en [SHOPPING_LIST.md](SHOPPING_LIST.md#cables-dupont-elegido-techzoco).
 >
 > Los precios son aproximados y **no he podido comprobar el envío a Canarias**: mete tu código postal en la ficha antes de pagar. Alternativa: [AZDelivery](https://amazon.es/AZDelivery-Pantalla-Display-pulgadas-Raspberry/dp/B01L9GC470) (blanca y SSD1306 según su ficha).
 
