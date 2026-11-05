@@ -7,6 +7,7 @@ import configparser
 import json
 import os
 import re
+import select
 import shlex
 import socket
 import subprocess
@@ -21,6 +22,9 @@ ROOT = Path(__file__).resolve().parent
 WEB = ROOT / "web"
 MODES = ("desktop", "iker", "home")
 PAGES = {"/": "index.html", "/iker": "iker.html"}
+LOCAL_HOSTS = ("localhost", "127.0.0.1", "[::1]")
+CSP = ("default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; "
+       "script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; form-action 'none'; base-uri 'none'")
 NOTE_ID = re.compile(r"^[0-9a-f]{16}$")
 MAX_NOTE = 1_000_000
 
@@ -42,9 +46,23 @@ def nowplaying_file():
     return Path(os.environ.get("PCPI_NOWPLAYING", str(run_dir() / "nowplaying.json")))
 
 
+_conf_cache = {}
+
+
 def read_conf():
+    """Config en memoria; se vuelve a leer solo si el fichero cambia (se llama en cada peticion)."""
+    path = conf_path()
+    try:
+        st = path.stat()
+        key = (str(path), st.st_mtime_ns, st.st_size)
+    except OSError:
+        key = (str(path), None, None)
+    hit = _conf_cache.get("v")
+    if hit and hit[0] == key:
+        return hit[1]
     cp = configparser.ConfigParser()
-    cp.read(conf_path())
+    cp.read(path)
+    _conf_cache["v"] = (key, cp)
     return cp
 
 
@@ -182,7 +200,7 @@ def pihole_headers(cp, url):
         r = http_json(url + "/api/auth", "POST", {"password": pw})
         _sid["sid"] = r["session"]["sid"]
         _sid["exp"] = time.time() + max(30, r["session"].get("validity", 300) - 30)
-    return {"sid": _sid["sid"]}
+    return {"sid": _sid["sid"], "X-FTL-SID": _sid["sid"]}
 
 
 def pihole_set_blocking(cp, enabled, minutes=None):
@@ -253,14 +271,21 @@ def nowplaying():
         return {"state": "stopped"}
 
 
+VOICE_STALE_S = 90   # el asistente actualiza su estado cada ~20 s aunque no pase nada
+
+
 def voice_state():
     try:
-        return json.loads(Path(os.environ.get("PCPI_VOICE_STATE", str(run_dir() / "voice.json"))).read_text())
+        d = json.loads(Path(os.environ.get("PCPI_VOICE_STATE", str(run_dir() / "voice.json"))).read_text())
     except (OSError, ValueError):
         return {"state": "off"}
+    if not isinstance(d, dict) or time.time() - float(d.get("ts", 0) or 0) > VOICE_STALE_S:
+        return {"state": "off"}
+    return d
 
 
 CAMERA = {"show": False}
+STREAM_IDLE_S = 10
 _streams = threading.BoundedSemaphore(2)  # como mucho 2 visores a la vez
 
 
@@ -300,6 +325,8 @@ def first_jpeg(cmd, timeout=8):
     deadline, buf = time.time() + timeout, b""
     try:
         while time.time() < deadline:
+            if not select.select([proc.stdout], [], [], max(0.1, deadline - time.time()))[0]:
+                continue
             chunk = proc.stdout.read1(65536)
             if not chunk:
                 break
@@ -365,10 +392,18 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("X-Frame-Options", "DENY")
+        if ctype.startswith("text/html"):
+            # solo recursos propios (+ portadas de Spotify por https); nada de iframes ni formularios externos
+            self.send_header("Content-Security-Policy", CSP)
         self.end_headers()
         self.wfile.write(body)
 
     def do_GET(self):
+        if not self._host_ok():
+            return self._send(403, {"error": "host no permitido"})
         path = self.path.split("?", 1)[0]
         if path == "/api/status":
             return self._send(200, status())
@@ -382,6 +417,15 @@ class Handler(BaseHTTPRequestHandler):
         if name is None:
             return self._send(404, {"error": "no encontrado"})
         self._send(200, page_bytes(name), "text/html; charset=utf-8")
+
+    def _host_ok(self):
+        """Anti DNS-rebinding: el modo Iker navega por internet en esta misma maquina, y una web hostil podria
+        hacer que su dominio apunte a 127.0.0.1 para leer tus notas o la camara. Su peticion llevaria
+        `Host: dominio-hostil`, asi que solo se aceptan los nombres propios."""
+        h = (self.headers.get("Host") or "").strip().lower()
+        name = h.split("]")[0] + "]" if h.startswith("[") else h.rsplit(":", 1)[0]
+        extra = [x.strip().lower() for x in read_conf().get("server", "allowed_hosts", fallback="").split(",") if x.strip()]
+        return name in LOCAL_HOSTS or name in extra
 
     def _local(self):
         if self.client_address[0] not in ("127.0.0.1", "::1"):
@@ -423,6 +467,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
             while True:
+                if not select.select([proc.stdout], [], [], STREAM_IDLE_S)[0]:
+                    break      # la camara dejo de enviar imagen: libera el visor en vez de colgarlo
                 chunk = proc.stdout.read1(65536)
                 if not chunk:
                     break
@@ -444,6 +490,8 @@ class Handler(BaseHTTPRequestHandler):
         # (la cabecera obliga a preflight CORS, que no respondemos).
         if not self._local():
             return
+        if not self._host_ok():
+            return self._send(403, {"error": "host no permitido"})
         paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete")
         if self.path not in paths or self.headers.get("X-PCPI") != "1":
             return self._send(403, {"error": "prohibido"})

@@ -10,5 +10,5 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg shellcheck
       - run: make lint
       - run: shellcheck -S warning install.sh uninstall.sh bin/*
-      - run: pip install onnxruntime numpy scipy scikit-learn tqdm "openwakeword==0.4.0"
+      - run: pip install onnxruntime numpy scipy scikit-learn tqdm pillow "openwakeword==0.4.0"
       - run: make test

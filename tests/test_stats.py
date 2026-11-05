@@ -48,7 +48,6 @@ class SysStatsTest(unittest.TestCase):
         self.assertEqual(ss.parse_throttled("throttled=0x0"), {"now": [], "past": []})
 
     def test_cpu_meter(self):
-        import os
         import tempfile
         d = tempfile.mkdtemp()
         old, ss.PROC = ss.PROC, d
@@ -177,6 +176,105 @@ class SSD1306Test(unittest.TestCase):
         self.assertEqual(flat[0], 0xAE)       # primero apaga
         self.assertEqual(flat[-1], 0xAF)      # y acaba encendiendo
         self.assertIn(0xC0, flat)             # giro 180 grados
+
+
+class SH1106Test(unittest.TestCase):
+    def test_start_uses_sh1106_init(self):
+        bus = FakeBus()
+        ssd1306.SSD1306(bus, 0x3C, chip="sh1106").start()
+        flat = [b for w in bus.writes for b in w[2]]
+        self.assertIn(0xAD, flat)
+        self.assertNotIn(0x8D, flat)     # la bomba de carga del SSD1306
+        self.assertNotIn(0x20, flat)     # direccionamiento horizontal: no existe en SH1106
+        self.assertEqual(flat[-1], 0xAF)
+
+    def test_show_is_page_by_page_with_column_offset(self):
+        bus = FakeBus()
+        dev = ssd1306.SSD1306(bus, 0x3C, chip="sh1106")
+        dev.show(render.render(FAKE))
+        cmds = [w[2] for w in bus.writes if w[1] == 0x00]
+        self.assertEqual(cmds, [[0xB0 + p, 0x02, 0x10] for p in range(8)])   # pagina, columna baja 2, alta 0
+        data = [w for w in bus.writes if w[1] == 0x40]
+        self.assertEqual(sum(len(w[2]) for w in data), 1024)
+
+    def test_bad_chip(self):
+        with self.assertRaises(ValueError):
+            ssd1306.SSD1306(FakeBus(), chip="st7789")
+
+
+class ServiceLoopTest(unittest.TestCase):
+    """El servicio debe sobrevivir a una pantalla desconectada o a un cable suelto."""
+
+    def run_loop(self, smbus_factory, sleeps=6):
+        import types
+        fake = types.ModuleType("smbus")
+        fake.SMBus = smbus_factory
+        old, sys.modules["smbus"] = sys.modules.get("smbus"), fake
+        calls = {"sleep": 0}
+
+        def fake_sleep(_):
+            calls["sleep"] += 1
+            if calls["sleep"] >= sleeps:
+                raise KeyboardInterrupt
+
+        real_sleep, miniscreen.time.sleep = miniscreen.time.sleep, fake_sleep
+        argv, sys.argv = sys.argv, ["miniscreen.py", "--backend", "oled"]
+        try:
+            miniscreen.main()
+        finally:
+            miniscreen.time.sleep, sys.argv = real_sleep, argv
+            if old is None:
+                del sys.modules["smbus"]
+            else:
+                sys.modules["smbus"] = old
+
+    def test_screen_not_connected_yet_then_connected(self):
+        attempts, buses = [], []
+
+        def factory(n):
+            attempts.append(n)
+            if len(attempts) < 3:
+                raise OSError("no such device")
+            buses.append(FakeBus())
+            return buses[-1]
+
+        self.run_loop(factory)                 # no debe lanzar excepcion
+        self.assertGreaterEqual(len(attempts), 3)
+        self.assertTrue(buses and any(w[1] == 0x40 for w in buses[0].writes))   # acabo dibujando
+
+    def test_cable_comes_loose_then_reconnects(self):
+        buses = []
+
+        class Flaky(FakeBus):
+            def write_i2c_block_data(self, addr, reg, data):
+                if len(buses) == 1 and len(self.writes) > 5:
+                    raise OSError("remote I/O error")
+                super().write_i2c_block_data(addr, reg, data)
+
+        def factory(n):
+            buses.append(Flaky())
+            return buses[-1]
+
+        self.run_loop(factory)
+        self.assertGreaterEqual(len(buses), 2)      # volvio a abrir el bus tras el error
+
+    def test_missing_smbus_exits_with_code_3(self):
+        import builtins
+        real_import = builtins.__import__
+
+        def no_smbus(name, *a, **k):
+            if name == "smbus":
+                raise ImportError("no smbus")
+            return real_import(name, *a, **k)
+
+        builtins.__import__ = no_smbus
+        argv, sys.argv = sys.argv, ["miniscreen.py", "--backend", "oled"]
+        try:
+            with self.assertRaises(SystemExit) as cm:
+                miniscreen.main()
+        finally:
+            builtins.__import__, sys.argv = real_import, argv
+        self.assertEqual(cm.exception.code, 3)
 
 
 class QuietHoursTest(unittest.TestCase):

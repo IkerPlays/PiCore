@@ -163,6 +163,12 @@ def main():
         rec.text = cmd
         asst.on_audio(b"x")
 
+    def beat():
+        while True:
+            time.sleep(20)
+            asst.heartbeat()
+
+    threading.Thread(target=beat, daemon=True).start()
     print(__doc__.split("Comandos en la terminal:")[1].rstrip(), "\n", flush=True)
     try:
         for line in sys.stdin:

@@ -60,7 +60,7 @@ En la misma terminal puedes **escribir órdenes de voz**: `hey jarvis qué hora 
 | 3 | **Cámara web con micrófono** (sirve de cámara **y** de micro) | [Logitech C270](https://www.amazon.es/Logitech-C270-Webcam-USB-negro/dp/B003R1O320) | 18–25 |
 | 4 | **Hub USB 3.0** de 4 puertos | [UGREEN 15 cm](https://www.amazon.es/UGREEN-Velocidad-Adaptador-Compatible-Port%C3%A1til/dp/B0CD1BHXPZ) | ~10 |
 | 5 | **Teclado USB** con cable | ya lo tienes | 0 |
-| | **Opcional:** mini pantalla de estado (ver [Paso 8](#paso-8-mini-pantalla-de-estado-opcional)) | [OLED](https://amazon.es/AZDelivery-Pantalla-Display-pulgadas-Raspberry/dp/B01L9GC470) + [cables](https://www.amazon.es/Lumanuby-40-unidades-conectar-componentes-electr%C3%B3nicos/dp/B0793243TR) | ~12 |
+| 6 | **Opcional:** mini pantalla de estado (ver [Paso 8](#paso-8-mini-pantalla-de-estado-opcional)) | [HiLetgo OLED I2C](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) (⚠️ elige el color **White-IIC**) + [cables Dupont](https://www.amazon.es/Lumanuby-40-unidades-conectar-componentes-electr%C3%B3nicos/dp/B0793243TR) | ~14 |
 
 **Alternativas** por si alguna pieza no está disponible: [iPistBit 7"](https://www.amazon.es/iPistBit-Raspberry-altavoces-integrados-compatible/dp/B0D7HSXY37), [InnoMaker 7"](https://www.amazon.es/innomaker-Pantalla-capacitiva-altavoces-Raspberry/dp/B0FL6SVLS5), micro USB pequeño [SunFounder](https://www.amazon.es/SUNFOUNDER-Mini-micr%C3%B3fono-Escritorio-reconocimiento/dp/B01KLRBHGM). Más detalle en [SHOPPING_LIST.md](SHOPPING_LIST.md).
 
@@ -261,7 +261,11 @@ Hace falta cuenta **Spotify Premium**.
 
 1. La Pi y tu móvil/PC deben estar en la **misma red**.
 2. En Spotify, reproduce algo y pulsa el icono de **dispositivos disponibles**: aparece **PCPi**. Elígelo.
-3. Si no se oye nada: clic derecho en el icono de volumen (arriba a la derecha) → elige la salida **HDMI**.
+3. Si no se oye nada, hay **dos sitios** donde elegir la salida (raspotify es un servicio del sistema y no usa el volumen del escritorio):
+   - **Escritorio y voz:** clic derecho en el icono de volumen (arriba a la derecha) → elige **HDMI**.
+   - **Spotify (raspotify):** mira los nombres de salida con `aplay -L | grep -i hdmi` (busca algo como `plughw:CARD=vc4hdmi0,DEV=0`) y ponlo en `/etc/raspotify/conf` como `LIBRESPOT_DEVICE="plughw:CARD=vc4hdmi0,DEV=0"` (quita el `#` si la línea está comentada). Después: `sudo systemctl restart raspotify`.
+
+   ⚠️ Los nombres de tarjeta pueden variar entre sistemas; usa el que te muestre `aplay -L`.
 
 ✅ Suena por los altavoces de la pantalla y en el modo Casa aparece el título, el artista y la portada.
 
@@ -402,7 +406,7 @@ También con el icono **«PCPi · Elegir modo»** del menú de aplicaciones, con
 
 ## Paso 8: mini pantalla de estado (opcional)
 
-Una pantallita **no táctil** (OLED de 0,96", ~27 mm) para dejar al lado de la grande, que muestra siempre **CPU, RAM, disco, temperatura, GPU, ventilador, red e IP**. Cuesta unos 12 €, se conecta con 4 cables y **está todo explicado en [PANTALLA_MINI.md](PANTALLA_MINI.md)**: qué comprar, cómo conectarla pin a pin, instalarla (`./install.sh --stats`) y qué hacer si falla.
+Una pantallita **no táctil** (OLED de 0,96", ~27 mm) para dejar al lado de la grande, que muestra siempre **CPU, RAM, disco, temperatura, GPU, ventilador, red e IP**. Cuesta unos 14 € (la **HiLetgo** de la lista, en color **White-IIC**), se conecta con 4 cables y **está todo explicado en [PANTALLA_MINI.md](PANTALLA_MINI.md)**: qué comprar, cómo conectarla pin a pin, instalarla (`./install.sh --stats`) y qué hacer si falla.
 
 ⚠️ El software está probado con tests y una imagen de ejemplo, pero **no con la pantalla real**.
 
@@ -431,7 +435,7 @@ Empieza **siempre** por `pcpi-doctor`: marca con `✘` lo que está mal y con `!
 | Imagen mala o cortada | Mira el [Paso 4](#paso-4-primer-arranque) |
 | El táctil no responde | Cable USB del táctil conectado a la Pi; prueba otro puerto/cable |
 | Rayo ⚡ o aviso de poca corriente | Usa la **fuente oficial de 27 W**, sin alargadores. `pcpi-doctor` lo detecta |
-| No suena nada | Clic derecho en el volumen → **HDMI**; sube el volumen de la pantalla |
+| No suena nada | Clic derecho en el volumen → **HDMI**; sube el volumen de la pantalla. Si solo falla **Spotify**, mira el punto 3 de [6.2](#62-spotify) (`LIBRESPOT_DEVICE`) |
 | Al reiniciar no arranca el modo | `pcpi-doctor`; vuelve a un modo seguro con `pcpi-mode desktop`; si falta `pcpi-session`, cierra sesión y entra |
 | Pi-hole «Sin conexión» | Contraseña en `[pihole]`; `systemctl status pihole-FTL` |
 | Spotify no ve «PCPi» | Misma red; `systemctl status raspotify` |

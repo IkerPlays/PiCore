@@ -2,6 +2,7 @@ import json
 import os
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -99,6 +100,21 @@ class AssistantTest(unittest.TestCase):
         a.on_audio(b"x")
         self.assertEqual(a.state, "idle")
         self.assertFalse([l for l in log if l[0] == "say"])
+
+    def test_heartbeat_refreshes_timestamp(self):
+        a, _, _ = make([], [])
+        t0 = state()["ts"]
+        time.sleep(0.02)
+        a.heartbeat()
+        self.assertGreater(state()["ts"], t0)
+        self.assertEqual(state()["state"], "listening")
+
+    def test_heartbeat_while_waiting_for_command(self):
+        a, _, _ = make([True], [])
+        a.on_audio(b"x")
+        a.heartbeat()
+        self.assertEqual(state()["state"], "awake")
+        self.assertEqual(a.state, "command")      # no cambia de estado, solo renueva
 
     def test_empty_transcription_keeps_waiting(self):
         a, _, _ = make([True], ["   "])

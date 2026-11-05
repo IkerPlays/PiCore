@@ -123,6 +123,8 @@
 <script>
 const $ = id => document.getElementById(id);
 const post = (url, body) => fetch(url, {method:"POST", headers:{"X-PCPI":"1"}, body:JSON.stringify(body)});
+/* la portada viene de fuera: solo https, y entre comillas bien escapadas (nada de romper el CSS) */
+function safeUrl(u) { try { const x = new URL(u); return x.protocol === "https:" ? x.href : null; } catch (e) { return null; } }
 const fmt = n => (n ?? "--").toLocaleString("es-ES");
 const WMO = {0:["☀️","Despejado"],1:["🌤","Poco nuboso"],2:["⛅","Nuboso"],3:["☁️","Cubierto"],45:["🌫","Niebla"],48:["🌫","Niebla"],
   51:["🌦","Llovizna"],53:["🌦","Llovizna"],55:["🌦","Llovizna"],61:["🌧","Lluvia"],63:["🌧","Lluvia"],65:["🌧","Lluvia fuerte"],
@@ -216,7 +218,8 @@ async function refresh() {
   $("artist").textContent = on ? (n.artist || "") : "Elige «PCPi» en Spotify Connect";
   $("pstate").textContent = on ? (n.state === "playing" ? "▶ Reproduciendo" : "⏸ En pausa") : "";
   const cv = $("cover");
-  if (on && n.cover) { cv.textContent = ""; cv.style.backgroundImage = `url("${n.cover}")`; cv.style.backgroundSize = "cover"; }
+  const cu = on ? safeUrl(n.cover) : null;
+  if (cu) { cv.textContent = ""; cv.style.backgroundImage = "url(" + JSON.stringify(cu) + ")"; cv.style.backgroundSize = "cover"; }
   else { cv.style.backgroundImage = ""; cv.textContent = "🎵"; }
 
   if (s.cpu_temp != null) { $("chip-cpu").hidden = false; $("chip-cpu").textContent = "🌡 " + s.cpu_temp + "°"; }

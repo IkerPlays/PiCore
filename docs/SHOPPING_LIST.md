@@ -26,9 +26,23 @@ Sobran unos 160 € del presupuesto. No hace falta gastarlos; si quieres mejorar
 - **Almacenamiento:** el sistema va en la microSD. Mira que tu kit la traiga; si no, compra una de 64–128 GB (Samsung EVO Plus o SanDisk Extreme, tipo A2).
 - **Teclado y mando:** no se compran (tienes teclado USB, que también usarás en el modo Iker).
 
-## Opcional: mini pantalla de estado
+## Mini pantalla de estado (elegida: HiLetgo)
 
-Una pantallita OLED de 0,96" no táctil que muestra CPU, RAM, disco, temperatura y GPU: ~12 € (pantalla + cables). Detalle, enlaces y conexión en [PANTALLA_MINI.md](PANTALLA_MINI.md).
+Pantallita OLED de 0,96" **no táctil**, solo texto blanco, para dejar al lado de la grande: CPU, RAM, disco, temperatura y GPU. Detalle, conexión y ajustes en [PANTALLA_MINI.md](PANTALLA_MINI.md).
+
+| Pieza | Enlace | ~€ |
+|---|---|---|
+| **Pantalla OLED HiLetgo 0,96" I2C 128×64** | [HiLetgo I2C (ASIN B06XRCQZRX)](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) | ~7 |
+| **Cables Dupont hembra–hembra** de 20 cm (4 bastan) | [Lumanuby 40 cables](https://www.amazon.es/Lumanuby-40-unidades-conectar-componentes-electr%C3%B3nicos/dp/B0793243TR) | ~7 |
+| | **Total mini pantalla** | **~14 €** |
+
+> ⚠️ **En la ficha de HiLetgo, elige el color «White-IIC»** (es una de las opciones del selector según la ficha; compruébalo antes de pagar). El que sale por defecto es *Yellow Blue* (franja amarilla arriba y azul abajo), que no es blanco.
+>
+> ⚠️ **Compra la versión I2C («IIC»), no la «SPI».** HiLetgo vende las dos con casi el mismo nombre; la SPI tiene 7 pines y este proyecto no la usa.
+>
+> ℹ️ La ficha no dice qué chip lleva (según las opiniones, SSD1306). Si la imagen sale desplazada 2 columnas, pon `chip = sh1106` en `/etc/pcpi/pcpi.conf`: **ambos chips están soportados**.
+
+**Total del proyecto con la mini pantalla: unos 104 €** (de los 250 € de presupuesto).
 
 ## Lo que quitamos
 

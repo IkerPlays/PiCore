@@ -3,6 +3,8 @@
 [server]
 host = 127.0.0.1
 port = 8080
+# Nombres extra con los que se puede abrir la pagina (por defecto solo localhost / 127.0.0.1). Separados por comas.
+# allowed_hosts = pcpi.local
 
 [pihole]
 # Pi-hole v6. Deja la password vacia si tu Pi-hole no la pide.
@@ -46,6 +48,7 @@ input_format = mjpeg
 [mini]
 # Mini pantalla OLED I2C de estado (./install.sh --stats). Ver docs/PANTALLA_MINI.md
 address = 0x3C        # algunas pantallas usan 0x3D
+chip = ssd1306        # si la imagen sale desplazada 2 columnas o con basura en el borde: sh1106
 i2c_bus = 1
 rotate = false        # true = girar 180 grados
 interval = 1          # segundos entre actualizaciones

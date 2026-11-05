@@ -22,10 +22,8 @@ import argparse
 import glob
 import hashlib
 import io
-import json
 import os
 import random
-import sys
 import tarfile
 import time
 

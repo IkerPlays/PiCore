@@ -30,16 +30,22 @@ Una pantallita **no táctil**, solo **texto blanco sobre negro** (sin colores ni
 
 **Es la A**, y es lo que pediste (solo texto blanco): la más pequeña, la más barata, la más sencilla de conectar (I2C, 4 cables) y la única con software hecho. **No hace falta la versión en color.**
 
-### Qué comprar (opción A)
+### Qué comprar (la elegida: HiLetgo)
 
 | Pieza | Enlace | ~€ |
 |---|---|---|
-| **Pantalla OLED 0,96" I2C, chip SSD1306, 128×64** | [AZDelivery](https://amazon.es/AZDelivery-Pantalla-Display-pulgadas-Raspberry/dp/B01L9GC470) · alternativa: [HiLetgo](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) | 5–8 |
+| **Pantalla OLED HiLetgo 0,96" I2C, 128×64** | [HiLetgo I2C (ASIN B06XRCQZRX)](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) | ~7 |
 | **Cables Dupont hembra–hembra** de 20 cm | [Lumanuby 40 cables](https://www.amazon.es/Lumanuby-40-unidades-conectar-componentes-electr%C3%B3nicos/dp/B0793243TR) | ~7 |
 
-> ⚠️ **Comprueba que sea I2C (4 pines: VCC, GND, SCL, SDA) y chip SSD1306.** Algunos módulos son SPI (7 pines) y otros llevan un SH1106, que con este software sale desplazado 2 columnas. Los enlaces de arriba son SSD1306 I2C según la ficha del vendedor.
+> ⚠️ **En la ficha elige el color «White-IIC»** (según la ficha, es una de las opciones del selector; si no la ves, elige otra pantalla blanca de la lista).
 >
-> Los precios son aproximados y **no he podido comprobar el envío a Canarias**: mete tu código postal en la ficha antes de pagar.
+> Aviso del color: Por defecto sale *Yellow Blue* (los primeros 16 píxeles de altura amarillos y el resto azules, de fábrica y sin remedio por software). Con «White» todo sale blanco.
+>
+> ⚠️ **Elige la versión I2C («IIC»).** HiLetgo vende también una de **SPI** (otro producto, ASIN B06XRBTBTB) que **no** vale: tiene 7 pines.
+>
+> ℹ️ La ficha **no dice qué chip lleva**; según las opiniones, es un SSD1306. **Por si acaso, el software soporta los dos chips más habituales** (SSD1306 y SH1106): si la imagen sale desplazada 2 columnas, pon `chip = sh1106` (ver abajo).
+>
+> Los precios son aproximados y **no he podido comprobar el envío a Canarias**: mete tu código postal en la ficha antes de pagar. Alternativa: [AZDelivery](https://amazon.es/AZDelivery-Pantalla-Display-pulgadas-Raspberry/dp/B01L9GC470) (blanca y SSD1306 según su ficha).
 
 ### Otras opciones (no necesarias)
 
@@ -92,6 +98,7 @@ El instalador activa el bus I2C (`raspi-config nonint do_i2c 0`), instala `pytho
 | Ajuste | Qué hace |
 |---|---|
 | `address = 0x3C` | Dirección I2C. Si `i2cdetect` muestra `3d`, pon `0x3D`. |
+| `chip = ssd1306` | Si la imagen sale **desplazada 2 columnas** o con basura en el borde, tu pantalla lleva un **SH1106**: pon `chip = sh1106`. |
 | `rotate = true` | Gira la imagen 180° (si la pantalla queda boca abajo). |
 | `contrast = 120` | Brillo (0–255). Baja para que dure más. |
 | `off_from` / `off_to` | **Apagado por horas** (p. ej. `1` y `7` = apagada de 1:00 a 7:00). Los OLED se «queman» si muestran lo mismo durante años; esto alarga su vida. |
@@ -104,19 +111,21 @@ Tras cambiar algo: `sudo systemctl restart pcpi-stats`.
 |---|---|
 | ✅ Probado con tests | Lectura de métricas (CPU, RAM, red, vcgencmd…), el contenido de cada línea, que **ninguna línea se sale de la pantalla ni se pisa** (ni siquiera con valores enormes), **conversión a los bytes del SSD1306** (posición de cada píxel), secuencia de arranque y escritura de la imagen entera (con un bus I2C simulado), apagado por horas. 18 tests. |
 | ✅ Probado visualmente | El diseño: ver la imagen de arriba. Salida real de `python3 stats/miniscreen.py --backend png --once`. |
-| ⚠️ **NO probado en hardware** | Que la pantalla real encienda y se vea bien. Lo escribí siguiendo el protocolo estándar del SSD1306, pero no he podido tocar una. Si sale desplazada, en blanco o a rayas, mira abajo. |
+| ⚠️ **NO probado en hardware** | Que la pantalla real encienda y se vea bien. Lo escribí siguiendo el protocolo estándar del SSD1306 y del SH1106, pero no he podido tocar una. Si sale desplazada, en blanco o a rayas, mira abajo. |
 
 ## Si algo falla
 
 | Síntoma | Causa probable |
 |---|---|
 | `i2cdetect` no muestra nada | Cables mal (VCC/GND al revés pueden dañarla), I2C no activado (`sudo raspi-config` → Interface → I2C), o falta reiniciar. |
-| Se ve pero **desplazada 2 columnas** / basura en el borde | Tu chip es **SH1106**, no SSD1306. Cambia la pantalla. |
+| Se ve pero **desplazada 2 columnas** / basura en el borde | Tu chip es **SH1106**: pon `chip = sh1106` en `[mini]` y `sudo systemctl restart pcpi-stats`. |
 | Se ve **boca abajo** | `rotate = true`. |
 | Todo en blanco o a rayas | Prueba `address = 0x3D`; revisa SDA/SCL (no intercambiados). |
 | El servicio da *Permission denied* en `/dev/i2c-1` | Cierra sesión o reinicia: el grupo `i2c` se aplica al iniciar sesión. `id` debe listar `i2c`. |
 | Quiero ver el diseño sin pantalla | `make mini-preview` (genera `preview.png`). |
 
 ## Rendimiento
+
+**Resistencia a fallos:** si la pantalla no está conectada al arrancar, o se suelta un cable, el servicio **no se cae**: avisa en el registro y reintenta cada pocos segundos. Si falta `python3-smbus` se detiene (no reintenta, porque no ayudaría) y lo dice.
 
 El servicio corre con prioridad baja (`Nice=15`) y actualiza una vez por segundo. Lee unos pocos ficheros de `/proc` y `/sys`; lo único que lanza procesos es `vcgencmd` (GPU y alimentación), y solo cada 5 s. Medido en un PC de pruebas: **2,6 ms por actualización** (leer métricas + dibujar + convertir), es decir, ~0,3 % de un núcleo a 1 actualización por segundo. En la Pi 5 será más lento; **no lo he medido allí**.

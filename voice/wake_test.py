@@ -7,7 +7,6 @@
 Di «oye pi» varias veces, y habla/pon la tele de fondo: sube el umbral si se activa con otras cosas,
 bajalo si no te detecta. (Para el servicio antes: systemctl --user stop pcpi-voice)
 """
-import subprocess
 import sys
 
 import assistant

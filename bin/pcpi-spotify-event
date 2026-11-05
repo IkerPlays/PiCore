@@ -4,6 +4,9 @@
 OUT="${PCPI_NOWPLAYING:-/run/pcpi/nowplaying.json}"
 esc() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g' | tr '\n\t' '  '; }
 
+# ARTISTS llega con un artista por linea: los unimos con ", "
+ARTISTS="$(printf '%s' "${ARTISTS:-}" | paste -sd, - | sed 's/,/, /g')"
+
 # COVERS: URLs de la portada (una por linea); nos quedamos con la primera
 COVER="$(printf '%s' "${COVERS:-}" | head -n1)"
 

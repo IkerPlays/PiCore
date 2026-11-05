@@ -22,6 +22,8 @@ stop_browser()  { pkill -f -- "--user-data-dir=$PROFILE" 2>/dev/null || true; }
 browser_alive() { pgrep -f -- "--user-data-dir=$PROFILE" >/dev/null; }
 
 start_browser() {
+  # la coma de --disable-features=A,B es parte del valor, no un separador
+  # shellcheck disable=SC2054
   local mode="$1" flags=(--no-first-run --no-default-browser-check --noerrdialogs --disable-infobars
                          --disable-session-crashed-bubble --password-store=basic
                          --check-for-update-interval=31536000 --disable-component-update

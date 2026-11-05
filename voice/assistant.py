@@ -158,6 +158,10 @@ class Assistant:
         self.state = "idle"
         self._publish("listening")
 
+    def heartbeat(self):
+        """Renueva el estado aunque no pase nada: la UI lo da por 'apagado' si dejara de actualizarse."""
+        self._publish("awake" if self.state == "command" else "listening")
+
     def on_audio(self, data):
         if self.state == "idle":
             if self.detector.feed(data):
@@ -210,30 +214,47 @@ def main():
     vosk_model = Model(cfg["model"])
     detector = build_detector(cfg, vosk_model)
     beep_wav = make_beep()
-    cap = [start_capture(cfg)]
+    try:
+        cap = [start_capture(cfg)]
+    except OSError as e:
+        sys.exit("No puedo abrir el microfono (arecord): %r. Instala alsa-utils." % e)
 
     def restart_capture():
         cap[0].kill()
         cap[0] = start_capture(cfg)
 
     def beep():
-        subprocess.run(["aplay", "-q", "-t", "wav", "-"], input=beep_wav, capture_output=True)
+        try:
+            subprocess.run(["aplay", "-q", "-t", "wav", "-"], input=beep_wav, capture_output=True, timeout=10)
+        except (OSError, subprocess.TimeoutExpired) as e:   # sin aplay o sin salida de audio: seguimos
+            print("no se pudo reproducir el pitido: %r" % e, file=sys.stderr, flush=True)
 
     def speak(text):
-        subprocess.run(["espeak-ng", "-v", cfg["voice"], "-s", "160", text], capture_output=True)
+        try:
+            subprocess.run(["espeak-ng", "-v", cfg["voice"], "-s", "160", text], capture_output=True, timeout=30)
+        except (OSError, subprocess.TimeoutExpired) as e:
+            print("no se pudo hablar (¿falta espeak-ng?): %r" % e, file=sys.stderr, flush=True)
 
     asst = Assistant(
         detector, KaldiRecognizer(vosk_model, RATE), lambda i: execute(cfg, i), speak, beep,
         restart_capture, detector.name, cfg["followup"],
     )
     print("Escuchando. Palabra de activacion: %r (%s)" % (detector.name, type(detector).__name__), flush=True)
+    last_beat = time.monotonic()
     while True:
         data = cap[0].stdout.read(2560)
-        if not data:  # arecord murio (micro desconectado): reintenta
+        if not data:  # arecord murio (micro desconectado): reintenta cada 2 s sin caerse
             time.sleep(2)
-            cap[0] = start_capture(cfg)
+            try:
+                cap[0] = start_capture(cfg)
+            except OSError as e:
+                print("no puedo abrir el microfono (¿falta alsa-utils?): %r" % e, file=sys.stderr, flush=True)
+            asst.heartbeat()
             continue
         asst.on_audio(data)
+        if time.monotonic() - last_beat > 20:
+            last_beat = time.monotonic()
+            asst.heartbeat()
 
 
 if __name__ == "__main__":

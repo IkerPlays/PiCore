@@ -8,6 +8,7 @@ Environment=PCPI_CONF=/etc/pcpi/pcpi.conf
 ExecStart=/usr/bin/python3 /opt/pcpi/stats/miniscreen.py --backend oled
 Restart=on-failure
 RestartSec=5
+RestartPreventExitStatus=3
 Nice=15
 NoNewPrivileges=true
 ProtectSystem=strict
