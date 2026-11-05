@@ -75,7 +75,7 @@ En la misma terminal puedes **escribir órdenes de voz**: `hey jarvis qué hora 
 | 3 | **Cámara web con micrófono** (sirve de cámara **y** de micro) | [Logitech C270](https://www.amazon.es/Logitech-C270-Webcam-USB-negro/dp/B003R1O320) | 18–25 |
 | 4 | **Hub USB 3.0** de 4 puertos | [UGREEN 15 cm](https://www.amazon.es/UGREEN-Velocidad-Adaptador-Compatible-Port%C3%A1til/dp/B0CD1BHXPZ) | ~10 |
 | 5 | **Teclado USB** con cable | ya lo tienes | 0 |
-| 6 | **Opcional:** mini pantalla de estado (ver [Paso 8](#paso-8-mini-pantalla-de-estado-opcional)) | [HiLetgo OLED I2C](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) (⚠️ elige el color **White-IIC**) + [cables hembra–hembra](SHOPPING_LIST.md#cables-opciones-seguras) (⚠️ por elegir: prueba los «cables GPIO 40 pines hembra–hembra») | ~14 |
+| 6 | **Opcional:** mini pantalla de estado (ver [Paso 8](#paso-8-mini-pantalla-de-estado-opcional)) | [HiLetgo OLED I2C](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) (⚠️ elige el color **White-IIC**) + [cable GPIO 40 pines hembra–hembra «Rainbow»](https://www.amazon.es/utilizado-ampliar-compatible-flexible-arco%C3%ADris/dp/B08ZDKJQJC) | ~14 |
 
 **Alternativas** por si alguna pieza no está disponible: [iPistBit 7"](https://www.amazon.es/iPistBit-Raspberry-altavoces-integrados-compatible/dp/B0D7HSXY37), [InnoMaker 7"](https://www.amazon.es/innomaker-Pantalla-capacitiva-altavoces-Raspberry/dp/B0FL6SVLS5), micro USB pequeño [SunFounder](https://www.amazon.es/SUNFOUNDER-Mini-micr%C3%B3fono-Escritorio-reconocimiento/dp/B01KLRBHGM). Más detalle en [SHOPPING_LIST.md](SHOPPING_LIST.md).
 
@@ -461,19 +461,22 @@ Una pantallita **no táctil** (OLED de 0,96", ~27 mm) para dejar al lado de la g
 | Pieza | Para qué |
 |---|---|
 | Pantalla **OLED HiLetgo 0,96" I2C** (4 pines) | La pantalla |
-| **4 cables hembra–hembra** (10–20 cm, mejor 20; «cables GPIO 40 pines hembra–hembra»: [opciones](SHOPPING_LIST.md#cables-opciones-seguras)). **Casquillo (agujero) en los dos extremos** | Unir la pantalla a la Pi |
+| **4 cables hembra–hembra** (de la cinta de 40 hilos del [cable GPIO «Rainbow»](https://www.amazon.es/utilizado-ampliar-compatible-flexible-arco%C3%ADris/dp/B08ZDKJQJC)). **Casquillo (agujero) individual en los dos extremos de cada hilo** | Unir la pantalla a la Pi |
 | La Pi **apagada y desenchufada** | ⚠️ Nunca conectes cables al GPIO con la Pi encendida |
 
 ### 8.2 Prepara los cables
 
-1. **Mira los dos extremos de tus cables: tienen que ser casquillos (un agujero) en los dos lados.** Si ves una **puntita metálica** en algún extremo, es macho: ese cable no sirve para este montaje. (Si tu pack mezcla tipos, como los kits de 120 o de 240, usa **solo** la tira hembra–hembra. Si compraste los **cables GPIO de 40 pines**, es **una cinta de 40 hilos** ya hembra–hembra.)
-2. Si vienen **pegados en tira** (lo habitual), **separa 4 cables seguidos** tirando suavemente de un extremo hasta despegarlos de los demás.
+1. **Mira cómo es tu cable.** El «cable GPIO Rainbow» debe ser **una cinta de 40 hilos de colores (arcoíris), pegados entre sí, con un casquillo individual (un agujero) en cada extremo de cada hilo**. Es justo lo que necesitamos.
+   - ✅ **Casquillos individuales** en cada hilo → sigue.
+   - ❌ **Una cinta plana con un conector grande de 2×20 pines en cada extremo** (tipo «extensión GPIO») → **no sirve**: no se pueden sacar 4 pines sueltos. Pide otro (plan B en [SHOPPING_LIST.md](SHOPPING_LIST.md#cables-elegido-el-cable-gpio-rainbow)).
+   - ❌ **Una puntita metálica** en algún extremo → es macho, tampoco sirve.
+2. **Separa 4 hilos seguidos** de la cinta tirando suavemente de un extremo hasta despegarlos de los demás (los colores van en orden arcoíris: coge, por ejemplo, los 4 primeros).
 3. **Déjalos unidos entre sí** (la tira de 4) por el lado de la pantalla: así los 4 casquillos encajan juntos en los 4 pines de la OLED y no se cruzan.
-4. Por el **lado de la Pi**, separa los 4 cables unos 5 cm (tirando hacia fuera) para que cada uno llegue a un pin distinto.
+4. Por el **lado de la Pi**, separa los 4 hilos unos 5 cm (tirando hacia fuera) para que cada uno llegue a un pin distinto.
 
-✅ Tienes **4 cables hembra–hembra**, con 4 casquillos juntos en un extremo y 4 sueltos en el otro.
+✅ Tienes **4 hilos hembra–hembra**, con 4 casquillos juntos en un extremo y 4 sueltos en el otro.
 
-> ⚠️ **¿Todos tus cables tienen puntita en algún extremo?** Entonces no puedes usarlos: ve al plan B ([SHOPPING_LIST.md](SHOPPING_LIST.md#cables-opciones-seguras)). Con cables macho–hembra **no** se puede conectar la pantalla a la Pi.
+> ⚠️ Con cables macho–hembra o con una extensión de conector grande **no** se puede conectar la pantalla a la Pi.
 >
 > 🔌 **Si usas la variante con conector Grove** (cable Grove con 4 hilos de colores), el paso es otro: sigue la tabla de colores de [PANTALLA_MINI.md](PANTALLA_MINI.md#variante-con-conector-grove).
 

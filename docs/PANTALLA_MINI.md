@@ -35,7 +35,7 @@ Una pantallita **no táctil**, solo **texto blanco sobre negro** (sin colores ni
 | Pieza | Enlace | ~€ |
 |---|---|---|
 | **Pantalla OLED HiLetgo 0,96" I2C, 128×64** | [HiLetgo I2C (ASIN B06XRCQZRX)](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) | ~7 |
-| **Cables hembra–hembra** (4 bastan) | por elegir: [«cable GPIO 40 pines hembra–hembra» y otras opciones](SHOPPING_LIST.md#cables-opciones-seguras) | ~5–10 |
+| **Cables hembra–hembra** (4 bastan) | [Cable GPIO 40 pines hembra–hembra «Rainbow»](https://www.amazon.es/utilizado-ampliar-compatible-flexible-arco%C3%ADris/dp/B08ZDKJQJC) | ~5–8 |
 
 > ⚠️ **En la ficha elige el color «White-IIC»** (según la ficha, es una de las opciones del selector; si no la ves, elige otra pantalla blanca de la lista).
 >
@@ -45,7 +45,7 @@ Una pantallita **no táctil**, solo **texto blanco sobre negro** (sin colores ni
 >
 > ℹ️ La ficha **no dice qué chip lleva**; según las opiniones, es un SSD1306. **Por si acaso, el software soporta los dos chips más habituales** (SSD1306 y SH1106): si la imagen sale desplazada 2 columnas, pon `chip = sh1106` (ver abajo).
 >
-> 🔌 **Cables:** hembra en los dos extremos; solo necesitas 4. Lo primero que probar: los **«cables GPIO de 40 pines hembra–hembra»** de 20 cm (packs de 5 cintas, otra categoría y otros vendedores que los kits Dupont). Opciones, enlaces y plan B en [SHOPPING_LIST.md](SHOPPING_LIST.md#cables-opciones-seguras).
+> 🔌 **Cables:** el elegido es el **cable GPIO 40 pines hembra–hembra «Rainbow»**: una cinta de 40 hilos de colores con un casquillo individual en cada extremo (de la que se despegan 4). **Mira las fotos de la ficha**: si es una cinta plana con un conector grande 2×20 en cada extremo, no sirve. Detalles y plan B en [SHOPPING_LIST.md](SHOPPING_LIST.md#cables-elegido-el-cable-gpio-rainbow).
 >
 > Los precios son aproximados y **no he podido comprobar el envío a Canarias**: mete tu código postal en la ficha antes de pagar. Alternativa: [AZDelivery](https://amazon.es/AZDelivery-Pantalla-Display-pulgadas-Raspberry/dp/B01L9GC470) (blanca y SSD1306 según su ficha).
 
