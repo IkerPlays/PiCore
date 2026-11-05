@@ -169,7 +169,14 @@ $("ph-btn").onclick = async () => {
 
 /* ---- camara ---- */
 const camShown = () => $("cam").style.display === "block";
-function openCam() { if (!camShown()) { $("cam").style.display = "block"; $("cam-img").src = "/api/camera/stream?" + Date.now(); } }
+const camMsg = () => document.querySelector("#cam .msg");
+function openCam() {
+  if (camShown()) return;
+  camMsg().textContent = "Conectando con la cámara…";
+  $("cam").style.display = "block";
+  $("cam-img").src = "/api/camera/stream?" + Date.now();
+}
+$("cam-img").onerror = () => { if (camShown()) camMsg().textContent = "No se pudo abrir la cámara (¿está conectada? ¿falta ffmpeg?)"; };
 function closeCam() { if (camShown()) { $("cam-img").removeAttribute("src"); $("cam").style.display = "none"; } }
 $("open-cam").onclick = () => { openCam(); post("/api/camera", {show:true}); };
 $("close-cam").onclick = () => { closeCam(); post("/api/camera", {show:false}); };

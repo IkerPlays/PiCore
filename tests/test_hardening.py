@@ -121,5 +121,26 @@ class HardeningTest(unittest.TestCase):
         server.STREAM_IDLE_S = old
 
 
+    def test_camera_that_never_starts_returns_503(self):
+        Path(os.environ["PCPI_CONF"]).write_text("[camera]\ncommand = false\n")          # sale al instante sin emitir nada
+        t0 = time.time()
+        self.assertEqual(self.req("GET", "/api/camera/stream")[0], 503)
+        self.assertLess(time.time() - t0, 3)
+        silent = Path(tmp, "silent.py")
+        silent.write_text("import time\ntime.sleep(60)\n")                                # arranca pero no emite
+        Path(os.environ["PCPI_CONF"]).write_text("[camera]\ncommand = %s %s\n" % (sys.executable, silent))
+        old, server.STREAM_FIRST_S = server.STREAM_FIRST_S, 0.5
+        try:
+            self.assertEqual(self.req("GET", "/api/camera/stream")[0], 503)
+        finally:
+            server.STREAM_FIRST_S = old
+        # ...y el cupo de visores no se pierde
+        script = Path(tmp, "ok.py")
+        script.write_text("import sys\nsys.stdout.buffer.write(b'--frame\\r\\n\\xff\\xd8X\\xff\\xd9\\r\\n'); sys.stdout.buffer.flush()\n")
+        Path(os.environ["PCPI_CONF"]).write_text("[camera]\ncommand = %s %s\n" % (sys.executable, script))
+        for _ in range(4):
+            self.assertEqual(self.req("GET", "/api/camera/stream")[0], 200)
+
+
 if __name__ == "__main__":
     unittest.main()

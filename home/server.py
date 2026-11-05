@@ -8,6 +8,7 @@ import os
 import re
 import select
 import shlex
+import shutil
 import socket
 import subprocess
 import threading
@@ -285,7 +286,8 @@ def voice_state():
 
 
 CAMERA = {"show": False}
-STREAM_IDLE_S = 10
+STREAM_IDLE_S = 10      # sin datos durante tanto tiempo en mitad del stream: se corta
+STREAM_FIRST_S = 8      # esperar tanto al primer fotograma antes de dar la camara por muerta
 _streams = threading.BoundedSemaphore(2)  # como mucho 2 visores a la vez
 
 
@@ -346,7 +348,9 @@ def camera_status(cp):
     enabled = cp.getboolean("camera", "enabled", fallback=True)
     dev = cp.get("camera", "device", fallback="/dev/video0")
     custom = cp.get("camera", "command", fallback="").strip()
-    return {"available": enabled and (bool(custom) or os.path.exists(dev)), "show": CAMERA["show"]}
+    # sin ffmpeg el visor se quedaria «conectando» para siempre: mejor no ofrecer el boton
+    usable = bool(custom) or (os.path.exists(dev) and shutil.which("ffmpeg") is not None)
+    return {"available": enabled and usable, "show": CAMERA["show"]}
 
 
 def cpu_temp():
@@ -462,10 +466,19 @@ class Handler(BaseHTTPRequestHandler):
         proc = None
         try:
             proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+            # No se abre la respuesta hasta que llega el primer dato: si la camara no arranca (ffmpeg falla, el
+            # dispositivo esta ocupado...) hay que decirlo con un 503 para que la pantalla lo muestre, y no dejar
+            # un visor "conectando" para siempre.
+            first = b""
+            if select.select([proc.stdout], [], [], STREAM_FIRST_S)[0]:
+                first = proc.stdout.read1(65536)
+            if not first:
+                return self._send(503, {"error": "la camara no envia imagen"})
             self.send_response(200)
             self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=frame")
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
+            self.wfile.write(first)
             while True:
                 if not select.select([proc.stdout], [], [], STREAM_IDLE_S)[0]:
                     break      # la camara dejo de enviar imagen: libera el visor en vez de colgarlo

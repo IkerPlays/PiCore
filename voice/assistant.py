@@ -207,13 +207,30 @@ def build_detector(cfg, vosk_model):
     return wake.VoskWake(vosk_model, cfg["wakes"])
 
 
+EXIT_CONFIG = 4   # systemd no reinicia con este codigo (RestartPreventExitStatus=4): reintentar no arreglaria nada
+
+
+def fatal(msg):
+    print("pcpi-voice: " + msg, file=sys.stderr, flush=True)
+    sys.exit(EXIT_CONFIG)
+
+
 def main():
-    from vosk import KaldiRecognizer, Model, SetLogLevel  # import tardio: solo en la Pi
+    try:
+        from vosk import KaldiRecognizer, Model, SetLogLevel  # import tardio: solo en la Pi
+    except ImportError as e:
+        fatal("falta vosk (%s). Instalalo con: ./install.sh --voice" % e)
 
     SetLogLevel(-1)
     cfg = load_conf()
-    vosk_model = Model(cfg["model"])
-    detector = build_detector(cfg, vosk_model)
+    try:
+        vosk_model = Model(cfg["model"])
+    except Exception as e:  # vosk lanza Exception generica si la carpeta no existe o esta incompleta
+        fatal("no puedo cargar el modelo de voz en %s (%s). Instalalo con: ./install.sh --voice" % (cfg["model"], e))
+    try:
+        detector = build_detector(cfg, vosk_model)
+    except ValueError as e:  # nombre de modelo de activacion desconocido: lista los que hay
+        fatal(str(e) + " (cambia wake_model en /etc/pcpi/pcpi.conf)")
     beep_wav = make_beep()
     try:
         cap = [start_capture(cfg)]

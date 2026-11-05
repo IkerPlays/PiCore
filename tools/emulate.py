@@ -19,6 +19,7 @@ Comandos en la terminal:
   /mode home|iker|desktop      /quit
 """
 import argparse
+import atexit
 import json
 import os
 import shutil
@@ -86,6 +87,7 @@ def main():
     a = ap.parse_args()
 
     tmp = Path(tempfile.mkdtemp(prefix="pcpi-emu-"))
+    atexit.register(shutil.rmtree, tmp, ignore_errors=True)   # no dejar carpetas en /tmp
     fake = ThreadingHTTPServer(("127.0.0.1", 0), FakePiHole)
     threading.Thread(target=fake.serve_forever, daemon=True).start()
     fport = fake.server_address[1]

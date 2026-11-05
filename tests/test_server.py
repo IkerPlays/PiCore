@@ -131,6 +131,23 @@ class ServerTest(unittest.TestCase):
         finally:
             Path(os.environ["PCPI_CONF"]).unlink()
 
+    def test_camera_button_needs_ffmpeg(self):
+        import configparser
+        import shutil
+        cp = configparser.ConfigParser()
+        cp.read_string("[camera]\ndevice = %s\n" % __file__)          # un "dispositivo" que existe
+        real = shutil.which
+        try:
+            server.shutil.which = lambda n: None
+            self.assertFalse(server.camera_status(cp)["available"])     # sin ffmpeg no se ofrece el visor
+            server.shutil.which = lambda n: "/usr/bin/ffmpeg"
+            self.assertTrue(server.camera_status(cp)["available"])
+            cp.read_string("[camera]\ncommand = rtsp-viewer\n")
+            server.shutil.which = lambda n: None
+            self.assertTrue(server.camera_status(cp)["available"])      # con comando propio no hace falta ffmpeg
+        finally:
+            server.shutil.which = real
+
     def test_camera_unavailable(self):
         self.assertFalse(json.loads(self.req("/api/status")[1])["camera"]["available"])
         self.assertEqual(self.req("/api/camera/stream")[0], 404)

@@ -155,3 +155,68 @@ class WakeTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class StartupErrorsTest(unittest.TestCase):
+    """Un fallo de CONFIGURACION debe acabar con un mensaje claro y el codigo 4 (systemd no reintenta), no en un bucle."""
+
+    def run_main(self, vosk_module, wake_error=None):
+        old_vosk = sys.modules.get("vosk")
+        sys.modules["vosk"] = vosk_module
+        old_build = assistant.build_detector
+        if wake_error:
+            def boom(cfg, model):
+                raise wake_error
+            assistant.build_detector = boom
+        try:
+            with self.assertRaises(SystemExit) as cm:
+                assistant.main()
+            return cm.exception.code
+        finally:
+            assistant.build_detector = old_build
+            if old_vosk is None:
+                sys.modules.pop("vosk", None)
+            else:
+                sys.modules["vosk"] = old_vosk
+
+    def fake_vosk(self, model_ok):
+        import types
+        m = types.ModuleType("vosk")
+
+        class Model:
+            def __init__(self, path):
+                if not model_ok:
+                    raise Exception("Failed to create a model")
+
+        m.Model, m.KaldiRecognizer, m.SetLogLevel = Model, object, lambda n: None
+        return m
+
+    def test_missing_vosk_model(self):
+        self.assertEqual(self.run_main(self.fake_vosk(False)), assistant.EXIT_CONFIG)
+
+    def test_unknown_wake_model(self):
+        self.assertEqual(self.run_main(self.fake_vosk(True), ValueError("modelo de activacion desconocido 'x'")), assistant.EXIT_CONFIG)
+
+    def test_vosk_not_installed(self):
+        import builtins
+        real = builtins.__import__
+
+        def no_vosk(name, *a, **k):
+            if name == "vosk":
+                raise ImportError("no vosk")
+            return real(name, *a, **k)
+
+        old = sys.modules.pop("vosk", None)
+        builtins.__import__ = no_vosk
+        try:
+            with self.assertRaises(SystemExit) as cm:
+                assistant.main()
+        finally:
+            builtins.__import__ = real
+            if old is not None:
+                sys.modules["vosk"] = old
+        self.assertEqual(cm.exception.code, assistant.EXIT_CONFIG)
+
+    def test_service_does_not_restart_on_config_errors(self):
+        unit = (Path(__file__).resolve().parent.parent / "systemd" / "pcpi-voice.service").read_text()
+        self.assertIn("RestartPreventExitStatus=%d" % assistant.EXIT_CONFIG, unit)
