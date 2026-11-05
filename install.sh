@@ -136,4 +136,5 @@ sudo systemctl restart pcpi-home.service
 printf '\n\033[1mInstalacion terminada.\033[0m  Siguiente:\n'
 echo "  1) Reinicia:            sudo reboot"
 echo "  2) Comprueba todo:      pcpi-doctor"
-echo "  3) Cambia de modo:      pcpi-mode home | iker | desktop"
+echo "  3) Configura:           pcpi-setup      (ciudad, Pi-hole, microfono, mini pantalla)"
+echo "  4) Cambia de modo:      pcpi-mode home | iker | desktop"

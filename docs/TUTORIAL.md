@@ -19,14 +19,29 @@ Esta guía te lleva de la **caja cerrada** a tener funcionando los tres modos: *
 | 3 | [Montar y conectar](#paso-3-montar-y-conectar) | mesa | 15 min |
 | 4 | [Primer arranque](#paso-4-primer-arranque) | la Pi | 15 min |
 | 5 | [Instalar PCPi](#paso-5-instalar-pcpi) | la Pi | 20–30 min |
-| 6 | [Configurar](#paso-6-configurar): Pi-hole, Spotify, tiempo, cámara, **voz** | la Pi | 30 min |
+| 6 | [Configurar](#paso-6-configurar): Pi-hole, Spotify, tiempo, cámara, **voz** (con el asistente `pcpi-setup`) | la Pi | 20 min |
 | 7 | [Usar los modos](#paso-7-usar-los-modos) | la Pi | — |
-| 8 | [Mini pantalla de estado (opcional)](#paso-8-mini-pantalla-de-estado-opcional) | la Pi | 15 min |
+| 8 | [Mini pantalla de estado: conectar los cables Dupont (opcional)](#paso-8-mini-pantalla-de-estado-opcional) | mesa + la Pi | 20 min |
 | 9 | [Mantenimiento](#paso-9-mantenimiento) y [Si algo falla](#si-algo-falla) | | |
 
 Al final tienes una [**chuleta de comandos**](#chuleta-de-comandos).
 
 > **Palabras que van a salir:** la **terminal** es la ventana negra donde se escriben órdenes. `sudo` ejecuta una orden como administrador (te pide la contraseña la primera vez; al escribirla **no se ve nada**, es normal). **SSH** es entrar en la Pi desde tu PC por la red. **microSD** es la tarjeta donde vive el sistema.
+
+---
+
+## Antes de empezar: lista de comprobación
+
+Marca cada cosa antes de seguir; te ahorrará vueltas.
+
+- [ ] Tengo la **Raspberry Pi 5** con su **fuente de 27 W**, el ventilador y la **microSD** (todo el kit).
+- [ ] Tengo la **pantalla táctil de 7"** con sus cables, el **cable micro-HDMI**, la **cámara Logitech** y el **hub USB**.
+- [ ] Tengo un **teclado USB** y un **ordenador** con lector de microSD (o adaptador).
+- [ ] Tengo **internet** (wifi o cable) y sé la contraseña del wifi.
+- [ ] *(Opcional)* Tengo la **mini pantalla OLED** y el **kit de cables Dupont**.
+- [ ] Tengo a mano un **papel y boli** para apuntar el usuario y las contraseñas que vayas creando.
+
+> 🧰 **No hace falta ninguna herramienta** (ni destornilladores ni soldador): todo se conecta a presión. Lo único que necesitas es **paciencia con los cables**.
 
 ---
 
@@ -228,9 +243,32 @@ sudo reboot
 
 ✅ Tras el reinicio, ejecuta `pcpi-doctor`. Debe acabar con **«Todo correcto»** o con avisos `!` solo de cosas que aún no has configurado. Si sale algún `✘`, mira [Si algo falla](#si-algo-falla).
 
+**Siguiente: `pcpi-setup`** (te pregunta ciudad, contraseña de Pi-hole y micrófono; ver [Paso 6](#paso-6-configurar)).
+
 ---
 
 ## Paso 6: configurar
+
+### ⭐ La forma fácil: `pcpi-setup`
+
+En lugar de editar archivos, ejecuta este asistente. **Te pregunta y escribe la configuración por ti**, y además **comprueba que funciona** (te graba para probar el micro, comprueba la contraseña de Pi-hole…):
+
+```bash
+pcpi-setup
+```
+
+Hace cuatro cosas, y puedes repetir solo una cuando quieras: `pcpi-setup ciudad`, `pcpi-setup pihole`, `pcpi-setup micro`, `pcpi-setup pantalla`.
+
+| Pregunta | Qué responder |
+|---|---|
+| **1. Ciudad** | El número de tu ciudad (por defecto, Las Palmas). Hay 9 ciudades de Canarias y 4 más; con `0` pones coordenadas a mano |
+| **2. Pi-hole** | La contraseña que creaste con `sudo pihole setpassword`. Te dice si Pi-hole la **acepta** |
+| **3. Micrófono** | El número de tu cámara/micro. Te graba 3 s, te los reproduce y te pregunta si te oyes: si dices que sí, lo guarda |
+| **4. Mini pantalla** | Solo si ya la conectaste ([Paso 8](#paso-8-mini-pantalla-de-estado-opcional)); detecta su dirección y pregunta el chip |
+
+✅ Al final reinicia solo lo que hace falta y dice «Listo». **Con eso puedes saltarte los apartados 6.1, 6.3 y la parte del micrófono de 6.5** (el resto sigue siendo necesario: red, Spotify, cámara).
+
+### Si prefieres hacerlo a mano
 
 Toda la configuración está en un archivo: **`/etc/pcpi/pcpi.conf`**. Se edita así:
 
@@ -238,7 +276,7 @@ Toda la configuración está en un archivo: **`/etc/pcpi/pcpi.conf`**. Se edita 
 nano /etc/pcpi/pcpi.conf
 ```
 
-Guardar: `Ctrl+O`, `Enter`. Salir: `Ctrl+X`. **Después de editarlo, aplica los cambios:**
+Guardar: `Ctrl+O`, `Enter`. Salir: `Ctrl+X`. ⚠️ **Escribe los comentarios (`# ...`) siempre en su propia línea**, nunca detrás de un valor. Para cambiar un solo ajuste sin abrir el editor: `pcpi-config set weather lat 28.1235` (y `pcpi-config get weather lat` para leerlo). **Después de editarlo, aplica los cambios:**
 
 ```bash
 sudo systemctl restart pcpi-home          # servidor / Pi-hole / tiempo / cámara
@@ -394,6 +432,14 @@ pcpi-mode status     # ¿cuál tengo?
 
 También con el icono **«PCPi · Elegir modo»** del menú de aplicaciones, con los botones táctiles de las pantallas de Casa e Iker, o **con la voz** («Hey Jarvis… modo casa»).
 
+**Así se ve (captura del emulador a 1024×600, igual que tu pantalla):**
+
+| Modo Casa, de día | Modo Casa, de noche (con la voz respondiendo) |
+|---|---|
+| ![Modo Casa claro](img/casa-claro.png) | ![Modo Casa oscuro](img/casa-oscuro.png) |
+
+![Modo Iker](img/iker.png)
+
 ✅ **El modo se recuerda al reiniciar:** si lo dejas en Casa, la Pi arrancará directamente en Casa.
 
 | Modo | Qué es |
@@ -406,9 +452,131 @@ También con el icono **«PCPi · Elegir modo»** del menú de aplicaciones, con
 
 ## Paso 8: mini pantalla de estado (opcional)
 
-Una pantallita **no táctil** (OLED de 0,96", ~27 mm) para dejar al lado de la grande, que muestra siempre **CPU, RAM, disco, temperatura, GPU, ventilador, red e IP**. Cuesta unos 14 € (la **HiLetgo** de la lista, en color **White-IIC**), se conecta con 4 cables y **está todo explicado en [PANTALLA_MINI.md](PANTALLA_MINI.md)**: qué comprar, cómo conectarla pin a pin, instalarla (`./install.sh --stats`) y qué hacer si falla.
+Una pantallita **no táctil** (OLED de 0,96", ~27 mm) para dejar al lado de la grande, que muestra siempre **CPU, RAM, disco, temperatura, GPU, ventilador, red e IP**, en texto blanco. Cuesta unos 14 € (la **HiLetgo** de la lista, color **White-IIC**, y el **kit ELEGOO de cables Dupont**). Se conecta con **4 cables** y no necesita soldar.
 
-⚠️ El software está probado con tests y una imagen de ejemplo, pero **no con la pantalla real**.
+> ⚠️ El software está probado con tests y una imagen de ejemplo, pero **no con la pantalla real**: es lo primero que conviene comprobar cuando la tengas. Referencia completa y problemas: [PANTALLA_MINI.md](PANTALLA_MINI.md).
+
+### 8.1 Qué necesitas
+
+| Pieza | Para qué |
+|---|---|
+| Pantalla **OLED HiLetgo 0,96" I2C** (4 pines) | La pantalla |
+| **4 cables Dupont hembra–hembra** (del kit ELEGOO de 120: usa los de la tira «hembra–hembra») | Unir la pantalla a la Pi |
+| La Pi **apagada y desenchufada** | ⚠️ Nunca conectes cables al GPIO con la Pi encendida |
+
+### 8.2 Prepara los cables
+
+1. El kit ELEGOO trae **tres tiras** de 40 cables: macho–hembra, macho–macho y **hembra–hembra**. Coge la **hembra–hembra**: la que tiene **un agujero (casquillo) en los dos extremos** (si ves una puntita metálica, es la equivocada).
+2. Los cables vienen **pegados en tira**. **Separa 4 cables seguidos** tirando suavemente de un extremo hasta despegarlos de los demás.
+3. **Déjalos unidos entre sí** (la tira de 4) por el lado de la pantalla: así los 4 casquillos encajan juntos en los 4 pines de la OLED y no se cruzan.
+4. Por el **lado de la Pi**, separa los 4 cables unos 5 cm (tirando hacia fuera) para que cada uno llegue a un pin distinto.
+
+✅ Tienes **4 cables de 20 cm**, con 4 casquillos juntos en un extremo y 4 sueltos en el otro.
+
+### 8.3 Mira los pines de la pantalla
+
+La OLED tiene **4 pines** en un borde. **Lee las letras serigrafiadas** en la placa de la pantalla (suelen ser muy pequeñas: usa buena luz o la cámara del móvil con zoom):
+
+| Pin de la pantalla | Qué es |
+|---|---|
+| **GND** | Tierra |
+| **VCC** (a veces VDD) | Alimentación (3,3 V) |
+| **SCL** (a veces SCK) | Reloj de datos |
+| **SDA** | Datos |
+
+⚠️ **El orden de los 4 pines cambia según el fabricante.** Lo más habitual es `GND · VCC · SCL · SDA`, pero **fíate de lo que ponga tu placa, no de esta lista**. Apúntalo.
+
+### 8.4 Localiza los pines de la Pi
+
+La Pi tiene una tira de **40 pines** (2 filas de 20) junto a un borde de la placa. La Pi 5 la trae ya soldada. Necesitas **cuatro pines**: el **1, el 3, el 5 y el 9**.
+
+- El **pin 1** es el que tiene el **pad cuadrado** (o un «1» serigrafiado), normalmente en el extremo de la tira más cercano a la ranura de la microSD.
+- Desde el pin 1, **los pines impares (1, 3, 5, 7, 9…) están en una fila** y los pares (2, 4, 6…) en la otra. **Usamos solo la fila de los impares**: así no tocas nunca los pines de 5 V (2 y 4).
+
+```
+        Primeros 10 pines de la tira (en la placa está en horizontal; aquí, en vertical):
+
+                       fila de       fila de
+                       impares       pares
+          3,3 V  ───►   1  ■  ●  2   (5 V: NO tocar)
+          SDA    ───►   3  ●  ●  4   (5 V: NO tocar)
+          SCL    ───►   5  ●  ●  6
+                        7  ●  ●  8
+          GND    ───►   9  ●  ● 10
+
+          ■ = pin 1 (pad cuadrado)       ● = pin normal
+```
+
+### 8.5 Conecta (con la Pi apagada)
+
+| Pantalla | Cable a | Pin de la Pi |
+|---|---|---|
+| **VCC** | → | **Pin 1** (3,3 V) |
+| **SDA** | → | **Pin 3** |
+| **SCL** | → | **Pin 5** |
+| **GND** | → | **Pin 9** |
+
+1. Encaja primero los **4 casquillos juntos** en los 4 pines de la pantalla.
+2. Sigue cada cable hasta su otro extremo y encájalo en su pin de la Pi, **empujando hasta el fondo** (cada casquillo va en **un solo** pin: comprueba que no coge también el de al lado).
+3. **Revisa los cuatro, uno por uno**, con la tabla delante: `VCC→1`, `SDA→3`, `SCL→5`, `GND→9`.
+
+> ⚠️ **VCC siempre al pin 1 (3,3 V), nunca a un pin de 5 V (2 o 4).** Los pines de datos (SDA/SCL) de la Pi funcionan a 3,3 V; con la pantalla alimentada a 5 V sus líneas podrían subir a 5 V y **dañar la Pi**.
+>
+> 🧰 **¿La caja tapa el GPIO?** Si tu caja cubre la tira de 40 pines, usa una con el GPIO abierto o saca los cables por una ranura. Evita doblar los cables en ángulo recto.
+
+### 8.6 Colócala al lado de la pantalla grande
+
+Con 20 cm de cable puedes dejarla pegada al marco de la pantalla grande: **cinta de doble cara** en la parte trasera de la OLED (la placa va a la vista y los cables por detrás). Sujeta los cables con **bridas o velcro** para que no tiren de los casquillos.
+
+### 8.7 Enciende y comprueba
+
+```bash
+cd ~/PCRaspberryPI5 && git pull
+./install.sh --stats        # activa el I2C, instala lo necesario y crea el servicio
+sudo reboot
+```
+
+Tras el reinicio:
+
+1. **¿La ve la Pi?** `sudo i2cdetect -y 1` ✅ Debe aparecer **`3c`** (o `3d`) en la tabla. Si la tabla sale vacía (`--`), mira [8.8](#88-si-algo-falla).
+2. **Configúrala:** `pcpi-setup pantalla` (te confirma la dirección y te pregunta el chip: elige 1, SSD1306, salvo que luego salga desplazada).
+3. **¿Funciona el servicio?** `systemctl status pcpi-stats` ✅ Debe poner `active (running)`.
+
+✅ **La pantalla muestra 6 líneas** que se actualizan cada segundo:
+
+```
+CPU 37% 54C      1500MHz        ← uso, temperatura y frecuencia de la CPU
+RAM 2.9/8G            38%       ← memoria usada / total
+DSK 14/58G            24%       ← disco usado / total
+GPU 500MHz       Fan 2300       ← frecuencia de la GPU y vueltas del ventilador
+NET v125K            ^2.5K      ← velocidad de bajada (v) y subida (^)
+192.168.1.50         3d04h      ← IP de la Pi y tiempo encendida
+```
+
+Si la Pi va corta de corriente o limitada por calor, la línea `NET` se convierte en un aviso (`!VOLTAJE BAJO`, `!CPU LIMITADA` o `!DEMASIADO CALOR`).
+
+> ℹ️ **Sobre la GPU:** la Pi 5 no da un «porcentaje de uso de GPU» sencillo; se muestra su **frecuencia**, que sube cuando trabaja.
+
+### 8.8 Si algo falla
+
+| Síntoma | Qué hacer |
+|---|---|
+| `i2cdetect` no muestra `3c` | **Apaga la Pi** y revisa los 4 cables (`VCC→1`, `SDA→3`, `SCL→5`, `GND→9`); que cada casquillo agarre **un solo** pin; que el I2C esté activado (`sudo raspi-config` → *Interface Options* → *I2C*) y que hayas reiniciado |
+| Sigue sin verse y los cables están bien | **SDA y SCL cruzados** (prueba a intercambiarlos), o la pantalla es de **SPI** (7 pines) y no de I2C |
+| Sale **desplazada 2 columnas** o con basura en el borde | Tu chip es **SH1106**: `pcpi-config set mini chip sh1106` y `sudo systemctl restart pcpi-stats` |
+| Sale **boca abajo** | `pcpi-config set mini rotate true` y reinicia el servicio |
+| Sale la mitad en amarillo y la mitad en azul | Es la versión **Yellow Blue**, de fábrica: hay que cambiarla por la **White** |
+| `i2cdetect` muestra `3d` | `pcpi-config set mini address 0x3D` y reinicia el servicio |
+| *Permission denied* en `/dev/i2c-1` | Cierra sesión y vuelve a entrar (o reinicia): el grupo `i2c` se aplica al iniciar sesión |
+| La pantalla se calienta o huele raro | **Apaga y desenchufa ya** y revisa que VCC no esté en 5 V ni invertido con GND |
+
+**Apagarla por la noche** (los OLED se desgastan si siempre muestran lo mismo): por ejemplo, de 1:00 a 7:00:
+
+```bash
+pcpi-config set mini off_from 1
+pcpi-config set mini off_to 7
+sudo systemctl restart pcpi-stats
+```
 
 ---
 
@@ -461,6 +629,8 @@ No son necesarios. Puedes añadirlos cuando quieras:
 
 ```bash
 pcpi-doctor                              # diagnóstico: qué va y qué no
+pcpi-setup                               # asistente: ciudad, Pi-hole, micro, mini pantalla
+pcpi-config get|set SECCION CLAVE [VALOR] # leer/cambiar un ajuste sin abrir el editor
 pcpi-mode home | iker | desktop          # cambiar de modo
 nano /etc/pcpi/pcpi.conf                 # configuración
 sudo systemctl restart pcpi-home         # aplicar cambios de servidor/Pi-hole/tiempo/cámara
@@ -469,6 +639,8 @@ systemctl --user status pcpi-voice       # ¿funciona la voz?
 journalctl --user -u pcpi-voice -f       # registros de la voz (Ctrl+C sale)
 journalctl -u pcpi-home -n 50            # registros del servidor
 arecord -l                               # ¿qué micrófonos hay?
+sudo i2cdetect -y 1                      # ¿ve la Pi la mini pantalla? (debe salir 3c)
+systemctl status pcpi-stats              # ¿funciona la mini pantalla?
 ls /dev/video*                           # ¿qué cámaras hay?
 sudo pihole setpassword                  # cambiar la contraseña de Pi-hole
 cd ~/PCRaspberryPI5 && git pull && ./install.sh   # actualizar

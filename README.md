@@ -40,6 +40,8 @@ pcpi-mode home      # modo Casa
 pcpi-mode iker      # modo Iker (notas + internet)
 pcpi-mode desktop   # escritorio normal
 pcpi-mode status
+pcpi-setup          # asistente: ciudad, contraseña de Pi-hole, micrófono (con prueba), mini pantalla
+pcpi-doctor         # diagnóstico
 ```
 
 También hay un icono **"PCPi · Elegir modo"** en el menú de aplicaciones, y botones táctiles dentro de la UI de Casa y de Iker. El modo se recuerda entre reinicios.

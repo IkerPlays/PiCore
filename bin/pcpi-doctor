@@ -7,6 +7,13 @@ bad()  { printf '  \033[31m✘\033[0m %s\n' "$*"; BAD=1; }
 WARN=0; BAD=0
 
 echo "Modo y servidor"
+if [ -f /etc/pcpi/pcpi.conf ]; then
+  inline="$(grep -nE '^[^#;[:space:]][^#]*=.*[[:space:]]#' /etc/pcpi/pcpi.conf | head -3)"
+  if [ -n "$inline" ]; then
+    warn "pcpi.conf tiene comentarios detras de un valor (los servicios los toleran, pero conviene ponerlos en su propia linea):"
+    printf '      %s\n' "$inline"
+  else ok "/etc/pcpi/pcpi.conf sin problemas de formato"; fi
+else bad "no existe /etc/pcpi/pcpi.conf (¿ejecutaste ./install.sh?)"; fi
 mode="$(cat /etc/pcpi/mode 2>/dev/null)" && ok "modo actual: $mode" || bad "no existe /etc/pcpi/mode (¿ejecutaste ./install.sh?)"
 if systemctl is-active --quiet pcpi-home 2>/dev/null; then ok "servicio pcpi-home activo"; else warn "pcpi-home no esta activo: sudo systemctl status pcpi-home"; fi
 if st="$(curl -sf -m 4 "http://127.0.0.1:$PORT/api/status")"; then

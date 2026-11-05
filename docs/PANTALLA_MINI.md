@@ -58,26 +58,34 @@ Si algún día quieres otra, el trabajo que falta es un driver nuevo; el recolec
 
 ## Conexión (opción A)
 
-Con la Pi **apagada y desenchufada**. Cuatro cables Dupont hembra–hembra desde la pantalla a la tira de 40 pines (GPIO) de la Pi:
+> 📖 **La guía paso a paso, con fotos del proceso en texto, cómo separar los cables del kit y qué comprobar, está en el [Paso 8 del tutorial](TUTORIAL.md#paso-8-mini-pantalla-de-estado-opcional).** Aquí va el resumen.
+
+Con la Pi **apagada y desenchufada**. Cuatro cables Dupont hembra–hembra desde la pantalla a la tira de 40 pines (GPIO) de la Pi. Se usan solo pines **impares** (los de una misma fila), para no tocar nunca los de 5 V (2 y 4):
 
 | Pantalla | Pin de la Pi | Qué es |
 |---|---|---|
 | **VCC** (o VDD) | **1** | 3,3 V |
 | **SDA** | **3** | GPIO 2 (SDA) |
 | **SCL** | **5** | GPIO 3 (SCL) |
-| **GND** | **6** | Tierra |
+| **GND** | **9** | Tierra |
 
 ```
-   Pi 5, vista desde arriba, tira de pines con el borde de la placa a tu izquierda:
+        Primeros 10 pines de la tira (en la placa está en horizontal; aquí, en vertical):
 
-       (pin 1)  3V3  ●  ● 5V     (pin 2)     ← VCC de la pantalla al pin 1
-       (pin 3)  SDA  ●  ● 5V     (pin 4)     ← SDA al pin 3
-       (pin 5)  SCL  ●  ● GND    (pin 6)     ← SCL al pin 5, GND al pin 6
+                       fila de       fila de
+                       impares       pares
+          3,3 V  ───►   1  ■  ●  2   (5 V: NO tocar)
+          SDA    ───►   3  ●  ●  4   (5 V: NO tocar)
+          SCL    ───►   5  ●  ●  6
+                        7  ●  ●  8
+          GND    ───►   9  ●  ● 10
+
+          ■ = pin 1 (pad cuadrado, normalmente en el extremo más cercano a la microSD)
 ```
 
-El pin 1 es el que tiene el cuadradito o un triángulo serigrafiado en la placa. **No conectes VCC al pin 2 o 4 (5 V) salvo que tu módulo lo pida:** casi todos funcionan a 3,3 V.
+⚠️ **VCC siempre al pin 1 (3,3 V), nunca a 5 V:** con la pantalla alimentada a 5 V, sus líneas de datos podrían subir a 5 V y dañar la Pi, cuyos GPIO son de 3,3 V. **El orden de los pines de la pantalla cambia según el fabricante**: lee las letras de tu placa.
 
-> 🧰 Si el **GPIO queda tapado por la caja** de la Pi, saca los cables por donde puedas o usa una caja con el GPIO abierto. Los 4 cables permiten colocar la pantalla a 20 cm; para pegarla junto a la pantalla grande, usa **cinta de doble cara** en el marco o una pieza impresa en 3D.
+> 🧰 Si el **GPIO queda tapado por la caja** de la Pi, usa una caja con el GPIO abierto o saca los cables por una ranura. Con 20 cm de cable puedes dejar la pantalla pegada al marco de la grande con **cinta de doble cara**.
 
 ## Instalación
 
