@@ -38,7 +38,7 @@ Marca cada cosa antes de seguir; te ahorrará vueltas.
 - [ ] Tengo la **pantalla táctil de 7"** con sus cables, el **cable micro-HDMI**, la **cámara Logitech** y el **hub USB**.
 - [ ] Tengo un **teclado USB** y un **ordenador** con lector de microSD (o adaptador).
 - [ ] Tengo **internet** (wifi o cable) y sé la contraseña del wifi.
-- [ ] *(Opcional)* Tengo la **mini pantalla OLED** y los **cables GTIWUNG**.
+- [ ] *(Opcional)* Tengo la **mini pantalla OLED** y **4 cables hembra–hembra**.
 - [ ] Tengo a mano un **papel y boli** para apuntar el usuario y las contraseñas que vayas creando.
 
 > 🧰 **No hace falta ninguna herramienta** (ni destornilladores ni soldador): todo se conecta a presión. Lo único que necesitas es **paciencia con los cables**.
@@ -75,7 +75,7 @@ En la misma terminal puedes **escribir órdenes de voz**: `hey jarvis qué hora 
 | 3 | **Cámara web con micrófono** (sirve de cámara **y** de micro) | [Logitech C270](https://www.amazon.es/Logitech-C270-Webcam-USB-negro/dp/B003R1O320) | 18–25 |
 | 4 | **Hub USB 3.0** de 4 puertos | [UGREEN 15 cm](https://www.amazon.es/UGREEN-Velocidad-Adaptador-Compatible-Port%C3%A1til/dp/B0CD1BHXPZ) | ~10 |
 | 5 | **Teclado USB** con cable | ya lo tienes | 0 |
-| 6 | **Opcional:** mini pantalla de estado (ver [Paso 8](#paso-8-mini-pantalla-de-estado-opcional)) | [HiLetgo OLED I2C](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) (⚠️ elige el color **White-IIC**) + [cables GTIWUNG](https://www.amazon.es/-/en/GTIWUNG-Breadboard-Prototype-Solderless-Protoboard/dp/B0CPS1NLFS) | ~14 |
+| 6 | **Opcional:** mini pantalla de estado (ver [Paso 8](#paso-8-mini-pantalla-de-estado-opcional)) | [HiLetgo OLED I2C](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) (⚠️ elige el color **White-IIC**) + [cables hembra–hembra](SHOPPING_LIST.md#cables-opciones-seguras) (recomendado: Adafruit Premium Female/Female de 30 cm) | ~14 |
 
 **Alternativas** por si alguna pieza no está disponible: [iPistBit 7"](https://www.amazon.es/iPistBit-Raspberry-altavoces-integrados-compatible/dp/B0D7HSXY37), [InnoMaker 7"](https://www.amazon.es/innomaker-Pantalla-capacitiva-altavoces-Raspberry/dp/B0FL6SVLS5), micro USB pequeño [SunFounder](https://www.amazon.es/SUNFOUNDER-Mini-micr%C3%B3fono-Escritorio-reconocimiento/dp/B01KLRBHGM). Más detalle en [SHOPPING_LIST.md](SHOPPING_LIST.md).
 
@@ -461,19 +461,19 @@ Una pantallita **no táctil** (OLED de 0,96", ~27 mm) para dejar al lado de la g
 | Pieza | Para qué |
 |---|---|
 | Pantalla **OLED HiLetgo 0,96" I2C** (4 pines) | La pantalla |
-| **4 cables hembra–hembra** de 20 cm (de la tira hembra–hembra de 20 cm del kit [GTIWUNG](https://www.amazon.es/-/en/GTIWUNG-Breadboard-Prototype-Solderless-Protoboard/dp/B0CPS1NLFS)). **Casquillo (agujero) en los dos extremos** | Unir la pantalla a la Pi |
+| **4 cables hembra–hembra** (20–30 cm; [opciones](SHOPPING_LIST.md#cables-opciones-seguras)). **Casquillo (agujero) en los dos extremos** | Unir la pantalla a la Pi |
 | La Pi **apagada y desenchufada** | ⚠️ Nunca conectes cables al GPIO con la Pi encendida |
 
 ### 8.2 Prepara los cables
 
-1. Tu **kit GTIWUNG** trae **6 tiras de 40 cables** (3 tipos × 2 longitudes: 10 y 20 cm). Necesitas **una tira «hembra–hembra» de 20 cm**. Para reconocerla, **mira los dos extremos de la tira: tienen que ser agujeros (casquillos) en los dos lados**. Si ves una **puntita metálica** en algún extremo, es macho: déjala, no sirve para este montaje.
-2. Los cables vienen **pegados en tira**. **Separa 4 cables seguidos** tirando suavemente de un extremo hasta despegarlos de los demás.
+1. **Mira los dos extremos de tus cables: tienen que ser casquillos (un agujero) en los dos lados.** Si ves una **puntita metálica** en algún extremo, es macho: ese cable no sirve para este montaje. (Si tu pack mezcla tipos, como los kits de 120 o de 240, usa **solo** la tira hembra–hembra.)
+2. Si vienen **pegados en tira** (lo habitual), **separa 4 cables seguidos** tirando suavemente de un extremo hasta despegarlos de los demás.
 3. **Déjalos unidos entre sí** (la tira de 4) por el lado de la pantalla: así los 4 casquillos encajan juntos en los 4 pines de la OLED y no se cruzan.
 4. Por el **lado de la Pi**, separa los 4 cables unos 5 cm (tirando hacia fuera) para que cada uno llegue a un pin distinto.
 
-✅ Tienes **4 cables de 20 cm**, con 4 casquillos juntos en un extremo y 4 sueltos en el otro.
+✅ Tienes **4 cables hembra–hembra**, con 4 casquillos juntos en un extremo y 4 sueltos en el otro.
 
-> ⚠️ **¿Ninguna tira del kit es hembra–hembra?** Entonces no puedes usarlo: ve al plan B ([SHOPPING_LIST.md](SHOPPING_LIST.md#cables-elegido-gtiwung)). Con cables macho–hembra **no** se puede conectar la pantalla a la Pi.
+> ⚠️ **¿Todos tus cables tienen puntita en algún extremo?** Entonces no puedes usarlos: ve al plan B ([SHOPPING_LIST.md](SHOPPING_LIST.md#cables-opciones-seguras)). Con cables macho–hembra **no** se puede conectar la pantalla a la Pi.
 >
 > 🔌 **Si usas la variante con conector Grove** (cable Grove con 4 hilos de colores), el paso es otro: sigue la tabla de colores de [PANTALLA_MINI.md](PANTALLA_MINI.md#variante-con-conector-grove).
 

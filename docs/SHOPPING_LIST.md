@@ -33,7 +33,7 @@ Pantallita OLED de 0,96" **no táctil**, solo texto blanco, para dejar al lado d
 | Pieza | Enlace | ~€ |
 |---|---|---|
 | **Pantalla OLED HiLetgo 0,96" I2C 128×64** | [HiLetgo I2C (ASIN B06XRCQZRX)](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) | ~7 |
-| **Cables hembra–hembra** de 20 cm (usas 4 de la tira de 20 cm hembra–hembra) | [GTIWUNG, kit 240 cables (10 y 20 cm)](https://www.amazon.es/-/en/GTIWUNG-Breadboard-Prototype-Solderless-Protoboard/dp/B0CPS1NLFS) | ~10 |
+| **Cables hembra–hembra** (4 bastan) | [Adafruit Premium Female/Female 30 cm, 40 uds](https://www.amazon.es/Premium-Female-Jumper-Wires-300mm/dp/B00LWWM1WA) (recomendado; más opciones [abajo](#cables-opciones-seguras)) | ~10 (a comprobar) |
 | | **Total mini pantalla** | **~17 €** |
 
 > ⚠️ **En la ficha de HiLetgo, elige el color «White-IIC»** (es una de las opciones del selector según la ficha; compruébalo antes de pagar). El que sale por defecto es *Yellow Blue* (franja amarilla arriba y azul abajo), que no es blanco.
@@ -42,17 +42,22 @@ Pantallita OLED de 0,96" **no táctil**, solo texto blanco, para dejar al lado d
 >
 > ℹ️ La ficha no dice qué chip lleva (según las opiniones, SSD1306). Si la imagen sale desplazada 2 columnas, pon `chip = sh1106` en `/etc/pcpi/pcpi.conf`: **ambos chips están soportados**.
 
-### Cables: elegido GTIWUNG
+### Cables: opciones seguras
 
-**[GTIWUNG, kit de 240 cables](https://www.amazon.es/-/en/GTIWUNG-Breadboard-Prototype-Solderless-Protoboard/dp/B0CPS1NLFS)** (también en [otra ficha](https://amazon.es/GTIWUNG-240Piezas-Arduino-Raspberry-Breadboard/dp/B08LD6Z84R)): confirmado por ti como el que te llega a Canarias.
+Necesitas **4 cables con conector HEMBRA en los DOS extremos**. Lo que más importa es **no equivocarte de tipo**, así que ordeno las opciones por **cuánto se fía uno del título de la ficha**: solo pongo arriba las que dicen *«Female/Female»* (hembra–hembra) **en el propio título**, no mezclados con otros tipos. **No puedo comprobar desde aquí a qué sitios envía cada vendedor**: mira cada ficha con tu código postal canario.
 
-**Lo que dice su ficha:** 6 tiras de 40 cables, de **tres tipos** (hembra–hembra, macho–hembra y macho–macho) y **dos longitudes** (10 y 20 cm). **A nosotros nos sirve la tira «hembra–hembra» de 20 cm** (casquillo/agujero en los dos extremos). Usas 4 cables de esa tira.
+| # | Producto | Por qué | Enlace |
+|---|---|---|---|
+| **1** | **Adafruit «Premium Female/Female Jumper Wires», 40 cables de 30 cm** | El título dice solo *Female/Female*. Marca de electrónica conocida y cables «premium». **30 cm** te da holgura para poner la pantalla al lado de la grande | [Adafruit 40 × 30 cm](https://www.amazon.es/Premium-Female-Jumper-Wires-300mm/dp/B00LWWM1WA) |
+| **2** | Adafruit «Premium Female/Female», **20 cables de 15 cm** | Igual, pero más cortos: sirve solo si la pantalla va muy cerca de la Pi | [Adafruit 20 × 15 cm](https://www.amazon.es/Premium-Female-Jumper-Wires-150mm/dp/B00XW2L2X2) |
+| **3** | AZDelivery «40 Pieces **F2F** Female Pins», 20 cm | El título dice *F2F* (hembra–hembra). Puede estar sin stock | [AZDelivery F2F](https://www.amazon.es/AZDelivery-Jumper-Arduino-Raspberry-Breadboard/dp/B07KYHBVR7) |
+| **4** | **GTIWUNG kit de 240** (el que dices que te llega) | Trae hembra–hembra **mezclados con otros tipos** y el título solo dice «Female Male»: **sin garantía**, ver abajo | [GTIWUNG](https://www.amazon.es/-/en/GTIWUNG-Breadboard-Prototype-Solderless-Protoboard/dp/B0CPS1NLFS) |
 
-> ⚠️ **Compruébalo en la ficha antes de pagar:** en «Contenido del paquete» / fotos debe aparecer **hembra a hembra («female to female»)**. El título dice solo «Female Male Cable», y la ficha tiene alguna incoherencia entre el título y la descripción (no he podido abrir la página: Amazon me la bloquea). La descripción que leí sí lista los tres tipos.
+> ⚠️ **Los «macho–hembra» no sirven** (los pines de la pantalla y los de la Pi son machos: cada extremo necesita un casquillo/agujero).
 >
-> **Al recibirlo:** coge una tira y mira **los dos extremos**: tienen que ser agujeros, sin puntitas metálicas. Si todas las tiras tuvieran puntita en algún extremo (es decir, **no** viniera hembra–hembra), usa el plan B.
+> **Si eliges la opción 4 (GTIWUNG):** según la descripción que leí trae 6 tiras de 40 (3 tipos × 10 y 20 cm), pero **no he podido abrir la ficha** y el título no menciona «Female to Female»: verifica en «Contenido del paquete». **Al recibirlo**, mira los dos extremos de una tira: tienen que ser agujeros, sin puntitas metálicas.
 >
-> **Plan B** (por si no trajera hembra–hembra): la ruta **Seeed Grove** ([pantalla](https://www.amazon.es/Seeed-Grove-Pantalla-pulgadas-SSD1315/dp/B0821HHGG5) + [cable Grove hembra](https://www.amazon.es/Seeedstudio-conversi%C3%B3n-hembra-unidades-paquete/dp/B01AD62W56)), [QILUCKY](https://www.amazon.es/QILUCKY-hembra-hembra-macho-hembra-macho-macho-Raspberry/dp/B0B1PD6SRH), [YXPCARS](https://www.amazon.es/YXPCARS-cables-hembra-femenino-Arduino/dp/B08HQ7K6M7) o cables sueltos de una tienda de electrónica de tu isla. **No llegan a Canarias, según tú:** [TECHZOCO](https://www.amazon.es/TECHZOCO-alambre-Prototipo-Raspberry-Breadboard/dp/B0DLV44JHZ), ELEGOO y Lumanuby.
+> **Plan B** si ninguna llega: la ruta **Seeed Grove** ([pantalla](https://www.amazon.es/Seeed-Grove-Pantalla-pulgadas-SSD1315/dp/B0821HHGG5) + [cable Grove hembra](https://www.amazon.es/Seeedstudio-conversi%C3%B3n-hembra-unidades-paquete/dp/B01AD62W56), con colores fijos), o 4 cables sueltos en una **tienda de electrónica de tu isla**. **No llegan a Canarias, según tú:** [TECHZOCO](https://www.amazon.es/TECHZOCO-alambre-Prototipo-Raspberry-Breadboard/dp/B0DLV44JHZ), ELEGOO y Lumanuby.
 
 **Total del proyecto con la mini pantalla: unos 107 €** (de los 250 € de presupuesto).
 
