@@ -33,8 +33,8 @@ Pantallita OLED de 0,96" **no táctil**, solo texto blanco, para dejar al lado d
 | Pieza | Enlace | ~€ |
 |---|---|---|
 | **Pantalla OLED HiLetgo 0,96" I2C 128×64** | [HiLetgo I2C (ASIN B06XRCQZRX)](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) | ~7 |
-| **Cables hembra–hembra** de 20 cm (4 bastan) | **por elegir**: ver [opciones abajo](#cables-pendiente-de-elegir) | 5–25 |
-| | **Total mini pantalla** | **~14 €** |
+| **Cables hembra–hembra** de 20 cm (usas 4 de la tira de 20 cm hembra–hembra) | [GTIWUNG, kit 240 cables (10 y 20 cm)](https://www.amazon.es/-/en/GTIWUNG-Breadboard-Prototype-Solderless-Protoboard/dp/B0CPS1NLFS) | ~10 |
+| | **Total mini pantalla** | **~17 €** |
 
 > ⚠️ **En la ficha de HiLetgo, elige el color «White-IIC»** (es una de las opciones del selector según la ficha; compruébalo antes de pagar). El que sale por defecto es *Yellow Blue* (franja amarilla arriba y azul abajo), que no es blanco.
 >
@@ -42,23 +42,19 @@ Pantallita OLED de 0,96" **no táctil**, solo texto blanco, para dejar al lado d
 >
 > ℹ️ La ficha no dice qué chip lleva (según las opiniones, SSD1306). Si la imagen sale desplazada 2 columnas, pon `chip = sh1106` en `/etc/pcpi/pcpi.conf`: **ambos chips están soportados**.
 
-### Cables: pendiente de elegir
+### Cables: elegido GTIWUNG
 
-Necesitas **4 cables con conector HEMBRA en los DOS extremos** (hembra–hembra, «female to female», «F2F»), de ~20 cm. ⚠️ Los «macho–hembra» **no sirven**: los pines de la pantalla y los de la Pi son machos, así que cada extremo necesita un casquillo (agujero).
+**[GTIWUNG, kit de 240 cables](https://www.amazon.es/-/en/GTIWUNG-Breadboard-Prototype-Solderless-Protoboard/dp/B0CPS1NLFS)** (también en [otra ficha](https://amazon.es/GTIWUNG-240Piezas-Arduino-Raspberry-Breadboard/dp/B08LD6Z84R)): confirmado por ti como el que te llega a Canarias.
 
-**Según tú, estos NO llegan a Canarias:** [TECHZOCO](https://www.amazon.es/TECHZOCO-alambre-Prototipo-Raspberry-Breadboard/dp/B0DLV44JHZ), ELEGOO, Lumanuby (más los kits de AZDelivery y AptoFun que te di antes, si también te fallaron). **No puedo comprobar desde aquí el envío de cada ficha**, así que te doy opciones de tipos distintos; prueba con tu código postal canario en cada una.
+**Lo que dice su ficha:** 6 tiras de 40 cables, de **tres tipos** (hembra–hembra, macho–hembra y macho–macho) y **dos longitudes** (10 y 20 cm). **A nosotros nos sirve la tira «hembra–hembra» de 20 cm** (casquillo/agujero en los dos extremos). Usas 4 cables de esa tira.
 
-| | Opción | Qué es | Enlaces |
-|---|---|---|---|
-| **1** | **Ruta Seeed Grove** (sin kit de Dupont) | Pantalla Grove con su conector + cable «Grove → 4 hembras sueltas» | [Grove OLED 0,96" SSD1315](https://www.amazon.es/Seeed-Grove-Pantalla-pulgadas-SSD1315/dp/B0821HHGG5) + [cable Grove hembra, pack de 5](https://www.amazon.es/Seeedstudio-conversi%C3%B3n-hembra-unidades-paquete/dp/B01AD62W56) ([otra ficha](https://www.amazon.es/-/en/Grove-Female-Conversion-Jumper-pieces/dp/B074MDM36N)) |
-| **2** | Otra marca de **hembra–hembra** | Kit de 240 cables (10 y 20 cm) | [GTIWUNG](https://www.amazon.es/-/en/GTIWUNG-Breadboard-Prototype-Solderless-Protoboard/dp/B0CPS1NLFS) · [GTIWUNG (otra ficha)](https://amazon.es/GTIWUNG-240Piezas-Arduino-Raspberry-Breadboard/dp/B08LD6Z84R) · [YXPCARS](https://www.amazon.es/YXPCARS-cables-hembra-femenino-Arduino/dp/B08HQ7K6M7) |
-| **3** | Cable plano hembra–hembra de 40 hilos | Se separan los que quieras | [Cable plano 40 pines F–F](https://www.amazon.es/Adaptador-Rainbow-Hembra-Hembra-Raspberry-Interfaz/dp/B07P4LFM14) |
-| **4** | Un **kit de electrónica** para Raspberry Pi, que trae cables | De marcas grandes; **mira en la ficha que incluyan «female to female»** | [SunFounder para Raspberry Pi](https://www.amazon.es/SUNFOUNDER-Raspberry-tutoriales-detallados-proyectos/dp/B09D774YWQ) · [Miuzei](https://www.amazon.es/-/en/Arduino-Electronics-Protoboard-Components-Extension-Raspberry/dp/B08TLTHWD7) |
-| **5** | **Tienda de tu isla** | Piden «cables Dupont hembra–hembra»; 4 cuestan céntimos | — |
+> ⚠️ **Compruébalo en la ficha antes de pagar:** en «Contenido del paquete» / fotos debe aparecer **hembra a hembra («female to female»)**. El título dice solo «Female Male Cable», y la ficha tiene alguna incoherencia entre el título y la descripción (no he podido abrir la página: Amazon me la bloquea). La descripción que leí sí lista los tres tipos.
+>
+> **Al recibirlo:** coge una tira y mira **los dos extremos**: tienen que ser agujeros, sin puntitas metálicas. Si todas las tiras tuvieran puntita en algún extremo (es decir, **no** viniera hembra–hembra), usa el plan B.
+>
+> **Plan B** (por si no trajera hembra–hembra): la ruta **Seeed Grove** ([pantalla](https://www.amazon.es/Seeed-Grove-Pantalla-pulgadas-SSD1315/dp/B0821HHGG5) + [cable Grove hembra](https://www.amazon.es/Seeedstudio-conversi%C3%B3n-hembra-unidades-paquete/dp/B01AD62W56)), [QILUCKY](https://www.amazon.es/QILUCKY-hembra-hembra-macho-hembra-macho-macho-Raspberry/dp/B0B1PD6SRH), [YXPCARS](https://www.amazon.es/YXPCARS-cables-hembra-femenino-Arduino/dp/B08HQ7K6M7) o cables sueltos de una tienda de electrónica de tu isla. **No llegan a Canarias, según tú:** [TECHZOCO](https://www.amazon.es/TECHZOCO-alambre-Prototipo-Raspberry-Breadboard/dp/B0DLV44JHZ), ELEGOO y Lumanuby.
 
-**La opción 1 (Grove)** merece la pena si las demás fallan: el cable Grove tiene los **4 hilos de colores fijos** (rojo VCC, negro GND, blanco SDA, amarillo SCL) y la pantalla lleva el conector, así que **no hay que adivinar el orden de los pines** ni comprar un kit de 120. Cuesta más (~25–30 € entre pantalla y cables, a comprobar). El chip es SSD1315, compatible con el SSD1306 (el software lo trata igual: `chip = ssd1306`). Cuidado con la versión de dos colores (amarillo/azul) del mismo fabricante: **elige la monocroma («OLED Display 0.96 inch, SSD1315»)**. Si eliges esta ruta, **no compres la HiLetgo**: la pantalla ya viene en la opción. Conexión de esta variante en [PANTALLA_MINI.md](PANTALLA_MINI.md#variante-con-conector-grove).
-
-**Total del proyecto con la mini pantalla: entre ~104 € y ~125 €** según la opción de cables (de los 250 € de presupuesto).
+**Total del proyecto con la mini pantalla: unos 107 €** (de los 250 € de presupuesto).
 
 ## Lo que quitamos
 

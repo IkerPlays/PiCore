@@ -35,7 +35,7 @@ Una pantallita **no táctil**, solo **texto blanco sobre negro** (sin colores ni
 | Pieza | Enlace | ~€ |
 |---|---|---|
 | **Pantalla OLED HiLetgo 0,96" I2C, 128×64** | [HiLetgo I2C (ASIN B06XRCQZRX)](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) | ~7 |
-| **Cables hembra–hembra** de 20 cm (4 bastan) | por elegir: [opciones en la lista de la compra](SHOPPING_LIST.md#cables-pendiente-de-elegir) | 5–25 |
+| **Cables hembra–hembra** de 20 cm (usas 4 de la tira de 20 cm hembra–hembra) | [GTIWUNG, kit 240 cables (10 y 20 cm)](https://www.amazon.es/-/en/GTIWUNG-Breadboard-Prototype-Solderless-Protoboard/dp/B0CPS1NLFS) | ~10 |
 
 > ⚠️ **En la ficha elige el color «White-IIC»** (según la ficha, es una de las opciones del selector; si no la ves, elige otra pantalla blanca de la lista).
 >
@@ -45,7 +45,7 @@ Una pantallita **no táctil**, solo **texto blanco sobre negro** (sin colores ni
 >
 > ℹ️ La ficha **no dice qué chip lleva**; según las opiniones, es un SSD1306. **Por si acaso, el software soporta los dos chips más habituales** (SSD1306 y SH1106): si la imagen sale desplazada 2 columnas, pon `chip = sh1106` (ver abajo).
 >
-> 🔌 **Cables:** todavía hay que elegir unos que lleguen a Canarias (TECHZOCO y ELEGOO no llegan, según tú). Opciones en [SHOPPING_LIST.md](SHOPPING_LIST.md#cables-pendiente-de-elegir). Tienen que ser **hembra en los dos extremos**; solo necesitas 4.
+> 🔌 **Cables:** el elegido es el kit **GTIWUNG** (6 tiras de 40: hembra–hembra, macho–hembra y macho–macho, de 10 y 20 cm). Necesitas una tira **hembra–hembra de 20 cm**: casquillo (agujero) en los dos extremos. Detalles y plan B en [SHOPPING_LIST.md](SHOPPING_LIST.md#cables-elegido-gtiwung).
 >
 > Los precios son aproximados y **no he podido comprobar el envío a Canarias**: mete tu código postal en la ficha antes de pagar. Alternativa: [AZDelivery](https://amazon.es/AZDelivery-Pantalla-Display-pulgadas-Raspberry/dp/B01L9GC470) (blanca y SSD1306 según su ficha).
 
