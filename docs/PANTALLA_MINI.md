@@ -35,7 +35,7 @@ Una pantallita **no táctil**, solo **texto blanco sobre negro** (sin colores ni
 | Pieza | Enlace | ~€ |
 |---|---|---|
 | **Pantalla OLED HiLetgo 0,96" I2C, 128×64** | [HiLetgo I2C (ASIN B06XRCQZRX)](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) | ~7 |
-| **Cables Dupont hembra–hembra** de 20 cm (la tira trae 40; usas 4) | [TECHZOCO 40 cables hembra–hembra, 20 cm](https://www.amazon.es/TECHZOCO-alambre-Prototipo-Raspberry-Breadboard/dp/B0DLV44JHZ) | ~7 |
+| **Cables hembra–hembra** de 20 cm (4 bastan) | por elegir: [opciones en la lista de la compra](SHOPPING_LIST.md#cables-pendiente-de-elegir) | 5–25 |
 
 > ⚠️ **En la ficha elige el color «White-IIC»** (según la ficha, es una de las opciones del selector; si no la ves, elige otra pantalla blanca de la lista).
 >
@@ -45,7 +45,7 @@ Una pantallita **no táctil**, solo **texto blanco sobre negro** (sin colores ni
 >
 > ℹ️ La ficha **no dice qué chip lleva**; según las opiniones, es un SSD1306. **Por si acaso, el software soporta los dos chips más habituales** (SSD1306 y SH1106): si la imagen sale desplazada 2 columnas, pon `chip = sh1106` (ver abajo).
 >
-> 🔌 **Cables:** el elegido es el TECHZOCO de la tabla (hembra en los dos extremos; solo necesitas 4). Alternativas en [SHOPPING_LIST.md](SHOPPING_LIST.md#cables-dupont-elegido-techzoco).
+> 🔌 **Cables:** todavía hay que elegir unos que lleguen a Canarias (TECHZOCO y ELEGOO no llegan, según tú). Opciones en [SHOPPING_LIST.md](SHOPPING_LIST.md#cables-pendiente-de-elegir). Tienen que ser **hembra en los dos extremos**; solo necesitas 4.
 >
 > Los precios son aproximados y **no he podido comprobar el envío a Canarias**: mete tu código postal en la ficha antes de pagar. Alternativa: [AZDelivery](https://amazon.es/AZDelivery-Pantalla-Display-pulgadas-Raspberry/dp/B01L9GC470) (blanca y SSD1306 según su ficha).
 
@@ -86,6 +86,19 @@ Con la Pi **apagada y desenchufada**. Cuatro cables Dupont hembra–hembra desde
 ⚠️ **VCC siempre al pin 1 (3,3 V), nunca a 5 V:** con la pantalla alimentada a 5 V, sus líneas de datos podrían subir a 5 V y dañar la Pi, cuyos GPIO son de 3,3 V. **El orden de los pines de la pantalla cambia según el fabricante**: lee las letras de tu placa.
 
 > 🧰 Si el **GPIO queda tapado por la caja** de la Pi, usa una caja con el GPIO abierto o saca los cables por una ranura. Con 20 cm de cable puedes dejar la pantalla pegada al marco de la grande con **cinta de doble cara**.
+
+### Variante con conector Grove
+
+Si eliges la **ruta Seeed Grove** (pantalla [Grove OLED 0,96" SSD1315](https://www.amazon.es/Seeed-Grove-Pantalla-pulgadas-SSD1315/dp/B0821HHGG5) + [cable Grove hembra](https://www.amazon.es/Seeedstudio-conversi%C3%B3n-hembra-unidades-paquete/dp/B01AD62W56)): enchufa el cable al conector Grove de la pantalla (solo entra de una forma) y lleva los **4 hilos sueltos** a la Pi. Los colores son fijos del estándar Grove:
+
+| Hilo | Pin de la Pi | Qué es |
+|---|---|---|
+| **Rojo** | **1** | 3,3 V |
+| **Blanco** | **3** | SDA |
+| **Amarillo** | **5** | SCL |
+| **Negro** | **9** | GND |
+
+El resto (instalación, `i2cdetect`, ajustes) es igual. ⚠️ Comprueba los colores del cable que te llegue contra la ficha del vendedor antes de conectar; si no coinciden, fíate de la serigrafía de la pantalla.
 
 ## Instalación
 
