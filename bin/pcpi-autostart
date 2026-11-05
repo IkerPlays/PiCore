@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Arranque automatico de pcpi-session al iniciar sesion.   pcpi-autostart install|remove [HOME]
+#
+# IMPORTANTE (labwc): si existe ~/.config/labwc/autostart, labwc NO ejecuta /etc/xdg/labwc/autostart
+# (el panel, el escritorio...). Por eso, si el del usuario no existe, se COPIA primero el del sistema
+# y solo despues se añade nuestra linea. Asi nunca se pierde el panel.
+set -eu
+ACTION="${1:-install}"; HOME_DIR="${2:-$HOME}"
+SYSTEM_LABWC="${PCPI_SYSTEM_LABWC:-/etc/xdg/labwc}"
+DESKTOP="$HOME_DIR/.config/autostart/pcpi-session.desktop"
+USER_AUTOSTART="$HOME_DIR/.config/labwc/autostart"
+LINE='pcpi-session &'
+
+case "$ACTION" in
+  install)
+    mkdir -p "$(dirname "$DESKTOP")" "$(dirname "$USER_AUTOSTART")"
+    printf '[Desktop Entry]\nType=Application\nName=PCPi session\nExec=pcpi-session\n' > "$DESKTOP"
+    if [ ! -f "$USER_AUTOSTART" ] && [ -f "$SYSTEM_LABWC/autostart" ]; then
+      cp "$SYSTEM_LABWC/autostart" "$USER_AUTOSTART"
+    fi
+    grep -qxF "$LINE" "$USER_AUTOSTART" 2>/dev/null || {
+      # el fichero del sistema puede no acabar en salto de linea
+      [ -s "$USER_AUTOSTART" ] && [ -n "$(tail -c1 "$USER_AUTOSTART")" ] && echo >> "$USER_AUTOSTART"
+      echo "$LINE" >> "$USER_AUTOSTART"
+    }
+    ;;
+  remove)
+    rm -f "$DESKTOP"
+    [ -f "$USER_AUTOSTART" ] && sed -i "\|^$LINE\$|d" "$USER_AUTOSTART"
+    ;;
+  *) echo "Uso: pcpi-autostart install|remove [HOME]" >&2; exit 1 ;;
+esac

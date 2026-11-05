@@ -9,6 +9,7 @@ Un PC portátil con **Raspberry Pi 5 (8 GB)** y pantalla táctil de 7" con tres 
 | 🏠 **Casa** | Estilo Alexa con pantalla: hora, tiempo, Pi-hole, Spotify Connect, asistente de voz local y cámara | ✅ base |
 
 - 🛒 Qué comprar (≤ 250 €): [docs/SHOPPING_LIST.md](docs/SHOPPING_LIST.md)
+- 🖥 **Mini pantalla de estado** (CPU/RAM/disco/GPU, opcional): [docs/PANTALLA_MINI.md](docs/PANTALLA_MINI.md)
 - 📖 **Tutorial desde cero (qué comprar, montar, instalar, configurar):** [docs/TUTORIAL.md](docs/TUTORIAL.md)
 - 🧱 Cómo funciona y hoja de ruta: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
@@ -27,10 +28,10 @@ En Raspberry Pi OS con escritorio (64 bits), como usuario normal:
 ```bash
 git clone https://github.com/IkerPlays/PCRaspberryPI5.git
 cd PCRaspberryPI5
-./install.sh --all        # o solo lo que quieras: --battery --pihole --spotify --voice --camera
+./install.sh --all        # = --camera --voice --spotify --pihole. Aparte: --stats (mini pantalla) y --battery
 ```
 
-Después cierra sesión y vuelve a entrar. Para comprobar que todo va: `pcpi-doctor`. Para quitarlo: `./uninstall.sh`.
+Después cierra sesión y vuelve a entrar. Para comprobar que todo va: `pcpi-doctor`. **Guía completa paso a paso: [docs/TUTORIAL.md](docs/TUTORIAL.md).** Para quitarlo: `./uninstall.sh`.
 
 ## Usar
 
@@ -59,4 +60,6 @@ La palabra, el umbral y el micro se cambian en `[voice]` de `/etc/pcpi/pcpi.conf
 
 ## Estado
 
-> ⚠️ El código está probado con tests del servidor (`python3 -m unittest discover tests`, 24 tests, incluido el intérprete de órdenes de voz), pero **aún no en una Raspberry Pi real**. El instalador, el kiosk de Chromium, el hook de Spotify y la cámara, el reconocimiento de voz (calidad del micro, activaciones falsas) necesitan una prueba en el hardware.
+**48 tests** (`make test`): servidor y API, notas, cámara (con una cámara falsa), intérprete de órdenes de voz, máquina de estados del asistente, emulador, arranque automático (`pcpi-autostart`, con el fallo del panel de labwc cubierto) y mini pantalla (métricas, dibujo y bytes del SSD1306). Además se probó a mano el bucle de `pcpi-session` con un Chromium falso (home → iker → escritorio) y la interfaz con capturas a 1024×600.
+
+> ⚠️ **Nada de esto se ha probado todavía en una Raspberry Pi real.** Falta comprobar sobre el hardware: el instalador, el kiosco de Chromium, el hook de Spotify, la cámara, el reconocimiento de voz (calidad del micro, umbral de activación) y la mini pantalla. Si algo falla, `pcpi-doctor` y la sección «Si algo falla» del [tutorial](docs/TUTORIAL.md) son el punto de partida.

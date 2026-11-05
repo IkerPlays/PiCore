@@ -33,8 +33,13 @@ def mode_file():
     return Path(os.environ.get("PCPI_MODE_FILE", "/etc/pcpi/mode"))
 
 
+def run_dir():
+    """Estado que cambia a menudo (voz, "sonando ahora"): en /run (RAM) para no desgastar la microSD."""
+    return Path(os.environ.get("PCPI_RUN_DIR", "/run/pcpi"))
+
+
 def nowplaying_file():
-    return Path(os.environ.get("PCPI_NOWPLAYING", "/var/lib/pcpi/nowplaying.json"))
+    return Path(os.environ.get("PCPI_NOWPLAYING", str(run_dir() / "nowplaying.json")))
 
 
 def read_conf():
@@ -62,7 +67,7 @@ def set_mode(mode):
 
 def notes_dir():
     d = Path(os.environ.get("PCPI_NOTES_DIR", "/var/lib/pcpi/notes"))
-    d.mkdir(parents=True, exist_ok=True)
+    d.mkdir(parents=True, exist_ok=True, mode=0o700)  # las notas son privadas
     return d
 
 
@@ -104,7 +109,9 @@ def save_note(nid, text):
         raise ValueError("id invalido")
     f = notes_dir() / (nid + ".json")
     tmp = f.with_suffix(".tmp")
-    tmp.write_text(json.dumps({"text": text, "updated": time.time()}))
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w") as fh:
+        fh.write(json.dumps({"text": text, "updated": time.time()}))
     os.replace(tmp, f)
     return nid
 
@@ -126,6 +133,19 @@ def local_ip():
             return sk.getsockname()[0]
     except OSError:
         return None
+
+
+_pages = {}
+
+
+def page_bytes(name):
+    """HTML en memoria; se vuelve a leer solo si el fichero cambia."""
+    f = WEB / name
+    m = f.stat().st_mtime_ns
+    hit = _pages.get(name)
+    if not hit or hit[0] != m:
+        hit = _pages[name] = (m, f.read_bytes())
+    return hit[1]
 
 
 _cache = {}
@@ -235,7 +255,7 @@ def nowplaying():
 
 def voice_state():
     try:
-        return json.loads(Path(os.environ.get("PCPI_VOICE_STATE", "/var/lib/pcpi/voice.json")).read_text())
+        return json.loads(Path(os.environ.get("PCPI_VOICE_STATE", str(run_dir() / "voice.json"))).read_text())
     except (OSError, ValueError):
         return {"state": "off"}
 
@@ -327,7 +347,7 @@ def status():
         "nowplaying": nowplaying(),
         "voice": voice_state(),
         "camera": camera_status(cp),
-        "ip": local_ip(),
+        "ip": cached("ip", 60, local_ip),
         "host": socket.gethostname(),
     }
 
@@ -361,7 +381,7 @@ class Handler(BaseHTTPRequestHandler):
         name = PAGES.get(path)
         if name is None:
             return self._send(404, {"error": "no encontrado"})
-        self._send(200, (WEB / name).read_bytes(), "text/html; charset=utf-8")
+        self._send(200, page_bytes(name), "text/html; charset=utf-8")
 
     def _local(self):
         if self.client_address[0] not in ("127.0.0.1", "::1"):

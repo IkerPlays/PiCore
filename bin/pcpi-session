@@ -4,6 +4,8 @@
 #   home    -> Chromium en kiosco (pantalla completa, sin barras) con la UI de Casa
 #   iker    -> Chromium en ventana normal (pestañas y barra de direcciones) con el bloc de notas;
 #              las notas son la pestaña 1 y "Internet" abre pestañas nuevas
+#
+# Consumo: el bucle solo usa builtins de bash (sin procesos nuevos) salvo un pgrep cada ~10 s.
 set -u
 MODE_FILE="${PCPI_MODE_FILE:-/etc/pcpi/mode}"
 PORT="${PCPI_PORT:-8080}"
@@ -20,8 +22,10 @@ stop_browser()  { pkill -f -- "--user-data-dir=$PROFILE" 2>/dev/null || true; }
 browser_alive() { pgrep -f -- "--user-data-dir=$PROFILE" >/dev/null; }
 
 start_browser() {
-  local mode="$1" flags=(--no-first-run --noerrdialogs --disable-infobars --disable-session-crashed-bubble
-                         --check-for-update-interval=31536000 --password-store=basic)
+  local mode="$1" flags=(--no-first-run --no-default-browser-check --noerrdialogs --disable-infobars
+                         --disable-session-crashed-bubble --password-store=basic
+                         --check-for-update-interval=31536000 --disable-component-update
+                         --disable-background-networking --disable-features=Translate,MediaRouter)
   [ -n "${WAYLAND_DISPLAY:-}" ] && flags+=(--ozone-platform=wayland)
   for _ in $(seq 30); do curl -sf "http://localhost:$PORT/api/mode" >/dev/null && break; sleep 1; done
   if [ "$mode" = home ]; then
@@ -33,11 +37,18 @@ start_browser() {
   fi
 }
 
-applied=""
+applied="" ; tick=0
 while true; do
-  mode="$(cat "$MODE_FILE" 2>/dev/null || echo desktop)"
+  mode=desktop
+  read -r mode < "$MODE_FILE" 2>/dev/null || true          # builtin: no lanza procesos
   case "$mode" in desktop|iker|home) ;; *) mode=desktop ;; esac
-  if [ "$mode" != "$applied" ]; then stop_browser; sleep 0.5; applied="$mode"; fi
-  if [ "$mode" != desktop ] && ! browser_alive; then start_browser "$mode"; fi
-  sleep 1
+  if [ "$mode" != "$applied" ]; then
+    stop_browser; sleep 0.5; applied="$mode"; tick=99      # cambio de modo: arranca ya
+  fi
+  if [ "$mode" != desktop ] && [ "$tick" -ge 5 ]; then     # ¿sigue vivo? cada ~10 s
+    browser_alive || start_browser "$mode"
+    tick=0
+  fi
+  tick=$((tick + 1))
+  sleep 2
 done

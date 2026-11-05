@@ -6,7 +6,7 @@
   2. Al detectarla suena un pitido y Vosk (español) transcribe UNA orden.
   3. Se ejecuta (modo, Pi-hole, volumen, camara...) y se contesta con espeak-ng.
 
-El estado va a /var/lib/pcpi/voice.json para que la UI del modo Casa lo muestre.
+El estado va a /run/pcpi/voice.json para que la UI del modo Casa lo muestre.
 """
 import configparser
 import datetime
@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import intents  # noqa: E402
 
 CONF = Path(os.environ.get("PCPI_CONF", "/etc/pcpi/pcpi.conf"))
-STATE = Path(os.environ.get("PCPI_VOICE_STATE", "/var/lib/pcpi/voice.json"))
+STATE = Path(os.environ.get("PCPI_VOICE_STATE", "/run/pcpi/voice.json"))
 RATE = 16000
 
 

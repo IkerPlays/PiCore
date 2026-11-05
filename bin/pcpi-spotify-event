@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Hook de Raspotify/librespot (--onevent): guarda lo que suena para la UI del modo Casa.
 # librespot expone PLAYER_EVENT y, al cambiar de cancion, NAME / ARTISTS.
-OUT="${PCPI_NOWPLAYING:-/var/lib/pcpi/nowplaying.json}"
+OUT="${PCPI_NOWPLAYING:-/run/pcpi/nowplaying.json}"
 esc() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g' | tr '\n\t' '  '; }
 
 # COVERS: URLs de la portada (una por linea); nos quedamos con la primera

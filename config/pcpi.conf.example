@@ -42,3 +42,15 @@ fps = 15
 input_format = mjpeg
 # Opcional: otro origen, p.ej. una camara IP. Debe sacar MJPEG (mpjpeg, boundary "frame") por stdout.
 # command = ffmpeg -loglevel error -i rtsp://usuario:clave@192.168.1.50/stream -c:v mjpeg -q:v 7 -f mpjpeg -boundary_tag frame -
+
+[mini]
+# Mini pantalla OLED I2C de estado (./install.sh --stats). Ver docs/PANTALLA_MINI.md
+address = 0x3C        # algunas pantallas usan 0x3D
+i2c_bus = 1
+rotate = false        # true = girar 180 grados
+interval = 1          # segundos entre actualizaciones
+page_seconds = 3      # cada cuanto cambia el texto de la ultima linea
+contrast = 120        # 0-255
+# Los OLED se desgastan si estan siempre encendidos: apagala por la noche (horas 0-23, -1 = nunca)
+off_from = -1
+off_to = -1

@@ -24,6 +24,10 @@ print("  %s Camara: %s" % ("\033[32m✔\033[0m" if c["available"] else "\033[33m
 PY
 else bad "la API no responde en :$PORT"; fi
 
+pgrep -f "[p]cpi-session" >/dev/null && ok "vigilante de modos (pcpi-session) en marcha" \
+  || warn "pcpi-session no esta en marcha (cierra sesion y vuelve a entrar; si sigue igual: pcpi-session &)"
+[ -d /run/pcpi ] && ok "/run/pcpi existe (estado en RAM)" || warn "falta /run/pcpi: sudo systemd-tmpfiles --create /etc/tmpfiles.d/pcpi.conf"
+
 echo "Alimentacion y temperatura (Raspberry Pi)"
 if command -v vcgencmd >/dev/null; then
   thr="$(vcgencmd get_throttled | cut -d= -f2)"
@@ -57,6 +61,15 @@ id -nG | grep -qw video && ok "usuario en el grupo video" || warn "tu usuario no
 echo "Pi-hole y Spotify"
 systemctl is-active --quiet pihole-FTL 2>/dev/null && ok "Pi-hole activo" || warn "Pi-hole no instalado/activo (./install.sh --pihole)"
 systemctl is-active --quiet raspotify 2>/dev/null && ok "Raspotify (Spotify Connect) activo" || warn "Raspotify no activo (./install.sh --spotify)"
+
+if systemctl list-unit-files pcpi-stats.service >/dev/null 2>&1 && systemctl cat pcpi-stats >/dev/null 2>&1; then
+  echo "Mini pantalla"
+  systemctl is-active --quiet pcpi-stats && ok "servicio pcpi-stats activo" || warn "pcpi-stats parado: sudo systemctl status pcpi-stats"
+  if command -v i2cdetect >/dev/null; then
+    i2cdetect -y 1 2>/dev/null | grep -qE "3c|3d" && ok "pantalla detectada en el bus I2C (0x3C)" \
+      || warn "no se ve ninguna pantalla en I2C: revisa los 4 cables (3V3, GND, SDA, SCL) y 'sudo raspi-config' -> I2C"
+  fi
+fi
 
 echo
 [ $BAD = 1 ] && { echo "Hay errores (✘)."; exit 1; }

@@ -9,8 +9,9 @@
   html[data-theme=light] { --bg:#ece6da; --card:#fbf8f1; --fg:#23201b; --dim:#7a7468; --line:#ded6c6; --ok:#2f9e5b; --bad:#d04a3f; --acc:#2f64d8; --acc-fg:#fff; }
   * { box-sizing:border-box; margin:0; user-select:none; -webkit-user-select:none; }
   html,body { height:100%; background:var(--bg); color:var(--fg); font-family:system-ui,"Segoe UI",sans-serif; overflow:hidden; cursor:none; transition:background .6s,color .6s; }
-  body.night main { filter:brightness(.62); }
-  main { height:100%; display:grid; grid-template-columns:1.25fr 1fr; grid-template-rows:minmax(0,1fr) 64px; gap:14px; padding:14px; transition:filter 1s; }
+  #dim { position:fixed; inset:0; background:#000; opacity:0; pointer-events:none; z-index:4; transition:opacity 1.5s; }
+  body.night #dim { opacity:.38; }
+  main { height:100%; display:grid; grid-template-columns:1.25fr 1fr; grid-template-rows:minmax(0,1fr) 64px; gap:14px; padding:14px; }
   .card { background:var(--card); border-radius:22px; padding:16px 20px; overflow:hidden; transition:background .6s; border:1px solid var(--line); }
   h2 { font-size:13px; text-transform:uppercase; letter-spacing:.12em; color:var(--dim); font-weight:600; }
   .dim { color:var(--dim); }
@@ -111,6 +112,7 @@
   </nav>
 </main>
 
+<div id="dim"></div>
 <div id="voice"></div>
 <div id="cam">
   <div class="msg">Conectando con la cámara…</div>
@@ -142,8 +144,13 @@ $("time").onclick = () => {
 };
 $("greet").onclick = () => { themeOverride = null; try { localStorage.removeItem("pcpi-theme"); } catch (e) {} applyTheme(); };
 
+/* el reloj solo toca el DOM cuando cambia el minuto (no cada segundo) */
+let lastMin = -1;
 function tick() {
-  const d = new Date(), h = d.getHours();
+  const d = new Date(), key = d.getHours() * 60 + d.getMinutes();
+  if (key === lastMin) return;
+  lastMin = key;
+  const h = d.getHours();
   $("time").textContent = d.toLocaleTimeString("es-ES", {hour:"2-digit", minute:"2-digit"});
   const ds = d.toLocaleDateString("es-ES", {weekday:"long", day:"numeric", month:"long"});
   $("date").textContent = ds.charAt(0).toUpperCase() + ds.slice(1);
@@ -234,7 +241,7 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) keep
 keepAwake();
 
 tick(); refresh();
-setInterval(tick, 1000); setInterval(refresh, 4000);
+setInterval(tick, 5000); setInterval(refresh, 4000);
 </script>
 </body>
 </html>

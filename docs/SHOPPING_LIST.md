@@ -26,6 +26,10 @@ Sobran unos 160 € del presupuesto. No hace falta gastarlos; si quieres mejorar
 - **Almacenamiento:** el sistema va en la microSD. Mira que tu kit la traiga; si no, compra una de 64–128 GB (Samsung EVO Plus o SanDisk Extreme, tipo A2).
 - **Teclado y mando:** no se compran (tienes teclado USB, que también usarás en el modo Iker).
 
+## Opcional: mini pantalla de estado
+
+Una pantallita OLED de 0,96" no táctil que muestra CPU, RAM, disco, temperatura y GPU: ~12 € (pantalla + cables). Detalle, enlaces y conexión en [PANTALLA_MINI.md](PANTALLA_MINI.md).
+
 ## Lo que quitamos
 
 ### SSD (Samsung T7)

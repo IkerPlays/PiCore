@@ -1,0 +1,18 @@
+[Unit]
+Description=PCPi - mini pantalla de estado (OLED I2C)
+After=multi-user.target
+
+[Service]
+User=__USER__
+Environment=PCPI_CONF=/etc/pcpi/pcpi.conf
+ExecStart=/usr/bin/python3 /opt/pcpi/stats/miniscreen.py --backend oled
+Restart=on-failure
+RestartSec=5
+Nice=15
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
