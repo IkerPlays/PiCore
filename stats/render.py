@@ -1,12 +1,11 @@
-"""Dibuja las metricas en una imagen de 128x64 (1 bit) para una pantalla OLED SSD1306.
+"""Dibuja las metricas como TEXTO blanco sobre negro en una imagen de 128x64 (1 bit), para un OLED SSD1306.
 
-Usa Pillow y su fuente bitmap por defecto (nitida, ~6x11 px): caben 4 barras + una linea de texto.
+Usa Pillow y su fuente por defecto: caben 6 filas. Todo se ve a la vez; no hay paginas que cambien.
 """
 from PIL import Image, ImageDraw, ImageFont
 
 W, H = 128, 64
-ROW = 13
-BAR_X, BAR_W, BAR_H = 24, 70, 8
+ROW = 10 + 2 / 3          # 6 lineas en 64 px
 
 
 def fmt_uptime(s):
@@ -23,64 +22,59 @@ def fmt_rate(bps):
         return "--"
     for unit, div in (("M", 1e6), ("K", 1e3)):
         if bps >= div:
-            return "%.1f%s" % (bps / div, unit)
+            return "%.0f%s" % (bps / div, unit) if bps >= 10 * div else "%.1f%s" % (bps / div, unit)
     return "%dB" % bps
 
 
-def footer_pages(snap):
-    """Textos que rotan en la ultima linea (maximo 21 caracteres cada uno)."""
-    mem, dk = snap.get("mem"), snap.get("disk")
-    pages = []
-    if mem:
-        pages.append("%.1f/%.0fG RAM" % (mem["used_mb"] / 1024, mem["total_mb"] / 1024))
-    if dk:
-        pages.append("%.0f/%.0fG disco" % (dk["used_gb"], dk["total_gb"]))
-    gpu = []
-    if snap.get("gpu_mhz") is not None:
-        gpu.append("GPU %dMHz" % snap["gpu_mhz"])
-    if snap.get("fan_rpm") is not None:
-        gpu.append("Fan %d" % snap["fan_rpm"])
-    if gpu:
-        pages.append(" ".join(gpu))
-    if snap.get("net"):
-        pages.append("v%s ^%s" % (fmt_rate(snap["net"][0]), fmt_rate(snap["net"][1])))
-    if snap.get("ip"):
-        pages.append(snap["ip"])
-    pages.append("up " + fmt_uptime(snap.get("uptime_s")))
-    return pages
+def _pct(v):
+    return "--" if v is None else "%d%%" % round(v)
 
 
-def bar(draw, y, label, frac, value):
-    draw.text((0, y), label, fill=1)
-    draw.rectangle((BAR_X, y + 1, BAR_X + BAR_W, y + 1 + BAR_H), outline=1)
-    if frac is not None:
-        fill_w = int((BAR_W - 3) * max(0.0, min(1.0, frac)))
-        if fill_w > 0:
-            draw.rectangle((BAR_X + 2, y + 3, BAR_X + 1 + fill_w, y + BAR_H - 1 + 1), fill=1)
-    draw.text((BAR_X + BAR_W + 5, y), value, fill=1)
+def rows(snap):
+    """6 filas; cada fila es una lista de (x, texto). x = -1 alinea el texto a la derecha.
+
+    Se colocan por posicion y no con espacios: la fuente es proporcional y un espacio mide solo 2 px,
+    asi que las columnas con espacios salen pegadas.
+    """
+    mem, dk, t, net = snap.get("mem"), snap.get("disk"), snap.get("temp_c"), snap.get("net")
+    gpu, fan, mhz = snap.get("gpu_mhz"), snap.get("fan_rpm"), snap.get("cpu_mhz")
+    out = [[(0, "CPU"), (27, _pct(snap.get("cpu_pct"))), (58, "--" if t is None else "%dC" % round(t)),
+            (-1, "" if mhz is None else "%dMHz" % mhz)]]
+    ram = "--" if not mem else "%.1f/%.0fG" % (mem["used_mb"] / 1024, mem["total_mb"] / 1024)
+    out.append([(0, "RAM"), (27, ram), (-1, _pct(mem["pct"] if mem else None))])
+    dsk = "--" if not dk else "%.0f/%.0fG" % (dk["used_gb"], dk["total_gb"])
+    out.append([(0, "DSK"), (27, dsk), (-1, _pct(dk["pct"] if dk else None))])
+    out.append([(0, "GPU"), (27, "--" if gpu is None else "%dMHz" % gpu)] + ([] if fan is None else [(-1, "Fan %d" % fan)]))
+    thr = (snap.get("throttled") or {}).get("now") or []
+    if thr:    # aviso: lo mas importante para ver de un vistazo
+        out.append([(0, "!" + ("VOLTAJE BAJO" if "undervolt" in thr else "CPU LIMITADA" if "throttled" in thr else "DEMASIADO CALOR"))])
+    elif net:
+        out.append([(0, "NET"), (27, "v" + fmt_rate(net[0])), (-1, "^" + fmt_rate(net[1]))])
+    else:
+        out.append([(0, "NET"), (27, "--")])
+    out.append([(0, snap.get("ip") or "sin red"), (-1, fmt_uptime(snap.get("uptime_s")))])
+    return out
 
 
-def render(snap, page=0):
+def lines(snap):
+    """Las mismas filas como texto plano (para probar y para ver el contenido)."""
+    return [" ".join(text for _, text in row if text) for row in rows(snap)]
+
+
+def render(snap):
     img = Image.new("1", (W, H), 0)
     d = ImageDraw.Draw(img)
-    cpu, mem, dk, t = snap.get("cpu_pct"), snap.get("mem"), snap.get("disk"), snap.get("temp_c")
-    bar(d, 0, "CPU", None if cpu is None else cpu / 100, "--" if cpu is None else "%d%%" % round(cpu))
-    bar(d, ROW, "RAM", None if not mem else mem["pct"] / 100, "--" if not mem else "%d%%" % round(mem["pct"]))
-    bar(d, ROW * 2, "DSK", None if not dk else dk["pct"] / 100, "--" if not dk else "%d%%" % round(dk["pct"]))
-    # temperatura: la barra va de 30 a 85 C
-    bar(d, ROW * 3, "TMP", None if t is None else (t - 30) / 55, "--" if t is None else "%dC" % round(t))
-    thr = (snap.get("throttled") or {}).get("now") or []
-    if thr:    # aviso fijo: lo mas importante para ver de un vistazo
-        text = "!" + ("SUBE VOLTAJE" if "undervolt" in thr else "LIMITADA" if "throttled" in thr else "CALOR")
-    else:
-        pages = footer_pages(snap)
-        text = pages[page % len(pages)]
-    d.text((0, ROW * 4 + 1), text[:21], fill=1)
+    font = ImageFont.load_default()
+    for i, row in enumerate(rows(snap)):
+        y = int(i * ROW)
+        for x, text in row:
+            if text:
+                d.text((W - font.getlength(text) if x < 0 else x, y), text, font=font, fill=1)
     return img
 
 
 def preview(img, scale=4, path="preview.png"):
-    """Version ampliada con aspecto de OLED (puntos blancos sobre negro) para ver el diseño en un PC."""
+    """Version ampliada con aspecto de OLED (blanco sobre negro) para ver el diseño en un PC."""
     big = img.convert("L").resize((W * scale, H * scale), Image.NEAREST)
     big.save(path)
     return path

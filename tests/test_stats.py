@@ -19,7 +19,7 @@ NETDEV = """Inter-|   Receive                                                |  
  wlan0: 2000 20 0 0 0 0 0 0 250 2 0 0 0 0 0 0
 """
 
-FAKE = {"cpu_pct": 37.0, "mem": {"total_mb": 7875, "used_mb": 2985, "pct": 37.9}, "disk": {"total_gb": 58.0, "used_gb": 14.2, "pct": 24.5},
+FAKE = {"cpu_pct": 37.0, "cpu_mhz": 1500, "mem": {"total_mb": 7875, "used_mb": 2985, "pct": 37.9}, "disk": {"total_gb": 58.0, "used_gb": 14.2, "pct": 24.5},
         "temp_c": 54.0, "gpu_mhz": 500, "fan_rpm": 2300, "throttled": {"now": [], "past": []},
         "net": (125000.0, 2500.0), "ip": "192.168.1.50", "uptime_s": 3 * 86400 + 4 * 3600}
 
@@ -71,28 +71,65 @@ class RenderTest(unittest.TestCase):
     def test_size_and_content(self):
         img = render.render(FAKE)
         self.assertEqual((img.mode, img.size), ("1", (128, 64)))
-        self.assertGreater(sum(1 for p in img.getdata() if p), 200)
+        self.assertGreater(img.convert("L").histogram()[255], 150)
+
+    def test_rows_content(self):
+        ls = render.lines(FAKE)
+        self.assertEqual(len(ls), 6)
+        self.assertEqual(ls[0], "CPU 37% 54C 1500MHz")
+        self.assertEqual(ls[1], "RAM 2.9/8G 38%")
+        self.assertEqual(ls[2], "DSK 14/58G 24%")
+        self.assertEqual(ls[3], "GPU 500MHz Fan 2300")
+        self.assertEqual(ls[4], "NET v125K ^2.5K")
+        self.assertEqual(ls[5], "192.168.1.50 3d04h")
+
+    def test_every_row_fits_without_overlap(self):
+        from PIL import ImageFont
+        font = ImageFont.load_default()
+        cases = [FAKE, {**FAKE, "ip": "192.168.100.100", "uptime_s": 99 * 86400, "cpu_mhz": 2400, "gpu_mhz": 1000,
+                        "fan_rpm": 12000, "net": (99_000_000.0, 99_000_000.0), "mem": {"total_mb": 16000, "used_mb": 15999, "pct": 100.0},
+                        "disk": {"total_gb": 1000.0, "used_gb": 999.0, "pct": 100.0}, "temp_c": 85.0}]
+        for snap in cases:
+            for row in render.rows(snap):
+                end_prev = -2
+                for x, text in row:
+                    if not text:
+                        continue
+                    w = font.getlength(text)
+                    x = 128 - w if x < 0 else x
+                    self.assertLessEqual(x + w, 128, (text, row))      # no se sale de la pantalla
+                    self.assertGreaterEqual(x, end_prev + 2, (text, row))   # no pisa al texto anterior
+                    end_prev = x + w
+
+    def test_no_bars_only_text_rows(self):
+        # sin barras: ningun trazo largo ininterrumpido (una barra tendria decenas de pixeles seguidos)
+        img = render.render(FAKE)
+        longest = 0
+        for y in range(64):
+            run = 0
+            for x in range(128):
+                run = run + 1 if img.getpixel((x, y)) else 0
+                longest = max(longest, run)
+        self.assertLess(longest, 12)
 
     def test_handles_missing_data(self):
         render.render({})                      # un PC sin sensores no debe romper nada
         render.render({"cpu_pct": None, "mem": None})
+        self.assertEqual(len(render.lines({})), 6)
 
-    def test_footer_pages(self):
-        pages = render.footer_pages(FAKE)
-        self.assertIn("192.168.1.50", pages)
-        self.assertIn("GPU 500MHz Fan 2300", pages)
-        self.assertTrue(all(len(p) <= 21 for p in pages), pages)
-
-    def test_undervolt_warning_replaces_footer(self):
-        a = render.render({**FAKE, "throttled": {"now": ["undervolt"], "past": []}})
-        b = render.render(FAKE)
-        self.assertNotEqual(list(a.getdata()), list(b.getdata()))
+    def test_alert_replaces_net_line(self):
+        ls = render.lines({**FAKE, "throttled": {"now": ["undervolt"], "past": []}})
+        self.assertEqual(ls[4], "!VOLTAJE BAJO")
+        ls = render.lines({**FAKE, "throttled": {"now": ["temp_limit"], "past": []}})
+        self.assertEqual(ls[4], "!DEMASIADO CALOR")
+        self.assertTrue(render.lines(FAKE)[4].startswith("NET"))
 
     def test_formats(self):
         self.assertEqual(render.fmt_uptime(3 * 86400 + 4 * 3600), "3d04h")
         self.assertEqual(render.fmt_uptime(5400), "1h30m")
-        self.assertEqual(render.fmt_rate(125000), "125.0K")
+        self.assertEqual(render.fmt_rate(125000), "125K")
         self.assertEqual(render.fmt_rate(2_500_000), "2.5M")
+        self.assertEqual(render.fmt_rate(500), "500B")
 
 
 class FakeBus:

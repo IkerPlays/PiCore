@@ -2,16 +2,18 @@
 
 > **¿Se puede? Sí.** La Raspberry Pi 5 tiene el hardware de sobra y el software ya está hecho y probado **sin la pantalla física** (ver [qué está probado](#qué-está-probado-y-qué-no)). Cuesta unos **7–15 €**. Se activa con `./install.sh --stats`.
 
-Una pantallita **no táctil** que se queda al lado de la grande y muestra siempre:
+Una pantallita **no táctil**, solo **texto blanco sobre negro** (sin colores ni barras), que se queda al lado de la grande. Las 6 líneas se ven a la vez y se actualizan cada segundo:
 
 ![Diseño de la mini pantalla](img/mini-pantalla.png)
 
-- **CPU**: porcentaje de uso (barra)
-- **RAM**: porcentaje usado (barra) y GB usados/totales
-- **DSK**: disco (barra) y GB usados/totales
-- **TMP**: temperatura (barra de 30 a 85 °C)
-- **Última línea**, que va rotando cada 3 s: RAM/disco en GB · **GPU** (frecuencia) y **ventilador** (rpm) · velocidad de red ↓↑ · **IP** · tiempo encendida
-- Si la Pi tiene **poca alimentación** o va **limitada por calor**, la última línea pasa a ser un aviso fijo (`!SUBE VOLTAJE`, `!LIMITADA`, `!CALOR`).
+| Línea | Muestra |
+|---|---|
+| 1 | **CPU**: uso (%), temperatura y frecuencia |
+| 2 | **RAM**: GB usados/totales y % |
+| 3 | **DSK** (disco): GB usados/totales y % |
+| 4 | **GPU**: frecuencia, y las **rpm del ventilador** |
+| 5 | **NET**: velocidad de bajada (v) y subida (^). Si la Pi tiene **poca alimentación** o va **limitada por calor**, esta línea pasa a ser un aviso: `!VOLTAJE BAJO`, `!CPU LIMITADA` o `!DEMASIADO CALOR` (a la derecha en la imagen) |
+| 6 | **IP** de la Pi y tiempo encendida |
 
 > ℹ️ **Sobre la GPU:** la Pi 5 no ofrece un «% de uso de GPU» sencillo de leer. Se muestra la **frecuencia del V3D** (`vcgencmd measure_clock v3d`), que sube cuando la GPU trabaja y baja cuando está en reposo.
 
@@ -24,9 +26,9 @@ Una pantallita **no táctil** que se queda al lado de la grande y muestra siempr
 | Cables | **4** (3,3 V, GND, SDA, SCL) | 7–8 | HDMI (2.º micro-HDMI) + USB |
 | Precio | **~5–8 €** | ~10–20 € | ~30–50 € |
 | Software en este repo | ✅ **hecho** | ❌ no (habría que añadirlo) | ❌ no (habría que añadir una página y colocar la ventana en la 2.ª salida) |
-| Pega | Monocromo, texto pequeño | Necesita `rpi-lgpio` en la Pi 5 | Ocupa el segundo HDMI y un USB |
+| Pega | Solo texto blanco, pequeño | Necesita `rpi-lgpio` en la Pi 5 | Ocupa el segundo HDMI y un USB |
 
-**Recomiendo la A**: es la más pequeña (justo lo que pedías), la más barata, la más sencilla de conectar (I2C, 4 cables) y la única que ya tiene software.
+**Es la A**, y es lo que pediste (solo texto blanco): la más pequeña, la más barata, la más sencilla de conectar (I2C, 4 cables) y la única con software hecho. **No hace falta la versión en color.**
 
 ### Qué comprar (opción A)
 
@@ -39,12 +41,12 @@ Una pantallita **no táctil** que se queda al lado de la grande y muestra siempr
 >
 > Los precios son aproximados y **no he podido comprobar el envío a Canarias**: mete tu código postal en la ficha antes de pagar.
 
-### Otras opciones (por si quieres color)
+### Otras opciones (no necesarias)
 
 - LCD 1,3" 240×240 ST7789: [genérico para Pi 5](https://www.amazon.es/LCD-compatible-Raspberry-controlador-integrado/dp/B0F9T7DP56) o [Waveshare HAT 1,3"](https://www.amazon.es/Waveshare-1-3inch-LCD-Controller-Communicating/dp/B07FJQHVW8) (el HAT se enchufa **encima** de la Pi: no sirve para ponerlo al lado de la pantalla).
 - Mini monitor HDMI 3,5" 480×320: [Waveshare](https://www.amazon.es/Waveshare-Raspberry-LCD-Controlled-HDMI/dp/B071NVW7Y7) o [Kuman SC6AC](https://www.amazon.es/Kuman-Raspberry-Generation-Pulgadas-Pantalla/dp/B07PT3XGKJ) (el táctil no se usa como monitor).
 
-Si te interesa alguna, el trabajo que falta está en `stats/render.py` (dibujo) y en un driver nuevo; el recolector de datos (`stats/sysstats.py`) se reutiliza tal cual.
+Si algún día quieres otra, el trabajo que falta es un driver nuevo; el recolector de datos (`stats/sysstats.py`) se reutiliza tal cual.
 
 ## Conexión (opción A)
 
@@ -93,7 +95,6 @@ El instalador activa el bus I2C (`raspi-config nonint do_i2c 0`), instala `pytho
 | `rotate = true` | Gira la imagen 180° (si la pantalla queda boca abajo). |
 | `contrast = 120` | Brillo (0–255). Baja para que dure más. |
 | `off_from` / `off_to` | **Apagado por horas** (p. ej. `1` y `7` = apagada de 1:00 a 7:00). Los OLED se «queman» si muestran lo mismo durante años; esto alarga su vida. |
-| `page_seconds = 3` | Cada cuánto rota la última línea. |
 
 Tras cambiar algo: `sudo systemctl restart pcpi-stats`.
 
@@ -101,7 +102,7 @@ Tras cambiar algo: `sudo systemctl restart pcpi-stats`.
 
 | | |
 |---|---|
-| ✅ Probado con tests | Lectura de métricas (CPU, RAM, red, vcgencmd…), dibujo 128×64, **conversión a los bytes del SSD1306** (posición de cada píxel), secuencia de arranque y escritura de la imagen entera (con un bus I2C simulado), apagado por horas. 16 tests. |
+| ✅ Probado con tests | Lectura de métricas (CPU, RAM, red, vcgencmd…), el contenido de cada línea, que **ninguna línea se sale de la pantalla ni se pisa** (ni siquiera con valores enormes), **conversión a los bytes del SSD1306** (posición de cada píxel), secuencia de arranque y escritura de la imagen entera (con un bus I2C simulado), apagado por horas. 18 tests. |
 | ✅ Probado visualmente | El diseño: ver la imagen de arriba. Salida real de `python3 stats/miniscreen.py --backend png --once`. |
 | ⚠️ **NO probado en hardware** | Que la pantalla real encienda y se vea bien. Lo escribí siguiendo el protocolo estándar del SSD1306, pero no he podido tocar una. Si sale desplazada, en blanco o a rayas, mira abajo. |
 

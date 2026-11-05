@@ -25,7 +25,7 @@ def load_conf():
     g = lambda k, d: cp.get("mini", k, fallback=d)
     return {"address": int(g("address", "0x3C"), 0), "bus": int(g("i2c_bus", "1")),
             "rotate": g("rotate", "false").lower() in ("1", "true", "yes", "si"),
-            "interval": float(g("interval", "1")), "page_seconds": float(g("page_seconds", "3")),
+            "interval": float(g("interval", "1")),
             "contrast": int(g("contrast", "120")),
             "off_from": int(g("off_from", "-1")), "off_to": int(g("off_to", "-1"))}
 
@@ -57,18 +57,16 @@ def main():
 
     st.snapshot()          # la primera lectura solo sirve de referencia para los porcentajes
     time.sleep(0.5 if a.once else cfg["interval"])
-    page, last_page, is_off = 0, time.monotonic(), False
+    is_off = False
     try:
         while True:
             snap = st.snapshot()
-            if time.monotonic() - last_page >= cfg["page_seconds"]:
-                page, last_page = page + 1, time.monotonic()
             off = screen_should_be_off(datetime.datetime.now().hour, cfg["off_from"], cfg["off_to"])
             if dev is not None and off != is_off:
                 dev.on(not off)
                 is_off = off
             if not off:
-                img = render.render(snap, page)
+                img = render.render(snap)
                 if dev is not None:
                     dev.show(img)
                 else:
