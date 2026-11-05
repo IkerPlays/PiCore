@@ -35,7 +35,7 @@ Una pantallita **no táctil**, solo **texto blanco sobre negro** (sin colores ni
 | Pieza | Enlace | ~€ |
 |---|---|---|
 | **Pantalla OLED HiLetgo 0,96" I2C, 128×64** | [HiLetgo I2C (ASIN B06XRCQZRX)](https://www.amazon.es/HiLetgo-SSD1306-I2C-Serial-12864/dp/B06XRCQZRX) | ~7 |
-| **Cables Dupont hembra–hembra** de 20 cm (el kit trae 40; usas 4) | [ELEGOO kit 120 cables](https://www.amazon.es/Macho-Hembra-Macho-Macho-Hembra-Hembra-Prototipo-Protoboard/dp/B01NGTXASZ) | ~7 |
+| **Cables Dupont hembra–hembra** de 20 cm (el kit trae 40; usas 4) | [varias opciones](SHOPPING_LIST.md#cables-dupont-opciones-elige-el-que-te-deje-comprar-en-canarias) | ~5–11 |
 
 > ⚠️ **En la ficha elige el color «White-IIC»** (según la ficha, es una de las opciones del selector; si no la ves, elige otra pantalla blanca de la lista).
 >
@@ -45,7 +45,7 @@ Una pantallita **no táctil**, solo **texto blanco sobre negro** (sin colores ni
 >
 > ℹ️ La ficha **no dice qué chip lleva**; según las opiniones, es un SSD1306. **Por si acaso, el software soporta los dos chips más habituales** (SSD1306 y SH1106): si la imagen sale desplazada 2 columnas, pon `chip = sh1106` (ver abajo).
 >
-> 🔌 **Cables alternativos** (si no llegan a Canarias; todos son kits de 120 con 40 hembra–hembra de 20 cm): [AZDelivery](https://www.amazon.es/AZDelivery-Puente-Jumper-juegos-cables/dp/B074P726ZR) · [AptoFun](https://www.amazon.es/AptoFun-Hembra-Arduino-Raspberry-Breadboard/dp/B01BKN8UX4). Solo necesitas **4** cables: sirven los de cualquier kit de Arduino que tengas.
+> 🔌 **Cables:** hay seis opciones de vendedores distintos en [SHOPPING_LIST.md](SHOPPING_LIST.md#cables-dupont-opciones-elige-el-que-te-deje-comprar-en-canarias). Tienen que ser **hembra en los dos extremos**; solo necesitas 4.
 >
 > Los precios son aproximados y **no he podido comprobar el envío a Canarias**: mete tu código postal en la ficha antes de pagar. Alternativa: [AZDelivery](https://amazon.es/AZDelivery-Pantalla-Display-pulgadas-Raspberry/dp/B01L9GC470) (blanca y SSD1306 según su ficha).
 
