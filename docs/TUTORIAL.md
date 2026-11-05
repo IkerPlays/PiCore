@@ -613,11 +613,13 @@ Empieza **siempre** por `pcpi-doctor`: marca con `✘` lo que está mal y con `!
 | Rayo ⚡ o aviso de poca corriente | Usa la **fuente oficial de 27 W**, sin alargadores. `pcpi-doctor` lo detecta |
 | No suena nada | Clic derecho en el volumen → **HDMI**; sube el volumen de la pantalla. Si solo falla **Spotify**, mira el punto 3 de [6.2](#62-spotify) (`LIBRESPOT_DEVICE`) |
 | Al reiniciar no arranca el modo | `pcpi-doctor`; vuelve a un modo seguro con `pcpi-mode desktop`; si falta `pcpi-session`, cierra sesión y entra |
-| Pi-hole «Sin conexión» | Contraseña en `[pihole]`; `systemctl status pihole-FTL` |
+| Pi-hole «Sin conexión» | Contraseña en `[pihole]` (prueba `pcpi-setup pihole`: te dice si Pi-hole la acepta; ya funcionan contraseñas con `%`, `#` y espacios); `systemctl status pihole-FTL` |
 | Spotify no ve «PCPi» | Misma red; `systemctl status raspotify` |
 | **«Hey Jarvis» no responde** | `arecord -l`, ajusta `device` ([6.5](#65-voz-hey-jarvis)), baja `wake_threshold`, `journalctl --user -u pcpi-voice -f` |
 | **«Hey Jarvis» se activa solo** | Sube `wake_threshold` (0.6–0.7) |
+| **La voz no arranca y no se reinicia sola** | Es un error de configuración (falta el modelo de voz, o `wake_model` mal escrito). El mensaje es claro: `journalctl --user -u pcpi-voice -n 20`. Arregla lo que diga (normalmente `./install.sh --voice`) y `systemctl --user restart pcpi-voice` |
 | **Responde pero no se le oye** | Salida de audio en **HDMI**; `espeak-ng -v es "hola"` |
+| La pantalla dice **«No se pudo abrir la cámara»** | `ls /dev/video*` (debe salir `/dev/video0`); `ffmpeg -version` (si falta: `./install.sh --camera`); cierra sesión y entra (grupo `video`); que ninguna otra app esté usando la cámara. Si falta `ffmpeg`, el botón **📷 Cámara** ni siquiera aparece |
 | La cámara sale negra | `ls /dev/video*`; cierra sesión y entra; cámara conectada |
 | El servidor no arranca | `journalctl -u pcpi-home -n 50`; `sudo systemctl restart pcpi-home` |
 | Quiero empezar de cero | `./uninstall.sh` y repite el [Paso 5](#paso-5-instalar-pcpi) |
