@@ -1,24 +1,25 @@
 #!/usr/bin/env bash
 # Instalador PiCore para Raspberry Pi OS (Bookworm/Trixie). Ejecutalo como usuario normal (usa sudo).
-#   ./install.sh [--camera] [--voice] [--spotify] [--pihole] [--stats] [--battery] [--all]
+#   ./install.sh [--camera] [--voice] [--spotify] [--pihole] [--stats] [--battery] [--ai] [--all]
 #     --camera   camara USB en el modo Casa (ffmpeg)
 #     --voice    asistente de voz local (Vosk + openWakeWord + espeak-ng): "Hey Jarvis, que hora es"
 #     --spotify  Raspotify (Spotify Connect, requiere Premium) y el hook de "sonando ahora"
 #     --pihole   lanza el instalador oficial de Pi-hole (interactivo)
 #     --stats    mini pantalla OLED I2C con CPU/RAM/disco/temperatura (ver docs/PANTALLA_MINI.md)
 #     --battery  sube el limite de corriente USB (solo si usas una power bank sin 5V/5A)
+#     --ai       IA local con Ollama + Qwen (responde preguntas sin internet; descarga ~1-2 GB una vez; ver el tutorial)
 #   Se puede ejecutar de nuevo para actualizar o añadir piezas: es idempotente.
 #   (Para pruebas: PCPI_ROOT=/otra/raiz instala en un arbol alternativo; PCPI_HOME y PCPI_PIP sustituyen la carpeta
 #    personal y el pip del entorno virtual. En uso normal no se toca nada de esto.)
 set -euo pipefail
 
-CAMERA=0; VOICE=0; SPOTIFY=0; PIHOLE=0; STATS=0; BATTERY=0
+CAMERA=0; VOICE=0; SPOTIFY=0; PIHOLE=0; STATS=0; BATTERY=0; AI=0
 for a in "$@"; do
   case "$a" in
     --camera) CAMERA=1 ;; --voice) VOICE=1 ;; --spotify) SPOTIFY=1 ;; --pihole) PIHOLE=1 ;;
-    --stats) STATS=1 ;; --battery) BATTERY=1 ;;
+    --stats) STATS=1 ;; --battery) BATTERY=1 ;; --ai) AI=1 ;;
     --all) CAMERA=1; VOICE=1; SPOTIFY=1; PIHOLE=1 ;;   # --all NO incluye --stats ni --battery (hardware opcional)
-    -h|--help) sed -n '2,11p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,12p' "$0"; exit 0 ;;
     *) echo "Opcion desconocida: $a  (usa --help)" >&2; exit 1 ;;
   esac
 done
@@ -178,6 +179,21 @@ if [ "$STATS" = 1 ]; then
   echo "La mini pantalla se activa tras REINICIAR (el bus I2C y el grupo i2c necesitan un reinicio)."
 fi
 
+if [ "$AI" = 1 ]; then
+  step "IA local (Ollama + Qwen)"
+  # Modelo: qwen2.5:1.5b por defecto (≈1 GB, ~8-12 palabras/s en la Pi 5). Otros: AI_MODEL=qwen2.5:3b (mejor, ~2x mas lento).
+  # qwen2.5:7b cabe en 8 GB pero va a ~2 palabras/s y deja poca RAM: no se recomienda.
+  AI_MODEL="${AI_MODEL:-qwen2.5:1.5b}"
+  MEM_KB="$(awk '/MemTotal/ {print $2}' /proc/meminfo 2>/dev/null || echo 0)"
+  [ "${MEM_KB:-0}" -ge 3500000 ] || echo "Aviso: tienes menos de 4 GB de RAM; la IA puede ir muy justa." >&2
+  command -v ollama >/dev/null || curl -fsSL https://ollama.com/install.sh | sh
+  sudo systemctl enable --now ollama 2>/dev/null || true
+  for _ in $(seq 20); do curl -sf http://127.0.0.1:11434/api/tags >/dev/null 2>&1 && break; sleep 1; done
+  ollama pull "$AI_MODEL" || echo "Aviso: no se pudo descargar el modelo $AI_MODEL (¿sin internet?). Repite: ollama pull $AI_MODEL" >&2
+  PCPI_CONF="$R/etc/pcpi/pcpi.conf" "$PREFIX/bin/pcpi-config" set ai enabled true
+  PCPI_CONF="$R/etc/pcpi/pcpi.conf" "$PREFIX/bin/pcpi-config" set ai model "$AI_MODEL"
+fi
+
 if [ "$PIHOLE" = 1 ]; then
   step "Pi-hole (instalador oficial, interactivo)"
   curl -sSL https://install.pi-hole.net | sudo bash
@@ -192,10 +208,10 @@ OPTS_PREV="$(sed -n 's/^options=//p' "$PREV_FILE" 2>/dev/null || true)"
   OPTS=""
   [ "$CAMERA" = 1 ] && OPTS="$OPTS --camera"; [ "$VOICE" = 1 ] && OPTS="$OPTS --voice"
   [ "$SPOTIFY" = 1 ] && OPTS="$OPTS --spotify"; [ "$STATS" = 1 ] && OPTS="$OPTS --stats"
-  [ "$BATTERY" = 1 ] && OPTS="$OPTS --battery"
+  [ "$BATTERY" = 1 ] && OPTS="$OPTS --battery"; [ "$AI" = 1 ] && OPTS="$OPTS --ai"
   # lo ya instalado antes no se olvida aunque esta vez no lo pidas (p. ej. ./install.sh a secas para copiar tus extra-assets)
   for o in $OPTS_PREV; do
-    case "$o" in --camera|--voice|--spotify|--stats|--battery) case " $OPTS " in *" $o "*) ;; *) OPTS="$OPTS $o" ;; esac ;; esac
+    case "$o" in --camera|--voice|--spotify|--stats|--battery|--ai) case " $OPTS " in *" $o "*) ;; *) OPTS="$OPTS $o" ;; esac ;; esac
   done
   # --pihole NO se recuerda: es el instalador interactivo de Pi-hole y no hay que repetirlo al actualizar
   echo "options=${OPTS# }"

@@ -30,7 +30,7 @@ class InstallerTest(unittest.TestCase):
         (self.r / "etc/raspotify/conf").write_text('#LIBRESPOT_NAME="x"\nLIBRESPOT_QUIET=1\n')
         (self.r / "boot/firmware/config.txt").write_text("dtparam=audio=on\n")
         rec = 'echo "%s $*" >> ' + str(self.log) + "\n"
-        for name in ("apt-get", "apt-cache", "systemctl", "systemd-tmpfiles", "loginctl", "usermod", "raspi-config", "pkill", "pgrep"):
+        for name in ("apt-get", "apt-cache", "systemctl", "systemd-tmpfiles", "loginctl", "usermod", "raspi-config", "pkill", "pgrep", "ollama"):
             self.shim(name, rec % name)
         self.shim("sudo", 'echo "sudo $*" >> %s\nexec "$@"\n' % self.log)
         self.shim("df", 'echo "Avail"; echo 99999999\n')
@@ -126,6 +126,28 @@ class InstallerTest(unittest.TestCase):
         self.install()                                                                         # reinstalar no pierde ni rehace la copia
         self.assertEqual((start / ".h264" / "Inicio1.mp4").read_text().strip(), "convertido")
         self.assertTrue([l for l in self.calls() if "ffmpeg" in l and l.startswith("apt-get")], "ffmpeg debe instalarse")
+
+    def test_ai_option_installs_ollama_pulls_the_model_and_enables_it(self):
+        self.install("--ai")
+        c = self.calls()
+        self.assertIn("ollama pull qwen2.5:1.5b", c)
+        self.assertFalse([l for l in c if l.startswith("curl") and "ollama.com/install.sh" in l], "si Ollama ya esta, no se reinstala")
+        self.assertTrue([l for l in c if l.startswith("systemctl enable --now ollama")])
+        conf = self.read("etc/pcpi/pcpi.conf")
+        self.assertIn("enabled = true", conf.split("[ai]")[1])
+        self.assertIn("model = qwen2.5:1.5b", conf.split("[ai]")[1])
+        self.assertIn("--ai", self.read("etc/pcpi/install"))                               # pcpi-update lo recuerda
+
+    def test_ai_is_off_by_default_and_not_part_of_all(self):
+        self.install("--all")
+        self.assertFalse([l for l in self.calls() if l.startswith("ollama")])
+        self.assertIn("enabled = false", self.read("etc/pcpi/pcpi.conf").split("[ai]")[1])
+
+    def test_ai_model_can_be_chosen(self):
+        self.env = {**self.env, "AI_MODEL": "qwen2.5:3b"}
+        self.install("--ai")
+        self.assertIn("ollama pull qwen2.5:3b", self.calls())
+        self.assertIn("model = qwen2.5:3b", self.read("etc/pcpi/pcpi.conf"))
 
     def test_backlight_rule_and_video_group(self):
         self.install()

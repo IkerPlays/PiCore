@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(os.environ.get("PCPI_ROOT", "/"))
-KNOWN = {"--camera", "--voice", "--spotify", "--stats", "--battery"}   # --pihole es interactivo: nunca se repite al actualizar
+KNOWN = {"--camera", "--voice", "--spotify", "--stats", "--battery", "--ai"}   # --pihole es interactivo: nunca se repite al actualizar
 
 
 def say(m):

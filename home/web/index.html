@@ -717,6 +717,7 @@ async function refresh() {
   const v = s.voice || {};
   const fresh = v.ts && (Date.now() / 1000 - v.ts) < 8;
   if (v.state === "awake") showVoice("Te escucho…", true, 0);
+  else if (v.state === "thinking") showVoice("Pensando…", true, 0);
   else if (v.state === "speaking") showVoice(v.reply || "", true, 0);
   else if (v.heard && fresh) showVoice("«" + v.heard + "» → " + (v.reply || ""), false, 5000);
   else if (!fresh) $("voice").classList.remove("on");

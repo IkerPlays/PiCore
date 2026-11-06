@@ -47,6 +47,7 @@ def load_conf():
         "whisper_threads": int(float(g("whisper_threads", "4"))),
         "voice": g("tts_voice", "es"),
         "api": "http://127.0.0.1:%s" % cp.get("server", "port", fallback="8080"),
+        "ai": cp.get("ai", "enabled", fallback="false").strip().lower() in ("1", "true", "yes", "si", "sí", "on"),
     }
 
 
@@ -88,6 +89,23 @@ def set_volume(arg):
     return False
 
 
+def ask_ai(cfg, question):
+    """Pregunta a la IA local a traves del servidor (puede tardar varios segundos). Devuelve lo que hay que decir."""
+    req = urllib.request.Request(cfg["api"] + "/api/ask", data=json.dumps({"question": question}).encode(),
+                                 headers={"X-PCPI": "1", "Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=120) as r:
+            return json.load(r)["answer"]
+    except urllib.error.HTTPError as e:      # el servidor explica el motivo en español: se dice tal cual
+        try:
+            return json.load(e)["error"]
+        except (ValueError, KeyError):
+            return "La IA no ha podido contestar"
+    except (OSError, ValueError, KeyError) as e:
+        print("error preguntando a la IA: %r" % e, file=sys.stderr, flush=True)
+        return "No he podido preguntarle a la IA"
+
+
 def execute(cfg, intent):
     """Ejecuta la orden y devuelve lo que hay que decir."""
     now = datetime.datetime.now()
@@ -124,6 +142,8 @@ def execute(cfg, intent):
             level = max(10, min(100, level))
             api(cfg, "/api/display", {"level": level, "auto": False})
             return "Brillo al %d por ciento" % level
+        if n == "ask":
+            return ask_ai(cfg, a)
         if n == "timer_set":
             api(cfg, "/api/timers", {"action": "timer", "seconds": a})
             return "Temporizador de " + intents.say_duration(a)
@@ -179,11 +199,11 @@ class Assistant:
     """
 
     def __init__(self, detector, recognizer, execute, speak, beep, restart_capture, wake_name,
-                 followup=8.0, clock=time.time):
+                 followup=8.0, clock=time.time, ai=False):
         self.detector, self.rec = detector, recognizer
         self.execute, self.speak, self.beep = execute, speak, beep
         self.restart_capture = restart_capture
-        self.wake_name, self.followup, self.clock = wake_name, followup, clock
+        self.wake_name, self.followup, self.clock, self.ai = wake_name, followup, clock, ai
         self.state, self.deadline = "idle", 0.0
         self.heard = self.reply = ""
         self._publish("listening")
@@ -222,6 +242,9 @@ class Assistant:
             return
         self.heard = intents.norm(text)
         intent = intents.parse(self.heard)
+        if intent is None and self.ai:                    # no es una orden conocida: se la pasa a la IA local
+            intent = intents.Intent("ask", text)
+            self._publish("thinking")                     # la pantalla enseña «Pensando…» mientras contesta
         self.reply = self.execute(intent) if intent else "No te he entendido"
         self._publish("speaking")
         self.speak(self.reply)
@@ -322,7 +345,7 @@ def main():
 
     asst = Assistant(
         detector, recognizer, lambda i: execute(cfg, i), speak, beep,
-        restart_capture, detector.name, cfg["followup"],
+        restart_capture, detector.name, cfg["followup"], ai=cfg["ai"],
     )
     print("Escuchando. Palabra de activacion: %r (%s)" % (detector.name, type(detector).__name__), flush=True)
     last_beat = time.monotonic()

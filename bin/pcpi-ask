@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+"""Pregunta a la IA local (Ollama + Qwen) desde la terminal.
+
+  pcpi-ask "¿cuánta memoria me queda?"
+  pcpi-ask                      (sin argumentos: te la pide)
+
+La IA contesta con datos reales de la Pi (hora, tiempo, Pi-hole, red...). Solo contesta: no ejecuta nada.
+Se activa con ./install.sh --ai o poniendo `enabled = true` en la seccion [ai] de /etc/pcpi/pcpi.conf."""
+import json
+import os
+import sys
+import urllib.error
+import urllib.request
+
+
+def main(argv):
+    if argv and argv[0] in ("-h", "--help"):
+        print(__doc__)
+        return 0
+    q = " ".join(argv).strip() or input("Pregunta: ").strip()
+    if not q:
+        return 2
+    port = os.environ.get("PCPI_PORT", "8080")
+    req = urllib.request.Request("http://127.0.0.1:%s/api/ask" % port, data=json.dumps({"question": q}).encode(),
+                                 headers={"X-PCPI": "1", "Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=150) as r:
+            print(json.load(r)["answer"])
+            return 0
+    except urllib.error.HTTPError as e:
+        try:
+            print(json.load(e)["error"], file=sys.stderr)
+        except ValueError:
+            print("La IA no ha podido contestar (%d)" % e.code, file=sys.stderr)
+        return 1
+    except OSError as e:
+        print("No puedo hablar con el servidor de PiCore (%s). ¿Está en marcha? sudo systemctl status pcpi-home" % e, file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

@@ -25,6 +25,7 @@ import display
 import fetcher
 import intro
 import intros_tool
+import llm
 import motion
 import netmgr
 import notes_tools
@@ -459,6 +460,7 @@ def status():
         "motion": motion_status(cp),
         "battery": cached("battery", 15, lambda: battery.read(cp)),
         "timers": TIMERS.snapshot() if TIMERS else [],
+        "ai": ai_info(cp),
         "ip": cached("ip", 60, local_ip),
         "host": socket.gethostname(),
     }
@@ -848,7 +850,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self._host_ok():
             return self._send(403, {"error": "host no permitido"})
         paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/notes/export", "/api/loaded",
-                 "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display", "/api/motion", "/api/timers")
+                 "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display", "/api/motion", "/api/timers", "/api/ask")
         if self.path not in paths or self.headers.get("X-PCPI") != "1":
             return self._send(403, {"error": "prohibido"})
         try:
@@ -864,6 +866,13 @@ class Handler(BaseHTTPRequestHandler):
             if self.path == "/api/mode":
                 set_mode(body["mode"])
                 return self._send(200, {"mode": body["mode"]})
+            if self.path == "/api/ask":
+                if not isinstance(body.get("question"), str):
+                    raise ValueError("pregunta invalida")
+                try:
+                    return self._send(200, {"answer": ai_answer(body["question"])})
+                except llm.AIError as e:
+                    return self._send(503 if "ocupado" not in str(e) else 429, {"error": str(e)})
             if self.path == "/api/timers":
                 return self._send(200, timers_post(body))
             if self.path == "/api/motion":
@@ -935,6 +944,20 @@ def start_timers():
                 pass
             time.sleep(1)
     threading.Thread(target=loop, daemon=True).start()
+
+
+def ai_info(cp):
+    cfg = llm.load_config(cp)
+    h = cached("ai", 30, lambda: llm.health(cfg)) if cfg["enabled"] else {}
+    return {"enabled": cfg["enabled"], "model": cfg["model"], **h}
+
+
+def ai_answer(question):
+    cp = read_conf()
+    cfg = llm.load_config(cp)
+    if not cfg["enabled"]:
+        raise llm.AIError("La IA no está activada. Actívala con: ./install.sh --ai")
+    return llm.ask(question, cfg, status())
 
 
 def timers_post(body):

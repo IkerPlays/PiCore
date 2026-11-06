@@ -81,6 +81,14 @@ fi
 n_media="$(find /opt/pcpi/extra-assets/loading -type f ! -name '.*' ! -name '*.md' 2>/dev/null | wc -l)"
 [ "$n_media" -gt 0 ] && ok "$n_media archivo(s) para la pantalla de carga" || warn "la pantalla de carga no tiene imagenes/videos (opcional, carpeta extra-assets/loading)"
 
+echo "IA local (opcional)"
+if [ "$(pcpi-config get ai enabled 2>/dev/null)" = "true" ]; then
+  if curl -sf -m 3 http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
+    ok "Ollama responde (modelo: $(pcpi-config get ai model 2>/dev/null))"
+    ollama list 2>/dev/null | grep -q "$(pcpi-config get ai model 2>/dev/null)" && ok "modelo descargado" || warn "falta el modelo: ollama pull $(pcpi-config get ai model 2>/dev/null)"
+  else warn "la IA esta activada pero Ollama no responde: sudo systemctl start ollama"; fi
+else echo "  (desactivada; ./install.sh --ai la instala)"; fi
+
 echo "Pi-hole y Spotify"
 systemctl is-active --quiet pihole-FTL 2>/dev/null && ok "Pi-hole activo" || warn "Pi-hole no instalado/activo (./install.sh --pihole)"
 systemctl is-active --quiet raspotify 2>/dev/null && ok "Raspotify (Spotify Connect) activo" || warn "Raspotify no activo (./install.sh --spotify)"

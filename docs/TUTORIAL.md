@@ -650,6 +650,50 @@ Después: `systemctl --user restart pcpi-voice`.
 
 ---
 
+### 7.6 IA local con Ollama + Qwen (opcional)
+
+Puedes tener en la Pi una **inteligencia artificial que funciona sin internet** y que **conoce el estado de tu Pi**: le preguntas «¿qué hora es y qué tiempo hace?», «¿a qué wifi estoy conectado?», «¿cuánta memoria me queda?», «¿cuánto está bloqueando Pi-hole?», «explícame qué es el modo Iker» y te contesta en voz alta. Usa **Ollama** (el programa que ejecuta modelos de IA) con un modelo **Qwen**.
+
+**¿Cabe «Qwen entero» en la Pi 5 de 8 GB? La respuesta honesta:**
+
+| Modelo (`ollama`) | Peso en RAM (aprox.) | Velocidad estimada en la Pi 5* | Veredicto |
+|---|---|---|---|
+| `qwen2.5:0.5b` | ~0,4 GB | rápido (~20 palabras/s) | cabe de sobra, pero contesta flojo |
+| **`qwen2.5:1.5b`** | ~1,0 GB | ~8–12 palabras/s | ✅ **recomendado**: buen equilibrio |
+| `qwen2.5:3b` | ~1,9 GB | ~4–6 palabras/s | ✅ mejor, notablemente más lento |
+| `qwen2.5:7b` | ~4,7 GB | ~1,5–2,5 palabras/s | ⚠️ **cabe en 8 GB, pero no te lo recomiendo**: va muy despacio y, con el navegador, Whisper y el sistema, la RAM queda justísima |
+| Qwen «entero» (sin comprimir, 16 bits) | ~15 GB (el de 7B) | — | ❌ **no cabe**: los modelos para la Pi van *cuantizados* (comprimidos a 4 bits), que es lo que descarga Ollama |
+
+\* **Son estimaciones, no medidas: no he podido probarlo en una Pi real.** Depende de la ventilación (la Pi 5 se calienta y baja la velocidad) y de lo que esté haciendo a la vez. Un modelo pequeño como el de 1,5B **se equivoca más y a veces inventa**: por eso se le da el estado real de la Pi y se le exige responder con esos datos o decir que no lo sabe.
+
+**Instalarlo** (necesita internet **solo esta vez**: ~1 GB de descarga):
+
+```bash
+cd ~/PiCore
+./install.sh --ai                       # modelo recomendado (qwen2.5:1.5b)
+AI_MODEL=qwen2.5:3b ./install.sh --ai   # o uno mejor, si no te importa la espera
+```
+
+**Usarlo:**
+
+| Cómo | Ejemplo |
+|---|---|
+| **Por voz** | «Hey Jarvis» → pitido → una pregunta que **no sea una orden conocida** (las órdenes de siempre —modo, brillo, temporizador…— se ejecutan como antes; todo lo demás va a la IA). En pantalla sale «Pensando…» mientras contesta |
+| **Terminal** | `pcpi-ask "¿cuánta memoria me queda?"` |
+| **API** | `POST /api/ask` (solo desde la propia Pi) |
+
+**Qué sabe y qué no:** conoce la hora, el modo actual, la temperatura de la CPU, RAM y disco, la IP, la wifi, las estadísticas de Pi-hole, el tiempo, lo que suena, los temporizadores y la batería. **Solo contesta: no ejecuta nada** (si le pides «apaga la pantalla» te dirá qué orden usar). No tiene internet, así que no sabe noticias ni cosas posteriores a su entrenamiento.
+
+**Privacidad y memoria:** todo se queda en tu Pi. El modelo se libera de la RAM a los 2 minutos de contestar (`keep_alive`). Ajustes en `[ai]` de `pcpi.conf` (`model`, `max_tokens`, `timeout`).
+
+| Problema | Solución |
+|---|---|
+| «La IA no está activada» | `./install.sh --ai`, o `pcpi-config set ai enabled true` |
+| «La IA no está en marcha» | `sudo systemctl start ollama`; `pcpi-doctor` lo comprueba |
+| «Falta el modelo…» | `ollama pull qwen2.5:1.5b` |
+| Tarda muchísimo | Usa `qwen2.5:0.5b` o `1.5b`; ventila la Pi; no preguntes mientras Whisper o la cámara trabajan |
+| Contesta mal o inventa | Es un modelo pequeño: prueba `qwen2.5:3b`, y pregunta cosas concretas sobre la Pi |
+
 ## Paso 8: usar los modos
 
 ### 8.1 Cambiar de modo
@@ -1073,6 +1117,7 @@ pcpi-doctor                              # diagnóstico: qué va y qué no
 pcpi-setup                               # asistente: ciudad, Pi-hole, micro, mini pantalla
 pcpi-config get|set SECCION CLAVE [VALOR] # leer/cambiar un ajuste sin abrir el editor
 pcpi-mode home | iker | desktop          # cambiar de modo (muestra la pantalla de Carga)
+pcpi-ask "pregunta"                      # preguntar a la IA local (si instalaste --ai)
 pcpi-update                              # actualizar PiCore (copia previa + git pull + reinstalar)
 pcpi-backup create [USB o carpeta]       # copia de seguridad de todo lo tuyo en un archivo
 pcpi-backup restore ARCHIVO              # restaurarla
