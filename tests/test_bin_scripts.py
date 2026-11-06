@@ -141,61 +141,132 @@ class DoctorTest(Base):
 
 
 class SessionLoopTest(Base):
-    """El vigilante de modos con un Chromium de mentira: home -> iker -> escritorio."""
+    """El vigilante de modos con un Chromium de mentira: encendido -> carga -> modo, cambios de modo, portal cautivo."""
 
-    def test_mode_switching_launches_and_kills_the_browser(self):
+    def setUp(self):
+        super().setUp()
         (self.t / "home").mkdir()
-        launched = self.t / "launched"
-        shim(self.shims, "chromium", 'echo "$@" >> %s\nsleep 600\n' % launched)
+        self.run_dir = self.t / "run"
+        self.launched = self.t / "launched"
+        shim(self.shims, "chromium", 'echo "$@" >> %s\nsleep 600\n' % self.launched)
         shim(self.shims, "curl", "exit 0\n")                      # el servidor "ya esta listo"
-        self.mode.write_text("home\n")
-        env = {**self.env, "HOME": str(self.t / "home"), "XDG_RUNTIME_DIR": str(self.t), "PCPI_PORT": "1"}
-        env.pop("WAYLAND_DISPLAY", None)
-        proc = subprocess.Popen(["bash", str(BIN / "pcpi-session")], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        try:
-            def wait(cond, secs=12):
-                end = time.time() + secs
-                while time.time() < end:
-                    if cond():
-                        return True
-                    time.sleep(0.3)
-                return False
+        self.env2 = {**self.env, "HOME": str(self.t / "home"), "XDG_RUNTIME_DIR": str(self.t), "PCPI_PORT": "1",
+                     "PCPI_RUN_DIR": str(self.run_dir), "PCPI_TICK": "0.2"}
+        self.env2.pop("WAYLAND_DISPLAY", None)
+        self.proc = None
 
-            lines = lambda: launched.read_text().splitlines() if launched.exists() else []
-            self.assertTrue(wait(lambda: len(lines()) >= 1), "home no lanzo el navegador")
-            self.assertIn("--kiosk", lines()[0])
-            self.assertIn("pcpi-kiosk ", lines()[0] + " ")
-            self.mode.write_text("iker\n")
-            self.assertTrue(wait(lambda: len(lines()) >= 2), "iker no lanzo el navegador")
-            self.assertIn("--start-maximized", lines()[1])
-            self.assertIn("pcpi-kiosk-iker", lines()[1])
-            self.assertIn("/iker", lines()[1])
-            self.assertNotIn("--kiosk", lines()[1])
-            self.mode.write_text("desktop\n")
-            alive = lambda: subprocess.run(["pgrep", "-f", str(self.t / "home/.cache/pcpi-kiosk")], capture_output=True).returncode == 0
-            self.assertTrue(wait(lambda: not alive()), "escritorio no cerro el navegador")
-            self.mode.write_text("nonsense\n")                      # un modo raro se trata como escritorio
-            time.sleep(3)
-            self.assertEqual(len(lines()), 2)
-        finally:
-            proc.terminate()
-            proc.wait(5)
-            subprocess.run(["pkill", "-f", str(self.t / "home/.cache/pcpi-kiosk")])
+    def tearDown(self):
+        if self.proc:
+            self.proc.terminate()
+            self.proc.wait(5)
+        subprocess.run(["pkill", "-f", str(self.t / "home/.cache/")])
+
+    def start(self, **extra):
+        self.proc = subprocess.Popen(["bash", str(BIN / "pcpi-session")], env={**self.env2, **extra},
+                                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def lines(self):
+        return self.launched.read_text().splitlines() if self.launched.exists() else []
+
+    def wait(self, cond, secs=12):
+        end = time.time() + secs
+        while time.time() < end:
+            if cond():
+                return True
+            time.sleep(0.15)
+        return False
+
+    def alive(self, name="pcpi-kiosk"):
+        return subprocess.run(["pgrep", "-f", str(self.t / "home/.cache" / name)], capture_output=True).returncode == 0
+
+    def test_power_on_shows_intro_then_loads_last_mode(self):
+        self.mode.write_text("home\n")
+        self.start()
+        self.assertTrue(self.wait(lambda: len(self.lines()) >= 1), "no lanzo la pantalla de carga")
+        first = self.lines()[0]
+        self.assertIn("--kiosk", first)
+        self.assertIn("/loading?to=home&boot=1", first)          # tras encender: con video de inicio
+        self.assertIn("--autoplay-policy=no-user-gesture-required", first)
+        self.assertTrue((self.run_dir / "booted").exists())
+        time.sleep(0.8)
+        self.assertEqual(len(self.lines()), 1)                    # sigue la carga: no abre la UI hasta que acabe
+        (self.run_dir / "loaded").write_text("home")              # la pagina de carga navega sola a la UI de Casa
+        time.sleep(0.8)
+        self.assertEqual(len(self.lines()), 1)                    # (el mismo navegador sigue vivo)
+        self.assertFalse((self.run_dir / "loaded").exists())
+
+    def test_mode_change_shows_loading_without_intro(self):
+        self.mode.write_text("home\n")
+        self.start()
+        self.assertTrue(self.wait(lambda: len(self.lines()) >= 1))
+        (self.run_dir / "loaded").write_text("home")
+        self.mode.write_text("iker\n")
+        self.assertTrue(self.wait(lambda: len(self.lines()) >= 2), "iker no lanzo la pantalla de carga")
+        self.assertIn("/loading?to=iker&boot=0", self.lines()[1])  # cambio de modo: sin video de inicio
+        self.assertNotIn("--start-maximized", self.lines()[1])
+        (self.run_dir / "loaded").write_text("iker")
+        self.assertTrue(self.wait(lambda: len(self.lines()) >= 3), "iker no abrio su ventana")
+        self.assertIn("--start-maximized", self.lines()[2])
+        self.assertIn("pcpi-kiosk-iker", self.lines()[2])
+        self.assertTrue(self.lines()[2].endswith("/iker"))
+        self.assertNotIn("--kiosk", self.lines()[2])
+
+    def test_desktop_closes_browser_after_loading(self):
+        self.mode.write_text("home\n")
+        self.start()
+        self.assertTrue(self.wait(lambda: len(self.lines()) >= 1))
+        self.mode.write_text("desktop\n")
+        self.assertTrue(self.wait(lambda: len(self.lines()) >= 2))
+        self.assertIn("/loading?to=desktop", self.lines()[1])
+        self.assertTrue(self.alive())                              # la transicion se ve mientras carga
+        (self.run_dir / "loaded").write_text("desktop")
+        self.assertTrue(self.wait(lambda: not self.alive()), "escritorio no cerro el navegador")
+        self.mode.write_text("nonsense\n")                        # un modo raro se trata como escritorio
+        time.sleep(1)
+        self.assertEqual(len(self.lines()), 2)
+
+    def test_hung_loader_does_not_block_forever(self):
+        self.mode.write_text("iker\n")
+        self.start(PCPI_LOAD_TIMEOUT="2")
+        self.assertTrue(self.wait(lambda: len(self.lines()) >= 2, 15), "la carga colgada bloqueo el modo")
+        self.assertIn("--start-maximized", self.lines()[1])
+
+    def test_restart_with_system_running_skips_animations(self):
+        self.run_dir.mkdir()
+        (self.run_dir / "booted").write_text("")
+        self.mode.write_text("home\n")
+        self.start()
+        self.assertTrue(self.wait(lambda: len(self.lines()) >= 1))
+        self.assertNotIn("/loading", self.lines()[0])
+        self.assertTrue(self.lines()[0].endswith("localhost:1/"))
+
+    def test_captive_portal_window_opens_and_closes(self):
+        self.mode.write_text("desktop\n")
+        self.run_dir.mkdir()
+        (self.run_dir / "booted").write_text("")
+        self.start()
+        time.sleep(0.8)
+        self.assertEqual(self.lines(), [])
+        (self.run_dir / "portal").write_text("javascript:alert(1)\n")   # esquemas raros: nunca
+        time.sleep(0.8)
+        self.assertEqual(self.lines(), [])
+        (self.run_dir / "portal").write_text("http://login.hotel.example/portal?x=1\n")
+        self.assertTrue(self.wait(lambda: len(self.lines()) >= 1), "no abrio el inicio de sesion de la wifi")
+        self.assertIn("pcpi-portal", self.lines()[0])
+        self.assertIn("login.hotel.example", self.lines()[0])
+        self.assertNotIn("--kiosk", self.lines()[0])
+        time.sleep(0.8)
+        self.assertEqual(len(self.lines()), 1)                     # no abre una ventana nueva en cada vuelta
+        (self.run_dir / "portal").unlink()
+        self.assertTrue(self.wait(lambda: not self.alive("pcpi-portal")), "no cerro la ventana al tener internet")
 
     def test_second_instance_exits_immediately(self):
-        (self.t / "home").mkdir()
         shim(self.shims, "chromium", "sleep 600\n")
-        shim(self.shims, "curl", "exit 0\n")
-        env = {**self.env, "HOME": str(self.t / "home"), "XDG_RUNTIME_DIR": str(self.t), "PCPI_PORT": "1"}
         self.mode.write_text("desktop\n")
-        first = subprocess.Popen(["bash", str(BIN / "pcpi-session")], env=env)
-        try:
-            time.sleep(1.5)
-            second = subprocess.run(["bash", str(BIN / "pcpi-session")], env=env, timeout=10)
-            self.assertEqual(second.returncode, 0)           # no se queda en bucle: sale solo
-        finally:
-            first.terminate()
-            first.wait(5)
+        self.start()
+        time.sleep(1.5)
+        second = subprocess.run(["bash", str(BIN / "pcpi-session")], env=self.env2, timeout=10)
+        self.assertEqual(second.returncode, 0)           # no se queda en bucle: sale solo
 
 
 if __name__ == "__main__":

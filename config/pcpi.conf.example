@@ -63,3 +63,19 @@ contrast = 120
 # Los OLED se desgastan si estan siempre encendidos: apagala por la noche (horas 0-23, -1 = nunca)
 off_from = -1
 off_to = -1
+
+[boot]
+# Pantalla de Inicio (al encender) y pantalla de Carga (al encender y en cada cambio de modo).
+# Tus videos/imagenes van en extra-assets/ (ver extra-assets/README.md).
+# Reproducir extra-assets/start/Inicio.mp4 al encender (si el archivo no existe, se salta solo).
+intro = true
+# Tras llegar al 85 % real, el efecto TV «x2» sube hasta el 100 % (carga rapida). false = pasa directo.
+fake_loading = true
+# Segundos que dura ese tramo final del 85 % al 100 % (1-30).
+fake_seconds = 6
+# Tiempo minimo de la pantalla de carga aunque todo cargue antes (0-30), para que se vea.
+min_seconds = 3
+# Mostrar el boton «Saltar» durante el tramo x2.
+skip_button = true
+# Segundos que se ve cada imagen/GIF/video de la carga (1-20).
+media_seconds = 3

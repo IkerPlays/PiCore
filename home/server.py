@@ -18,14 +18,15 @@ import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+import assets
 import pcpiconf
 
 ROOT = Path(__file__).resolve().parent
 WEB = ROOT / "web"
 MODES = ("desktop", "iker", "home")
-PAGES = {"/": "index.html", "/iker": "iker.html"}
+PAGES = {"/": "index.html", "/iker": "iker.html", "/loading": "loading.html"}
 LOCAL_HOSTS = ("localhost", "127.0.0.1", "[::1]")
-CSP = ("default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; "
+CSP = ("default-src 'self'; img-src 'self' https: data:; media-src 'self'; style-src 'self' 'unsafe-inline'; "
        "script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; form-action 'none'; base-uri 'none'")
 NOTE_ID = re.compile(r"^[0-9a-f]{16}$")
 MAX_NOTE = 1_000_000
@@ -383,6 +384,34 @@ def status():
     }
 
 
+def mark_loaded(mode):
+    """La pantalla de carga avisa de que ha terminado (lo usa pcpi-session para cerrar el navegador al ir a Escritorio)."""
+    if mode not in MODES:
+        raise ValueError("modo invalido")
+    d = run_dir()
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "loaded").write_text(mode)
+
+
+def boot_info(cp, query=""):
+    """Datos de las pantallas de Inicio y de Carga: video de inicio, carrusel y tiempos (seccion [boot])."""
+    def num(key, default, lo, hi):
+        try:
+            return max(lo, min(cp.getfloat("boot", key, fallback=default), hi))
+        except ValueError:
+            return default
+    return {
+        "intro": assets.intro_url() if cp.getboolean("boot", "intro", fallback=True) else None,
+        "media": assets.loading_media(),
+        "fake": cp.getboolean("boot", "fake_loading", fallback=True),
+        "fake_seconds": num("fake_seconds", 6, 1, 30),
+        "min_seconds": num("min_seconds", 3, 0, 30),
+        "skip_button": cp.getboolean("boot", "skip_button", fallback=True),
+        "media_seconds": num("media_seconds", 3, 1, 20),
+        "mode": get_mode(),
+    }
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "PCPi"
 
@@ -417,10 +446,64 @@ class Handler(BaseHTTPRequestHandler):
             return self._notes_get(path)
         if path in ("/api/camera/stream", "/api/camera/snapshot.jpg"):
             return self._camera(path.endswith(".jpg"))
+        if path == "/api/boot":
+            return self._send(200, boot_info(read_conf(), self.path))
+        if path.startswith("/assets/"):
+            return self._asset(path[len("/assets/"):])
+        if path.startswith("/static/"):
+            return self._static(path[len("/static/"):])
         name = PAGES.get(path)
         if name is None:
             return self._send(404, {"error": "no encontrado"})
         self._send(200, page_bytes(name), "text/html; charset=utf-8")
+
+    def _static(self, rel):
+        f = (WEB / "static" / rel).resolve()
+        try:
+            f.relative_to((WEB / "static").resolve())
+        except ValueError:
+            return self._send(404, {"error": "no encontrado"})
+        types = {".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8"}
+        if not f.is_file() or f.suffix not in types:
+            return self._send(404, {"error": "no encontrado"})
+        self._send(200, f.read_bytes(), types[f.suffix])
+
+    def _asset(self, rel):
+        f = assets.resolve(rel)
+        if f is None:
+            return self._send(404, {"error": "no encontrado"})
+        size = f.stat().st_size
+        rng = assets.parse_range(self.headers.get("Range"), size)
+        if rng == "bad":
+            self.send_response(416)
+            self.send_header("Content-Range", "bytes */%d" % size)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        start, end = rng if rng else (0, size - 1)
+        self.send_response(206 if rng else 200)
+        self.send_header("Content-Type", assets.content_type(f))
+        self.send_header("Accept-Ranges", "bytes")
+        self.send_header("Content-Length", str(end - start + 1))
+        if rng:
+            self.send_header("Content-Range", "bytes %d-%d/%d" % (start, end, size))
+        self.send_header("Cache-Control", "max-age=300")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        if f.suffix.lower() == ".svg":
+            self.send_header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'")
+        self.end_headers()
+        try:
+            with open(f, "rb") as fh:
+                fh.seek(start)
+                left = end - start + 1
+                while left > 0:
+                    chunk = fh.read(min(262144, left))
+                    if not chunk:
+                        break
+                    self.wfile.write(chunk)
+                    left -= len(chunk)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
 
     def _host_ok(self):
         """Anti DNS-rebinding: el modo Iker navega por internet en esta misma maquina, y una web hostil podria
@@ -505,7 +588,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         if not self._host_ok():
             return self._send(403, {"error": "host no permitido"})
-        paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete")
+        paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/loaded")
         if self.path not in paths or self.headers.get("X-PCPI") != "1":
             return self._send(403, {"error": "prohibido"})
         try:
@@ -517,6 +600,9 @@ class Handler(BaseHTTPRequestHandler):
             if self.path == "/api/mode":
                 set_mode(body["mode"])
                 return self._send(200, {"mode": body["mode"]})
+            if self.path == "/api/loaded":
+                mark_loaded(body.get("mode"))
+                return self._send(200, {"ok": True})
             if self.path == "/api/camera":
                 CAMERA["show"] = bool(body["show"])
                 return self._send(200, {"show": CAMERA["show"]})

@@ -46,6 +46,9 @@ sudo apt-get install -y python3 curl rsync zenity "$CHROMIUM_PKG"
 step "Archivos en $PREFIX"
 sudo mkdir -p "$PREFIX"
 sudo rsync -a --delete --exclude __pycache__ "$SRC/home" "$SRC/bin" "$SRC/voice" "$SRC/stats" "$PREFIX/"
+# Tus videos/imagenes de las pantallas de Inicio y Carga: se COPIAN sin borrar lo que ya hubiera en la Pi
+sudo mkdir -p "$PREFIX/extra-assets"
+sudo rsync -a --exclude .gitkeep --exclude README.md "$SRC/extra-assets/" "$PREFIX/extra-assets/"
 sudo mkdir -p "$R/usr/local/bin"
 for f in "$PREFIX"/bin/*; do sudo ln -sf "$f" "$R/usr/local/bin/$(basename "$f")"; done
 sudo chmod +x "$PREFIX"/bin/*

@@ -75,6 +75,17 @@ class InstallerTest(unittest.TestCase):
         self.assertEqual(self.read("etc/pcpi/mode").strip(), "desktop")
         self.assertEqual(self.read("etc/tmpfiles.d/pcpi.conf").strip(), "d /run/pcpi 1777 root root -")
 
+    def test_extra_assets_copied_without_deleting_existing(self):
+        old = self.r / "opt/pcpi/extra-assets/start"
+        old.mkdir(parents=True)
+        (old / "Inicio.mp4").write_bytes(b"mio")                 # subido directamente a la Pi
+        self.install()
+        a = self.r / "opt/pcpi/extra-assets"
+        for d in ("start", "loading/images", "loading/videos", "loading/gifs"):
+            self.assertTrue((a / d).is_dir(), d)
+        self.assertEqual((a / "start/Inicio.mp4").read_bytes(), b"mio")     # no se borra
+        self.assertFalse((a / "README.md").exists())              # la documentacion no se copia
+
     def test_service_unit_gets_the_real_user(self):
         self.install()
         unit = self.read("etc/systemd/system/pcpi-home.service")

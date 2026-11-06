@@ -5,11 +5,25 @@
 #   iker    -> Chromium en ventana normal (pestañas y barra de direcciones) con el bloc de notas;
 #              las notas son la pestaña 1 y "Internet" abre pestañas nuevas
 #
+# Pantallas de Inicio y de Carga:
+#   * Al encender (no existe /run/pcpi/booted) se muestra la pantalla de Inicio (video) y despues la de Carga.
+#   * En cada cambio de modo se muestra la de Carga (/loading?to=<modo>). Al acabar, la pagina:
+#       - home    : navega ella misma a la UI de Casa (mismo navegador, sin parpadeo)
+#       - iker    : avisa con /run/pcpi/loaded y este script abre la ventana normal de Iker
+#       - desktop : avisa con /run/pcpi/loaded y este script cierra el navegador
+#
+# Wi-Fi de pago / portal cautivo: el servidor escribe la direccion en /run/pcpi/portal; mientras exista, este script
+# mantiene abierta una ventana normal de Chromium (perfil aparte) para iniciar sesion en la wifi; al desaparecer la cierra.
+#
 # Consumo: el bucle solo usa builtins de bash (sin procesos nuevos) salvo un pgrep cada ~10 s.
 set -u
 MODE_FILE="${PCPI_MODE_FILE:-/etc/pcpi/mode}"
 PORT="${PCPI_PORT:-8080}"
+RUN="${PCPI_RUN_DIR:-/run/pcpi}"
+TICK="${PCPI_TICK:-1}"                   # segundos entre vueltas (las pruebas lo acortan)
+LOAD_TIMEOUT="${PCPI_LOAD_TIMEOUT:-180}" # si la pantalla de carga se cuelga, se sigue igualmente (segundos)
 PROFILE="$HOME/.cache/pcpi-kiosk"        # el perfil de Iker cuelga de este nombre (para poder matar ambos)
+PORTAL_PROFILE="$HOME/.cache/pcpi-portal"
 
 # una sola instancia
 exec 9>"${XDG_RUNTIME_DIR:-/tmp}/pcpi-session.lock"
@@ -20,37 +34,103 @@ CHROMIUM="$(command -v chromium || command -v chromium-browser || true)"
 
 stop_browser()  { pkill -f -- "--user-data-dir=$PROFILE" 2>/dev/null || true; }
 browser_alive() { pgrep -f -- "--user-data-dir=$PROFILE" >/dev/null; }
+portal_alive()  { pgrep -f -- "--user-data-dir=$PORTAL_PROFILE" >/dev/null; }
 
-start_browser() {
+common_flags() {
   # la coma de --disable-features=A,B es parte del valor, no un separador
   # shellcheck disable=SC2054
-  local mode="$1" flags=(--no-first-run --no-default-browser-check --noerrdialogs --disable-infobars
-                         --disable-session-crashed-bubble --password-store=basic
-                         --check-for-update-interval=31536000 --disable-component-update
-                         --disable-background-networking --disable-features=Translate,MediaRouter)
-  [ -n "${WAYLAND_DISPLAY:-}" ] && flags+=(--ozone-platform=wayland)
-  for _ in $(seq 30); do curl -sf "http://localhost:$PORT/api/mode" >/dev/null && break; sleep 1; done
+  FLAGS=(--no-first-run --no-default-browser-check --noerrdialogs --disable-infobars
+         --disable-session-crashed-bubble --password-store=basic
+         --check-for-update-interval=31536000 --disable-component-update
+         --disable-background-networking --disable-features=Translate,MediaRouter
+         --autoplay-policy=no-user-gesture-required)
+  [ -n "${WAYLAND_DISPLAY:-}" ] && FLAGS+=(--ozone-platform=wayland)
+  return 0
+}
+
+wait_server() { for _ in $(seq 30); do curl -sf "http://localhost:$PORT/api/mode" >/dev/null && break; sleep 1; done; }
+
+# Pantalla de Inicio/Carga: siempre en kiosco, con el perfil de Casa
+start_loader() {
+  local mode="$1" boot="$2"
+  common_flags
+  wait_server
+  FLAGS+=(--kiosk --user-data-dir="$PROFILE" --overscroll-history-navigation=0 --disable-pinch)
+  setsid nohup "$CHROMIUM" "${FLAGS[@]}" "http://localhost:$PORT/loading?to=$mode&boot=$boot" >/dev/null 2>&1 &
+}
+
+# El modo ya cargado
+start_mode() {
+  local mode="$1"
+  common_flags
+  wait_server
   if [ "$mode" = home ]; then
-    flags+=(--kiosk --user-data-dir="$PROFILE" --overscroll-history-navigation=0 --disable-pinch)
-    setsid nohup "$CHROMIUM" "${flags[@]}" "http://localhost:$PORT/" >/dev/null 2>&1 &
+    FLAGS+=(--kiosk --user-data-dir="$PROFILE" --overscroll-history-navigation=0 --disable-pinch)
+    setsid nohup "$CHROMIUM" "${FLAGS[@]}" "http://localhost:$PORT/" >/dev/null 2>&1 &
   else
-    flags+=(--start-maximized --user-data-dir="$PROFILE-iker")
-    setsid nohup "$CHROMIUM" "${flags[@]}" "http://localhost:$PORT/iker" >/dev/null 2>&1 &
+    FLAGS+=(--start-maximized --user-data-dir="$PROFILE-iker")
+    setsid nohup "$CHROMIUM" "${FLAGS[@]}" "http://localhost:$PORT/iker" >/dev/null 2>&1 &
   fi
 }
 
-applied="" ; tick=0
+# Ventana para iniciar sesion en una wifi publica. Solo http/https.
+sync_portal() {
+  local url=""
+  if [ -r "$RUN/portal" ]; then read -r url < "$RUN/portal" 2>/dev/null || true; fi
+  case "$url" in http://*|https://*) ;; *) url="" ;; esac
+  if [ -n "$url" ]; then
+    if ! portal_alive; then
+      common_flags
+      FLAGS+=(--start-maximized --user-data-dir="$PORTAL_PROFILE")
+      setsid nohup "$CHROMIUM" "${FLAGS[@]}" "$url" >/dev/null 2>&1 &
+    fi
+  elif portal_alive; then
+    pkill -f -- "--user-data-dir=$PORTAL_PROFILE" 2>/dev/null || true
+  fi
+}
+
+mkdir -p "$RUN" 2>/dev/null || true
+boot=1; [ -e "$RUN/booted" ] && boot=0          # /run es RAM: tras cada encendido no existe
+
+applied="" ; tick=0 ; phase=running ; loading_since=0
 while true; do
   mode=desktop
   read -r mode < "$MODE_FILE" 2>/dev/null || true          # builtin: no lanza procesos
   case "$mode" in desktop|iker|home) ;; *) mode=desktop ;; esac
+
   if [ "$mode" != "$applied" ]; then
-    stop_browser; sleep 0.5; applied="$mode"; tick=99      # cambio de modo: arranca ya
+    stop_browser; sleep 0.5
+    rm -f "$RUN/loaded" 2>/dev/null || true
+    if [ "$boot" = 1 ] || [ -n "$applied" ]; then
+      # encendido o cambio de modo -> pantalla de carga (desktop tambien: se ve la transicion)
+      phase=loading; loading_since=$SECONDS
+      start_loader "$mode" "$boot"
+      : > "$RUN/booted" 2>/dev/null || true
+      boot=0
+    else
+      # el vigilante se reinicio con el sistema ya en marcha: nada de animaciones, se restaura el modo
+      phase=running
+      [ "$mode" != desktop ] && start_mode "$mode"
+    fi
+    applied="$mode"; tick=0
   fi
-  if [ "$mode" != desktop ] && [ "$tick" -ge 5 ]; then     # ¿sigue vivo? cada ~10 s
-    browser_alive || start_browser "$mode"
+
+  if [ "$phase" = loading ]; then
+    if [ -e "$RUN/loaded" ] || [ $((SECONDS - loading_since)) -ge "$LOAD_TIMEOUT" ]; then
+      rm -f "$RUN/loaded" 2>/dev/null || true
+      phase=running; tick=0
+      case "$mode" in
+        desktop) stop_browser ;;
+        iker)    stop_browser; sleep 0.3; start_mode iker ;;
+        home)    browser_alive || start_mode home ;;     # la pagina de carga ya navego sola a la UI de Casa
+      esac
+    fi
+  elif [ "$mode" != desktop ] && [ "$tick" -ge 10 ]; then  # ¿sigue vivo? cada ~10 vueltas
+    browser_alive || start_mode "$mode"
     tick=0
   fi
+
+  sync_portal
   tick=$((tick + 1))
-  sleep 2
+  sleep "$TICK"
 done
