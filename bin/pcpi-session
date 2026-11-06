@@ -172,7 +172,9 @@ while true; do
   if [ "$mode" != desktop ] && [ "$tick" -ge "$CHECK_EVERY" ]; then
     tick=0
     if ! browser_alive; then relaunch "$mode"
-    elif [ "$(heartbeat_age)" -gt "$ALIVE_TIMEOUT" ]; then relaunch "$mode"; fi
+    # El latido solo vale para la UI de Casa y la pantalla de carga. En Iker la ventana es un navegador normal:
+    # puedes cerrar la pestaña de notas o dejarla oculta (Chromium frena sus temporizadores) y seguir navegando.
+    elif { [ "$mode" = home ] || [ "$phase" = loading ]; } && [ "$(heartbeat_age)" -gt "$ALIVE_TIMEOUT" ]; then relaunch "$mode"; fi
   fi
 
   sync_portal

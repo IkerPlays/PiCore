@@ -137,6 +137,25 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await sleep(500);
   check('borrar elimina la nota', (await page.locator('#list .item').count()) === before);
 
+  // busqueda (sin mayusculas ni tildes) y resaltado sin HTML
+  await page.click('#new');
+  await page.fill('#text', 'Receta de café\nazúcar y leche');
+  await page.waitForFunction(() => document.getElementById('status').textContent.includes('Guardado'), null, { timeout: 6000 }).catch(() => {});
+  await page.fill('#q', 'AZUCAR');
+  await sleep(700);
+  check('la busqueda encuentra «azúcar» escribiendo AZUCAR', (await page.locator('#list .item').count()) === 1);
+  check('resalta lo buscado', (await page.locator('#list mark').count()) >= 1);
+  await page.fill('#q', 'zzzz');
+  await sleep(700);
+  check('sin resultados lo dice', (await page.textContent('#list')).includes('No hay notas con'));
+  await page.fill('#q', '');
+  await sleep(700);
+  check('vaciar la busqueda muestra todo', (await page.locator('#list .item').count()) >= 1);
+  await page.click('#usb');
+  await page.waitForFunction(() => /USB|usb/.test(document.getElementById('status').textContent) && !document.getElementById('status').textContent.includes('Copiando'), null, { timeout: 5000 }).catch(() => {});
+  check('exportar sin USB avisa con claridad', (await page.textContent('#status')).includes('ningún USB'), await page.textContent('#status'));
+  await page.locator('#list .item').first().click(); await page.click('#del'); await page.click('#del'); await sleep(400);
+
   // una nota vacia nueva no se guarda
   await page.click('#new');
   await sleep(1500);

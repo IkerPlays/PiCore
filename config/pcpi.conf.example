@@ -99,3 +99,10 @@ night_to = 7
 night_level = 40
 # Minutos en los que el brillo baja (antes de night_from) y sube (despues de night_to) poco a poco.
 ramp_minutes = 60
+
+[notes]
+# Copia automatica de tus notas (maximo una por hora, solo si han cambiado) en /var/lib/pcpi/backups.
+backup = true
+# Cuantas copias se guardan.
+backup_keep = 7
+

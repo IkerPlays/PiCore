@@ -12,7 +12,7 @@ NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
 PrivateTmp=true
-ReadWritePaths=/etc/pcpi /var/lib/pcpi -/run/pcpi
+ReadWritePaths=/etc/pcpi /var/lib/pcpi -/run/pcpi -/media -/run/media -/mnt
 
 [Install]
 WantedBy=multi-user.target

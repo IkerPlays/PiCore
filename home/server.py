@@ -13,6 +13,7 @@ import socket
 import subprocess
 import threading
 import time
+import urllib.parse
 import urllib.request
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -21,6 +22,7 @@ from pathlib import Path
 import assets
 import display
 import netmgr
+import notes_tools
 import pcpiconf
 
 ROOT = Path(__file__).resolve().parent
@@ -627,7 +629,10 @@ class Handler(BaseHTTPRequestHandler):
         if not self._local():  # las notas son privadas
             return
         if path == "/api/notes":
-            return self._send(200, list_notes())
+            q = urllib.parse.parse_qs(self.path.partition("?")[2]).get("q", [""])[0][:200]
+            return self._send(200, notes_tools.search(notes_dir(), q) if q.strip() else list_notes())
+        if path == "/api/notes/usb":
+            return self._send(200, {"usb": notes_tools.usb_mountpoints()})
         try:
             return self._send(200, read_note(path.rsplit("/", 1)[1]))
         except KeyError:
@@ -691,7 +696,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         if not self._host_ok():
             return self._send(403, {"error": "host no permitido"})
-        paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/loaded",
+        paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/notes/export", "/api/loaded",
                  "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display")
         if self.path not in paths or self.headers.get("X-PCPI") != "1":
             return self._send(403, {"error": "prohibido"})
@@ -724,6 +729,12 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(200, {"show": CAMERA["show"]})
             if self.path == "/api/notes":
                 return self._send(200, {"id": save_note(body.get("id"), body["text"])})
+            if self.path == "/api/notes/export":
+                try:
+                    path_, n = notes_tools.export_usb(notes_dir())
+                except ValueError as e:
+                    return self._send(400, {"error": str(e)})
+                return self._send(200, {"ok": True, "path": path_, "count": n})
             if self.path == "/api/notes/delete":
                 delete_note(body["id"])
                 return self._send(200, {"ok": True})
@@ -743,6 +754,19 @@ def make_server(host, port):
     return ThreadingHTTPServer((host, port), Handler)
 
 
+def backup_loop():
+    """Copia automatica de las notas: como mucho una cada hora si han cambiado; guarda las ultimas N ([notes] backup_keep)."""
+    while True:
+        try:
+            cp = read_conf()
+            if cp.getboolean("notes", "backup", fallback=True):
+                d = Path(os.environ.get("PCPI_BACKUP_DIR", "/var/lib/pcpi/backups"))
+                notes_tools.backup_notes(notes_dir(), d, keep=cp.getint("notes", "backup_keep", fallback=7))
+        except Exception:       # noqa: BLE001
+            pass
+        time.sleep(3600)
+
+
 def start_netwatch(cp):
     """Hilo que vigila la red (DNS de Pi-hole por Wi-Fi y portales cautivos). Solo si hay NetworkManager y [wifi] manage = true."""
     global NETWATCH
@@ -759,6 +783,7 @@ def main():
     port = cp.getint("server", "port", fallback=8080)
     start_netwatch(cp)
     threading.Thread(target=display_loop, daemon=True).start()
+    threading.Thread(target=backup_loop, daemon=True).start()
     print("PCPi escuchando en http://%s:%d" % (host, port), flush=True)
     make_server(host, port).serve_forever()
 

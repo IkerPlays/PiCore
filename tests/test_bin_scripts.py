@@ -327,6 +327,16 @@ class SessionLoopTest(Base):
         self.assertTrue(self.wait(lambda: len(self.lines()) >= 2, 15), "no detecto el navegador colgado")
         self.assertIn("/loading?to=home", self.lines()[1])
 
+    def test_iker_window_without_heartbeat_is_left_alone(self):
+        """En Iker se puede cerrar la pestaña de notas y seguir navegando: no hay que matar el navegador por falta de latido."""
+        self.run_dir.mkdir()
+        (self.run_dir / "booted").write_text("")
+        self.mode.write_text("iker\n")
+        self.start(PCPI_CHECK_EVERY="2", PCPI_ALIVE_TIMEOUT="2")
+        self.assertTrue(self.wait(lambda: len(self.lines()) >= 1))
+        time.sleep(7)
+        self.assertEqual(len(self.lines()), 1)
+
     def test_healthy_browser_with_heartbeats_is_left_alone(self):
         self.run_dir.mkdir()
         (self.run_dir / "booted").write_text("")
