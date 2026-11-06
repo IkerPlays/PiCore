@@ -177,3 +177,12 @@ seconds_per_photo = 12
 show_clock = true
 shuffle = true
 
+[calendar]
+# Calendario de SOLO LECTURA con archivos .ics (Google Calendar, Apple, Nextcloud...). Pon una o varias direcciones
+# separadas por comas: la «direccion secreta en formato iCal» de Google Calendar, un enlace webcal:// o la ruta de un
+# archivo (p. ej. /home/pi/agenda.ics). ¡Es privada: no la compartas! Vacio = sin calendario.
+# ics =
+# Cuantos dias hacia delante se muestran y cada cuantos minutos se vuelve a descargar.
+days = 14
+refresh_minutes = 15
+

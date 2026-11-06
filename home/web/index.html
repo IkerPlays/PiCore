@@ -187,6 +187,20 @@
   #chip-bat.low { color:var(--warn); } #chip-bat.low .cell i { background:var(--warn); }
   #chip-bat.crit { color:var(--bad); animation:blink 1.2s ease-in-out infinite; } #chip-bat.crit .cell i { background:var(--bad); }
 
+  /* ---------------- calendario ---------------- */
+  #cal { margin-top:14px; font-size:17px; text-align:left; max-width:88%; cursor:pointer; }
+  #cal .ev { display:flex; gap:10px; align-items:baseline; padding:3px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #cal .ev i { font-style:normal; color:var(--acc); min-width:4.6em; font-weight:600; }
+  #cal .ev b { font-weight:500; overflow:hidden; text-overflow:ellipsis; }
+  #cpanel { position:fixed; left:50%; bottom:0; z-index:21; width:min(640px,100vw); background:var(--card); border:1px solid var(--line); border-bottom:0; border-radius:26px 26px 0 0;
+            box-shadow:0 -20px 60px #0008; padding:20px 24px 26px; transform:translate(-50%,105%); transition:transform .5s var(--ease); max-height:86vh; overflow:auto; }
+  #cpanel.on { transform:translate(-50%,0); }
+  #cpanel h3 { font-size:22px; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  #cpanel h3 button { width:44px; height:44px; font-size:20px; border-radius:50%; }
+  #cpanel .day { color:var(--dim); font-size:14px; text-transform:uppercase; letter-spacing:.1em; margin:14px 2px 6px; }
+  #cpanel .ev2 { padding:10px 14px; margin-bottom:6px; background:var(--card2); border:1px solid var(--line); border-radius:14px; font-size:18px; display:flex; gap:12px; }
+  #cpanel .ev2 i { font-style:normal; color:var(--acc); font-weight:600; min-width:3.4em; } #cpanel .ev2 small { display:block; color:var(--dim); font-size:14px; }
+
   /* ---------------- salvapantallas / marco de fotos ---------------- */
   #saver { position:fixed; inset:0; z-index:3; background:#000; opacity:0; pointer-events:none; transition:opacity 1.2s ease; overflow:hidden; }
   #saver.on { opacity:1; pointer-events:auto; }
@@ -251,6 +265,7 @@
     <div id="date"></div>
     <div id="weather"></div>
     <div id="wsub"></div>
+    <div id="cal" hidden></div>
     <div id="hint"></div>
   </section>
 
@@ -313,6 +328,10 @@
   <h3>Tiempo <button id="w-close" aria-label="Cerrar">✕</button></h3>
   <div class="dim" style="font-size:14px;margin-bottom:6px">Próximas horas</div><div class="hours" id="w-hours"></div>
   <div class="dim" style="font-size:14px;margin-bottom:6px">Próximos días</div><div class="days" id="w-days"></div>
+</section>
+<section id="cpanel" aria-label="Calendario">
+  <h3>Calendario <button id="c-close" aria-label="Cerrar">✕</button></h3>
+  <div id="c-list"></div>
 </section>
 <div id="saver" aria-hidden="true"><div class="shade"></div><div class="sclock" id="sclock"><b id="sc-time"></b><span id="sc-date"></span></div></div>
 <div id="scrim"></div>
@@ -484,6 +503,38 @@ function paintBattery(b) {
   chip.title = b.critical ? "Batería crítica: conecta el cargador" : b.low ? "Batería baja" : b.charging ? "Cargando" : "Batería";
 }
 
+/* ---- calendario (solo lectura): los proximos eventos bajo el tiempo; al tocar, la agenda ---- */
+let calEvents = [], calCfg = false;
+function paintCalendar(c) {
+  const box = $("cal");
+  calCfg = !!(c && c.configured); calEvents = (c && c.events) || [];
+  if (!calCfg) { box.hidden = true; return; }
+  box.hidden = false; box.textContent = "";
+  if (!calEvents.length) { const d = document.createElement("div"); d.className = "ev dim"; d.textContent = c.loaded ? (c.error ? "No se pudo leer el calendario" : "Nada en los próximos días") : "Cargando calendario…"; box.append(d); return; }
+  for (const e of calEvents.slice(0, 2)) {
+    const d = document.createElement("div"); d.className = "ev";
+    const w = document.createElement("i"); w.textContent = e.when + (e.time ? " " + e.time : "");
+    const t = document.createElement("b"); t.textContent = e.title;
+    d.append(w, t); box.append(d);
+  }
+}
+function openCalendar() {
+  const l = $("c-list"); l.textContent = "";
+  let last = "";
+  if (!calEvents.length) l.textContent = "No hay eventos en los próximos días.";
+  for (const e of calEvents) {
+    if (e.date !== last) { last = e.date; const h = document.createElement("div"); h.className = "day"; h.textContent = e.when + " · " + new Date(e.date + "T12:00").toLocaleDateString("es-ES", {day:"numeric", month:"long"}); l.append(h); }
+    const r = document.createElement("div"); r.className = "ev2";
+    const i = document.createElement("i"); i.textContent = e.all_day ? "Todo el día" : e.time;
+    const m = document.createElement("div"); m.textContent = e.title;
+    if (e.location) { const sm = document.createElement("small"); sm.textContent = e.location; m.append(sm); }
+    r.append(i, m); l.append(r);
+  }
+  $("scrim").classList.add("on"); $("cpanel").classList.add("on");
+}
+function closeCalendar() { $("cpanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on")) $("scrim").classList.remove("on"); }
+$("cal").onclick = openCalendar; $("c-close").onclick = closeCalendar;
+
 /* ---- salvapantallas / marco de fotos: tras un rato sin tocar, fotos con la hora (un toque lo quita) ---- */
 let SV = null, svOn = false, svIdx = 0, svLast = Date.now(), svTimer = 0, svOrder = [];
 async function loadSaver() { try { SV = await (await fetch("/api/screensaver")).json(); svOrder = shuffleIf(SV.photos, SV.shuffle); } catch (e) {} }
@@ -511,7 +562,7 @@ function showSaver() {
   svClock(); box.classList.add("on"); svShowPhoto();
 }
 function hideSaver() { svLast = Date.now(); if (!svOn) return; svOn = false; clearTimeout(svTimer); $("saver").classList.remove("on"); setTimeout(() => { if (!svOn) $("saver").querySelectorAll(".ph").forEach(o => o.remove()); }, 1300); }
-function busyForSaver() { return camShown() || $("tring").classList.contains("on") || document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on") || $("switching").classList.contains("on"); }
+function busyForSaver() { return camShown() || $("tring").classList.contains("on") || document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on") || $("switching").classList.contains("on"); }
 ["pointerdown", "keydown", "touchstart"].forEach(ev => document.addEventListener(ev, e => { if (svOn) { e.preventDefault(); e.stopPropagation(); } hideSaver(); }, true));
 setInterval(() => {
   if (svOn) { svClock(); if (busyForSaver()) hideSaver(); return; }
@@ -745,7 +796,7 @@ function closeSheet() {
 }
 $("chip-wifi").onclick = openSheet;
 $("sh-close").onclick = closeSheet;
-$("scrim").onclick = () => { closeSheet(); closeBright(); closeTimers(); closeWeather(); };
+$("scrim").onclick = () => { closeSheet(); closeBright(); closeTimers(); closeWeather(); closeCalendar(); };
 
 async function refresh() {
   let s;
@@ -805,6 +856,7 @@ async function refresh() {
   paintNet(s.net);
   paintDisplay(s.display);
   paintTimers(s.timers);
+  paintCalendar(s.calendar);
   paintMotion(s.motion);
   paintBattery(s.battery);
 

@@ -144,6 +144,18 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('Parar lo silencia y lo borra', !(await page.evaluate(() => document.getElementById('tring').classList.contains('on'))));
   check('ya no queda ninguno', ((await (await page.request.get(base + '/api/status')).json()).timers || []).length === 0);
 
+  // ------------------------------------------------------------------ calendario (solo lectura)
+  await page.goto(base + '/');
+  await page.waitForFunction(() => !document.getElementById('cal').hidden && document.querySelectorAll('#cal .ev').length > 0, null, { timeout: 9000 }).catch(() => {});
+  check('el calendario enseña los proximos eventos', (await page.locator('#cal .ev').count()) >= 1, await page.textContent('#cal'));
+  check('con «Hoy» o «Mañana» y el titulo', /Hoy|Mañana/.test(await page.textContent('#cal')) && (await page.textContent('#cal')).includes('Dentista') || (await page.textContent('#cal')).includes('Cumple'));
+  await page.click('#cal');
+  await sleep(700);
+  check('tocarlo abre la agenda', await page.evaluate(() => document.getElementById('cpanel').classList.contains('on')));
+  check('con los eventos de ejemplo', (await page.textContent('#c-list')).includes('Cumple de Ana') && (await page.textContent('#c-list')).includes('Gimnasio'));
+  await page.click('#c-close');
+  await sleep(600);
+
   // ------------------------------------------------------------------ tiempo: por horas, dias y aviso de lluvia
   await page.goto(base + '/');
   await page.waitForFunction(() => document.getElementById('weather').textContent.includes('°C'), null, { timeout: 8000 }).catch(() => {});

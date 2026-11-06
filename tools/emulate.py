@@ -159,8 +159,19 @@ def main():
         (tmp / "pcpi.conf").write_text(
             "[server]\nhost = %s\nport = %d\n[pihole]\nurl = http://127.0.0.1:%d\npassword = emu\n"
             "[weather]\nlat = 28.1\nlon = -15.4\napi_url = http://127.0.0.1:%d/v1/forecast\n"
-            "[camera]\ncommand = %s\n[boot]\nintro_chances = %s\nintro4_url = %s\n"
-            % (a.host, a.port, fport, fport, cam, boot_cfg["chances"], boot_cfg["intro4_url"]))
+            "[camera]\ncommand = %s\n[boot]\nintro_chances = %s\nintro4_url = %s\n[calendar]\nics = %s\n"
+            % (a.host, a.port, fport, fport, cam, boot_cfg["chances"], boot_cfg["intro4_url"], tmp / "agenda.ics"))
+
+    # Calendario de ejemplo (eventos de hoy, mañana y dentro de unos dias, relativos a la hora actual)
+    import datetime as _dt
+    _n = _dt.datetime.now()
+    _f = lambda d: d.strftime("%Y%m%dT%H%M%S")
+    (tmp / "agenda.ics").write_text(
+        "BEGIN:VCALENDAR\nVERSION:2.0\n"
+        "BEGIN:VEVENT\nDTSTART:%s\nDTEND:%s\nSUMMARY:Dentista\nLOCATION:Calle Mayor 1\nEND:VEVENT\n"
+        "BEGIN:VEVENT\nDTSTART;VALUE=DATE:%s\nSUMMARY:Cumple de Ana\nEND:VEVENT\n"
+        "BEGIN:VEVENT\nDTSTART:%s\nRRULE:FREQ=WEEKLY\nSUMMARY:Gimnasio\nEND:VEVENT\nEND:VCALENDAR\n"
+        % (_f(_n + _dt.timedelta(hours=3)), _f(_n + _dt.timedelta(hours=4)), (_n + _dt.timedelta(days=1)).strftime("%Y%m%d"), _f(_n + _dt.timedelta(days=3))))
 
     cam = ""
     if shutil.which("ffmpeg"):
@@ -213,6 +224,7 @@ def main():
             (tmp / "boot_id").write_text("emulador-%d" % boot_n[0])
         return _page_bytes(name)
     server.page_bytes = page_bytes
+    server.refresh_calendar()
     srv = server.make_server(a.host, a.port)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     print("PiCore emulado en http://%s:%d   (modo %s, datos en %s)" % (a.host, a.port, a.mode, tmp), flush=True)

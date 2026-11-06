@@ -21,6 +21,7 @@ from pathlib import Path
 
 import assets
 import battery
+import calendar_ics
 import display
 import fetcher
 import intro
@@ -506,6 +507,7 @@ def status():
         "battery": cached("battery", 15, lambda: battery.read(cp)),
         "timers": TIMERS.snapshot() if TIMERS else [],
         "ai": ai_info(cp),
+        "calendar": calendar_info(cp),
         "ip": cached("ip", 60, local_ip),
         "host": socket.gethostname(),
     }
@@ -993,6 +995,54 @@ def start_timers():
     threading.Thread(target=loop, daemon=True).start()
 
 
+CAL = {"events": [], "error": None, "ts": 0, "sources": 0}
+
+
+def calendar_sources(cp):
+    raw = cp.get("calendar", "ics", fallback="")
+    return [x.strip() for x in re.split(r"[,\s]+", raw) if x.strip()]
+
+
+def refresh_calendar(cp=None):
+    """Descarga y lee los .ics configurados (en un hilo: la pantalla nunca espera por la red)."""
+    cp = cp or read_conf()
+    srcs = calendar_sources(cp)
+    events, errors = [], []
+    for src in srcs:
+        try:
+            events += calendar_ics.parse_ics(calendar_ics.fetch(src))
+        except Exception as e:      # noqa: BLE001  (sin internet, enlace caducado, archivo que no existe...)
+            errors.append(type(e).__name__)
+    CAL.update(events=events, error=", ".join(sorted(set(errors))) or None, ts=time.time(), sources=len(srcs))
+
+
+def calendar_loop():
+    while True:
+        try:
+            cp = read_conf()
+            if calendar_sources(cp):
+                refresh_calendar(cp)
+            wait = max(5, min(cp.getint("calendar", "refresh_minutes", fallback=15), 240)) * 60
+        except Exception:       # noqa: BLE001
+            wait = 900
+        time.sleep(wait)
+
+
+def calendar_info(cp):
+    srcs = calendar_sources(cp)
+    if not srcs:
+        return {"configured": False}
+    try:
+        days = max(1, min(cp.getint("calendar", "days", fallback=14), 60))
+    except ValueError:
+        days = 14
+    import datetime as _dt
+    now = _dt.datetime.now()
+    occ = calendar_ics.upcoming(CAL["events"], now, days)
+    return {"configured": True, "ok": CAL["error"] is None or bool(CAL["events"]), "error": CAL["error"], "loaded": bool(CAL["ts"]),
+            "events": calendar_ics.to_json(occ, now)}
+
+
 def screensaver_info(cp):
     """Ajustes del salvapantallas / marco de fotos y la lista de fotos."""
     def num(key, default, lo, hi):
@@ -1073,6 +1123,7 @@ def main():
     threading.Thread(target=backup_loop, daemon=True).start()
     start_motion(cp)
     start_timers()
+    threading.Thread(target=calendar_loop, daemon=True).start()
     print("PiCore escuchando en http://%s:%d" % (host, port), flush=True)
     make_server(host, port).serve_forever()
 

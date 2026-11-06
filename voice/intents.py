@@ -140,6 +140,8 @@ def parse(text):
     words = t.split()
     has = lambda *ks: any(k in t for k in ks)
 
+    if has("calendario", "agenda", "que tengo", "tengo algo", "mis eventos", "proximo evento", "tengo hoy", "tengo manana"):
+        return Intent("calendar", "tomorrow" if has("manana") else "today")
     if has("temporizador", "cuenta atras", "cuentaatras"):
         if has("cancela", "quita", "borra", "elimina", "olvida"):
             return Intent("timer_cancel", None)
@@ -240,6 +242,17 @@ def say_weather(w):
     elif w.get("rain") is not None and w["rain"] >= 50:
         txt += ". Hoy hay un %d por ciento de probabilidad de lluvia" % w["rain"]
     return txt
+
+
+def say_calendar(events, which="today"):
+    """Frase con los eventos de hoy o de manana (lista ya en JSON del servidor)."""
+    want = "Mañana" if which == "tomorrow" else "Hoy"
+    mine = [e for e in events if e["when"] == want]
+    word = "mañana" if which == "tomorrow" else "hoy"
+    if not mine:
+        return "No tienes nada %s" % word
+    parts = ["%s%s" % (e["title"], (" a las " + e["time"].replace(":", " y ").replace(" y 00", " en punto")) if e["time"] else "") for e in mine[:4]]
+    return "%s tienes: %s" % (word.capitalize(), "; ".join(parts))
 
 
 def say_duration(secs):

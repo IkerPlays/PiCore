@@ -142,6 +142,12 @@ def execute(cfg, intent):
             level = max(10, min(100, level))
             api(cfg, "/api/display", {"level": level, "auto": False})
             return "Brillo al %d por ciento" % level
+        if n == "calendar":
+            with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
+                cal = json.load(r).get("calendar", {})
+            if not cal.get("configured"):
+                return "No tienes ningún calendario configurado"
+            return intents.say_calendar(cal.get("events", []), a)
         if n == "ask":
             return ask_ai(cfg, a)
         if n == "timer_set":
