@@ -37,6 +37,21 @@ def loading_media(base=None):
     return out[:MAX_MEDIA]
 
 
+PHOTO_EXTS = (".png", ".jpg", ".jpeg", ".webp")
+MAX_PHOTOS = 200
+
+
+def list_photos(base=None):
+    """URLs de las fotos de extra-assets/photos (marco de fotos / salvapantallas), por orden de nombre."""
+    base = base or assets_dir()
+    folder = base / "photos"
+    try:
+        names = sorted(n for n in os.listdir(folder) if not n.startswith(".") and n.lower().endswith(PHOTO_EXTS) and (folder / n).is_file())
+    except OSError:
+        return []
+    return ["/assets/photos/" + quote(n) for n in names[:MAX_PHOTOS]]
+
+
 def quote(name):
     from urllib.parse import quote as q
     return q(name, safe="")

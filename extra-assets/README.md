@@ -9,6 +9,7 @@ extra-assets/
 │   ├── Inicio2.mp4            (Inicio.mp4 vale como Inicio1.mp4)
 │   ├── Inicio3.mp4
 │   └── Inicio4.mp4
+├── photos/                 ← fotos del salvapantallas (.png .jpg .jpeg .webp)
 └── loading/
     ├── images/             ← imágenes pequeñas  (.png .jpg .jpeg .webp .svg)
     ├── gifs/               ← GIFs               (.gif)
@@ -44,6 +45,10 @@ Chromium en la Raspberry Pi reproduce **H.264** sin problemas, pero **H.265 (HEV
 - **`./install.sh` hace solo una copia H.264** de los vídeos de inicio que lleven H.265 (si pesan menos de 150 MB; tarda unos segundos). La copia va a `extra-assets/start/.h264/` y **el servidor la usa en lugar del original**. **Tus originales no se tocan** y, si cambias un vídeo, se vuelve a convertir.
 - El **vídeo 4** (el que se descarga, ~500 MB) se convierte **en segundo plano** nada más descargarse, con prioridad baja, si lleva H.265.
 - A mano: `pcpi-intros check` (qué codec lleva cada uno y si hay copia) y `pcpi-intros convert` (`--only Inicio4.mp4`, `--max-mb N`, `--yes`).
+
+## Fotos para el salvapantallas (`photos/`)
+
+Las fotos de `extra-assets/photos/` (`.png`, `.jpg`, `.jpeg`, `.webp`) se muestran en el **marco de fotos** del modo Casa cuando nadie toca la pantalla (por defecto a los 5 minutos). Recomendado: unos **1280 px de ancho** y menos de 1 MB cada una. Si no hay ninguna, se ve solo el reloj grande. Ajustes en `[screensaver]` de `pcpi.conf`.
 
 ## Pantalla de Carga (`loading/`)
 

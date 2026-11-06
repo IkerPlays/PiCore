@@ -732,6 +732,8 @@ class Handler(BaseHTTPRequestHandler):
             if not self._local():
                 return
             return self._send(200, wifi_info("scan=1" in self.path))
+        if path == "/api/screensaver":
+            return self._send(200, screensaver_info(read_conf()))
         if path == "/api/download":
             dl = intro4_downloader(read_conf())
             return self._send(200, dl.status() if dl else {"state": "done", "percent": 100.0})
@@ -989,6 +991,21 @@ def start_timers():
                 pass
             time.sleep(1)
     threading.Thread(target=loop, daemon=True).start()
+
+
+def screensaver_info(cp):
+    """Ajustes del salvapantallas / marco de fotos y la lista de fotos."""
+    def num(key, default, lo, hi):
+        try:
+            return max(lo, min(cp.getfloat("screensaver", key, fallback=default), hi))
+        except ValueError:
+            return default
+    return {"enabled": cp.getboolean("screensaver", "enabled", fallback=True),
+            "idle_seconds": int(num("idle_minutes", 5, 0.1, 240) * 60),
+            "seconds_per_photo": int(num("seconds_per_photo", 12, 3, 300)),
+            "clock": cp.getboolean("screensaver", "show_clock", fallback=True),
+            "shuffle": cp.getboolean("screensaver", "shuffle", fallback=True),
+            "photos": assets.list_photos()}
 
 
 def ai_info(cp):

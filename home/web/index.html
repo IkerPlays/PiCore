@@ -187,6 +187,18 @@
   #chip-bat.low { color:var(--warn); } #chip-bat.low .cell i { background:var(--warn); }
   #chip-bat.crit { color:var(--bad); animation:blink 1.2s ease-in-out infinite; } #chip-bat.crit .cell i { background:var(--bad); }
 
+  /* ---------------- salvapantallas / marco de fotos ---------------- */
+  #saver { position:fixed; inset:0; z-index:3; background:#000; opacity:0; pointer-events:none; transition:opacity 1.2s ease; overflow:hidden; }
+  #saver.on { opacity:1; pointer-events:auto; }
+  #saver .ph { position:absolute; inset:0; background:center/cover no-repeat; opacity:0; transition:opacity 2s ease; will-change:opacity,transform; }
+  #saver .ph.show { opacity:1; animation:kb 22s ease-in-out forwards; }
+  @keyframes kb { from { transform:scale(1.02) translate(0,0); } to { transform:scale(1.12) translate(-1.5%,-1%); } }
+  #saver .shade { position:absolute; inset:auto 0 0 0; height:40%; background:linear-gradient(transparent,#000a); }
+  #saver .sclock { position:absolute; color:#fff; text-shadow:0 2px 18px #000c; transition:left 3s ease, top 3s ease, bottom 3s ease; }
+  #saver .sclock b { display:block; font-size:clamp(60px,12vw,130px); font-weight:700; letter-spacing:-.04em; line-height:1; font-variant-numeric:tabular-nums; }
+  #saver .sclock span { font-size:clamp(18px,3vw,28px); opacity:.85; }
+  #saver.only { background:#05070a; }
+
   /* ---------------- movimiento ---------------- */
   #chip-motion { opacity:.55; } #chip-motion.on { opacity:1; border-color:var(--ok); }
   #motion { position:fixed; left:50%; top:16px; transform:translate(-50%,-120px); z-index:6; display:flex; align-items:center; gap:12px; padding:12px 22px; border-radius:999px;
@@ -302,6 +314,7 @@
   <div class="dim" style="font-size:14px;margin-bottom:6px">Próximas horas</div><div class="hours" id="w-hours"></div>
   <div class="dim" style="font-size:14px;margin-bottom:6px">Próximos días</div><div class="days" id="w-days"></div>
 </section>
+<div id="saver" aria-hidden="true"><div class="shade"></div><div class="sclock" id="sclock"><b id="sc-time"></b><span id="sc-date"></span></div></div>
 <div id="scrim"></div>
 <section id="sheet" aria-label="Wi-Fi">
   <div class="sh-head"><h3>Wi-Fi</h3><button id="sh-close" aria-label="Cerrar">✕</button></div>
@@ -470,6 +483,41 @@ function paintBattery(b) {
   chip.lastChild.textContent = (b.charging ? "⚡" : "") + b.percent + "%";
   chip.title = b.critical ? "Batería crítica: conecta el cargador" : b.low ? "Batería baja" : b.charging ? "Cargando" : "Batería";
 }
+
+/* ---- salvapantallas / marco de fotos: tras un rato sin tocar, fotos con la hora (un toque lo quita) ---- */
+let SV = null, svOn = false, svIdx = 0, svLast = Date.now(), svTimer = 0, svOrder = [];
+async function loadSaver() { try { SV = await (await fetch("/api/screensaver")).json(); svOrder = shuffleIf(SV.photos, SV.shuffle); } catch (e) {} }
+function shuffleIf(a, sh) { a = a.slice(); if (sh) for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function svClock() {
+  const d = new Date();
+  $("sc-time").textContent = d.toLocaleTimeString("es-ES", {hour:"2-digit", minute:"2-digit"});
+  const ds = d.toLocaleDateString("es-ES", {weekday:"long", day:"numeric", month:"long"});
+  $("sc-date").textContent = ds.charAt(0).toUpperCase() + ds.slice(1);
+  const c = $("sclock"), pos = (d.getMinutes() % 4);                    // el reloj cambia de esquina cada minuto (no marca la pantalla)
+  c.style.left = pos % 2 ? "auto" : "5%"; c.style.right = pos % 2 ? "5%" : "auto"; c.style.top = pos > 1 ? "8%" : "auto"; c.style.bottom = pos > 1 ? "auto" : "9%";
+  c.style.display = SV && SV.clock === false ? "none" : "";
+}
+function svShowPhoto() {
+  if (!svOn || !svOrder.length) return;
+  const url = svOrder[svIdx++ % svOrder.length], box = $("saver");
+  const el = document.createElement("div"); el.className = "ph"; el.style.backgroundImage = "url(" + JSON.stringify(url) + ")";
+  box.insertBefore(el, box.firstChild);
+  const img = new Image(); img.onload = () => requestAnimationFrame(() => { el.classList.add("show"); [...box.querySelectorAll(".ph")].slice(2).forEach(o => o.remove()); }); img.onerror = () => el.remove(); img.src = url;
+  svTimer = setTimeout(svShowPhoto, (SV.seconds_per_photo || 12) * 1000);
+}
+function showSaver() {
+  if (svOn || !SV || !SV.enabled) return;
+  svOn = true; const box = $("saver"); box.classList.toggle("only", !svOrder.length);
+  svClock(); box.classList.add("on"); svShowPhoto();
+}
+function hideSaver() { svLast = Date.now(); if (!svOn) return; svOn = false; clearTimeout(svTimer); $("saver").classList.remove("on"); setTimeout(() => { if (!svOn) $("saver").querySelectorAll(".ph").forEach(o => o.remove()); }, 1300); }
+function busyForSaver() { return camShown() || $("tring").classList.contains("on") || document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on") || $("switching").classList.contains("on"); }
+["pointerdown", "keydown", "touchstart"].forEach(ev => document.addEventListener(ev, e => { if (svOn) { e.preventDefault(); e.stopPropagation(); } hideSaver(); }, true));
+setInterval(() => {
+  if (svOn) { svClock(); if (busyForSaver()) hideSaver(); return; }
+  if (SV && SV.enabled && !busyForSaver() && Date.now() - svLast >= SV.idle_seconds * 1000) showSaver();
+}, 1000);
+loadSaver(); setInterval(loadSaver, 5 * 60 * 1000);
 
 /* ---- detalle del tiempo: por horas y proximos dias ---- */
 function renderWeather() {
@@ -766,6 +814,7 @@ async function refresh() {
 
   const v = s.voice || {};
   const fresh = v.ts && (Date.now() / 1000 - v.ts) < 8;
+  if (v.state && v.state !== "listening" && v.state !== "off") hideSaver();          // hablarle a la Pi tambien despierta la pantalla
   if (v.state === "awake") showVoice("Te escucho…", true, 0);
   else if (v.state === "thinking") showVoice("Pensando…", true, 0);
   else if (v.state === "speaking") showVoice(v.reply || "", true, 0);
