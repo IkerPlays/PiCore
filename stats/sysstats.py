@@ -9,7 +9,9 @@ import re
 import shutil
 import socket
 import subprocess
+import sys
 import time
+from pathlib import Path
 
 PROC = os.environ.get("PCPI_PROC", "/proc")
 SYS = os.environ.get("PCPI_SYS", "/sys")
@@ -153,6 +155,19 @@ def local_ip():
         return None
 
 
+def read_battery():
+    """Bateria de /sys/class/power_supply o de [battery] command (la misma logica que la interfaz); None si no hay."""
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "home"))
+        import battery
+        import pcpiconf
+        cp = pcpiconf.load(os.environ.get("PCPI_CONF", "/etc/pcpi/pcpi.conf"))
+        r = battery.read(cp)
+        return r if r.get("available") else None
+    except Exception:     # noqa: BLE001  (la mini pantalla nunca debe caerse por esto)
+        return None
+
+
 def _vcgencmd(*args):
     exe = shutil.which("vcgencmd")
     if not exe:
@@ -194,4 +209,5 @@ class Stats:
             "net": self.net.rates(),
             "ip": self._every("ip", 30, local_ip),
             "uptime_s": uptime_s(),
+            "battery": self._every("bat", 15, read_battery),
         }

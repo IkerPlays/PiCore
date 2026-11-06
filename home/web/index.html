@@ -146,6 +146,14 @@
   .spin { display:inline-block; width:18px; height:18px; border:3px solid var(--line); border-top-color:var(--acc); border-radius:50%; animation:spin .8s linear infinite; vertical-align:-3px; margin-right:8px; }
   @keyframes spin { to { transform:rotate(360deg); } }
 
+  /* ---------------- bateria ---------------- */
+  #chip-bat { color:var(--fg); border-color:var(--line); display:flex; align-items:center; gap:7px; }
+  #chip-bat .cell { width:26px; height:13px; border:2px solid currentColor; border-radius:4px; position:relative; padding:1px; }
+  #chip-bat .cell::after { content:""; position:absolute; right:-5px; top:2px; width:3px; height:5px; background:currentColor; border-radius:0 2px 2px 0; }
+  #chip-bat .cell i { display:block; height:100%; border-radius:1px; background:var(--ok); transition:width 1s var(--ease), background .4s; }
+  #chip-bat.low { color:var(--warn); } #chip-bat.low .cell i { background:var(--warn); }
+  #chip-bat.crit { color:var(--bad); animation:blink 1.2s ease-in-out infinite; } #chip-bat.crit .cell i { background:var(--bad); }
+
   /* ---------------- movimiento ---------------- */
   #chip-motion { opacity:.55; } #chip-motion.on { opacity:1; border-color:var(--ok); }
   #motion { position:fixed; left:50%; top:16px; transform:translate(-50%,-120px); z-index:6; display:flex; align-items:center; gap:12px; padding:12px 22px; border-radius:999px;
@@ -185,6 +193,7 @@
     <div id="greet"></div>
     <div id="chips">
       <span class="chip" id="chip-cpu" hidden></span>
+      <span class="chip" id="chip-bat" hidden></span>
       <button class="chip" id="chip-motion" hidden aria-label="Vigilancia">👁</button>
       <button class="chip" id="chip-bright" aria-label="Brillo" style="color:var(--fg)">☀</button>
       <button class="chip" id="chip-wifi" hidden aria-label="Wi-Fi">
@@ -404,6 +413,17 @@ $("chip-bright").onclick = () => { syncBPanel(); $("scrim").classList.add("on");
 function closeBright() { $("bpanel").classList.remove("on"); if (!$("sheet").classList.contains("on")) $("scrim").classList.remove("on"); }
 $("b-close").onclick = closeBright;
 
+/* ---- bateria (solo si hay un UPS o un comando que la mida; la Pi 5 no la mide sola) ---- */
+function paintBattery(b) {
+  const chip = $("chip-bat");
+  if (!b || !b.available) { chip.hidden = true; return; }
+  chip.hidden = false;
+  chip.className = "chip" + (b.critical ? " crit" : b.low ? " low" : "");
+  chip.innerHTML = '<span class="cell"><i style="width:' + Math.max(4, b.percent) + '%"></i></span><span></span>';
+  chip.lastChild.textContent = (b.charging ? "⚡" : "") + b.percent + "%";
+  chip.title = b.critical ? "Batería crítica: conecta el cargador" : b.low ? "Batería baja" : b.charging ? "Cargando" : "Batería";
+}
+
 /* ---- vigilancia de movimiento ---- */
 let motionSeen = null, motionEnabled = false, motionTimer = 0;
 function paintMotion(m) {
@@ -582,6 +602,7 @@ async function refresh() {
   paintNet(s.net);
   paintDisplay(s.display);
   paintMotion(s.motion);
+  paintBattery(s.battery);
 
   const c = s.camera || {};
   $("open-cam").style.display = c.available ? "" : "none";

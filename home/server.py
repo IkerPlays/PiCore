@@ -20,6 +20,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import assets
+import battery
 import display
 import motion
 import netmgr
@@ -446,6 +447,7 @@ def status():
         "net": net_summary(),
         "display": display_info(cp),
         "motion": motion_status(cp),
+        "battery": cached("battery", 15, lambda: battery.read(cp)),
         "ip": cached("ip", 60, local_ip),
         "host": socket.gethostname(),
     }

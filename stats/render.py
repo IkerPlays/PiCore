@@ -44,7 +44,12 @@ def rows(snap):
     out.append([(0, "RAM"), (27, ram), (-1, _pct(mem["pct"] if mem else None))])
     dsk = "--" if not dk else "%.0f/%.0fG" % (dk["used_gb"], dk["total_gb"])
     out.append([(0, "DSK"), (27, dsk), (-1, _pct(dk["pct"] if dk else None))])
-    out.append([(0, "GPU"), (27, "--" if gpu is None else "%dMHz" % gpu)] + ([] if fan is None else [(-1, "Fan %d" % fan)]))
+    bat = snap.get("battery")
+    if bat:    # con bateria, esa fila se dedica a ella (es lo que importa si se acaba): «BAT 87% cargando»
+        state = "carga" if bat.get("charging") else ("!BAJA" if bat.get("low") else "")
+        out.append([(0, "BAT"), (27, "%d%%" % bat["percent"])] + ([(-1, state)] if state else []))
+    else:
+        out.append([(0, "GPU"), (27, "--" if gpu is None else "%dMHz" % gpu)] + ([] if fan is None else [(-1, "Fan %d" % fan)]))
     thr = (snap.get("throttled") or {}).get("now") or []
     if thr:    # aviso: lo mas importante para ver de un vistazo
         out.append([(0, "!" + ("VOLTAJE BAJO" if "undervolt" in thr else "CPU LIMITADA" if "throttled" in thr else "DEMASIADO CALOR"))])

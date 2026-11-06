@@ -118,3 +118,11 @@ cooldown = 30
 # Fotogramas por segundo que se analizan (1-10).
 fps = 2
 
+[battery]
+# La Raspberry Pi 5 NO mide la bateria. Un indicador solo existe si tienes un UPS/HAT con bateria que aparezca en
+# /sys/class/power_supply, o un comando propio que escriba el porcentaje (p. ej. "87" o "87 charging"):
+# command = /usr/local/bin/mi-ups-porcentaje
+# Avisos (en %): bateria baja y critica.
+low_percent = 20
+critical_percent = 10
+

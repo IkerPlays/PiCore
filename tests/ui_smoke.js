@@ -100,6 +100,24 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     await page.request.post(base + '/api/motion', { headers: { 'X-PCPI': '1' }, data: { enabled: false } });
   }
 
+  // ------------------------------------------------------------------ bateria (solo si el servidor la reporta)
+  await page.goto(base + '/');
+  await sleep(1500);
+  check('sin bateria no se muestra el indicador', await page.isHidden('#chip-bat'));
+  let fakeBat = null;
+  await page.route('**/api/status', async route => {
+    const resp = await route.fetch(); const j = await resp.json();
+    if (fakeBat) j.battery = fakeBat;
+    await route.fulfill({ response: resp, json: j });
+  });
+  fakeBat = { available: true, percent: 12, charging: false, low: true, critical: false };
+  await page.waitForFunction(() => !document.getElementById('chip-bat').hidden, null, { timeout: 9000 }).catch(() => {});
+  check('la bateria baja se muestra en aviso', (await page.getAttribute('#chip-bat', 'class')).includes('low') && (await page.textContent('#chip-bat')).includes('12%'));
+  fakeBat = { available: true, percent: 80, charging: true, low: false, critical: false };
+  await page.waitForFunction(() => document.getElementById('chip-bat').textContent.includes('⚡'), null, { timeout: 9000 }).catch(() => {});
+  check('cargando muestra el rayo y quita el aviso', (await page.textContent('#chip-bat')).includes('⚡80%') && !(await page.getAttribute('#chip-bat', 'class')).includes('low'));
+  await page.unroute('**/api/status');
+
   // ------------------------------------------------------------------ Wi-Fi (panel + teclado en pantalla)
   await page.goto(base + '/');
   await page.waitForFunction(() => !document.getElementById('chip-wifi').hidden, null, { timeout: 8000 }).catch(() => {});
