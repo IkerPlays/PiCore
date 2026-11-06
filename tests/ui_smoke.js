@@ -1,5 +1,6 @@
 // Prueba de humo de la interfaz en un navegador de verdad (Playwright). Uso: node ui_smoke.js http://127.0.0.1:PUERTO
 const { chromium } = require('playwright');
+const { patchWaitForFunction } = require('./pw_helpers');
 const base = process.argv[2];
 const results = [];
 const check = (name, ok, extra) => { results.push({ name, ok: !!ok, extra: extra || '' }); };
@@ -9,6 +10,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport: { width: 1024, height: 600 }, locale: 'es-ES', timezoneId: 'Atlantic/Canary' });
   const page = await ctx.newPage();
+  patchWaitForFunction(page);
   const problems = [];
   page.on('pageerror', e => problems.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error' && !/scdn|ERR_NAME|ERR_INTERNET|net::|status of 400/.test(m.text())) problems.push('console: ' + m.text()); });

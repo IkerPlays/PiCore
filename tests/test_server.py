@@ -152,6 +152,25 @@ class ServerTest(unittest.TestCase):
         self.assertFalse(json.loads(self.req("/api/status")[1])["camera"]["available"])
         self.assertEqual(self.req("/api/camera/stream")[0], 404)
 
+    def test_weather_accepts_decimal_comma_and_rejects_garbage(self):
+        import configparser
+        urls = []
+        real = server.http_json
+        server.http_json = lambda url, timeout=4, **k: (urls.append(url), {"current": {"temperature_2m": 20, "weather_code": 1}, "daily": {}})[1]
+        try:
+            for lat, lon in (("28,0989", "-15,4722"), ("28.0989", "-15.4722"), (" 28.0989 ", "-15.4722 ")):
+                cp = configparser.ConfigParser()
+                cp.read_string("[weather]\nlat = %s\nlon = %s\n" % (lat, lon))
+                self.assertTrue(server.weather(cp)["ok"], (lat, lon))
+                self.assertIn("latitude=28.0989&longitude=-15.4722", urls[-1])
+            cp = configparser.ConfigParser()
+            cp.read_string("[weather]\nlat = abc\nlon = 1&x=2\n")
+            n = len(urls)
+            self.assertEqual(server.weather(cp), {"ok": False, "error": "coordenadas no validas"})
+            self.assertEqual(len(urls), n)                              # ni siquiera se llama a la API
+        finally:
+            server.http_json = real
+
     def test_nowplaying(self):
         Path(os.environ["PCPI_NOWPLAYING"]).write_text('{"state":"playing","title":"T","artist":"A"}')
         self.assertEqual(json.loads(self.req("/api/status")[1])["nowplaying"]["title"], "T")

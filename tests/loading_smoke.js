@@ -1,5 +1,6 @@
 // Pantalla de Carga en un navegador de verdad. Uso: node loading_smoke.js http://127.0.0.1:PUERTO fake_seconds
 const { chromium } = require('playwright');
+const { patchWaitForFunction } = require('./pw_helpers');
 const base = process.argv[2];
 const results = [];
 const check = (name, ok, extra) => results.push({ name, ok: !!ok, extra: extra || '' });
@@ -13,6 +14,7 @@ const tvOn = page => page.evaluate(() => document.getElementById('tv').classList
   const newPage = async () => {
     const ctx = await browser.newContext({ viewport: { width: 1024, height: 600 } });
     const p = await ctx.newPage();
+    patchWaitForFunction(p);
     p.on('pageerror', e => problems.push('pageerror: ' + e.message));
     return p;
   };

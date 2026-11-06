@@ -37,12 +37,16 @@ class UiSmokeTest(unittest.TestCase):
         emu = subprocess.Popen([sys.executable, str(ROOT / "tools" / "emulate.py"), "--no-repl", "--port", str(port)],
                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         try:
-            for _ in range(50):
+            for _ in range(150):                      # hasta ~30 s: el emulador copia tus assets y arranca varios servicios
+                if emu.poll() is not None:
+                    self.fail("el emulador se cerro al arrancar (codigo %s)" % emu.returncode)
                 try:
                     urllib.request.urlopen("http://127.0.0.1:%d/api/mode" % port, timeout=1)
                     break
                 except OSError:
                     time.sleep(0.2)
+            else:
+                self.fail("el emulador no arranco en 30 s")
             r = subprocess.run(["node", str(ROOT / "tests" / "ui_smoke.js"), "http://127.0.0.1:%d" % port],
                                capture_output=True, text=True, env=node_env(), timeout=120)
             self.assertEqual(r.returncode, 0, "\n" + r.stdout + r.stderr)

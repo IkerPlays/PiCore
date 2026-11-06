@@ -1,4 +1,5 @@
 import json
+import os
 import socket
 import subprocess
 import sys
@@ -54,8 +55,16 @@ class EmulatorIntrosTest(unittest.TestCase):
 
     def start(self, *extra, repl=False):
         self.port = free_port()
+        # Hermetico: sus propios videos de prueba (no depende de lo que haya en extra-assets ni de variables de otras pruebas)
+        import tempfile
+        assets = Path(tempfile.mkdtemp()) / "assets"
+        (assets / "start").mkdir(parents=True)
+        fake_mp4 = b"\x00\x00\x00\x18ftypmp42\x00\x00\x00\x00mp42isom" + bytes(range(256)) * 600
+        for n in (1, 2, 3):
+            (assets / "start" / ("Inicio%d.mp4" % n)).write_bytes(fake_mp4 + bytes([n]))
+        env = {**os.environ, "PCPI_ASSETS": str(assets)}
         self.p = subprocess.Popen([sys.executable, str(ROOT / "tools" / "emulate.py"), *([] if repl else ["--no-repl"]), "--port", str(self.port), *extra],
-                                  stdin=subprocess.PIPE if repl else None, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+                                  stdin=subprocess.PIPE if repl else None, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, env=env)
         self.base = "http://127.0.0.1:%d" % self.port
         for _ in range(60):
             try:

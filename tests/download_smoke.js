@@ -1,5 +1,6 @@
 // Pantalla de descarga del intro 4. Uso: node download_smoke.js URL [skip]
 const { chromium } = require('playwright');
+const { patchWaitForFunction } = require('./pw_helpers');
 const base = process.argv[2], mode = process.argv[3] || 'wait';
 const results = [];
 const check = (name, ok, extra) => results.push({ name, ok: !!ok, extra: extra || '' });
@@ -8,6 +9,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 (async () => {
   const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
   const page = await (await browser.newContext({ viewport: { width: 1024, height: 600 } })).newPage();
+  patchWaitForFunction(page);
   const problems = [];
   page.on('pageerror', e => problems.push(e.message));
   await page.goto(base + '/loading?to=home&boot=1');

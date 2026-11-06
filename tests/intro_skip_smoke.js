@@ -1,5 +1,6 @@
 // Boton «Saltar» del Inicio. Uso: node intro_skip_smoke.js URL [noskip]
 const { chromium } = require('playwright');
+const { patchWaitForFunction } = require('./pw_helpers');
 const base = process.argv[2], expectNoSkip = process.argv[3] === 'noskip', noFlag = process.argv[3] === 'nosound';
 const results = [];
 const check = (name, ok, extra) => results.push({ name, ok: !!ok, extra: extra || '' });
@@ -10,6 +11,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const browser = await chromium.launch({ args: noFlag ? [] : ['--autoplay-policy=no-user-gesture-required'] });
   const ctx = await browser.newContext({ viewport: { width: 1024, height: 600 } });
   const page = await ctx.newPage();
+  patchWaitForFunction(page);
   const problems = [];
   page.on('pageerror', e => problems.push(e.message));
   await page.goto(base + '/loading?to=home&boot=1');

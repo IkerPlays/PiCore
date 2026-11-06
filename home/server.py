@@ -253,10 +253,15 @@ def pihole_stats(cp):
 
 def weather(cp):
     """Tiempo actual via Open-Meteo (sin API key). Desactivado si no hay coordenadas."""
-    lat = cp.get("weather", "lat", fallback="")
-    lon = cp.get("weather", "lon", fallback="")
+    lat = cp.get("weather", "lat", fallback="").strip()
+    lon = cp.get("weather", "lon", fallback="").strip()
     if not lat or not lon:
         return {"ok": False, "error": "no configurado"}
+    # En español se escribe 28,0989: se acepta la coma decimal (la API necesita punto) y se rechaza lo que no sea un numero
+    try:
+        lat, lon = repr(float(lat.replace(",", "."))), repr(float(lon.replace(",", ".")))
+    except ValueError:
+        return {"ok": False, "error": "coordenadas no validas"}
     try:
         base = cp.get("weather", "api_url", fallback="https://api.open-meteo.com/v1/forecast")
         d = http_json(
