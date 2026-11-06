@@ -57,8 +57,16 @@ Antes de comprar nada puedes ver cómo se verá todo **en tu ordenador** (Linux,
 ```bash
 git clone https://github.com/IkerPlays/PCRaspberryPI5.git
 cd PCRaspberryPI5
-make emulate
+python3 tools/emulate.py        # Linux / macOS (también vale: make emulate)
 ```
+
+En **Windows** no existe `make` ni `python3`; usa en su lugar (en `cmd` o PowerShell, dentro de la carpeta del proyecto):
+
+```
+python tools\emulate.py
+```
+
+(si `python` no se reconoce, prueba `py tools\emulate.py`, o instala Python desde <https://www.python.org/downloads/> marcando *Add python.exe to PATH*). Pensado para Linux/macOS; en Windows no está probado.
 
 Abre <http://127.0.0.1:8080> en el navegador.
 

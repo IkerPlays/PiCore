@@ -18,7 +18,7 @@ Un PC portátil con **Raspberry Pi 5 (8 GB)** y pantalla táctil de 7" con tres 
 ## Probar sin Raspberry Pi (emulador)
 
 ```bash
-make emulate        # o: python3 tools/emulate.py
+make emulate        # o: python3 tools/emulate.py   (Windows: python tools\emulate.py)
 ```
 
 Abre <http://127.0.0.1:8080> y tienes el modo Casa funcionando en tu ordenador con un Pi-hole falso, tiempo, cámara de prueba y Spotify de mentira. En la misma terminal **escribes lo que dirías**: `oye pi qué hora es`, `oye pi` + (siguiente línea) `muestra la cámara`, `/spotify play Canción - Artista`, `/mode iker`... Usa el mismo código que la Pi (máquina de estados, intérprete de órdenes y acciones). Detalles en `python3 tools/emulate.py --help`.
