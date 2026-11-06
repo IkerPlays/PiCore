@@ -1,3 +1,6 @@
 __pycache__/
 *.pyc
 preview.png
+# El video del intro 4 (~500 MB) no va a GitHub: la Pi lo descarga sola la primera vez que se enciende
+extra-assets/start/Inicio4.mp4
+extra-assets/start/Inicio4.mp4.part

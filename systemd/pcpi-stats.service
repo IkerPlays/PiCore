@@ -1,5 +1,5 @@
 [Unit]
-Description=PCPi - mini pantalla de estado (OLED I2C)
+Description=PiCore - mini pantalla de estado (OLED I2C)
 After=multi-user.target
 
 [Service]

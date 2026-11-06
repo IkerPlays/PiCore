@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PCPi · Casa</title>
+<title>PiCore · Casa</title>
 <style>
   :root { --bg:#0b0d12; --card:#161a22; --card2:#1c2029; --fg:#f2f4f8; --dim:#8b93a3; --line:#262c38; --ok:#4ade80; --bad:#f87171; --warn:#fbbf24;
           --acc:#7aa7ff; --acc2:#b18cff; --acc-fg:#07101f; --orb1:#7aa7ff; --orb2:#b18cff; --orbo:.15; --shadow:0 18px 50px #0006;
@@ -233,7 +233,7 @@
         <div id="cover">🎵</div>
         <div id="meta">
           <div id="track">Nada sonando</div>
-          <div id="artist">Elige «PCPi» en Spotify Connect</div>
+          <div id="artist">Elige «PiCore» en Spotify Connect</div>
           <div id="pstate"></div>
         </div>
       </div>
@@ -587,10 +587,10 @@ async function refresh() {
     const m = $("meta"); m.classList.add("swap");
     setTimeout(() => {
       $("track").textContent = title;
-      $("artist").textContent = on ? (n.artist || "") : "Elige «PCPi» en Spotify Connect";
+      $("artist").textContent = on ? (n.artist || "") : "Elige «PiCore» en Spotify Connect";
       m.classList.remove("swap");
     }, 220);
-  } else { $("track").textContent = title; $("artist").textContent = on ? (n.artist || "") : "Elige «PCPi» en Spotify Connect"; }
+  } else { $("track").textContent = title; $("artist").textContent = on ? (n.artist || "") : "Elige «PiCore» en Spotify Connect"; }
   firstMusic = false;
   $("pstate").innerHTML = on ? (n.state === "playing" ? '<span class="eq"><i></i><i></i><i></i><i></i></span>Reproduciendo' : "⏸ En pausa") : "";
   const cv = $("cover");

@@ -186,6 +186,68 @@ class WifiCliTest(Base):
         self.assertIn("NetworkManager", r.stderr)
 
 
+class IntrosToolTest(Base):
+    """pcpi-intros con ffprobe/ffmpeg de mentira (el codec sale del nombre del archivo)."""
+
+    def setUp(self):
+        super().setUp()
+        self.start = self.t / "assets" / "start"
+        self.start.mkdir(parents=True)
+        # el «codec» de mentira sale del CONTENIDO del archivo: si pone «hevc», es hevc
+        shim(self.shims, "ffprobe", 'for a; do f=$a; done\nif grep -q hevc "$f" 2>/dev/null; then c=hevc; else c=h264; fi\n'
+                                    'printf \'{"streams":[{"codec_name":"%s","width":854,"height":480}],"format":{"duration":"10.0"}}\' "$c"\n')
+        shim(self.shims, "ffmpeg", 'prev=""; for a; do [ "$prev" = "-i" ] && in=$a; prev=$a; out=$a; done\n'
+                                   'grep -q fallar "$in" && exit 1\necho convertido > "$out"\n')
+        self.env2 = {**self.env, "PCPI_ASSETS": str(self.t / "assets"), "PCPI_INTROS_BACKUP": str(self.t / "originales")}
+
+    def run_tool(self, *args, inp=None):
+        return subprocess.run([sys.executable, str(BIN / "pcpi-intros"), *args], capture_output=True, text=True, env=self.env2, input=inp, timeout=60)
+
+    def test_check_flags_hevc(self):
+        (self.start / "Inicio1.mp4").write_text("h264")
+        (self.start / "Inicio2.mp4").write_text("hevc")
+        r = self.run_tool("check")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("✔ Inicio1.mp4", r.stdout)
+        self.assertIn("! Inicio2.mp4", r.stdout)
+        self.assertIn("pcpi-intros convert", r.stdout)
+
+    def test_check_all_good_and_empty(self):
+        self.assertEqual(self.run_tool("check").returncode, 0)
+        (self.start / "Inicio1.mp4").write_text("h264")
+        self.assertEqual(self.run_tool("check").returncode, 0)
+
+    def test_convert_keeps_original_and_only_touches_hevc(self):
+        (self.start / "Inicio1.mp4").write_text("h264")
+        (self.start / "Inicio2.mp4").write_text("hevc original")
+        r = self.run_tool("convert", "--yes")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertEqual((self.start / "Inicio1.mp4").read_text(), "h264")              # el bueno no se toca
+        self.assertEqual((self.start / "Inicio2.mp4").read_text().strip(), "convertido")
+        self.assertEqual((self.t / "originales" / "Inicio2.mp4").read_text(), "hevc original")
+        self.assertEqual(sorted(p.name for p in self.start.iterdir()), ["Inicio1.mp4", "Inicio2.mp4"])   # sin restos temporales
+
+    def test_convert_asks_and_can_cancel(self):
+        (self.start / "Inicio2.mp4").write_text("hevc original")
+        r = self.run_tool("convert", inp="n\n")
+        self.assertEqual(r.returncode, 1)
+        self.assertEqual((self.start / "Inicio2.mp4").read_text(), "hevc original")
+
+    def test_failed_conversion_leaves_the_original(self):
+        (self.start / "Inicio2.mp4").write_text("hevc fallar")
+        r = self.run_tool("convert", "--yes")
+        self.assertEqual(r.returncode, 1)
+        self.assertEqual((self.start / "Inicio2.mp4").read_text(), "hevc fallar")
+
+    def test_without_ffmpeg(self):
+        for n in ("ffprobe", "ffmpeg"):
+            (self.shims / n).unlink()
+        env = {**self.env2, "PATH": str(self.shims)}
+        r = subprocess.run([sys.executable, str(BIN / "pcpi-intros"), "check"], capture_output=True, text=True, env=env)
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("ffmpeg", r.stderr)
+
+
 class SessionLoopTest(Base):
     """El vigilante de modos con un Chromium de mentira: encendido -> carga -> modo, cambios de modo, portal cautivo."""
 

@@ -106,7 +106,7 @@ El resto (instalación, `i2cdetect`, ajustes) es igual. ⚠️ Comprueba los col
 2. Desde la carpeta del proyecto:
 
 ```bash
-cd ~/PCRaspberryPI5 && git pull
+cd ~/PiCore && git pull
 ./install.sh --stats
 sudo reboot
 ```

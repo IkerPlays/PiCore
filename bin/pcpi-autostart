@@ -14,7 +14,7 @@ LINE='pcpi-session &'
 case "$ACTION" in
   install)
     mkdir -p "$(dirname "$DESKTOP")" "$(dirname "$USER_AUTOSTART")"
-    printf '[Desktop Entry]\nType=Application\nName=PCPi session\nExec=pcpi-session\n' > "$DESKTOP"
+    printf '[Desktop Entry]\nType=Application\nName=PiCore session\nExec=pcpi-session\n' > "$DESKTOP"
     if [ ! -f "$USER_AUTOSTART" ] && [ -f "$SYSTEM_LABWC/autostart" ]; then
       cp "$SYSTEM_LABWC/autostart" "$USER_AUTOSTART"
     fi

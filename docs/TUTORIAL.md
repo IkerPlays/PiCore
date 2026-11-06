@@ -21,7 +21,7 @@ Esta guía te lleva de la **caja cerrada** a tener funcionando los tres modos: *
 | 4 | [Primer arranque](#paso-4-primer-arranque) | la Pi | 15 min |
 | 5 | [**Meter el código en la Pi** e instalarlo](#paso-5-meter-el-código-en-la-pi-e-instalarlo) | la Pi | 20–30 min |
 | 6 | [**Instalar y configurar Pi-hole**](#paso-6-instalar-y-configurar-pi-hole) | la Pi | 15 min |
-| 7 | [Configurar PCPi](#paso-7-configurar-pcpi): Spotify, tiempo, cámara, **voz** (con el asistente `pcpi-setup`) | la Pi | 20 min |
+| 7 | [Configurar PiCore](#paso-7-configurar-picore): Spotify, tiempo, cámara, **voz** (con el asistente `pcpi-setup`) | la Pi | 20 min |
 | 8 | [Usar los modos](#paso-8-usar-los-modos) y [las pantallas de **Inicio** y **Carga**](#82-las-pantallas-de-inicio-y-de-carga-tus-vídeos-y-gifs) | la Pi | 10 min |
 | 9 | [**Wi-Fi** en casa, de viaje y wifis públicas](#paso-9-wi-fi-en-casa-de-viaje-y-wifis-públicas) | la Pi | 10 min |
 | 10 | [Mini pantalla de estado: **conectar los cables Dupont** (opcional)](#paso-10-mini-pantalla-de-estado-opcional) | mesa + la Pi | 20 min |
@@ -55,8 +55,8 @@ Marca cada cosa antes de seguir; te ahorrará vueltas.
 Antes de comprar nada puedes ver cómo se verá todo **en tu ordenador** (Linux, macOS, o Windows con WSL), con Python 3 instalado:
 
 ```bash
-git clone https://github.com/IkerPlays/PCRaspberryPI5.git
-cd PCRaspberryPI5
+git clone https://github.com/IkerPlays/PiCore.git
+cd PiCore
 python3 tools/emulate.py        # Linux / macOS (también vale: make emulate)
 ```
 
@@ -214,7 +214,7 @@ sudo reboot
 
 ### 5.1 Qué es «el código» y de dónde sale
 
-El código del proyecto vive en **GitHub** (una web donde se guardan proyectos), en <https://github.com/IkerPlays/PCRaspberryPI5>. Un programa llamado **`git`** sabe copiar ese proyecto a tu Pi: se llama *clonar*. No tienes que registrarte en nada.
+El código del proyecto vive en **GitHub** (una web donde se guardan proyectos), en <https://github.com/IkerPlays/PiCore>. Un programa llamado **`git`** sabe copiar ese proyecto a tu Pi: se llama *clonar*. No tienes que registrarte en nada.
 
 Es **todo texto**: ni compilar ni nada raro. El instalador se encarga de ponerlo en su sitio (`/opt/pcpi`), crear los servicios y dejar el modo Casa preparado.
 
@@ -261,8 +261,8 @@ Copia estas tres órdenes, **de una en una**, y pulsa `Enter` después de cada u
 
 ```bash
 sudo apt install -y git
-git clone https://github.com/IkerPlays/PCRaspberryPI5.git
-cd PCRaspberryPI5
+git clone https://github.com/IkerPlays/PiCore.git
+cd PiCore
 ```
 
 Qué hace cada una:
@@ -270,8 +270,8 @@ Qué hace cada una:
 | Orden | Qué hace |
 |---|---|
 | `sudo apt install -y git` | Instala el programa `git` (si ya está, dice *«ya está en su versión más reciente»*). `sudo` = «como administrador»; te pedirá la contraseña |
-| `git clone …` | Descarga el proyecto en una carpeta nueva llamada `PCRaspberryPI5` |
-| `cd PCRaspberryPI5` | **Entra** en esa carpeta (*change directory*). A partir de aquí estás «dentro» del proyecto |
+| `git clone …` | Descarga el proyecto en una carpeta nueva llamada `PiCore` |
+| `cd PiCore` | **Entra** en esa carpeta (*change directory*). A partir de aquí estás «dentro» del proyecto |
 
 Comprueba que estás dentro y que el proyecto está completo:
 
@@ -280,7 +280,7 @@ pwd          # dónde estoy
 ls           # qué hay aquí
 ```
 
-✅ `pwd` debe decir `/home/iker/PCRaspberryPI5` (con tu usuario) y `ls` debe listar, entre otros: `install.sh  home  bin  voice  config  docs  extra-assets`.
+✅ `pwd` debe decir `/home/iker/PiCore` (con tu usuario) y `ls` debe listar, entre otros: `install.sh  home  bin  voice  config  docs  extra-assets`.
 
 ### 5.5 Ejecutar el instalador
 
@@ -350,8 +350,8 @@ pcpi-doctor
 
 | Quiero… | Hago… |
 |---|---|
-| **Actualizar PCPi** a la última versión | **`pcpi-update`** (hace una copia de seguridad, descarga lo nuevo y reinstala con **las mismas opciones** que usaste). `pcpi-update --check` solo mira si hay novedades. A mano: `cd ~/PCRaspberryPI5 && git pull && ./install.sh …` |
-| **Ver qué cambié yo** en la carpeta | `cd ~/PCRaspberryPI5 && git status` |
+| **Actualizar PiCore** a la última versión | **`pcpi-update`** (hace una copia de seguridad, descarga lo nuevo y reinstala con **las mismas opciones** que usaste). `pcpi-update --check` solo mira si hay novedades. A mano: `cd ~/PiCore && git pull && ./install.sh …` |
+| **Ver qué cambié yo** en la carpeta | `cd ~/PiCore && git status` |
 | `git pull` se queja de *«local changes»* | Tocaste algún archivo del repositorio. Si no te importa: `git checkout -- .` y repite `git pull`. (Tu configuración está en `/etc/pcpi/pcpi.conf`, **fuera** del repositorio: no se pierde) |
 | **Editar un archivo** | `nano /etc/pcpi/pcpi.conf`. Guardar: `Ctrl+O`, `Enter`. Salir: `Ctrl+X` |
 | Poner **mis vídeos** de Inicio/Carga | Mira el [Paso 8](#82-las-pantallas-de-inicio-y-de-carga-tus-vídeos-y-gifs) |
@@ -376,7 +376,7 @@ pcpi-doctor
 
 | Opción | Qué significa | Qué tienes que hacer |
 |---|---|---|
-| **A. Solo esta Pi** *(la que usa esta guía)* | Pi-hole filtra lo que abras **en el PC de Raspberry** (Chromium en modo Iker, etc.) | **Nada más.** PCPi pone solo el DNS de la Pi en `127.0.0.1` en cada wifi (mira el [Paso 9](#paso-9-wi-fi-en-casa-de-viaje-y-wifis-públicas)) |
+| **A. Solo esta Pi** *(la que usa esta guía)* | Pi-hole filtra lo que abras **en el PC de Raspberry** (Chromium en modo Iker, etc.) | **Nada más.** PiCore pone solo el DNS de la Pi en `127.0.0.1` en cada wifi (mira el [Paso 9](#paso-9-wi-fi-en-casa-de-viaje-y-wifis-públicas)) |
 | **B. Toda tu casa** | El móvil, la tele, etc. también pasan por Pi-hole | Cambiar el **DNS en tu router** a la IP de la Pi (y que esa IP no cambie). ⚠️ **Si la Pi está apagada, toda la casa se queda sin internet.** Es una opción avanzada: haz primero la A |
 
 ### 6.3 Instalar
@@ -384,7 +384,7 @@ pcpi-doctor
 Con la terminal abierta (Pi o SSH) y dentro de la carpeta del proyecto:
 
 ```bash
-cd ~/PCRaspberryPI5
+cd ~/PiCore
 ./install.sh --pihole
 ```
 
@@ -454,13 +454,13 @@ Te pregunta la contraseña **y comprueba contra Pi-hole que es correcta** antes 
 |---|---|
 | La tarjeta dice **«Sin conexión»** | Contraseña mal puesta (`pcpi-setup pihole`) o Pi-hole parado: `systemctl status pihole-FTL` (si no está `active`, `sudo systemctl restart pihole-FTL`) |
 | **Una web no carga** o va rota | Pausa 5 min: si entonces va, un dominio está bloqueado de más → *Allow* en Domains |
-| **Se quedó sin internet todo** | Con Pi-hole parado y DNS en `127.0.0.1` no hay resolución. PCPi lo detecta y **vuelve solo al DNS de la red** en unos segundos; si no: `pcpi-wifi pihole "TU_WIFI" off` |
+| **Se quedó sin internet todo** | Con Pi-hole parado y DNS en `127.0.0.1` no hay resolución. PiCore lo detecta y **vuelve solo al DNS de la red** en unos segundos; si no: `pcpi-wifi pihole "TU_WIFI" off` |
 | `pcpi.local/admin` no abre | Usa `http://IP_DE_LA_PI/admin` (la IP la da `hostname -I`) |
 | Instalación cortada a medias | Repite `./install.sh --pihole` |
 
 ---
 
-## Paso 7: configurar PCPi
+## Paso 7: configurar PiCore
 
 ### ⭐ La forma fácil: `pcpi-setup`
 
@@ -505,7 +505,7 @@ Ya lo hiciste en el [Paso 6](#paso-6-instalar-y-configurar-pi-hole) (instalació
 Hace falta cuenta **Spotify Premium**.
 
 1. La Pi y tu móvil/PC deben estar en la **misma red**.
-2. En Spotify, reproduce algo y pulsa el icono de **dispositivos disponibles**: aparece **PCPi**. Elígelo.
+2. En Spotify, reproduce algo y pulsa el icono de **dispositivos disponibles**: aparece **PiCore**. Elígelo.
 3. Si no se oye nada, hay **dos sitios** donde elegir la salida (raspotify es un servicio del sistema y no usa el volumen del escritorio):
    - **Escritorio y voz:** clic derecho en el icono de volumen (arriba a la derecha) → elige **HDMI**.
    - **Spotify (raspotify):** mira los nombres de salida con `aplay -L | grep -i hdmi` (busca algo como `plughw:CARD=vc4hdmi0,DEV=0`) y ponlo en `/etc/raspotify/conf` como `LIBRESPOT_DEVICE="plughw:CARD=vc4hdmi0,DEV=0"` (quita el `#` si la línea está comentada). Después: `sudo systemctl restart raspotify`.
@@ -642,7 +642,7 @@ pcpi-mode desktop    # Escritorio
 pcpi-mode status     # ¿cuál tengo?
 ```
 
-También con el icono **«PCPi · Elegir modo»** del menú de aplicaciones, con los botones táctiles de las pantallas de Casa e Iker, o **con la voz** («Hey Jarvis… modo casa»).
+También con el icono **«PiCore · Elegir modo»** del menú de aplicaciones, con los botones táctiles de las pantallas de Casa e Iker, o **con la voz** («Hey Jarvis… modo casa»).
 
 **Así se ve (captura del emulador a 1024×600, igual que tu pantalla):**
 
@@ -692,13 +692,17 @@ extra-assets/
 1. **Desde tu ordenador con `scp`** (cópialos tal cual a la Pi; en Windows, PowerShell funciona igual):
 
 ```bash
-scp Inicio1.mp4 Inicio2.mp4 Inicio3.mp4 Inicio4.mp4 iker@pcpi.local:~/PCRaspberryPI5/extra-assets/start/
-scp *.gif iker@pcpi.local:~/PCRaspberryPI5/extra-assets/loading/gifs/
+scp Inicio1.mp4 Inicio2.mp4 Inicio3.mp4 Inicio4.mp4 iker@pcpi.local:~/PiCore/extra-assets/start/
+scp *.gif iker@pcpi.local:~/PiCore/extra-assets/loading/gifs/
 ```
 
-   y luego, en la Pi: `cd ~/PCRaspberryPI5 && ./install.sh` (los copia a `/opt/pcpi/extra-assets` **sin borrar nada**).
+   y luego, en la Pi: `cd ~/PiCore && ./install.sh` (los copia a `/opt/pcpi/extra-assets` **sin borrar nada**).
 2. **Por GitHub:** súbelos al repositorio y en la Pi `git pull && ./install.sh`.
-3. **Con un pendrive:** cópialos a `~/PCRaspberryPI5/extra-assets/…` con el gestor de archivos y ejecuta `./install.sh`.
+3. **Con un pendrive:** cópialos a `~/PiCore/extra-assets/…` con el gestor de archivos y ejecuta `./install.sh`.
+
+**El vídeo 4 se descarga solo:** no está en GitHub (pesa ~500 MB). **La primera vez que enciendas con internet**, PiCore lo baja de `https://pcraspberrypi-video.netlify.app/ayuda.mp4` a `extra-assets/start/Inicio4.mp4` mostrando una **pantalla de progreso** (con un botón «Continuar sin esperar»). No se vuelve a descargar. Si se corta, se reanuda; si no hay internet, se reintenta en el siguiente encendido. Para desactivarlo: `pcpi-config set boot intro4_url ""`.
+
+**¿Se verán tus vídeos?** Si llevan **H.265/HEVC**, Chromium puede no reproducirlos: ejecuta `pcpi-intros check` y, si avisa, `pcpi-intros convert` (convierte a H.264 y guarda los originales).
 
 **Qué vídeo sale al encender (y la garantía del raro):** los pesos por defecto son 90, 85, 55 y 1 (≈ 38,9 %, 36,8 %, 23,8 % y 0,4 %). Si el **4.º** lleva 4 encendidos sin salir, el siguiente sale **sí o sí**, y a los 6 s del vídeo 4 aparece un **botón «Saltar» pequeño** abajo a la derecha. Todo está explicado, con la tabla, en [extra-assets/README.md](../extra-assets/README.md) y se cambia en `[boot]` (`intro_chances`, `intro_pity`, `intro_pity_slots`, `intro_skip_seconds`).
 
@@ -724,7 +728,7 @@ Ajustes disponibles (sección `[boot]` de `/etc/pcpi/pcpi.conf`): `intro`, `fake
 
 En el [Paso 2](#paso-2-preparar-la-microsd) pusiste tu wifi en Raspberry Pi Imager. Esa red queda **guardada** en el sistema (NetworkManager la llama `preconfigured`) y la Pi se conecta sola a ella siempre que la ve. **No tienes que hacer nada más en casa.**
 
-Pi-hole, además, se aplica a esa red automáticamente: PCPi pone el DNS de la Pi en `127.0.0.1` (el propio Pi-hole) en cada red, así que **filtra los anuncios en cualquier wifi**.
+Pi-hole, además, se aplica a esa red automáticamente: PiCore pone el DNS de la Pi en `127.0.0.1` (el propio Pi-hole) en cada red, así que **filtra los anuncios en cualquier wifi**.
 
 ### 9.2 Cambiar de wifi (ya estás de viaje)
 
@@ -757,9 +761,9 @@ pcpi-wifi forget "NombreDeLaWifi"    # olvidar una red
 
 ### 9.3 ¿Funciona Pi-hole en la wifi nueva?
 
-**Sí, y no tienes que reinstalar nada.** Pi-hole vive **en la Pi**, no en tu router; viaja contigo. Lo que cambia entre redes es solo **a qué DNS pregunta la Pi**, y eso lo gestiona PCPi:
+**Sí, y no tienes que reinstalar nada.** Pi-hole vive **en la Pi**, no en tu router; viaja contigo. Lo que cambia entre redes es solo **a qué DNS pregunta la Pi**, y eso lo gestiona PiCore:
 
-| Situación | Qué hace PCPi |
+| Situación | Qué hace PiCore |
 |---|---|
 | Red normal con internet | Usa **Pi-hole** (`127.0.0.1`) como DNS |
 | Tú apagas el interruptor de esa red | Usa el DNS de **esa red** (como si no existiera Pi-hole) |
@@ -773,10 +777,10 @@ Para ver en qué estado está ahora mismo: `pcpi-wifi status`.
 
 ### 9.4 Wifis públicas con inicio de sesión (hotel, aeropuerto, cafetería)
 
-Algunas wifis te dejan conectar pero **no te dan internet hasta que aceptas unas condiciones o pones un código** en una página web. Se llaman **portales cautivos**. PCPi los detecta solos:
+Algunas wifis te dejan conectar pero **no te dan internet hasta que aceptas unas condiciones o pones un código** en una página web. Se llaman **portales cautivos**. PiCore los detecta solos:
 
 1. Conéctate a la red como en el [9.2](#92-cambiar-de-wifi-ya-estás-de-viaje) (las abiertas no piden contraseña).
-2. PCPi comprueba el internet cada pocos segundos. Si detecta el portal:
+2. PiCore comprueba el internet cada pocos segundos. Si detecta el portal:
    - el icono de Wi-Fi se pone **naranja** y dice **«· iniciar sesión»**,
    - **se abre sola una ventana de Chromium** con la página de inicio de sesión de esa wifi, encima de lo que estés viendo,
    - y se usa temporalmente el DNS de la red (si no, el portal no cargaría).
@@ -791,7 +795,7 @@ Algunas wifis te dejan conectar pero **no te dan internet hasta que aceptas unas
 | No quiero que se abra sola | `pcpi-config set wifi auto_portal false`: seguirás teniendo el botón 🔑 en el panel |
 | Se queda con el naranja tras iniciar sesión | Espera 5–10 s; si sigue: `pcpi-wifi status` y `pcpi-wifi portal close` |
 
-> 🔒 **Seguridad en wifis públicas:** Pi-hole **no cifra** el tráfico. En una wifi ajena, evita meter contraseñas en webs que no usen `https://` (candado en la barra de direcciones) y no hagas operaciones bancarias si puedes evitarlo. PCPi **no abre más que la página de inicio de sesión** que la propia red indica (solo `http://` o `https://`, nunca otra cosa).
+> 🔒 **Seguridad en wifis públicas:** Pi-hole **no cifra** el tráfico. En una wifi ajena, evita meter contraseñas en webs que no usen `https://` (candado en la barra de direcciones) y no hagas operaciones bancarias si puedes evitarlo. PiCore **no abre más que la página de inicio de sesión** que la propia red indica (solo `http://` o `https://`, nunca otra cosa).
 
 ### 9.5 Si algo sale mal con la red
 
@@ -801,7 +805,7 @@ Algunas wifis te dejan conectar pero **no te dan internet hasta que aceptas unas
 | *«Permission denied»* / no deja cambiar de wifi | Tu usuario debe estar en el grupo `netdev` (el instalador lo añade): `groups` y mira si sale `netdev`; si no, `sudo usermod -aG netdev $USER` y **reinicia** |
 | *«Contraseña incorrecta»* | Revisa mayúsculas, y pulsa el ojo 👁 para ver lo que escribes. WPA exige entre 8 y 63 caracteres |
 | *«No encuentro esa red»* | Está lejos, apagada o es de 5 GHz con un país mal configurado (`sudo raspi-config` → *Localisation* → *WLAN Country* = ES) |
-| **Quiero que PCPi NO toque nada de la red** | `pcpi-config set wifi manage false` y `sudo systemctl restart pcpi-home` |
+| **Quiero que PiCore NO toque nada de la red** | `pcpi-config set wifi manage false` y `sudo systemctl restart pcpi-home` |
 | Una red concreta va mal con Pi-hole | `pcpi-wifi pihole "NOMBRE" off` (o el interruptor del panel) |
 
 ---
@@ -929,7 +933,7 @@ Con 20 cm de cable puedes dejarla pegada al marco de la pantalla grande: **cinta
 ### 10.7 Enciende y comprueba
 
 ```bash
-cd ~/PCRaspberryPI5 && git pull
+cd ~/PiCore && git pull
 ./install.sh --stats        # activa el I2C, instala lo necesario y crea el servicio
 sudo reboot
 ```
@@ -983,7 +987,7 @@ sudo systemctl restart pcpi-stats
 | Qué | Cómo |
 |---|---|
 | **Comprobar todo** | `pcpi-doctor` te dice qué va y qué no, y cómo arreglarlo |
-| **Actualizar PCPi** | **`pcpi-update`**: copia de seguridad previa + `git pull` + reinstalar con tus opciones. `pcpi-update --check` solo comprueba. Si dice que has modificado archivos, mira el [5.8](#58-cambiar-o-actualizar-el-código-más-adelante) |
+| **Actualizar PiCore** | **`pcpi-update`**: copia de seguridad previa + `git pull` + reinstalar con tus opciones. `pcpi-update --check` solo comprueba. Si dice que has modificado archivos, mira el [5.8](#58-cambiar-o-actualizar-el-código-más-adelante) |
 | **Actualizar el sistema** | `sudo apt update && sudo apt full-upgrade -y` |
 | **Copia de seguridad** | **`pcpi-backup create`** guarda en **un solo archivo** tu configuración, notas, preferencias de Wi-Fi y brillo, y tus `extra-assets` (puedes darle una carpeta o un USB: `pcpi-backup create /media/iker/MIUSB`). Restaurar: `pcpi-backup restore ARCHIVO`. ⚠️ La copia lleva la contraseña de Pi-hole: no la compartas. Además, **las notas se copian solas** cada hora si cambian (las 7 últimas, en `/var/lib/pcpi/backups`) |
 | **Apagar bien** | `sudo shutdown now` (o botón de la placa). No desenchufes con la Pi encendida |
@@ -1006,7 +1010,7 @@ Empieza **siempre** por `pcpi-doctor`: marca con `✘` lo que está mal y con `!
 | **El panel de Wi-Fi no deja conectar**, o no sale la ventana de inicio de sesión de una wifi pública | Mira el [Paso 9](#paso-9-wi-fi-en-casa-de-viaje-y-wifis-públicas), tabla «Si algo sale mal con la red» |
 | La pantalla de **Inicio/Carga** no sale, o se ve sin mi vídeo | Mira el [8.2](#82-las-pantallas-de-inicio-y-de-carga-tus-vídeos-y-gifs): nombres exactos `Inicio1.mp4`…`Inicio4.mp4`, formato H.264 y `./install.sh` tras copiar |
 | Pi-hole «Sin conexión» | Contraseña en `[pihole]` (prueba `pcpi-setup pihole`: te dice si Pi-hole la acepta; ya funcionan contraseñas con `%`, `#` y espacios); `systemctl status pihole-FTL` |
-| Spotify no ve «PCPi» | Misma red; `systemctl status raspotify` |
+| Spotify no ve «PiCore» | Misma red; `systemctl status raspotify` |
 | **«Hey Jarvis» no responde** | `arecord -l`, ajusta `device` ([7.5](#75-voz-hey-jarvis)), baja `wake_threshold`, `journalctl --user -u pcpi-voice -f` |
 | **«Hey Jarvis» se activa solo** | Sube `wake_threshold` (0.6–0.7) |
 | **La voz no arranca y no se reinicia sola** | Es un error de configuración (falta el modelo de voz, o `wake_model` mal escrito). El mensaje es claro: `journalctl --user -u pcpi-voice -n 20`. Arregla lo que diga (normalmente `./install.sh --voice`) y `systemctl --user restart pcpi-voice` |
@@ -1029,7 +1033,7 @@ No son necesarios. Puedes añadirlos cuando quieras:
 
 | Icono | Qué hace |
 |---|---|
-| **☀ Brillo** | Un **deslizante** (10–100 %) y un interruptor **Automático**: de noche (por defecto de 22:00 a 07:00) el brillo **baja poco a poco** hasta el 40 % durante una hora antes, y vuelve a subir despacio por la mañana. Se ajusta en `[display]` de `pcpi.conf`. ⚠️ Si tu pantalla **no tiene control de brillo por software** (la mayoría de pantallas HDMI baratas no lo tienen), PCPi la oscurece con una capa por encima: ayuda a la vista, pero el brillo real de la luz de fondo solo lo cambian los botones de la propia pantalla |
+| **☀ Brillo** | Un **deslizante** (10–100 %) y un interruptor **Automático**: de noche (por defecto de 22:00 a 07:00) el brillo **baja poco a poco** hasta el 40 % durante una hora antes, y vuelve a subir despacio por la mañana. Se ajusta en `[display]` de `pcpi.conf`. ⚠️ Si tu pantalla **no tiene control de brillo por software** (la mayoría de pantallas HDMI baratas no lo tienen), PiCore la oscurece con una capa por encima: ayuda a la vista, pero el brillo real de la luz de fondo solo lo cambian los botones de la propia pantalla |
 | **👁 Vigilancia** | Detecta **movimiento con la cámara** y muestra un aviso naranja «Movimiento detectado» con la hora (toca el aviso para ver la cámara). **Privacidad:** compara imágenes diminutas en memoria; **no guarda ni envía ninguna foto ni vídeo**. Está **apagada** por defecto: tócalo para activarla. Gasta algo de CPU (mantiene la cámara abierta) y se pausa sola mientras tú miras la cámara. Sensibilidad en `[motion]` (`low`, `medium`, `high`) |
 | **🔋 Batería** | **Solo aparece si hay forma de medirla.** ⚠️ La Raspberry Pi 5 **no mide** la batería, y una power bank normal tampoco dice cuánto le queda: hace falta un **UPS / HAT con batería** que aparezca en `/sys/class/power_supply`, o un comando tuyo en `[battery] command` que escriba el porcentaje. Con eso sale el indicador (naranja por debajo del 20 %, rojo y parpadeando por debajo del 10 %) y también la fila `BAT` de la mini pantalla |
 
@@ -1046,7 +1050,7 @@ pcpi-doctor                              # diagnóstico: qué va y qué no
 pcpi-setup                               # asistente: ciudad, Pi-hole, micro, mini pantalla
 pcpi-config get|set SECCION CLAVE [VALOR] # leer/cambiar un ajuste sin abrir el editor
 pcpi-mode home | iker | desktop          # cambiar de modo (muestra la pantalla de Carga)
-pcpi-update                              # actualizar PCPi (copia previa + git pull + reinstalar)
+pcpi-update                              # actualizar PiCore (copia previa + git pull + reinstalar)
 pcpi-backup create [USB o carpeta]       # copia de seguridad de todo lo tuyo en un archivo
 pcpi-backup restore ARCHIVO              # restaurarla
 pcpi-wifi list | connect "RED" | status   # Wi-Fi desde la terminal (más en el Paso 9)
@@ -1065,8 +1069,8 @@ ls /dev/video*                           # ¿qué cámaras hay?
 sudo pihole setpassword                  # cambiar la contraseña de Pi-hole
 pihole -g                                # actualizar las listas de bloqueo
 dig +short doubleclick.net @127.0.0.1    # ¿bloquea Pi-hole? (debe salir 0.0.0.0)
-cd ~/PCRaspberryPI5 && git pull && ./install.sh   # actualizar
-./uninstall.sh                           # quitar PCPi
+cd ~/PiCore && git pull && ./install.sh   # actualizar
+./uninstall.sh                           # quitar PiCore
 ```
 
 ---
@@ -1078,14 +1082,14 @@ La **terminal** es una ventana donde **escribes órdenes** en vez de pulsar boto
 ### A.1 Cómo leerla
 
 ```
-iker@pcpi:~/PCRaspberryPI5 $ ls
+iker@pcpi:~/PiCore $ ls
 ```
 
 | Trozo | Significa |
 |---|---|
 | `iker` | tu usuario |
 | `pcpi` | el nombre del equipo |
-| `~/PCRaspberryPI5` | **dónde estás** ahora (`~` = tu carpeta personal, `/home/iker`) |
+| `~/PiCore` | **dónde estás** ahora (`~` = tu carpeta personal, `/home/iker`) |
 | `$` | «escribe aquí» (no lo escribas tú) |
 | `ls` | lo que escribiste |
 

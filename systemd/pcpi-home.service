@@ -1,5 +1,5 @@
 [Unit]
-Description=PCPi - servidor de la UI (modo Casa / Gaming)
+Description=PiCore - servidor de la UI (modo Casa / Gaming)
 After=network-online.target
 
 [Service]
@@ -24,7 +24,7 @@ ProtectClock=true
 ProtectHostname=true
 SystemCallArchitectures=native
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
-ReadWritePaths=/etc/pcpi /var/lib/pcpi -/run/pcpi -/media -/run/media -/mnt
+ReadWritePaths=/etc/pcpi /var/lib/pcpi -/run/pcpi -/media -/run/media -/mnt -/opt/pcpi/extra-assets/start
 
 [Install]
 WantedBy=multi-user.target

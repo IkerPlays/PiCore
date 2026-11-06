@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PCPi · Cargando</title>
+<title>PiCore · Cargando</title>
 <style>
   :root { --bg:#0b0d12; --card:#161a22; --fg:#f2f4f8; --dim:#8b93a3; --line:#262c38; --acc:#7aa7ff; --acc2:#b18cff; }
   * { box-sizing:border-box; margin:0; }
@@ -16,6 +16,17 @@
            transition:opacity .7s ease; }
   #intro video { max-width:100%; max-height:100%; width:100%; height:100%; object-fit:contain; background:#fff; }
   #intro.out { opacity:0; pointer-events:none; }
+  /* pantalla de descarga del intro 4 (primer encendido): tarjeta clara sobre el blanco */
+  #dl { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:#fff; z-index:3; }
+  .dl-card { width:min(460px,90vw); text-align:center; color:#222; }
+  .dl-title { font-size:24px; font-weight:650; } .dl-sub { color:#777; font-size:15px; margin-top:6px; min-height:20px; }
+  .dl-bar { height:12px; border-radius:999px; background:#e7e9ee; overflow:hidden; margin-top:22px; }
+  #dl-fill { height:100%; width:0; border-radius:999px; background:linear-gradient(90deg,#7aa7ff,#b18cff); transition:width .4s ease; }
+  #dl-fill.ind { width:35% !important; animation:ind 1.3s ease-in-out infinite alternate; }
+  @keyframes ind { from { margin-left:0 } to { margin-left:65% } }
+  .dl-row { display:flex; justify-content:space-between; margin-top:10px; font-size:15px; font-variant-numeric:tabular-nums; color:#444; }
+  #dl-skip { margin-top:22px; font:inherit; font-size:13px; padding:6px 14px; border-radius:999px; color:#222; background:#f3f4f7; border:1px solid #0002; }
+  #dl-skip:active { background:#222; color:#fff; }
   /* boton pequeño en la esquina inferior derecha del Inicio (solo en los videos que lo piden, p. ej. el 4.º) */
   #intro-skip { position:absolute; right:14px; bottom:12px; z-index:2; font:inherit; font-size:12px; padding:5px 11px; border-radius:999px; color:#222; background:#ffffffd9;
                 border:1px solid #00000033; opacity:0; transition:opacity .4s ease; }
@@ -89,12 +100,22 @@
 </head>
 <body>
 
-<div id="intro" hidden><video id="intro-video" playsinline preload="auto"></video><button id="intro-skip" hidden>Saltar ⏭</button></div>
+<div id="intro" hidden>
+  <div id="dl" hidden>
+    <div class="dl-card">
+      <div class="dl-title">Descargando contenido extra</div>
+      <div class="dl-sub" id="dl-sub">Solo la primera vez · necesita internet</div>
+      <div class="dl-bar"><div id="dl-fill"></div></div>
+      <div class="dl-row"><span id="dl-pct">0%</span><span id="dl-bytes"></span></div>
+      <button id="dl-skip">Continuar sin esperar</button>
+    </div>
+  </div>
+  <video id="intro-video" playsinline preload="auto"></video><button id="intro-skip" hidden>Saltar ⏭</button></div>
 
 <div id="stage">
   <div class="popup">
     <div class="title"><span id="title">Cargando</span><span class="dots"><span>.</span><span>.</span><span>.</span></span></div>
-    <div class="sub" id="sub">Preparando PCPi</div>
+    <div class="sub" id="sub">Preparando PiCore</div>
     <div class="barrow">
       <div class="bar"><div id="fill"></div></div>
       <div id="pct">0%</div>
@@ -121,7 +142,31 @@ const NAMES = {home: "Casa", iker: "Iker", desktop: "Escritorio"};
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const post = (url, body) => fetch(url, {method: "POST", headers: {"X-PCPI": "1"}, body: JSON.stringify(body || {})}).catch(() => {});
 
-let cfg = {intro: null, intro_skip_after: 0, media: [], fake: true, fake_seconds: 6, min_seconds: 3, skip_button: true, media_seconds: 3};
+let cfg = {download: null, intro: null, intro_skip_after: 0, media: [], fake: true, fake_seconds: 6, min_seconds: 3, skip_button: true, media_seconds: 3};
+
+/* ---------------- 0. Descarga del intro 4 (solo la primera vez) ---------------- */
+const mb = n => (n / 1048576).toFixed(n >= 1e8 ? 0 : 1) + " MB";
+async function downloadScreen() {
+  const box = $("intro"), dl = $("dl");
+  box.hidden = false; dl.hidden = false;
+  let skipped = false;
+  $("dl-skip").onclick = () => { skipped = true; };
+  while (!skipped) {
+    let st = null;
+    try { st = await (await fetch("/api/download")).json(); } catch (e) {}
+    if (st) {
+      if (st.percent == null) $("dl-fill").classList.add("ind"); else { $("dl-fill").classList.remove("ind"); $("dl-fill").style.width = st.percent + "%"; }
+      $("dl-pct").textContent = st.percent == null ? "…" : Math.floor(st.percent) + "%";
+      $("dl-bytes").textContent = st.total ? mb(st.bytes) + " de " + mb(st.total) : (st.bytes ? mb(st.bytes) : "");
+      if (st.state === "error") { $("dl-sub").textContent = st.error + " · se reintentará al próximo encendido"; await wait(2500); break; }
+      if (st.state === "done") { $("dl-fill").style.width = "100%"; $("dl-pct").textContent = "100%"; await wait(400); break; }
+    }
+    await wait(500);
+  }
+  dl.hidden = true;
+  box.hidden = true;
+  return skipped;
+}
 
 /* ---------------- 1. Inicio ---------------- */
 async function playIntro() {
@@ -291,7 +336,12 @@ async function handoff() {
 }
 
 (async function main() {
-  try { cfg = Object.assign(cfg, await (await fetch("/api/boot" + (IS_BOOT ? "?boot=1" : ""))).json()); } catch (e) {}
+  const getBoot = async q => { try { cfg = Object.assign(cfg, await (await fetch("/api/boot" + q)).json()); } catch (e) {} };
+  await getBoot(IS_BOOT ? "?boot=1" : "");
+  if (IS_BOOT && cfg.download) {                         // primer encendido: se baja el video del intro 4
+    const skipped = await downloadScreen();
+    await getBoot("?boot=1" + (skipped ? "&nodl=1" : ""));
+  }
   await playIntro();
   await loadingPhase();
   await handoff();

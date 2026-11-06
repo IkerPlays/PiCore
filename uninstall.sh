@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Desinstala PCPi (servicios, archivos y autostart). No toca Pi-hole, Raspotify ni tus paquetes.
+# Desinstala PiCore (servicios, archivos y autostart). No toca Pi-hole, Raspotify ni tus paquetes.
 # (Para pruebas: PCPI_ROOT=/otra/raiz y PCPI_HOME=/otra/carpeta actuan sobre un arbol alternativo.)
 set -uo pipefail
 [ "$(id -u)" -ne 0 ] || { echo "Ejecuta como usuario normal, no como root." >&2; exit 1; }

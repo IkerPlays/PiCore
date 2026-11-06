@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Emulador de PCPi para probar TODO sin una Raspberry Pi.
+"""Emulador de PiCore para probar TODO sin una Raspberry Pi.
 
 Arranca el servidor real (home/server.py) en tu ordenador con servicios falsos:
   * Pi-hole v6 falso (estadisticas que suben, pausa con temporizador)
@@ -130,7 +130,7 @@ def main():
     server.WATCHER = motion.Watcher(lambda: (_ for _ in ()).throw(OSError("emulador")), lambda ts: None, lambda: False)
     srv = server.make_server(a.host, a.port)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
-    print("PCPi emulado en http://%s:%d   (modo %s, datos en %s)" % (a.host, a.port, a.mode, tmp), flush=True)
+    print("PiCore emulado en http://%s:%d   (modo %s, datos en %s)" % (a.host, a.port, a.mode, tmp), flush=True)
     if not cam:
         print("(sin ffmpeg: la camara no esta disponible en el emulador)")
     if a.no_repl:

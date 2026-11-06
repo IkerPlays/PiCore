@@ -1,4 +1,6 @@
-# PCRaspberryPI5
+# PiCore
+
+> ℹ️ El proyecto se llama **PiCore** (antes «PCPi»). Los nombres técnicos se mantienen por compatibilidad: comandos `pcpi-*`, carpetas `/opt/pcpi` y `/etc/pcpi`, archivo `pcpi.conf`, servicios `pcpi-home`/`pcpi-voice`/`pcpi-stats`.
 
 Un PC portátil con **Raspberry Pi 5 (8 GB)** y pantalla táctil de 7" con tres modos:
 
@@ -28,8 +30,8 @@ Abre <http://127.0.0.1:8080> y tienes el modo Casa funcionando en tu ordenador c
 En Raspberry Pi OS con escritorio (64 bits), como usuario normal:
 
 ```bash
-git clone https://github.com/IkerPlays/PCRaspberryPI5.git
-cd PCRaspberryPI5
+git clone https://github.com/IkerPlays/PiCore.git
+cd PiCore
 ./install.sh --camera --voice --spotify   # Pi-hole se instala aparte: ./install.sh --pihole (ver Paso 6 del tutorial). Opciones: --all Aparte: --stats (mini pantalla) y --battery
 ```
 
@@ -45,17 +47,17 @@ pcpi-mode status
 pcpi-wifi list      # Wi-Fi desde la terminal (connect, status, forget, pihole, portal)
 pcpi-setup          # asistente: ciudad, contraseña de Pi-hole, micrófono (con prueba), mini pantalla
 pcpi-doctor         # diagnóstico
-pcpi-update         # actualizar PCPi (copia previa + git pull + reinstalar con tus opciones)
+pcpi-update         # actualizar PiCore (copia previa + git pull + reinstalar con tus opciones)
 pcpi-backup create  # copia de seguridad de tu configuración, notas y extra-assets
 ```
 
-También hay un icono **"PCPi · Elegir modo"** en el menú de aplicaciones, y botones táctiles dentro de la UI de Casa y de Iker. El modo se recuerda entre reinicios.
+También hay un icono **"PiCore · Elegir modo"** en el menú de aplicaciones, y botones táctiles dentro de la UI de Casa y de Iker. El modo se recuerda entre reinicios.
 
 Configuración (Pi-hole, ciudad del tiempo): `/etc/pcpi/pcpi.conf`. Hay una plantilla en [config/pcpi.conf.example](config/pcpi.conf.example).
 
 ## Pantallas de Inicio y de Carga
 
-Al **encender**, una pantalla en blanco reproduce **uno de hasta 4 vídeos** de `extra-assets/start/` (`Inicio1.mp4`…`Inicio4.mp4`, al azar con pesos 90/85/55/1; el 4.º sale sí o sí tras 4 encendidos sin verlo y lleva un botón «Saltar» pequeño a los 6 s) y después carga el **último modo** usado. En **cada cambio de modo** (y tras el Inicio) sale la pantalla de **Carga**: pop-up «Cargando», barra y porcentaje, y debajo tus imágenes/GIFs/vídeos de `extra-assets/loading/`. La carga real llega al 100 % pero **se muestra 85 %**; entonces un efecto de tele con **«▶▶ x2»** acelera la barra hasta el 100 % (un tramo visual) y un botón **Saltar** lo pasa. Todo se ajusta en `[boot]`. Detalles: [extra-assets/README.md](extra-assets/README.md) y [Paso 8.2](docs/TUTORIAL.md#82-las-pantallas-de-inicio-y-de-carga-tus-vídeos-y-gifs).
+Al **encender**, una pantalla en blanco reproduce **uno de hasta 4 vídeos** de `extra-assets/start/` (`Inicio1.mp4`…`Inicio4.mp4`, al azar con pesos 90/85/55/1; el 4.º sale sí o sí tras 4 encendidos sin verlo y lleva un botón «Saltar» pequeño a los 6 s) y después carga el **último modo** usado. El vídeo 4 (~500 MB, no cabe en GitHub) **se descarga solo la primera vez que enciendes la Pi**, con pantalla de progreso. Si tus vídeos llevan H.265, `pcpi-intros check` / `pcpi-intros convert`. En **cada cambio de modo** (y tras el Inicio) sale la pantalla de **Carga**: pop-up «Cargando», barra y porcentaje, y debajo tus imágenes/GIFs/vídeos de `extra-assets/loading/`. La carga real llega al 100 % pero **se muestra 85 %**; entonces un efecto de tele con **«▶▶ x2»** acelera la barra hasta el 100 % (un tramo visual) y un botón **Saltar** lo pasa. Todo se ajusta en `[boot]`. Detalles: [extra-assets/README.md](extra-assets/README.md) y [Paso 8.2](docs/TUTORIAL.md#82-las-pantallas-de-inicio-y-de-carga-tus-vídeos-y-gifs).
 
 ## Wi-Fi
 

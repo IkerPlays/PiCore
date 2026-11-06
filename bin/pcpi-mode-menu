@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Selector tactil de modo (zenity). Lo lanza el icono "PCPi · Elegir modo".
+# Selector tactil de modo (zenity). Lo lanza el icono "PiCore · Elegir modo".
 cur="$(pcpi-mode status)"
-choice="$(zenity --list --title="PCPi · Elegir modo" --text="Modo actual: $cur" \
+choice="$(zenity --list --title="PiCore · Elegir modo" --text="Modo actual: $cur" \
   --column=id --column=Modo --hide-column=1 --print-column=1 \
   desktop "🖥  Escritorio" \
   iker    "📝  Iker (bloc de notas + internet)" \

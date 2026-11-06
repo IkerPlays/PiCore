@@ -136,7 +136,7 @@ def export_usb(notes_dir, mountpoint=None, now=None):
             notes.append(r)
     if not notes:
         raise ValueError("No hay notas que exportar")
-    dest = Path(mps[0]) / time.strftime("PCPi-notas-%Y%m%d-%H%M%S", time.localtime(now or time.time()))
+    dest = Path(mps[0]) / time.strftime("PiCore-notas-%Y%m%d-%H%M%S", time.localtime(now or time.time()))
     try:
         dest.mkdir()
         used = set()

@@ -1,5 +1,5 @@
 [Unit]
-Description=PCPi - asistente de voz local
+Description=PiCore - asistente de voz local
 After=pipewire.service sound.target
 
 [Service]

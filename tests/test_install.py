@@ -88,6 +88,30 @@ class InstallerTest(unittest.TestCase):
         self.assertIn("--camera", (self.r / "etc/pcpi/install").read_text())
         self.assertIn("--voice", (self.r / "etc/pcpi/install").read_text())
 
+    def test_intro4_download_is_configured_and_folder_is_writable(self):
+        self.install()
+        conf = (self.r / "etc/pcpi/pcpi.conf").read_text()
+        self.assertIn("intro4_url = https://pcraspberrypi-video.netlify.app/ayuda.mp4", conf)
+        self.assertTrue([l for l in self.calls() if "chown" in l and "extra-assets/start" in l], "la carpeta start debe ser del usuario")
+        unit = (self.r / "etc/systemd/system/pcpi-home.service").read_text()
+        self.assertIn("/opt/pcpi/extra-assets/start", unit)                 # el servicio puede escribir ahi (ProtectSystem=strict)
+
+    def test_existing_config_gets_the_new_intro4_setting_but_keeps_a_blank_one(self):
+        (self.r / "etc/pcpi").mkdir(parents=True)
+        (self.r / "etc/pcpi/pcpi.conf").write_text("[weather]\nlat = 1\n")        # configuracion antigua, sin [boot]
+        self.install()
+        self.assertIn("intro4_url = https://pcraspberrypi-video.netlify.app/ayuda.mp4", (self.r / "etc/pcpi/pcpi.conf").read_text())
+        (self.r / "etc/pcpi/pcpi.conf").write_text("[boot]\nintro4_url =\n")      # el usuario lo desactivo a proposito
+        self.install()
+        self.assertNotIn("netlify", (self.r / "etc/pcpi/pcpi.conf").read_text())
+
+    def test_downloaded_intro4_survives_a_reinstall(self):
+        self.install()
+        v = self.r / "opt/pcpi/extra-assets/start/Inicio4.mp4"
+        v.write_bytes(b"descargado")
+        self.install()
+        self.assertEqual(v.read_bytes(), b"descargado")                      # rsync sin --delete: no se borra
+
     def test_backlight_rule_and_video_group(self):
         self.install()
         rule = (self.r / "etc/udev/rules.d/90-pcpi-backlight.rules").read_text()
@@ -139,7 +163,9 @@ class InstallerTest(unittest.TestCase):
         (self.r / "etc/pcpi/pcpi.conf").write_text("[weather]\nlat = 1\n")
         (self.r / "etc/pcpi/mode").write_text("home\n")
         self.install("--voice", "--spotify", "--camera", "--battery", "--stats")
-        self.assertEqual(self.read("etc/pcpi/pcpi.conf"), "[weather]\nlat = 1\n")      # no pisa tu configuracion
+        conf = self.read("etc/pcpi/pcpi.conf")
+        self.assertTrue(conf.startswith("[weather]\nlat = 1\n"))                          # no pisa tu configuracion...
+        self.assertEqual(conf.count("intro4_url"), 1)                                    # ...solo añade el ajuste nuevo, una vez
         self.assertEqual(self.read("etc/pcpi/mode").strip(), "home")                    # ni tu modo
         auto = (self.home / ".config/labwc/autostart").read_text().splitlines()
         self.assertEqual(auto.count("pcpi-session &"), 1)
@@ -164,7 +190,7 @@ class InstallerTest(unittest.TestCase):
     def test_spotify_config(self):
         self.install("--spotify")
         conf = self.read("etc/raspotify/conf")
-        self.assertIn('LIBRESPOT_NAME="PCPi"', conf)
+        self.assertIn('LIBRESPOT_NAME="PiCore"', conf)
         self.assertIn('LIBRESPOT_ONEVENT="/usr/local/bin/pcpi-spotify-event"', conf)
         self.assertIn("LIBRESPOT_QUIET=1", conf)                                         # lo ajeno se conserva
         self.assertNotIn('#LIBRESPOT_NAME="x"', conf)

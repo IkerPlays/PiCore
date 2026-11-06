@@ -76,6 +76,9 @@ intro_chances = 90, 85, 55, 1
 intro_pity = 4
 # A que videos se aplica la garantia (por defecto solo al 4.º, el raro). Ejemplo para todos: 1, 2, 3, 4
 intro_pity_slots = 4
+# El video del intro 4 NO esta en GitHub (pesa unos 500 MB): se descarga UNA vez, la primera vez que se enciende la Pi
+# (con pantalla de progreso), a extra-assets/start/Inicio4.mp4, y no se vuelve a bajar. Vacio = no descargar.
+intro4_url = https://pcraspberrypi-video.netlify.app/ayuda.mp4
 # Segundos tras los que aparece un boton pequeño «Saltar» (esquina inferior derecha) en cada video; 0 = nunca.
 intro_skip_seconds = 0, 0, 0, 6
 # Tras llegar al 85 % real, el efecto TV «x2» sube hasta el 100 % (carga rapida). false = pasa directo.
@@ -91,7 +94,7 @@ media_seconds = 3
 
 [wifi]
 # Gestion de Wi-Fi con NetworkManager (panel en la pantalla y «pcpi-wifi»).
-# false = PCPi no toca nada de la red.
+# false = PiCore no toca nada de la red.
 manage = true
 # En las redes NUEVAS, usar el Pi-hole como DNS (se puede cambiar red por red en el panel o con «pcpi-wifi pihole»).
 pihole_default = true

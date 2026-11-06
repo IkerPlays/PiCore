@@ -27,7 +27,8 @@ RUN="${PCPI_RUN_DIR:-/run/pcpi}"
 TICK="${PCPI_TICK:-1}"                   # segundos entre vueltas (las pruebas lo acortan)
 ALIVE_TIMEOUT="${PCPI_ALIVE_TIMEOUT:-45}" # sin latido de la pagina durante tanto tiempo = navegador colgado o en blanco (segundos)
 CHECK_EVERY="${PCPI_CHECK_EVERY:-10}"    # cada cuantas vueltas se comprueba el navegador
-LOAD_TIMEOUT="${PCPI_LOAD_TIMEOUT:-180}" # si la pantalla de carga se cuelga, se sigue igualmente (segundos)
+LOAD_TIMEOUT="${PCPI_LOAD_TIMEOUT:-1800}" # tope de la pantalla de carga (segundos). Es largo porque el primer encendido puede
+                                          # descargar un video de ~500 MB; una pagina colgada ya la detecta el latido (45 s)
 PROFILE="$HOME/.cache/pcpi-kiosk"        # el perfil de Iker cuelga de este nombre (para poder matar ambos)
 PORTAL_PROFILE="$HOME/.cache/pcpi-portal"
 

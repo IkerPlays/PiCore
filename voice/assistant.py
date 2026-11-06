@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Asistente de voz PCPi, todo en local.
+"""Asistente de voz PiCore, todo en local.
 
   1. Un detector DEDICADO de palabra de activacion (openWakeWord) escucha siempre. Es muy
      ligero y casi no da falsos positivos. Si no esta instalado, cae a Vosk con gramatica.

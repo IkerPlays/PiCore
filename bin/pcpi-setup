@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Asistente de configuracion de PCPi: te pregunta y escribe /etc/pcpi/pcpi.conf por ti.
+# Asistente de configuracion de PiCore: te pregunta y escribe /etc/pcpi/pcpi.conf por ti.
 #   pcpi-setup            # todo, paso a paso
 #   pcpi-setup ciudad     # solo el tiempo
 #   pcpi-setup pihole     # solo la contraseña de Pi-hole

@@ -83,7 +83,7 @@ def create(dest=None, quiet=False):
             tmp.unlink()
     os.chmod(out, 0o600)
     if not n:
-        print("No encontre nada que guardar (¿está PCPi instalado?).", file=sys.stderr)
+        print("No encontre nada que guardar (¿está PiCore instalado?).", file=sys.stderr)
         out.unlink(missing_ok=True)
         return None
     if not quiet:

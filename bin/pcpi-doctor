@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Diagnostico rapido de PCPi: que funciona y que no (y como arreglarlo).
+# Diagnostico rapido de PiCore: que funciona y que no (y como arreglarlo).
 PORT="${PCPI_PORT:-8080}"
 ok()   { printf '  \033[32m✔\033[0m %s\n' "$*"; }
 warn() { printf '  \033[33m!\033[0m %s\n' "$*"; WARN=1; }
@@ -74,6 +74,10 @@ else warn "sin NetworkManager: el panel de Wi-Fi no estara disponible"; fi
 n_intro="$(find /opt/pcpi/extra-assets/start -maxdepth 1 -type f \( -name 'Inicio.mp4' -o -name 'Inicio[1-4].mp4' \) 2>/dev/null | wc -l)"
 [ "$n_intro" -gt 0 ] && ok "$n_intro video(s) de inicio en extra-assets/start (Inicio1..Inicio4.mp4)" \
   || warn "sin videos en extra-assets/start (Inicio1.mp4..Inicio4.mp4): al encender no habra video (opcional, ver extra-assets/README.md)"
+if [ "$n_intro" -gt 0 ] && command -v ffprobe >/dev/null; then
+  pcpi-intros check 2>/dev/null | sed 's/^/      /' || true
+fi
+[ -f /opt/pcpi/extra-assets/start/Inicio4.mp4 ] || warn "falta Inicio4.mp4: se descarga solo la primera vez que enciendas con internet (o en [boot] intro4_url)"
 n_media="$(find /opt/pcpi/extra-assets/loading -type f ! -name '.*' ! -name '*.md' 2>/dev/null | wc -l)"
 [ "$n_media" -gt 0 ] && ok "$n_media archivo(s) para la pantalla de carga" || warn "la pantalla de carga no tiene imagenes/videos (opcional, carpeta extra-assets/loading)"
 

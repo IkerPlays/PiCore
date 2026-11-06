@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Instalador PCPi para Raspberry Pi OS (Bookworm/Trixie). Ejecutalo como usuario normal (usa sudo).
+# Instalador PiCore para Raspberry Pi OS (Bookworm/Trixie). Ejecutalo como usuario normal (usa sudo).
 #   ./install.sh [--camera] [--voice] [--spotify] [--pihole] [--stats] [--battery] [--all]
 #     --camera   camara USB en el modo Casa (ffmpeg)
 #     --voice    asistente de voz local (Vosk + openWakeWord + espeak-ng): "Hey Jarvis, que hora es"
@@ -49,15 +49,26 @@ sudo rsync -a --delete --exclude __pycache__ "$SRC/home" "$SRC/bin" "$SRC/voice"
 # Tus videos/imagenes de las pantallas de Inicio y Carga: se COPIAN sin borrar lo que ya hubiera en la Pi
 sudo mkdir -p "$PREFIX/extra-assets"
 sudo rsync -a --exclude .gitkeep --exclude README.md "$SRC/extra-assets/" "$PREFIX/extra-assets/"
+# El servidor descarga aqui el video del intro 4 la primera vez que se enciende: la carpeta debe ser tuya
+sudo mkdir -p "$PREFIX/extra-assets/start"
+sudo chown "$ME": "$PREFIX/extra-assets/start"
 sudo mkdir -p "$R/usr/local/bin"
 for f in "$PREFIX"/bin/*; do sudo ln -sf "$f" "$R/usr/local/bin/$(basename "$f")"; done
 sudo chmod +x "$PREFIX"/bin/*
+
+# Aviso (sin cambiar nada) si algun video de inicio lleva H.265, que Chromium puede no reproducir
+if command -v ffprobe >/dev/null && ls "$PREFIX"/extra-assets/start/Inicio*.mp4 >/dev/null 2>&1; then
+  PCPI_ASSETS="$PREFIX/extra-assets" "$PREFIX/bin/pcpi-intros" check || echo "Aviso: mira los videos marcados con «!» (se arreglan con: pcpi-intros convert)."
+fi
 
 step "Configuracion en /etc/pcpi"
 sudo mkdir -p "$R/etc/pcpi" "$R/var/lib/pcpi"
 sudo chown "$ME": "$R/etc/pcpi" "$R/var/lib/pcpi"
 sudo chmod 700 "$R/var/lib/pcpi"                  # aqui van tus notas: privadas
 [ -f "$R/etc/pcpi/pcpi.conf" ] || install -m 640 "$SRC/config/pcpi.conf.example" "$R/etc/pcpi/pcpi.conf"
+# Ajuste nuevo en configuraciones ya existentes: el video del intro 4 se descarga la primera vez que se enciende
+PCPI_CONF="$R/etc/pcpi/pcpi.conf" "$PREFIX/bin/pcpi-config" get boot intro4_url >/dev/null 2>&1 \
+  || PCPI_CONF="$R/etc/pcpi/pcpi.conf" "$PREFIX/bin/pcpi-config" set boot intro4_url "https://pcraspberrypi-video.netlify.app/ayuda.mp4"
 [ -f "$R/etc/pcpi/mode" ] || echo desktop > "$R/etc/pcpi/mode"
 # Estado que cambia a cada rato (voz, "sonando ahora") en RAM (/run), no en la microSD
 sudo mkdir -p "$R/etc/tmpfiles.d"
@@ -106,7 +117,7 @@ if [ "$SPOTIFY" = 1 ]; then
   CONF="$R/etc/raspotify/conf"
   if [ -f "$CONF" ]; then
     sudo sed -i '/^#\?LIBRESPOT_ONEVENT=/d;/^#\?LIBRESPOT_NAME=/d' "$CONF"
-    printf 'LIBRESPOT_NAME="PCPi"\nLIBRESPOT_ONEVENT="/usr/local/bin/pcpi-spotify-event"\n' | sudo tee -a "$CONF" >/dev/null
+    printf 'LIBRESPOT_NAME="PiCore"\nLIBRESPOT_ONEVENT="/usr/local/bin/pcpi-spotify-event"\n' | sudo tee -a "$CONF" >/dev/null
     sudo systemctl daemon-reload && sudo systemctl restart raspotify
   else
     echo "Aviso: no existe $CONF (¿fallo la instalacion de Raspotify?). Repite ./install.sh --spotify cuando funcione." >&2

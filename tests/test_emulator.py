@@ -43,7 +43,7 @@ class EmulatorTest(unittest.TestCase):
             self.assertEqual(urllib.request.urlopen(req, timeout=5).status, 200)
             st = json.load(urllib.request.urlopen(base + "/api/status", timeout=2))
             self.assertEqual(st["pihole"]["blocking"], "disabled")
-            self.assertIn(b"PCPi", urllib.request.urlopen(base + "/", timeout=2).read())
+            self.assertIn(b"PiCore", urllib.request.urlopen(base + "/", timeout=2).read())
         finally:
             p.terminate()
             p.wait(5)

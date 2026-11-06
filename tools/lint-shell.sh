@@ -5,6 +5,7 @@ set -eu
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 bash_files=(install.sh uninstall.sh)
 for f in bin/*; do
+  [ -f "$f" ] || continue          # (p. ej. bin/__pycache__)
   case "$(head -n1 "$f")" in
     *bash*) bash_files+=("$f") ;;
     *python*) python3 -c "import ast,sys; ast.parse(open(sys.argv[1]).read())" "$f" ;;

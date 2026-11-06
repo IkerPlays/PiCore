@@ -125,5 +125,36 @@ class IntroSkipUiTest(unittest.TestCase):
             srv.wait(5)
 
 
+@unittest.skipUnless(node_env(), "hace falta node y playwright")
+class DownloadUiTest(unittest.TestCase):
+    """Primer encendido: el video del intro 4 se descarga con pantalla de progreso (servidor de archivos de mentira y lento)."""
+
+    def run_case(self, mode):
+        sys.path.insert(0, str(ROOT / "tests"))
+        from test_fetcher import MP4, FileServer
+        files = FileServer(data=MP4 * 12, slow=0.012)            # ~1,2 MB servidos despacio (~3 s)
+        t = Path(tempfile.mkdtemp())
+        a = t / "assets"
+        (a / "start").mkdir(parents=True)
+        (a / "start/Inicio1.mp4").write_bytes(b"roto")
+        srv, port = start_server(t, a, "[boot]\nmin_seconds = 0\nfake_loading = false\nintro4_url = %s\n" % files.url)
+        try:
+            r = subprocess.run(["node", str(ROOT / "tests" / "download_smoke.js"), "http://127.0.0.1:%d" % port, mode],
+                               capture_output=True, text=True, env=node_env(), timeout=150)
+            self.assertEqual(r.returncode, 0, "\n" + r.stdout + r.stderr)
+        finally:
+            srv.terminate()
+            srv.wait(5)
+            files.close()
+        return a
+
+    def test_download_screen_waits_for_the_file(self):
+        a = self.run_case("wait")
+        self.assertTrue((a / "start/Inicio4.mp4").exists())
+
+    def test_continue_without_waiting(self):
+        self.run_case("skip")
+
+
 if __name__ == "__main__":
     unittest.main()

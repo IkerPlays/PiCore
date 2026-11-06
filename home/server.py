@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PCPi: servidor local de la UI (modo Casa / Gaming) y API de estado.
+"""PiCore: servidor local de la UI (modo Casa / Gaming) y API de estado.
 
 Solo usa la libreria estandar de Python. Escucha en 127.0.0.1 por defecto.
 """
@@ -22,6 +22,7 @@ from pathlib import Path
 import assets
 import battery
 import display
+import fetcher
 import intro
 import motion
 import netmgr
@@ -556,17 +557,46 @@ def mark_loaded(mode):
     (d / "loaded").write_text(mode)
 
 
+_downloaders = {}
+
+
+def intro4_downloader(cp):
+    """Descargador del video del intro 4 (no esta en GitHub: pesa demasiado). None si esta desactivado
+    ([boot] intro4_url vacio) o el video ya existe. Se descarga solo UNA vez, en el primer encendido."""
+    # Sin valor por defecto en el codigo: la direccion viene de pcpi.conf (el instalador la pone). Asi nada descarga por
+    # sorpresa (ni en las pruebas) si no esta configurada.
+    url = cp.get("boot", "intro4_url", fallback="").strip()
+    if not url.startswith(("http://", "https://")):
+        return None
+    dest = assets.assets_dir() / "start" / "Inicio4.mp4"
+    key = (url, str(dest))
+    if key not in _downloaders:
+        _downloaders[key] = fetcher.Downloader(url, dest)
+    dl = _downloaders[key]
+    return None if dl.exists() and dl.status()["state"] != "downloading" else dl
+
+
 def boot_info(cp, query=""):
     """Datos de las pantallas de Inicio y de Carga: video de inicio, carrusel y tiempos (seccion [boot]).
     El video de inicio solo se elige (y cuenta como un encendido) con `?boot=1`: lo pide la pagina de carga cuando se lanza al encender."""
-    boot = "boot=1" in query.partition("?")[2].split("&")
+    params = query.partition("?")[2].split("&")
+    boot, nodl = "boot=1" in params, "nodl=1" in params
     def num(key, default, lo, hi):
         try:
             return max(lo, min(cp.getfloat("boot", key, fallback=default), hi))
         except ValueError:
             return default
-    intro_url, slot, skip_after = None, None, 0
-    if boot and cp.getboolean("boot", "intro", fallback=True):
+    intro_url, slot, skip_after, download = None, None, 0, None
+    if boot and not nodl and cp.getboolean("boot", "intro", fallback=True):
+        dl = intro4_downloader(cp)
+        if dl is not None:
+            dl.start()                                   # primer encendido: baja el video del intro 4
+            st = dl.status()
+            if st["state"] == "downloading":
+                # Mientras se descarga NO se elige video (y no cuenta como encendido): la pagina muestra el progreso
+                # y vuelve a preguntar cuando termine (o cuando el usuario pulse «continuar sin esperar»).
+                download = st
+    if boot and download is None and cp.getboolean("boot", "intro", fallback=True):
         base = assets.assets_dir() / "start"
         chances = intro.parse_list(cp.get("boot", "intro_chances", fallback=""), intro.DEFAULT_CHANCES)
         try:
@@ -578,6 +608,7 @@ def boot_info(cp, query=""):
             intro_url = "/assets/start/" + intro.slot_files(base)[slot]
             skip_after = intro.parse_list(cp.get("boot", "intro_skip_seconds", fallback=""), intro.DEFAULT_SKIP, hi=600.0)[slot - 1]
     return {
+        "download": download,
         "intro": intro_url,
         "intro_slot": slot,
         "intro_skip_after": skip_after,
@@ -592,7 +623,7 @@ def boot_info(cp, query=""):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "PCPi"
+    server_version = "PiCore"
     timeout = 30        # un cliente que abre la conexion y no manda nada (o manda a gotas) no retiene un hilo para siempre
 
     def log_message(self, fmt, *args):  # silencioso
@@ -637,6 +668,9 @@ class Handler(BaseHTTPRequestHandler):
             if not self._local():
                 return
             return self._send(200, wifi_info("scan=1" in self.path))
+        if path == "/api/download":
+            dl = intro4_downloader(read_conf())
+            return self._send(200, dl.status() if dl else {"state": "done", "percent": 100.0})
         if path == "/api/boot":
             return self._send(200, boot_info(read_conf(), self.path))
         if path.startswith("/assets/"):
@@ -894,7 +928,7 @@ def main():
     threading.Thread(target=display_loop, daemon=True).start()
     threading.Thread(target=backup_loop, daemon=True).start()
     start_motion(cp)
-    print("PCPi escuchando en http://%s:%d" % (host, port), flush=True)
+    print("PiCore escuchando en http://%s:%d" % (host, port), flush=True)
     make_server(host, port).serve_forever()
 
 

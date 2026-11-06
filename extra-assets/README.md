@@ -27,6 +27,8 @@ extra-assets/
 | `Inicio3.mp4` | 55 | ≈ 23,8 % | no |
 | `Inicio4.mp4` | 1 | ≈ 0,4 % (pero ver la garantía) | **sí, a los 6 s** |
 
+> 📥 **`Inicio4.mp4` no está en GitHub** (pesa ~500 MB y GitHub no deja subirlo). **La primera vez que enciendas la Pi con internet se descarga sola** de `https://pcraspberrypi-video.netlify.app/ayuda.mp4` a `extra-assets/start/Inicio4.mp4`, con una **pantalla de progreso** («Descargando contenido extra… 37 % · 190 MB de 531 MB») y un botón pequeño **«Continuar sin esperar»** (la descarga sigue en segundo plano). **No se vuelve a descargar** una vez que existe, ni al reinstalar ni al actualizar. Si se corta, se reanuda donde se quedó; si no hay internet, se reintenta en el siguiente encendido. Mientras se descarga no se elige ningún vídeo ni cuenta como encendido. Se cambia o desactiva con `[boot] intro4_url` (vacío = no descargar).
+
 \* 90 + 85 + 55 + 1 suman más de 100, así que se usan como **pesos**: cada vídeo sale en proporción a su número. Se cambian en `[boot] intro_chances`.
 
 - **Garantía:** si el vídeo 4 lleva **4 encendidos sin salir**, en el **siguiente sale sí o sí** (después la cuenta vuelve a empezar). Por eso, en la práctica, el 4.º sale **al menos 1 de cada 5 encendidos**. La garantía se aplica solo al 4.º por defecto (en los demás distorsionaría sus probabilidades); se puede ampliar con `intro_pity_slots = 1, 2, 3, 4`, y quitarla con `intro_pity = 0`.
@@ -34,6 +36,17 @@ extra-assets/
 - **Botón «Saltar»:** el del vídeo 4 es **pequeño**, está en la **esquina inferior derecha** y aparece cuando el **vídeo** llega al segundo 6 (si el vídeo dura menos de 6 s, no hace falta). Los demás no llevan botón; se cambia con `intro_skip_seconds = 0, 0, 0, 6`.
 - Si faltan vídeos, se elige entre los que haya (si solo hay uno, sale siempre ese). Si no hay ninguno, se salta el Inicio.
 - Si un vídeo no se puede reproducir (formato raro), se salta solo a los ~5 segundos.
+
+## ⚠️ ¿Se reproducirán tus vídeos? (H.265 / HEVC)
+
+Chromium en la Raspberry Pi reproduce **H.264** sin problemas, pero **H.265 (HEVC)** y AV1 **pueden no verse** (el vídeo se salta solo a los ~5 s). Comprueba los tuyos en la Pi:
+
+```bash
+pcpi-intros check      # qué codec lleva cada vídeo y si hay riesgo
+pcpi-intros convert    # convierte a H.264 los que lo necesiten (guarda los originales en ~/pcpi-intros-originales)
+```
+
+(`./install.sh` y `pcpi-doctor` ya te avisan solos.) Si ejecutas `./install.sh` otra vez con los originales del repositorio, se copian sin convertir: repite entonces `pcpi-intros convert`.
 
 ## Pantalla de Carga (`loading/`)
 
