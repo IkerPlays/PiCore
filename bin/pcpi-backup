@@ -6,7 +6,7 @@
   pcpi-backup list ARCHIVO        enseña lo que lleva una copia
   pcpi-backup restore ARCHIVO     la restaura (pide confirmacion; --yes para no preguntar)
 
-Incluye: /etc/pcpi (configuracion y modo), tus notas, las preferencias de Wi-Fi y brillo, y extra-assets
+Incluye: /etc/pcpi (configuracion y modo), tus notas, las preferencias de Wi-Fi, brillo y vigilancia, y extra-assets
 (tus videos/imagenes de Inicio y Carga). ⚠️ La copia lleva tu contraseña de Pi-hole (pcpi.conf): guardala con cuidado
 (se crea con permisos solo para tu usuario)."""
 import json
@@ -23,7 +23,7 @@ ROOT = Path(os.environ.get("PCPI_ROOT", "/"))
 # (ruta absoluta dentro del sistema, es_carpeta)
 ITEMS = [
     ("etc/pcpi/pcpi.conf", False), ("etc/pcpi/mode", False),
-    ("var/lib/pcpi/notes", True), ("var/lib/pcpi/nets.json", False), ("var/lib/pcpi/display.json", False),
+    ("var/lib/pcpi/notes", True), ("var/lib/pcpi/nets.json", False), ("var/lib/pcpi/display.json", False), ("var/lib/pcpi/motion.json", False),
     ("opt/pcpi/extra-assets", True),
 ]
 ALLOWED = tuple(p for p, _ in ITEMS)

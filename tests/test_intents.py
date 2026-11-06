@@ -41,6 +41,16 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(P("muestra la cámara"), ("camera_show", None))
         self.assertEqual(P("enséñame la cámara"), ("camera_show", None))
         self.assertEqual(P("cierra la cámara"), ("camera_hide", None))
+        self.assertEqual(P("sube el brillo"), ("brightness", "+20"))
+        self.assertEqual(P("baja el brillo"), ("brightness", "-20"))
+        self.assertEqual(P("brillo al cincuenta por ciento"), ("brightness", "50"))
+        self.assertEqual(P("brillo al cinco"), ("brightness", "10"))            # nunca por debajo del 10 %
+        self.assertEqual(P("brillo al máximo"), ("brightness", "100"))
+        self.assertEqual(P("brillo automático"), ("brightness", "auto"))
+        self.assertEqual(P("activa la vigilancia"), ("motion", True))
+        self.assertEqual(P("desactiva la vigilancia"), ("motion", False))
+        self.assertEqual(P("activa la vigilancia de la cámara"), ("motion", True))    # no abre el visor
+        self.assertEqual(P("apaga el detector de movimiento"), ("motion", False))
         self.assertIsNone(P("cuéntame un chiste"))
         self.assertIsNone(P(""))
 

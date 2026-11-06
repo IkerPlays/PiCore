@@ -85,6 +85,25 @@ def parse(text):
             return Intent("volume", "+10")
         if has("baja", "menos", "bajo"):
             return Intent("volume", "-10")
+    if has("vigilancia", "movimiento", "alarma de camara"):
+        if has("desactiva", "apaga", "para ", "quita", "deja de", "cancela"):
+            return Intent("motion", False)
+        if has("activa", "enciende", "pon", "empieza", "vigila"):
+            return Intent("motion", True)
+    if has("brillo"):
+        if has("automatic", "auto "):
+            return Intent("brightness", "auto")
+        if has("maximo", "al maximo"):
+            return Intent("brightness", "100")
+        if has("minimo"):
+            return Intent("brightness", "10")
+        n = find_number(words)
+        if n is not None and not has("sube", "baja", "mas", "menos"):
+            return Intent("brightness", "%d" % max(10, min(n, 100)))
+        if has("sube", "mas", "aumenta"):
+            return Intent("brightness", "+20")
+        if has("baja", "menos", "reduce", "disminuye"):
+            return Intent("brightness", "-20")
     if has("camara"):
         if has("cierra", "oculta", "quita", "apaga", "esconde"):
             return Intent("camera_hide", None)

@@ -8,6 +8,10 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg shellcheck
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      # El navegador real (Chromium) para las pruebas de la interfaz; sin esto se omitirian en el CI
+      - run: npm install -g playwright@1.49.1 && playwright install --with-deps chromium
       - run: make lint
       - run: ./tools/lint-shell.sh --shellcheck
       - run: pip install onnxruntime numpy scipy scikit-learn tqdm pillow "openwakeword==0.4.0"

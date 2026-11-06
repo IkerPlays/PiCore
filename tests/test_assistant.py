@@ -157,6 +157,63 @@ if __name__ == "__main__":
     unittest.main()
 
 
+class ExecuteApiIntentsTest(unittest.TestCase):
+    """Brillo y vigilancia por voz, contra un servidor de mentira que anota lo que recibe."""
+
+    def setUp(self):
+        import http.server
+        self.posts, self.status = [], {"display": {"level": 60}, "motion": {"available": True}}
+        outer = self
+
+        class H(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                body = json.dumps(outer.status).encode()
+                self.send_response(200); self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
+
+            def do_POST(self):
+                n = int(self.headers["Content-Length"])
+                outer.posts.append((self.path, json.loads(self.rfile.read(n)), self.headers.get("X-PCPI")))
+                self.send_response(200); self.send_header("Content-Length", "2"); self.end_headers(); self.wfile.write(b"{}")
+
+            def log_message(self, *a):
+                pass
+        import threading
+        self.srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), H)
+        threading.Thread(target=self.srv.serve_forever, daemon=True).start()
+        self.cfg = {"api": "http://127.0.0.1:%d" % self.srv.server_address[1]}
+
+    def tearDown(self):
+        self.srv.shutdown()
+
+    def test_brightness_relative_absolute_and_auto(self):
+        self.assertEqual(assistant.execute(self.cfg, ("brightness", "+20")), "Brillo al 80 por ciento")
+        self.assertEqual(self.posts[-1], ("/api/display", {"level": 80, "auto": False}, "1"))
+        self.assertEqual(assistant.execute(self.cfg, ("brightness", "-20")), "Brillo al 40 por ciento")
+        self.status["display"]["level"] = 15
+        assistant.execute(self.cfg, ("brightness", "-20"))
+        self.assertEqual(self.posts[-1][1]["level"], 10)                 # nunca por debajo del 10 %
+        self.status["display"]["level"] = 95
+        assistant.execute(self.cfg, ("brightness", "+20"))
+        self.assertEqual(self.posts[-1][1]["level"], 100)
+        assistant.execute(self.cfg, ("brightness", "35"))
+        self.assertEqual(self.posts[-1][1], {"level": 35, "auto": False})
+        self.assertEqual(assistant.execute(self.cfg, ("brightness", "auto")), "Brillo automático")
+        self.assertEqual(self.posts[-1][1], {"auto": True})
+
+    def test_motion_on_off_and_without_camera(self):
+        self.assertEqual(assistant.execute(self.cfg, ("motion", True)), "Vigilancia activada")
+        self.assertEqual(self.posts[-1], ("/api/motion", {"enabled": True}, "1"))
+        self.assertEqual(assistant.execute(self.cfg, ("motion", False)), "Vigilancia desactivada")
+        self.status["motion"]["available"] = False
+        n = len(self.posts)
+        self.assertEqual(assistant.execute(self.cfg, ("motion", True)), "No hay cámara para vigilar")
+        self.assertEqual(len(self.posts), n)
+
+    def test_server_down_is_a_polite_error(self):
+        self.srv.shutdown()
+        self.assertEqual(assistant.execute({"api": "http://127.0.0.1:1"}, ("brightness", "+20")), "No he podido hacerlo")
+
+
 class StartupErrorsTest(unittest.TestCase):
     """Un fallo de CONFIGURACION debe acabar con un mensaje claro y el codigo 4 (systemd no reintenta), no en un bucle."""
 

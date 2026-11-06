@@ -1,10 +1,12 @@
 """El instalador y el desinstalador, ejecutados DE VERDAD en un arbol alternativo (PCPI_ROOT) con apt, systemctl,
 sudo... sustituidos por programas de mentira que anotan lo que se les pide. Asi se prueba el script entero
 (rutas, permisos, idempotencia, orden de las llamadas) sin tocar el sistema."""
+import json
 import os
 import shutil
 import stat
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -231,6 +233,26 @@ class InstallerTest(unittest.TestCase):
         auto = (self.home / ".config/labwc/autostart").read_text()
         self.assertNotIn("pcpi-session", auto)
         self.assertIn("wf-panel-pi", auto)                                               # el panel sigue ahi
+
+    def test_uninstall_gives_the_dns_back_to_the_wifi_and_removes_new_files(self):
+        """Sin esto, las wifis guardadas seguirian con DNS 127.0.0.1 (Pi-hole) y, sin Pi-hole, no habria internet."""
+        self.install()
+        nm = self.t / "nm.json"
+        nm.write_text(json.dumps({"networks": [], "active": "CasaIker", "connections": {
+            "CasaIker": {"type": "802-11-wireless", "dns": "127.0.0.1", "ignore": "yes"},
+            "Otra": {"type": "802-11-wireless", "dns": "127.0.0.1", "ignore": "yes"},
+            "Normal": {"type": "802-11-wireless", "dns": "", "ignore": "no"}}}))
+        self.env = {**self.env, "PCPI_NMCLI": "%s %s" % (sys.executable, ROOT / "tools" / "fake_nmcli.py"), "PCPI_FAKE_NM": str(nm)}
+        (self.home / ".cache").mkdir(exist_ok=True)
+        (self.home / ".cache/pcpi-portal").mkdir()
+        self.assertTrue((self.r / "etc/udev/rules.d/90-pcpi-backlight.rules").exists())
+        self.uninstall("n")
+        conns = json.loads(nm.read_text())["connections"]
+        for name in ("CasaIker", "Otra", "Normal"):
+            self.assertEqual((conns[name]["dns"], conns[name]["ignore"]), ("", "no"), name)
+        self.assertFalse((self.r / "etc/udev/rules.d/90-pcpi-backlight.rules").exists())
+        self.assertFalse((self.home / ".cache/pcpi-portal").exists())
+        self.assertTrue((self.r / "etc/pcpi/pcpi.conf").exists())          # la configuracion sigue (dijo que no)
 
     def test_uninstall_refuses_dangerous_root(self):
         env = {**self.env, "PCPI_ROOT": "/"}

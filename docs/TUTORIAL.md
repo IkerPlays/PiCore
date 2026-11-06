@@ -565,6 +565,9 @@ Todo ocurre **dentro de la Pi**: ni el audio ni lo que dices sale a internet.
 | «sube el volumen» · «baja el volumen» | ±10 % |
 | «volumen al cincuenta» | Pone el volumen a ese número (0–100) |
 | «silencia» | Silencia o reactiva el sonido |
+| «sube el brillo» · «baja el brillo» | ±20 % (nunca por debajo del 10 %) |
+| «brillo al cincuenta» · «brillo al máximo» · «brillo automático» | Pone el brillo a ese número, o vuelve al modo automático |
+| «activa la vigilancia» · «desactiva la vigilancia» | Enciende o apaga la detección de movimiento (si hay cámara) |
 
 Si no entiende, dice *«No te he entendido»*. Si no dices nada en 8 segundos, vuelve a esperar la palabra.
 

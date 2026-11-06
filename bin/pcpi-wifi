@@ -7,6 +7,8 @@
   pcpi-wifi forget "NOMBRE"           olvida una red guardada
   pcpi-wifi pihole "NOMBRE" on|off    usar (o no) el Pi-hole como DNS cuando estes en esa red
   pcpi-wifi portal [close]            abre (o cierra) la ventana para iniciar sesion en una wifi publica
+  pcpi-wifi reset-dns                 devuelve TODAS las redes guardadas al DNS de su router (deshace lo de Pi-hole;
+                                      lo usa ./uninstall.sh para que no te quedes sin internet)
 """
 import getpass
 import os
@@ -69,6 +71,17 @@ def main(argv):
             netmgr.check_ssid(rest[0])
             netmgr.set_wants_pihole(rest[0], rest[1] == "on")
             say("Listo: en «%s» el Pi-hole queda %s (se aplica en unos segundos)." % (rest[0], "ACTIVADO" if rest[1] == "on" else "DESACTIVADO"))
+            return 0
+        if cmd == "reset-dns":
+            n = 0
+            for ssid, conn in netmgr.saved_map().items():
+                if netmgr.get_dns_mode(conn) == "pihole":
+                    netmgr.set_dns_mode(conn, "auto")
+                    n += 1
+            act = netmgr.active()
+            if act and n:
+                netmgr.run(["device", "reapply", act.get("device") or ""])
+            say("DNS devuelto al de la red en %d conexion(es)." % n)
             return 0
         if cmd == "portal":
             run = Path(os.environ.get("PCPI_RUN_DIR", "/run/pcpi"))

@@ -110,6 +110,22 @@ def execute(cfg, intent):
             return "Pi-hole activado"
         if n == "volume":
             return "Hecho" if set_volume(a) else "No he podido cambiar el volumen"
+        if n == "brightness":
+            if a == "auto":
+                api(cfg, "/api/display", {"auto": True})
+                return "Brillo automático"
+            with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
+                cur = json.load(r)["display"]["level"]
+            level = cur + int(a) if a[0] in "+-" else int(a)
+            level = max(10, min(100, level))
+            api(cfg, "/api/display", {"level": level, "auto": False})
+            return "Brillo al %d por ciento" % level
+        if n == "motion":
+            with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
+                if not json.load(r).get("motion", {}).get("available"):
+                    return "No hay cámara para vigilar"
+            api(cfg, "/api/motion", {"enabled": bool(a)})
+            return "Vigilancia activada" if a else "Vigilancia desactivada"
     except Exception as e:  # servidor caido, pihole sin conexion...
         print("error ejecutando %s: %r" % (n, e), file=sys.stderr, flush=True)
         return "No he podido hacerlo"
