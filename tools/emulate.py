@@ -18,6 +18,15 @@ Comandos en la terminal:
   /spotify play Titulo - Artista | /spotify pause | /spotify stop
   /mode home|iker|desktop      /quit
   /motion                 -> simula un aviso de movimiento (activa antes la vigilancia con el icono 👁)
+  /boot                   -> simula ENCENDER la Pi: nuevo arranque (elige otro intro). Abre la URL que imprime
+  /intro 1|2|3|4|auto     -> fuerza que el proximo encendido ensene ese intro (auto = al azar con los pesos reales)
+  /intro4 reset           -> borra el intro 4 «descargado» para volver a ver la pantalla de descarga
+  /battery 15 [carga]     -> simula una bateria (porcentaje, y si esta cargando)   /battery off
+  /portal on|off          -> simula una wifi publica con inicio de sesion (el icono de Wi-Fi se pone naranja)
+
+Para VER los intros: abre  http://127.0.0.1:8080/loading?to=home&boot=1  (o arranca con --open).
+Usa tus videos de extra-assets/start/. El intro 4 (que en la Pi se descarga de internet) aqui se «descarga» de un
+servidor local con un video de tu carpeta como sustituto; con --real-intro4 baja el real (unos 530 MB).
 """
 import argparse
 import atexit
@@ -85,6 +94,9 @@ def main():
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--no-repl", action="store_true")
     ap.add_argument("--mode", default="home", choices=["home", "iker", "desktop"])
+    ap.add_argument("--open", action="store_true", help="abre el navegador en la pantalla de arranque (intro + carga)")
+    ap.add_argument("--real-intro4", action="store_true", help="descarga el intro 4 de verdad (~530 MB) en vez de simularlo")
+    ap.add_argument("--no-intro4", action="store_true", help="sin descarga del intro 4")
     a = ap.parse_args()
 
     tmp = Path(tempfile.mkdtemp(prefix="pcpi-emu-"))
@@ -93,20 +105,64 @@ def main():
     threading.Thread(target=fake.serve_forever, daemon=True).start()
     fport = fake.server_address[1]
 
+    # Copia de TUS assets a una carpeta temporal: asi el «intro 4 descargado» no ensucia el repositorio
+    src_assets = Path(os.environ.get("PCPI_ASSETS", str(ROOT / "extra-assets")))
+    assets = tmp / "assets"
+    shutil.copytree(src_assets, assets, ignore=shutil.ignore_patterns(".gitkeep", "*.part", "README.md"), dirs_exist_ok=True)
+    (assets / "start").mkdir(parents=True, exist_ok=True)
+
+    # Servidor local que hace de «netlify»: sirve despacio (para que se vea la barra) un video de tu carpeta como intro 4
+    standin = None
+    for cand in sorted((assets / "start").glob("Inicio*.mp4"), key=lambda p: -p.stat().st_size):
+        standin = cand
+        break
+    intro4_url = ""
+    if a.real_intro4:
+        intro4_url = "https://pcraspberrypi-video.netlify.app/ayuda.mp4"
+    elif standin and not a.no_intro4 and not (assets / "start" / "Inicio4.mp4").exists():
+        data = standin.read_bytes()
+
+        class Slow(BaseHTTPRequestHandler):
+            def log_message(self, *a):
+                pass
+
+            def do_GET(self):
+                self.send_response(200)
+                self.send_header("Content-Type", "video/mp4")
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                try:
+                    for i in range(0, len(data), 65536):
+                        self.wfile.write(data[i:i + 65536])
+                        time.sleep(0.12)           # ~500 KB/s: unos segundos de barra
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
+        slow = ThreadingHTTPServer(("127.0.0.1", 0), Slow)
+        threading.Thread(target=slow.serve_forever, daemon=True).start()
+        intro4_url = "http://127.0.0.1:%d/ayuda.mp4" % slow.server_address[1]
+
+    boot_cfg = {"chances": "90, 85, 55, 1", "intro4_url": intro4_url}
+
+    def write_conf():
+        (tmp / "pcpi.conf").write_text(
+            "[server]\nhost = %s\nport = %d\n[pihole]\nurl = http://127.0.0.1:%d\npassword = emu\n"
+            "[weather]\nlat = 28.1\nlon = -15.4\napi_url = http://127.0.0.1:%d/v1/forecast\n"
+            "[camera]\ncommand = %s\n[boot]\nintro_chances = %s\nintro4_url = %s\n"
+            % (a.host, a.port, fport, fport, cam, boot_cfg["chances"], boot_cfg["intro4_url"]))
+
     cam = ""
     if shutil.which("ffmpeg"):
         cam = ("ffmpeg -loglevel error -re -f lavfi -i testsrc2=size=640x480:rate=15 "
                "-c:v mjpeg -q:v 7 -f mpjpeg -boundary_tag frame -")
-    (tmp / "pcpi.conf").write_text(
-        "[server]\nhost = %s\nport = %d\n[pihole]\nurl = http://127.0.0.1:%d\npassword = emu\n"
-        "[weather]\nlat = 28.1\nlon = -15.4\napi_url = http://127.0.0.1:%d/v1/forecast\n"
-        "[camera]\ncommand = %s\n" % (a.host, a.port, fport, fport, cam))
+    write_conf()
     (tmp / "mode").write_text(a.mode + "\n")
     os.environ.update(PCPI_CONF=str(tmp / "pcpi.conf"), PCPI_MODE_FILE=str(tmp / "mode"),
                       PCPI_NOWPLAYING=str(tmp / "np.json"), PCPI_VOICE_STATE=str(tmp / "voice.json"), PCPI_NOTES_DIR=str(tmp / "notes"),
                       PCPI_RUN_DIR=str(tmp / "run"), PCPI_DISPLAY_STATE=str(tmp / "display.json"), PCPI_POWER_SUPPLY=str(tmp / "power"), PCPI_MOUNTS=str(tmp / "mounts"), PCPI_BACKUP_DIR=str(tmp / "backups"), PCPI_BACKLIGHT=str(tmp / "backlight"), PCPI_NETS=str(tmp / "nets.json"), PCPI_FAKE_NM=str(tmp / "nm.json"),
-                      PCPI_NMCLI="%s %s" % (sys.executable, ROOT / "tools" / "fake_nmcli.py"))
-    os.environ.setdefault("PCPI_ASSETS", str(ROOT / "extra-assets"))        # tus videos/imagenes de Inicio y Carga
+                      PCPI_NMCLI="%s %s" % (sys.executable, ROOT / "tools" / "fake_nmcli.py"),
+                      PCPI_ASSETS=str(assets), PCPI_INTRO_STATE=str(tmp / "intro.json"), PCPI_BOOT_ID_FILE=str(tmp / "boot_id"))
+    boot_n = [1]
+    (tmp / "boot_id").write_text("emulador-1")
     sys.path[:0] = [str(ROOT / "home"), str(ROOT / "voice")]
     import assistant
     import intents
@@ -120,7 +176,10 @@ def main():
     server.save_note(None, "Lista de la compra\n- leche\n- pan\n- café")
     server.save_note(None, "Ideas para el proyecto\nProbar la voz en la Pi real y ajustar el umbral.")
     # Wi-Fi emulado: nmcli de mentira (3 redes) y un internet que siempre responde
-    server.NETWATCH = netmgr.NetWatch(tmp / "run", nm=netmgr, probe_fn=lambda: ("full", None), dns_ok=lambda: True)
+    net = {"portal": False}
+    server.NETWATCH = netmgr.NetWatch(
+        tmp / "run", nm=netmgr, dns_ok=lambda: True,
+        probe_fn=lambda: ("portal", "http://login.wifi-publica.example/acceso") if net["portal"] else ("full", None))
     server.NETWATCH.tick()
     threading.Thread(target=server.NETWATCH.loop, daemon=True).start()
     # Vigilancia de movimiento: sin camara real, un vigilante que no abre nada (la pantalla muestra el icono 👁 y
@@ -131,8 +190,13 @@ def main():
     srv = server.make_server(a.host, a.port)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     print("PiCore emulado en http://%s:%d   (modo %s, datos en %s)" % (a.host, a.port, a.mode, tmp), flush=True)
+    boot_url = "http://%s:%d/loading?to=%s&boot=1" % (a.host, a.port, a.mode)
+    print("Intros + carga (como al encender la Pi):  %s" % boot_url, flush=True)
     if not cam:
         print("(sin ffmpeg: la camara no esta disponible en el emulador)")
+    if a.open:
+        import webbrowser
+        webbrowser.open(boot_url)
     if a.no_repl:
         try:
             threading.Event().wait()
@@ -201,6 +265,48 @@ def main():
                 else:
                     title, _, artist = (parts[2] if len(parts) > 2 else "Bohemian Rhapsody - Queen").partition(" - ")
                     nowplaying("playing" if act == "play" else "paused", title, artist)
+                continue
+            if line == "/boot":
+                boot_n[0] += 1
+                (tmp / "boot_id").write_text("emulador-%d" % boot_n[0])
+                print("  ⏻ nuevo encendido (nº %d). Abre: %s" % (boot_n[0], boot_url))
+                continue
+            if line.startswith("/intro4"):
+                for f in (assets / "start").glob("Inicio4.mp4*"):
+                    f.unlink()
+                server._downloaders.clear()
+                boot_cfg["intro4_url"] = boot_cfg["intro4_url"] or intro4_url
+                write_conf()
+                print("  intro 4 borrado: el proximo /boot vuelve a «descargarlo»")
+                continue
+            if line.startswith("/intro"):
+                arg = (line.split() + ["auto"])[1]
+                if arg in ("1", "2", "3", "4"):
+                    boot_cfg["chances"] = ", ".join("100" if str(i) == arg else "0" for i in range(1, 5))
+                elif arg == "auto":
+                    boot_cfg["chances"] = "90, 85, 55, 1"
+                else:
+                    print("  uso: /intro 1|2|3|4|auto")
+                    continue
+                write_conf()
+                print("  pesos de los intros: %s   (haz /boot y abre la URL)" % boot_cfg["chances"])
+                continue
+            if line.startswith("/battery"):
+                bat = tmp / "power" / "BAT0"
+                parts = line.split()
+                if len(parts) > 1 and parts[1] == "off":
+                    shutil.rmtree(tmp / "power", ignore_errors=True)
+                else:
+                    bat.mkdir(parents=True, exist_ok=True)
+                    (bat / "type").write_text("Battery")
+                    (bat / "capacity").write_text(str(int(parts[1])) if len(parts) > 1 and parts[1].isdigit() else "15")
+                    (bat / "status").write_text("Charging" if "carga" in line or "charging" in line else "Discharging")
+                server._cache.pop("battery", None)
+                continue
+            if line.startswith("/portal"):
+                net["portal"] = "on" in line.split()[1:]
+                server.NETWATCH.tick()
+                print("  wifi publica con portal: %s" % ("SI (mira el icono de Wi-Fi)" if net["portal"] else "no"))
                 continue
             if line == "/motion":
                 server.MOTION["last"], server.MOTION["count"] = time.time(), server.MOTION["count"] + 1

@@ -72,6 +72,8 @@ Abre <http://127.0.0.1:8080> en el navegador.
 
 ✅ Ves el modo Casa con un Pi-hole de mentira, el tiempo, un Spotify de prueba y (si tienes `ffmpeg`) la cámara. `http://127.0.0.1:8080/iker` es el bloc de notas.
 
+**Para ver los intros y la pantalla de carga** (como al encender la Pi) abre <http://127.0.0.1:8080/loading?to=home&boot=1>. En la terminal del emulador: `/boot` = «encender de nuevo» (elige otro intro), `/intro 1` … `/intro 4` fuerza uno (el 4 enseña también el botón «Saltar» a los 6 s), `/intro4 reset` vuelve a mostrar la pantalla de descarga, `/battery 15`, `/portal on`, `/motion` enseñan la batería, la wifi pública y el aviso de movimiento. El intro 4 se «descarga» de un servidor local con uno de tus vídeos como sustituto (para bajar el real, `--real-intro4`, unos 530 MB).
+
 En la misma terminal puedes **escribir órdenes de voz**: `hey jarvis qué hora es`, `hey jarvis modo iker`, `hey jarvis muestra la cámara`. Usa el mismo código que la Pi. `Ctrl+C` para salir.
 
 ---
