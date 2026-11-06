@@ -21,6 +21,7 @@ from pathlib import Path
 
 import assets
 import display
+import motion
 import netmgr
 import notes_tools
 import pcpiconf
@@ -296,6 +297,65 @@ STREAM_FIRST_S = 8      # esperar tanto al primer fotograma antes de dar la cama
 _streams = threading.BoundedSemaphore(2)  # como mucho 2 visores a la vez
 
 
+WATCHER = None
+MOTION = {"last": None, "count": 0}
+
+
+def motion_file():
+    return Path(os.environ.get("PCPI_MOTION_STATE", "/var/lib/pcpi/motion.json"))
+
+
+def motion_enabled(cp):
+    """El interruptor de la pantalla (guardado en motion.json) manda; si no se ha tocado, vale [motion] enabled."""
+    try:
+        return bool(json.loads(motion_file().read_text())["enabled"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return cp.getboolean("motion", "enabled", fallback=False)
+
+
+def set_motion_enabled(on):
+    f = motion_file()
+    f.parent.mkdir(parents=True, exist_ok=True)
+    tmp = f.with_suffix(".tmp")
+    tmp.write_text(json.dumps({"enabled": bool(on)}))
+    os.replace(tmp, f)
+
+
+def motion_status(cp):
+    cam = camera_status(cp)["available"]
+    return {"available": cam and WATCHER is not None, "enabled": motion_enabled(cp), "last": MOTION["last"], "count": MOTION["count"]}
+
+
+class camera_exclusive:
+    """Mientras el visor (o una foto) usa la camara, la vigilancia de movimiento la suelta; despues la recupera."""
+
+    def __enter__(self):
+        if WATCHER:
+            WATCHER.pause()
+
+    def __exit__(self, *a):
+        if WATCHER:
+            WATCHER.resume()
+
+
+def start_motion(cp):
+    global WATCHER
+
+    def source():
+        c = read_conf()
+        if not camera_status(c)["available"]:
+            raise OSError("sin camara")
+        return motion.FfmpegSource(motion.ffmpeg_cmd(c))
+
+    def on_motion(ts):
+        MOTION["last"], MOTION["count"] = ts, MOTION["count"] + 1
+
+    WATCHER = motion.Watcher(source, on_motion, lambda: motion_enabled(read_conf()),
+                             sensitivity_fn=lambda: read_conf().get("motion", "sensitivity", fallback="medium"),
+                             cooldown_fn=lambda: max(5, read_conf().getint("motion", "cooldown", fallback=30)))
+    threading.Thread(target=WATCHER.loop, daemon=True).start()
+
+
 def camera_cmd(cp, snapshot=False):
     """Comando que escupe MJPEG por stdout. [camera] command lo sustituye (RTSP, pruebas...)."""
     custom = cp.get("camera", "command", fallback="").strip()
@@ -385,6 +445,7 @@ def status():
         "camera": camera_status(cp),
         "net": net_summary(),
         "display": display_info(cp),
+        "motion": motion_status(cp),
         "ip": cached("ip", 60, local_ip),
         "host": socket.gethostname(),
     }
@@ -648,13 +709,16 @@ class Handler(BaseHTTPRequestHandler):
         custom = bool(cp.get("camera", "command", fallback="").strip())
         cmd = camera_cmd(cp, snapshot and not custom)
         if snapshot:
-            out = first_jpeg(cmd) if custom else _run(cmd)
+            with camera_exclusive():
+                out = first_jpeg(cmd) if custom else _run(cmd)
             if not out:
                 return self._send(503, {"error": "sin imagen"})
             return self._send(200, out, "image/jpeg")
         if not _streams.acquire(blocking=False):
             return self._send(503, {"error": "demasiados visores"})
         proc = None
+        exclusive = camera_exclusive()
+        exclusive.__enter__()            # la vigilancia de movimiento suelta la camara mientras haya visor
         try:
             proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
             # No se abre la respuesta hasta que llega el primer dato: si la camara no arranca (ffmpeg falla, el
@@ -687,6 +751,7 @@ class Handler(BaseHTTPRequestHandler):
                 proc.kill()
                 proc.wait()
                 proc.stdout.close()
+            exclusive.__exit__()
             _streams.release()
 
     def do_POST(self):
@@ -697,7 +762,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self._host_ok():
             return self._send(403, {"error": "host no permitido"})
         paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/notes/export", "/api/loaded",
-                 "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display")
+                 "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display", "/api/motion")
         if self.path not in paths or self.headers.get("X-PCPI") != "1":
             return self._send(403, {"error": "prohibido"})
         try:
@@ -709,6 +774,11 @@ class Handler(BaseHTTPRequestHandler):
             if self.path == "/api/mode":
                 set_mode(body["mode"])
                 return self._send(200, {"mode": body["mode"]})
+            if self.path == "/api/motion":
+                if not isinstance(body.get("enabled"), bool):
+                    raise ValueError("enabled invalido")
+                set_motion_enabled(body["enabled"])
+                return self._send(200, motion_status(read_conf()))
             if self.path == "/api/display":
                 lvl = body.get("level")
                 auto = body.get("auto")
@@ -784,6 +854,7 @@ def main():
     start_netwatch(cp)
     threading.Thread(target=display_loop, daemon=True).start()
     threading.Thread(target=backup_loop, daemon=True).start()
+    start_motion(cp)
     print("PCPi escuchando en http://%s:%d" % (host, port), flush=True)
     make_server(host, port).serve_forever()
 

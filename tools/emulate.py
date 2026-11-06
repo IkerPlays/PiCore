@@ -17,6 +17,7 @@ Comandos en la terminal:
   oye pi                  -> solo la palabra: te pide la orden en la linea siguiente
   /spotify play Titulo - Artista | /spotify pause | /spotify stop
   /mode home|iker|desktop      /quit
+  /motion                 -> simula un aviso de movimiento (activa antes la vigilancia con el icono 👁)
 """
 import argparse
 import atexit
@@ -122,6 +123,11 @@ def main():
     server.NETWATCH = netmgr.NetWatch(tmp / "run", nm=netmgr, probe_fn=lambda: ("full", None), dns_ok=lambda: True)
     server.NETWATCH.tick()
     threading.Thread(target=server.NETWATCH.loop, daemon=True).start()
+    # Vigilancia de movimiento: sin camara real, un vigilante que no abre nada (la pantalla muestra el icono 👁 y
+    # el aviso se prueba con /motion en la terminal)
+    import motion
+    os.environ["PCPI_MOTION_STATE"] = str(tmp / "motion.json")
+    server.WATCHER = motion.Watcher(lambda: (_ for _ in ()).throw(OSError("emulador")), lambda ts: None, lambda: False)
     srv = server.make_server(a.host, a.port)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     print("PCPi emulado en http://%s:%d   (modo %s, datos en %s)" % (a.host, a.port, a.mode, tmp), flush=True)
@@ -195,6 +201,9 @@ def main():
                 else:
                     title, _, artist = (parts[2] if len(parts) > 2 else "Bohemian Rhapsody - Queen").partition(" - ")
                     nowplaying("playing" if act == "play" else "paused", title, artist)
+                continue
+            if line == "/motion":
+                server.MOTION["last"], server.MOTION["count"] = time.time(), server.MOTION["count"] + 1
                 continue
             if line.startswith("/mode"):
                 server.set_mode(line.split()[1])

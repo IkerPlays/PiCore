@@ -106,3 +106,15 @@ backup = true
 # Cuantas copias se guardan.
 backup_keep = 7
 
+[motion]
+# Deteccion de movimiento con la camara (aviso en la pantalla de Casa). Tambien se activa con el icono 👁.
+# Privacidad: compara fotogramas diminutos en memoria; NO guarda ni envia imagenes.
+# Coste: mantiene la camara abierta (algo de CPU); se pausa sola mientras ves la camara.
+enabled = false
+# low, medium o high
+sensitivity = medium
+# Segundos minimos entre un aviso y el siguiente.
+cooldown = 30
+# Fotogramas por segundo que se analizan (1-10).
+fps = 2
+

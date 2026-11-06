@@ -71,6 +71,35 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.request.post(base + '/api/display', { headers: { 'X-PCPI': '1' }, data: { level: 100, auto: true } });
   await page.click('#b-close');
 
+  // ------------------------------------------------------------------ vigilancia de movimiento
+  await page.goto(base + '/');
+  await page.waitForFunction(() => !document.getElementById('chip-motion').hidden, null, { timeout: 8000 }).catch(() => {});
+  const hasMotion = await page.isVisible('#chip-motion');
+  check('el icono de vigilancia aparece (hay camara)', hasMotion);
+  if (hasMotion) {
+    await page.click('#chip-motion');
+    await sleep(500);
+    check('el icono activa la vigilancia', (await (await page.request.get(base + '/api/status')).json()).motion.enabled === true);
+    // se simula un aviso: el estado trae un movimiento de «ahora mismo» (el primero que ve la pagina no avisa: es el historico)
+    let fakeLast = null;
+    await page.route('**/api/status', async route => {
+      const resp = await route.fetch();
+      const j = await resp.json();
+      if (fakeLast) j.motion.last = fakeLast;
+      await route.fulfill({ response: resp, json: j });
+    });
+    await sleep(4500);                                              // la pagina ya vio el estado sin movimiento
+    fakeLast = Date.now() / 1000;
+    await page.waitForFunction(() => document.getElementById('motion').classList.contains('on'), null, { timeout: 9000 }).catch(() => {});
+    check('aparece el aviso «Movimiento detectado»', await page.evaluate(() => document.getElementById('motion').classList.contains('on')));
+    await page.unroute('**/api/status');
+    await page.click('#motion');
+    await sleep(500);
+    check('tocar el aviso abre la camara', (await page.evaluate(() => document.getElementById('cam').style.display)) === 'block');
+    await page.click('#close-cam');
+    await page.request.post(base + '/api/motion', { headers: { 'X-PCPI': '1' }, data: { enabled: false } });
+  }
+
   // ------------------------------------------------------------------ Wi-Fi (panel + teclado en pantalla)
   await page.goto(base + '/');
   await page.waitForFunction(() => !document.getElementById('chip-wifi').hidden, null, { timeout: 8000 }).catch(() => {});

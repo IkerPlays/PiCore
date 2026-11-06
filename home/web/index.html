@@ -146,6 +146,13 @@
   .spin { display:inline-block; width:18px; height:18px; border:3px solid var(--line); border-top-color:var(--acc); border-radius:50%; animation:spin .8s linear infinite; vertical-align:-3px; margin-right:8px; }
   @keyframes spin { to { transform:rotate(360deg); } }
 
+  /* ---------------- movimiento ---------------- */
+  #chip-motion { opacity:.55; } #chip-motion.on { opacity:1; border-color:var(--ok); }
+  #motion { position:fixed; left:50%; top:16px; transform:translate(-50%,-120px); z-index:6; display:flex; align-items:center; gap:12px; padding:12px 22px; border-radius:999px;
+            background:var(--warn); color:#000; font-size:20px; font-weight:650; box-shadow:0 10px 34px #0007; transition:transform .5s var(--ease); }
+  #motion.on { transform:translate(-50%,0); animation:blink 1.4s ease-in-out 3; }
+  #motion small { font-weight:500; font-size:14px; opacity:.75; }
+
   /* ---------------- brillo ---------------- */
   #bpanel { position:fixed; left:50%; bottom:0; z-index:21; width:min(560px,100vw); background:var(--card); border:1px solid var(--line); border-bottom:0;
             border-radius:26px 26px 0 0; box-shadow:0 -20px 60px #0008; padding:20px 24px 26px; transform:translate(-50%,105%); transition:transform .5s var(--ease); }
@@ -178,6 +185,7 @@
     <div id="greet"></div>
     <div id="chips">
       <span class="chip" id="chip-cpu" hidden></span>
+      <button class="chip" id="chip-motion" hidden aria-label="Vigilancia">👁</button>
       <button class="chip" id="chip-bright" aria-label="Brillo" style="color:var(--fg)">☀</button>
       <button class="chip" id="chip-wifi" hidden aria-label="Wi-Fi">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 9a14 14 0 0 1 19 0"/><path d="M5.5 12.5a9.5 9.5 0 0 1 13 0"/><path d="M8.7 16a5 5 0 0 1 6.6 0"/><circle cx="12" cy="19.4" r="1.2" fill="currentColor" stroke="none"/></svg>
@@ -232,6 +240,7 @@
 
 <div id="dim"></div>
 <div id="voice"></div>
+<button id="motion" hidden>🚶 Movimiento detectado <small id="motion-t"></small></button>
 <div id="cam">
   <div class="msg">Conectando con la cámara…</div>
   <img id="cam-img" alt="">
@@ -395,6 +404,28 @@ $("chip-bright").onclick = () => { syncBPanel(); $("scrim").classList.add("on");
 function closeBright() { $("bpanel").classList.remove("on"); if (!$("sheet").classList.contains("on")) $("scrim").classList.remove("on"); }
 $("b-close").onclick = closeBright;
 
+/* ---- vigilancia de movimiento ---- */
+let motionSeen = null, motionEnabled = false, motionTimer = 0;
+function paintMotion(m) {
+  const chip = $("chip-motion");
+  if (!m || !m.available) { chip.hidden = true; return; }
+  chip.hidden = false; motionEnabled = m.enabled; chip.classList.toggle("on", m.enabled);
+  chip.title = m.enabled ? "Vigilancia activada" : "Vigilancia desactivada";
+  if (m.last && m.last !== motionSeen) {
+    const first = motionSeen === null; motionSeen = m.last;
+    const age = Date.now() / 1000 - m.last;
+    if (!first && age < 20 && m.enabled) {                              // aviso nuevo (no uno viejo al abrir la pagina)
+      $("motion-t").textContent = new Date(m.last * 1000).toLocaleTimeString("es-ES", {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+      $("motion").hidden = false; requestAnimationFrame(() => $("motion").classList.add("on"));
+      clearTimeout(motionTimer); motionTimer = setTimeout(() => { $("motion").classList.remove("on"); }, 15000);
+    }
+  } else if (motionSeen === null) motionSeen = m.last || 0;
+}
+$("chip-motion").onclick = async () => {
+  try { const r = await post("/api/motion", {enabled: !motionEnabled}); if (r.ok) paintMotion(await r.json()); } catch (e) {}
+};
+$("motion").onclick = () => { $("motion").classList.remove("on"); openCam(); post("/api/camera", {show:true}); };
+
 /* ---- chip de Wi-Fi ---- */
 let netState = null;
 function paintNet(n) {
@@ -550,6 +581,7 @@ async function refresh() {
   if (s.cpu_temp != null) { $("chip-cpu").hidden = false; $("chip-cpu").textContent = "🌡 " + s.cpu_temp + "°"; }
   paintNet(s.net);
   paintDisplay(s.display);
+  paintMotion(s.motion);
 
   const c = s.camera || {};
   $("open-cam").style.display = c.available ? "" : "none";
