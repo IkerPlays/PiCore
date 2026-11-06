@@ -105,9 +105,22 @@ def scan(rescan=False):
     return sorted(best.values(), key=lambda n: (not n["active"], -n["signal"], n["ssid"].lower()))
 
 
+def wifi_ssid(conn):
+    """SSID de una conexion guardada. OJO: el NOMBRE de la conexion no tiene por que ser el SSID (Raspberry Pi OS
+    crea la del Imager con el nombre «preconfigured»)."""
+    code, out = run(["-t", "-g", "802-11-wireless.ssid", "connection", "show", "id", conn])
+    return out.strip() if code == 0 and out.strip() else conn
+
+
+def saved_map():
+    """{ssid: nombre_de_conexion} de las redes Wi-Fi guardadas."""
+    names = [n for n, t in rows(["-t", "-f", "NAME,TYPE", "connection", "show"], 2) if t in ("802-11-wireless", "wifi")]
+    return {wifi_ssid(n): n for n in names}
+
+
 def saved():
-    """Nombres de las conexiones Wi-Fi guardadas."""
-    return [n for n, t in rows(["-t", "-f", "NAME,TYPE", "connection", "show"], 2) if t in ("802-11-wireless", "wifi")]
+    """SSIDs de las redes Wi-Fi guardadas."""
+    return list(saved_map())
 
 
 def active():
@@ -116,7 +129,7 @@ def active():
     for name, typ, dev in rows(["-t", "-f", "NAME,TYPE,DEVICE", "connection", "show", "--active"], 3):
         kind = {"802-11-wireless": "wifi", "wifi": "wifi", "802-3-ethernet": "ethernet", "ethernet": "ethernet"}.get(typ)
         if kind and kind not in found:
-            found[kind] = {"name": name, "type": kind, "device": dev}
+            found[kind] = {"name": name, "type": kind, "device": dev, "ssid": wifi_ssid(name) if kind == "wifi" else name}
     return found.get("ethernet") or found.get("wifi")
 
 
@@ -180,8 +193,9 @@ def connect(ssid, password=None):
     """Conecta (o reconecta si ya esta guardada y no se da contraseña). La contraseña va por stdin: no sale en `ps`."""
     ssid = check_ssid(ssid)
     password = check_password(password)
-    if not password and ssid in saved():
-        code, out = run(["connection", "up", "id", ssid], timeout=60)
+    known = saved_map()
+    if not password and ssid in known:
+        code, out = run(["connection", "up", "id", known[ssid]], timeout=60)
     elif password:
         code, out = run(["--ask", "device", "wifi", "connect", ssid], stdin=password + "\n", timeout=60)
     else:
@@ -192,12 +206,14 @@ def connect(ssid, password=None):
 
 
 def forget(ssid):
+    """Olvida una red guardada (por SSID o por nombre de conexion)."""
     ssid = check_ssid(ssid)
-    code, out = run(["connection", "delete", "id", ssid])
+    name = saved_map().get(ssid, ssid)
+    code, out = run(["connection", "delete", "id", name])
     if code != 0:
         raise NMError("No tengo guardada la red «%s»" % ssid)
     nets = load_nets()
-    if nets.pop(ssid, None) is not None:
+    if nets.pop(name, None) is not None:
         save_nets(nets)
     return True
 

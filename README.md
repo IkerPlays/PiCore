@@ -6,11 +6,13 @@ Un PC portátil con **Raspberry Pi 5 (8 GB)** y pantalla táctil de 7" con tres 
 |---|---|---|
 | 🖥 **Escritorio** | Raspberry Pi OS normal | ✅ |
 | 📝 **Iker** | Solo dos apps: **bloc de notas** (guardar/cargar notas) e **Internet** | ✅ |
-| 🏠 **Casa** | Estilo Alexa con pantalla: hora, tiempo, Pi-hole, Spotify Connect, asistente de voz local y cámara | ✅ base |
+| 🏠 **Casa** | Estilo Alexa con pantalla y animaciones suaves: hora, tiempo, Pi-hole, Spotify Connect, asistente de voz local, cámara y panel de Wi-Fi | ✅ base |
 
 - 🛒 Qué comprar (≤ 250 €): [docs/SHOPPING_LIST.md](docs/SHOPPING_LIST.md)
 - 🖥 **Mini pantalla de estado** (CPU/RAM/disco/GPU, opcional): [docs/PANTALLA_MINI.md](docs/PANTALLA_MINI.md)
 - 📖 **Tutorial desde cero (qué comprar, montar, instalar, configurar):** [docs/TUTORIAL.md](docs/TUTORIAL.md)
+- 🎬 **Pantallas de Inicio y de Carga** con tus vídeos/GIFs/imágenes: carpeta [extra-assets/](extra-assets/README.md)
+- 📶 **Wi-Fi** (cambiar de red desde la pantalla, Pi-hole en cada red, wifis públicas con login): [Paso 9 del tutorial](docs/TUTORIAL.md#paso-9-wi-fi-en-casa-de-viaje-y-wifis-públicas)
 - 🧱 Cómo funciona y hoja de ruta: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ## Probar sin Raspberry Pi (emulador)
@@ -28,7 +30,7 @@ En Raspberry Pi OS con escritorio (64 bits), como usuario normal:
 ```bash
 git clone https://github.com/IkerPlays/PCRaspberryPI5.git
 cd PCRaspberryPI5
-./install.sh --all        # = --camera --voice --spotify --pihole. Aparte: --stats (mini pantalla) y --battery
+./install.sh --camera --voice --spotify   # Pi-hole se instala aparte: ./install.sh --pihole (ver Paso 6 del tutorial). Opciones: --all Aparte: --stats (mini pantalla) y --battery
 ```
 
 Después cierra sesión y vuelve a entrar. Para comprobar que todo va: `pcpi-doctor`. **Guía completa paso a paso: [docs/TUTORIAL.md](docs/TUTORIAL.md).** Para quitarlo: `./uninstall.sh`.
@@ -40,6 +42,7 @@ pcpi-mode home      # modo Casa
 pcpi-mode iker      # modo Iker (notas + internet)
 pcpi-mode desktop   # escritorio normal
 pcpi-mode status
+pcpi-wifi list      # Wi-Fi desde la terminal (connect, status, forget, pihole, portal)
 pcpi-setup          # asistente: ciudad, contraseña de Pi-hole, micrófono (con prueba), mini pantalla
 pcpi-doctor         # diagnóstico
 ```
@@ -47,6 +50,14 @@ pcpi-doctor         # diagnóstico
 También hay un icono **"PCPi · Elegir modo"** en el menú de aplicaciones, y botones táctiles dentro de la UI de Casa y de Iker. El modo se recuerda entre reinicios.
 
 Configuración (Pi-hole, ciudad del tiempo): `/etc/pcpi/pcpi.conf`. Hay una plantilla en [config/pcpi.conf.example](config/pcpi.conf.example).
+
+## Pantallas de Inicio y de Carga
+
+Al **encender**, una pantalla en blanco reproduce `extra-assets/start/Inicio.mp4` y después carga el **último modo** usado. En **cada cambio de modo** (y tras el Inicio) sale la pantalla de **Carga**: pop-up «Cargando», barra y porcentaje, y debajo tus imágenes/GIFs/vídeos de `extra-assets/loading/`. La carga real llega al 100 % pero **se muestra 85 %**; entonces un efecto de tele con **«▶▶ x2»** acelera la barra hasta el 100 % (un tramo visual) y un botón **Saltar** lo pasa. Todo se ajusta en `[boot]`. Detalles: [extra-assets/README.md](extra-assets/README.md) y [Paso 8.2](docs/TUTORIAL.md#82-las-pantallas-de-inicio-y-de-carga-tus-vídeos-y-gifs).
+
+## Wi-Fi
+
+La wifi de casa va en la microSD (Imager). Para otra red, toca el icono de Wi-Fi del modo Casa (hay teclado en pantalla) o usa `pcpi-wifi`. **Pi-hole se aplica en cada red** (con un interruptor por red) y **no se fuerza si está caído**. En wifis públicas con portal (hotel, aeropuerto) se abre sola la ventana de inicio de sesión. Detalles y límites: [Paso 9](docs/TUTORIAL.md#paso-9-wi-fi-en-casa-de-viaje-y-wifis-públicas).
 
 ## Cámara
 
@@ -62,12 +73,13 @@ La palabra, el umbral y el micro se cambian en `[voice]` de `/etc/pcpi/pcpi.conf
 
 ## Estado
 
-**140 tests** (`make test`, unos 40 s):
+**207 tests** (`make test`, ~1 min):
 
 - **Instalador y desinstalador ejecutados de verdad** en un árbol alternativo, con `apt`, `systemctl`, `sudo`… de mentira que anotan lo que se les pide: rutas, permisos, idempotencia (no pisa tu configuración ni tu modo), orden de las llamadas (el servidor se reinicia **después** de añadir los grupos), y que desinstalar deja el panel del escritorio intacto.
 - **Todos los scripts de `bin/`** (modos, selector, hook de Spotify, grabación de muestras, `pcpi-doctor`, y el vigilante de modos con un Chromium de mentira).
 - **Servidor y API**, seguridad (DNS rebinding, cabeceras, entradas raras), notas, cámara, configuración desordenada (contraseñas con `%`, claves repetidas, líneas basura).
 - **Voz** (intérprete de órdenes, máquina de estados) y **mini pantalla** (métricas, dibujo, bytes del SSD1306/SH1106, reconexión).
-- **La interfaz en un navegador real** (26 comprobaciones con Playwright: botones, notas, tema, cámara, XSS, errores de consola/CSP). Se omite si no tienes `node` + `playwright`.
+- **Pantallas de Inicio/Carga, Wi-Fi, assets**: listado y rutas seguras, Range, el vigilante `pcpi-session` con Chromium de mentira, `nmcli` simulado (contraseñas, DNS por red, portal cautivo) y la pantalla de carga y el panel de Wi-Fi con teclado en un navegador real.
+- **La interfaz en un navegador real** (más de 50 comprobaciones con Playwright: botones, notas, tema, cámara, XSS, errores de consola/CSP). Se omite si no tienes `node` + `playwright`.
 
-> ⚠️ **Nada de esto se ha probado todavía en una Raspberry Pi real.** Falta comprobar sobre el hardware: el instalador con apt de verdad, el kiosco de Chromium, el hook de Spotify, la cámara, el reconocimiento de voz (calidad del micro, umbral de activación) y la mini pantalla. Si algo falla, `pcpi-doctor` y la sección «Si algo falla» del [tutorial](docs/TUTORIAL.md) son el punto de partida.
+> ⚠️ **Nada de esto se ha probado todavía en una Raspberry Pi real.** Falta comprobar sobre el hardware: el instalador con apt de verdad, el kiosco de Chromium (y el vídeo de Inicio con sus códecs), el Wi-Fi con NetworkManager y los portales cautivos reales, el hook de Spotify, la cámara, el reconocimiento de voz (calidad del micro, umbral de activación) y la mini pantalla. Si algo falla, `pcpi-doctor` y la sección «Si algo falla» del [tutorial](docs/TUTORIAL.md) son el punto de partida.

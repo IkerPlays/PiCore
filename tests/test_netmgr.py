@@ -78,6 +78,24 @@ class CommandsTest(unittest.TestCase):
         netmgr.connect("CasaIker")                                       # guardada: no pide contraseña
         self.assertEqual(netmgr.active()["name"], "CasaIker")
 
+    def test_connection_name_is_not_the_ssid(self):
+        """El Imager guarda la wifi de la microSD con el nombre «preconfigured»: hay que tratarla por su SSID."""
+        import json
+        (T / "nm.json").write_text(json.dumps({
+            "networks": [{"ssid": "CasaIker", "signal": 80, "security": "WPA2", "password": "supersecreta"},
+                         {"ssid": "Vecino", "signal": 40, "security": "WPA2", "password": "otraclave1"}],
+            "connections": {"preconfigured": {"type": "802-11-wireless", "ssid": "CasaIker", "dns": "", "ignore": "no"}},
+            "active": "preconfigured"}))
+        self.assertEqual(netmgr.saved(), ["CasaIker"])
+        act = netmgr.active()
+        self.assertEqual((act["name"], act["ssid"]), ("preconfigured", "CasaIker"))
+        netmgr.connect("Vecino", "otraclave1")
+        self.assertEqual(netmgr.active()["ssid"], "Vecino")
+        netmgr.connect("CasaIker")                        # guardada con otro nombre: reconecta SIN pedir contraseña
+        self.assertEqual(netmgr.active()["name"], "preconfigured")
+        netmgr.forget("CasaIker")
+        self.assertNotIn("CasaIker", netmgr.saved())
+
     def test_password_never_in_arguments(self):
         seen = []
         real = netmgr.run

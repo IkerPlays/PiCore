@@ -56,6 +56,11 @@ def main(argv):
         a = st["active"]
         if a and a in st["connections"]:
             print("%s:%s:%s" % (esc(a), st["connections"][a]["type"], "wlan0"))
+    elif args[:2] == ["-g", "802-11-wireless.ssid"]:
+        c = st["connections"].get(args[-1])
+        if c is None:
+            fail("Error: unknown connection")
+        print(c.get("ssid", args[-1]))
     elif args[:2] == ["-g", "ipv4.dns,ipv4.ignore-auto-dns"]:
         c = st["connections"].get(args[-1])
         if c is None:
@@ -93,8 +98,9 @@ def main(argv):
         pw = sys.stdin.readline().rstrip("\n") if ask else ""
         if net["security"] and pw != net["password"]:
             fail("Error: Connection activation failed: Secrets were required, but not provided.", 4)
-        st["connections"][ssid] = {"type": "802-11-wireless", "dns": "", "ignore": "no"}
-        st["active"] = ssid
+        existing = next((k for k, c in st["connections"].items() if c.get("ssid", k) == ssid), ssid)
+        st["connections"].setdefault(existing, {"type": "802-11-wireless", "dns": "", "ignore": "no"})
+        st["active"] = existing
         save(st)
         print("Device 'wlan0' successfully activated")
     else:

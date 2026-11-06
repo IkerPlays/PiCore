@@ -350,7 +350,7 @@ function paintNet(n) {
   chip.hidden = false;
   const cls = !n.name ? "off" : (n.portal || n.connectivity === "portal") ? "warn" : n.connectivity === "none" ? "off" : "ok";
   chip.className = "chip " + cls;
-  $("wifi-name").textContent = !n.name ? "Sin red" : cls === "warn" ? n.name + " · iniciar sesión" : n.type === "ethernet" ? "Cable" : n.name;
+  $("wifi-name").textContent = !n.name ? "Sin red" : cls === "warn" ? (n.ssid || n.name) + " · iniciar sesión" : n.type === "ethernet" ? "Cable" : (n.ssid || n.name);
 }
 
 /* ---- panel de Wi-Fi ---- */
@@ -375,7 +375,7 @@ function renderSheet() {
   if (!w) { body.innerHTML = '<div class="cur"><span class="spin"></span>Buscando redes…</div>'; return; }
   if (!w.available) { body.innerHTML = '<div class="cur"><div class="t">Wi-Fi no disponible</div><div class="s">Este equipo no tiene NetworkManager (o está desactivado en pcpi.conf).</div></div>'; return; }
   const a = w.active, [t, cls, sub] = curStatus(w);
-  let h = `<div class="cur"><div class="t">${a ? esc(a.name) : "Sin red"}${a && a.type === "ethernet" ? " (cable)" : ""}</div><div class="s ${cls}">${t}</div><div class="s">${sub}</div>`;
+  let h = `<div class="cur"><div class="t">${a ? esc(a.ssid || a.name) : "Sin red"}${a && a.type === "ethernet" ? " (cable)" : ""}</div><div class="s ${cls}">${t}</div><div class="s">${sub}</div>`;
   if (a) {
     h += `<div class="tg"><div>Usar Pi-hole en esta red<small>Bloquea anuncios y rastreadores en esta Wi-Fi</small></div><button class="sw ${w.wants_pihole ? "on" : ""}" id="sw-pi" aria-label="Pi-hole"></button></div>`;
   }

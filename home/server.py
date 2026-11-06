@@ -396,7 +396,7 @@ def net_summary():
         return {"available": False}
     st = w.state
     act = st.get("active") or {}
-    return {"available": True, "name": act.get("name"), "type": act.get("type"), "connectivity": st.get("connectivity"),
+    return {"available": True, "name": act.get("name"), "ssid": act.get("ssid"), "type": act.get("type"), "connectivity": st.get("connectivity"),
             "portal": bool(st.get("portal")), "dns": st.get("dns")}
 
 

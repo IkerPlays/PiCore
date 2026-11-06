@@ -58,7 +58,7 @@ Si algún día quieres otra, el trabajo que falta es un driver nuevo; el recolec
 
 ## Conexión (opción A)
 
-> 📖 **La guía paso a paso, con fotos del proceso en texto, cómo separar los cables del kit y qué comprobar, está en el [Paso 8 del tutorial](TUTORIAL.md#paso-8-mini-pantalla-de-estado-opcional).** Aquí va el resumen.
+> 📖 **La guía paso a paso, con fotos del proceso en texto, cómo separar los cables del kit y qué comprobar, está en el [Paso 10 del tutorial](TUTORIAL.md#paso-10-mini-pantalla-de-estado-opcional).** Aquí va el resumen.
 
 Con la Pi **apagada y desenchufada**. Cuatro cables Dupont hembra–hembra desde la pantalla a la tira de 40 pines (GPIO) de la Pi. Se usan solo pines **impares** (los de una misma fila), para no tocar nunca los de 5 V (2 y 4):
 
