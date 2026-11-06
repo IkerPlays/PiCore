@@ -139,13 +139,20 @@ if [ "$VOICE" = 1 ]; then
   sudo usermod -aG audio "$ME"
   sudo python3 -m venv "$PREFIX/venv"
   # openwakeword 0.4.0 lleva sus modelos ONNX dentro del paquete (no necesita tflite ni descargas)
-  sudo "$PIP" install --quiet vosk "openwakeword==0.4.0"
+  sudo "$PIP" install --quiet vosk "openwakeword==0.4.0" faster-whisper
   MODEL=vosk-model-small-es-0.42
   if [ ! -d "$PREFIX/models/$MODEL" ]; then
     sudo mkdir -p "$PREFIX/models"
     curl -fL "https://alphacephei.com/vosk/models/$MODEL.zip" -o "/tmp/$MODEL.zip"
     sudo unzip -q "/tmp/$MODEL.zip" -d "$PREFIX/models" && rm -f "/tmp/$MODEL.zip"
   fi
+  # Whisper (reconocimiento de la orden, sin conexion): el modelo se descarga AHORA, una vez; luego funciona sin internet.
+  # WHISPER_MODEL=tiny|base|small (por defecto base: buen equilibrio; small acierta mas pero tarda ~3x)
+  WM="${WHISPER_MODEL:-base}"
+  sudo mkdir -p "$PREFIX/models/whisper"
+  sudo "$PREFIX/venv/bin/python" -c "from faster_whisper import WhisperModel; WhisperModel('$WM', device='cpu', compute_type='int8', download_root='$PREFIX/models/whisper')" \
+    || echo "Aviso: no se pudo descargar el modelo Whisper '$WM' (¿sin internet?). Se usara Vosk; repite ./install.sh --voice con internet." >&2
+  PCPI_CONF="$R/etc/pcpi/pcpi.conf" "$PREFIX/bin/pcpi-config" set voice whisper_model "$WM"
   # modelos de activacion propios del repo (hay uno experimental)
   sudo mkdir -p "$PREFIX/models/wake"
   ls "$SRC"/models/wake/*.onnx >/dev/null 2>&1 && sudo cp -f "$SRC"/models/wake/*.onnx "$PREFIX/models/wake/"

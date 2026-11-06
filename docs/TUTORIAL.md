@@ -553,6 +553,20 @@ Todo ocurre **dentro de la Pi**: ni el audio ni lo que dices sale a internet.
 
 > ℹ️ **¿Por qué «Hey Jarvis» y no «Oye Pi»?** Intenté entrenar «Oye Pi» y **no salió fiable** (se activaba decenas de veces por hora con voz real). «Hey Jarvis» es un modelo profesional ya entrenado. Todos los detalles y cifras están en [training/RESULTADOS.md](../training/RESULTADOS.md). Se puede cambiar por otra palabra: `alexa`, `hey_mycroft`, `hey_marvin`.
 
+#### Whisper: entender mejor la voz, sin conexión
+
+Desde esta versión, lo que dices **después del pitido** lo transcribe **Whisper** (el modelo de voz de OpenAI, en su versión `faster-whisper`) en lugar de Vosk: entiende **mucho mejor el español**, con frases normales, números y nombres. Funciona **100 % sin internet**: el modelo se **descarga una sola vez durante `./install.sh --voice`** (unos 150 MB para `base`) y se guarda en `/opt/pcpi/models/whisper`.
+
+| Ajuste (`[voice]` en `pcpi.conf`) | Qué hace |
+|---|---|
+| `stt = auto` | Whisper si está instalado; si no, Vosk. `whisper` o `vosk` para forzarlo |
+| `whisper_model = base` | `tiny` (más rápido, falla más), `base` (recomendado), `small` (acierta más, ~3 veces más lento) |
+| `whisper_threads = 4` | Hilos de CPU |
+
+Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectada por `openWakeWord`; tras el pitido se graba tu frase y, cuando haces una pausa de casi un segundo, Whisper la convierte en texto y los comandos la interpretan. Para elegir otro modelo: `WHISPER_MODEL=small ./install.sh --voice`.
+
+> ⚠️ **Honestidad:** en un PC con `base` la transcripción tarda ~0,5 s; **en la Pi 5 será más lenta** (calculo 1–3 s para frases cortas; no lo he medido en la Pi). Si notas mucha espera, usa `whisper_model = tiny`.
+
 #### Qué puedes pedir
 
 | Di (después del pitido) | Qué hace |

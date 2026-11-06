@@ -193,7 +193,9 @@ class InstallerTest(unittest.TestCase):
     def test_voice(self):
         self.install("--voice")
         self.assertTrue((self.r / "opt/pcpi/venv/bin/python").exists())
-        self.assertTrue(any(l.startswith("pip install --quiet vosk openwakeword==0.4.0") for l in self.calls()))
+        self.assertTrue(any(l.startswith("pip install --quiet vosk openwakeword==0.4.0 faster-whisper") for l in self.calls()))
+        self.assertTrue((self.r / "opt/pcpi/models/whisper").is_dir())                       # aqui se descarga el modelo (una vez)
+        self.assertIn("whisper_model = base", self.read("etc/pcpi/pcpi.conf"))
         self.assertTrue((self.r / "opt/pcpi/models/wake/oye_pi_experimental.onnx").exists())
         self.assertTrue((self.home / ".config/systemd/user/pcpi-voice.service").exists())
         c = "\n".join(self.calls())

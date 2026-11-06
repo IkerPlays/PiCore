@@ -584,7 +584,7 @@ async function refresh() {
     $("ph-state").textContent = phEnabled ? "Activo" : "En pausa";
     $("ph-state").style.color = phEnabled ? "var(--ok)" : "var(--bad)";
     $("ph-btn").hidden = false;
-    $("ph-btn").textContent = phEnabled ? "⏸ Pausar 5 min" : "▶ Activar ya";
+    $("ph-btn").textContent = phEnabled ? "Pausar 5 min" : "Activar ya";
   } else {
     $("ph-pct").textContent = "--"; $("ring").style.strokeDashoffset = 314.16;
     countTo($("ph-blocked"), null); countTo($("ph-total"), null);

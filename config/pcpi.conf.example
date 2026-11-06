@@ -29,6 +29,15 @@ wake_threshold = 0.5
 followup_s = 8
 # Solo para wake_engine = vosk: frases de activacion separadas por comas.
 wake = oye pi,hey pi,oye casa
+# Reconocimiento de la ORDEN (lo que dices tras el pitido): auto = Whisper si esta instalado (mejor, sin conexion), si no Vosk;
+# whisper o vosk para forzarlo.
+stt = auto
+# Modelo de Whisper (tiny, base, small): base va bien en la Pi 5; small acierta mas pero tarda ~3 veces mas. Se descarga
+# al instalar (./install.sh --voice) en whisper_dir y despues funciona SIN internet.
+whisper_model = base
+whisper_dir = /opt/pcpi/models/whisper
+# Hilos de CPU para Whisper (la Pi 5 tiene 4 nucleos).
+whisper_threads = 4
 # Dispositivo de captura de arecord ("arecord -l" para listarlos). default = el del sistema.
 device = default
 # Voz de espeak-ng

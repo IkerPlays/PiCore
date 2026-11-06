@@ -137,9 +137,9 @@ $("del").onclick = async () => {
   if (!cur) { $("text").value = ""; dirty = false; counts(); return; }
   if (!b.classList.contains("armed")) {                         // doble toque para confirmar
     b.classList.add("armed"); b.textContent = "¿Seguro?";
-    armed = setTimeout(() => { b.classList.remove("armed"); b.textContent = "🗑 Borrar"; }, 3000); return;
+    armed = setTimeout(() => { b.classList.remove("armed"); b.textContent = "Borrar"; }, 3000); return;
   }
-  clearTimeout(armed); b.classList.remove("armed"); b.textContent = "🗑 Borrar";
+  clearTimeout(armed); b.classList.remove("armed"); b.textContent = "Borrar";
   await api("/api/notes/delete", {id: cur});
   cur = null; $("text").value = ""; dirty = false; counts(); setStatus("Nota borrada"); refresh();
 };

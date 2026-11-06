@@ -41,6 +41,10 @@ def load_conf():
         "followup": float(g("followup_s", "8")),
         "device": g("device", "default"),
         "model": g("model", "/opt/pcpi/models/vosk-model-small-es-0.42"),
+        "stt": g("stt", "auto").strip().lower(),                         # auto | whisper | vosk
+        "whisper_model": g("whisper_model", "base").strip(),
+        "whisper_dir": g("whisper_dir", "/opt/pcpi/models/whisper").strip(),
+        "whisper_threads": int(float(g("whisper_threads", "4"))),
         "voice": g("tts_voice", "es"),
         "api": "http://127.0.0.1:%s" % cp.get("server", "port", fallback="8080"),
     }
@@ -220,6 +224,8 @@ def build_detector(cfg, vosk_model):
         except ImportError as e:
             print("openWakeWord no esta instalado (%s): uso Vosk como plan B" % e, file=sys.stderr, flush=True)
     import wake
+    if vosk_model is None:
+        raise ValueError("la palabra de activacion necesita Vosk (wake_engine = vosk) y no esta cargado")
     return wake.VoskWake(vosk_model, cfg["wakes"])
 
 
@@ -231,18 +237,44 @@ def fatal(msg):
     sys.exit(EXIT_CONFIG)
 
 
-def main():
+def build_recognizer(cfg, vosk_mod):
+    """Elige el reconocedor de la orden: Whisper (sin conexion, mejor) o Vosk. `vosk_mod` = (KaldiRecognizer, Model) o None.
+    Devuelve (reconocedor, nombre, modelo_vosk_o_None)."""
+    want = cfg["stt"]
+    err = None
+    if want in ("auto", "whisper"):
+        try:
+            import stt
+            transcribe = stt.make_whisper_transcriber(cfg["whisper_model"], cfg["whisper_dir"], threads=cfg["whisper_threads"])
+            return stt.WhisperRecognizer(transcribe), "whisper:" + cfg["whisper_model"], None
+        except Exception as e:   # noqa: BLE001  (falta faster-whisper, o el modelo no esta descargado)
+            err = e
+            if want == "whisper":
+                fatal("no puedo cargar Whisper (%s). Instalalo con: ./install.sh --voice" % e)
+            print("Whisper no disponible (%s): uso Vosk" % e, file=sys.stderr, flush=True)
+    if vosk_mod is None:
+        fatal("no hay con que reconocer la voz: falta Vosk y Whisper falla (%s). Instalalo con: ./install.sh --voice" % err)
+    Kaldi, Model = vosk_mod
     try:
-        from vosk import KaldiRecognizer, Model, SetLogLevel  # import tardio: solo en la Pi
-    except ImportError as e:
-        fatal("falta vosk (%s). Instalalo con: ./install.sh --voice" % e)
-
-    SetLogLevel(-1)
-    cfg = load_conf()
-    try:
-        vosk_model = Model(cfg["model"])
+        model = Model(cfg["model"])
     except Exception as e:  # vosk lanza Exception generica si la carpeta no existe o esta incompleta
         fatal("no puedo cargar el modelo de voz en %s (%s). Instalalo con: ./install.sh --voice" % (cfg["model"], e))
+    return Kaldi(model, RATE), "vosk", model
+
+
+def main():
+    cfg = load_conf()
+    vosk_mod = None
+    try:
+        from vosk import KaldiRecognizer, Model, SetLogLevel  # import tardio: solo en la Pi
+        SetLogLevel(-1)
+        vosk_mod = (KaldiRecognizer, Model)
+    except ImportError as e:
+        # Vosk solo es imprescindible si NO se usa Whisper o si la palabra de activacion es de Vosk
+        if cfg["stt"] == "vosk" or cfg["engine"] == "vosk":
+            fatal("falta vosk (%s). Instalalo con: ./install.sh --voice" % e)
+    recognizer, stt_name, vosk_model = build_recognizer(cfg, vosk_mod)
+    print("Reconocimiento de la orden: %s" % stt_name, flush=True)
     try:
         detector = build_detector(cfg, vosk_model)
     except ValueError as e:  # nombre de modelo de activacion desconocido: lista los que hay
@@ -270,7 +302,7 @@ def main():
             print("no se pudo hablar (¿falta espeak-ng?): %r" % e, file=sys.stderr, flush=True)
 
     asst = Assistant(
-        detector, KaldiRecognizer(vosk_model, RATE), lambda i: execute(cfg, i), speak, beep,
+        detector, recognizer, lambda i: execute(cfg, i), speak, beep,
         restart_capture, detector.name, cfg["followup"],
     )
     print("Escuchando. Palabra de activacion: %r (%s)" % (detector.name, type(detector).__name__), flush=True)

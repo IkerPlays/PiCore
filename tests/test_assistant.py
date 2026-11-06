@@ -214,6 +214,149 @@ class ExecuteApiIntentsTest(unittest.TestCase):
         self.assertEqual(assistant.execute({"api": "http://127.0.0.1:1"}, ("brightness", "+20")), "No he podido hacerlo")
 
 
+def pcm(ms, amp):
+    """Bloque PCM16 de `ms` milisegundos con una onda cuadrada de amplitud `amp` (0 = silencio)."""
+    n = 16 * ms
+    import array
+    return array.array("h", [amp if (i // 20) % 2 else -amp for i in range(n)]).tobytes()
+
+
+class WhisperRecognizerTest(unittest.TestCase):
+    """El reconocedor de Whisper con una «transcripcion» de mentira: detecta cuando acabas de hablar."""
+
+    def make(self, text="modo casa", **kw):
+        self.calls = []
+
+        def fake(pcm_bytes):
+            self.calls.append(len(pcm_bytes))
+            return text
+        import stt
+        return stt.WhisperRecognizer(fake, **kw)
+
+    def feed(self, rec, blocks):
+        out = []
+        for b in blocks:
+            out.append(rec.AcceptWaveform(b))
+        return out
+
+    def test_transcribes_after_speech_then_silence(self):
+        r = self.make()
+        blocks = [pcm(80, 30)] * 6 + [pcm(80, 4000)] * 10 + [pcm(80, 30)] * 14       # ruido, voz (0,8 s), silencio (1,1 s)
+        res = self.feed(r, blocks)
+        self.assertEqual(res.count(True), 1)
+        self.assertTrue(res.index(True) >= 6 + 10 + 11 - 1)                           # solo tras ~0,9 s de silencio
+        self.assertEqual(json.loads(r.Result()), {"text": "modo casa"})
+        self.assertEqual(json.loads(r.Result()), {"text": ""})                        # se consume
+        self.assertEqual(len(self.calls), 1)
+        self.assertGreater(self.calls[0], 16000 * 2 * 0.8)                            # lleva la voz entera (+ un poco de antes)
+
+    def test_pure_silence_never_transcribes(self):
+        r = self.make()
+        self.assertEqual(self.feed(r, [pcm(80, 20)] * 100).count(True), 0)
+        self.assertEqual(self.calls, [])
+
+    def test_short_noise_burst_is_ignored(self):
+        r = self.make()
+        res = self.feed(r, [pcm(80, 30)] * 4 + [pcm(80, 5000)] + [pcm(80, 30)] * 20)   # un portazo de 80 ms
+        self.assertEqual(res.count(True), 0)
+        self.assertEqual(self.calls, [])
+
+    def test_long_speech_is_cut_at_max(self):
+        r = self.make(max_s=2.0)
+        res = self.feed(r, [pcm(80, 4000)] * 40)
+        self.assertEqual(res.count(True), 1)
+        self.assertLessEqual(self.calls[0], 16000 * 2 * 2.1)
+
+    def test_noisy_microphone_adapts(self):
+        """Con mucho ruido de fondo constante, el ruido no cuenta como voz; la voz (mucho mas fuerte) si."""
+        r = self.make()
+        res = self.feed(r, [pcm(80, 700)] * 40)                                       # ruido fuerte y estable (mas que el minimo)
+        self.assertEqual(res.count(True), 0)
+        self.assertEqual(self.calls, [])
+        res = self.feed(r, [pcm(80, 9000)] * 10 + [pcm(80, 700)] * 14)
+        self.assertEqual(res.count(True), 1)
+
+    def test_hallucinated_subtitles_are_dropped(self):
+        for junk in ("Subtítulos realizados por la comunidad de Amara.org", "Gracias por ver el video", "   "):
+            r = self.make(text=junk)
+            self.feed(r, [pcm(80, 4000)] * 8 + [pcm(80, 30)] * 14)
+            self.assertEqual(json.loads(r.Result())["text"], "", junk)
+
+    def test_reset_and_empty_input(self):
+        r = self.make()
+        self.feed(r, [pcm(80, 4000)] * 5)
+        r.Reset()
+        self.assertFalse(r.AcceptWaveform(b""))
+        self.assertEqual(self.feed(r, [pcm(80, 30)] * 20).count(True), 0)
+
+    def test_rms(self):
+        import stt
+        self.assertEqual(stt.rms(b""), 0.0)
+        self.assertAlmostEqual(stt.rms(pcm(80, 1000)), 1000.0, delta=1)
+        self.assertEqual(stt.rms(b"\x01"), 0.0)                                      # un byte suelto no rompe nada
+
+    def test_works_inside_the_assistant_state_machine(self):
+        r = self.make(text="¿Qué hora es?")
+        log = []
+        a = assistant.Assistant(FakeDetector([True]), r, execute=lambda i: log.append(("exec", tuple(i))) or "son las diez",
+                                speak=lambda t: log.append(("say", t)), beep=lambda: None, restart_capture=lambda: None,
+                                wake_name="hey jarvis", followup=60, clock=Clock())
+        a.on_audio(pcm(80, 30))                                                       # palabra de activacion
+        for b in [pcm(80, 30)] * 4 + [pcm(80, 4000)] * 8 + [pcm(80, 30)] * 14:
+            a.on_audio(b)
+        self.assertEqual(log, [("exec", ("time", None)), ("say", "son las diez")])
+
+
+class RecognizerChoiceTest(unittest.TestCase):
+    """auto = Whisper si se puede cargar; si no, Vosk. whisper = obligatorio."""
+
+    def cfg(self, stt="auto"):
+        return {"stt": stt, "whisper_model": "base", "whisper_dir": "/no/existe", "whisper_threads": 1, "model": "/vosk"}
+
+    def vosk(self):
+        class Model:
+            def __init__(self, path):
+                pass
+
+        class Kaldi:
+            def __init__(self, *a):
+                pass
+        return Kaldi, Model
+
+    def test_auto_falls_back_to_vosk_when_whisper_is_missing(self):
+        rec, name, model = assistant.build_recognizer(self.cfg("auto"), self.vosk())
+        self.assertEqual(name, "vosk")
+        self.assertIsNotNone(model)
+
+    def test_vosk_forced(self):
+        self.assertEqual(assistant.build_recognizer(self.cfg("vosk"), self.vosk())[1], "vosk")
+
+    def test_whisper_forced_but_missing_is_a_config_error(self):
+        with self.assertRaises(SystemExit) as cm:
+            assistant.build_recognizer(self.cfg("whisper"), self.vosk())
+        self.assertEqual(cm.exception.code, assistant.EXIT_CONFIG)
+
+    def test_nothing_available_is_a_config_error(self):
+        with self.assertRaises(SystemExit) as cm:
+            assistant.build_recognizer(self.cfg("auto"), None)
+        self.assertEqual(cm.exception.code, assistant.EXIT_CONFIG)
+
+    def test_whisper_is_used_when_loadable(self):
+        import stt
+        real = stt.make_whisper_transcriber
+        stt.make_whisper_transcriber = lambda *a, **k: (lambda pcm: "hola")
+        try:
+            rec, name, model = assistant.build_recognizer(self.cfg("auto"), self.vosk())
+        finally:
+            stt.make_whisper_transcriber = real
+        self.assertEqual((name, model), ("whisper:base", None))
+        self.assertIsInstance(rec, stt.WhisperRecognizer)
+
+    def test_load_conf_reads_whisper_settings(self):
+        c = assistant.load_conf()
+        self.assertEqual((c["stt"], c["whisper_model"]), ("auto", "base"))
+
+
 class StartupErrorsTest(unittest.TestCase):
     """Un fallo de CONFIGURACION debe acabar con un mensaje claro y el codigo 4 (systemd no reintenta), no en un bucle."""
 
@@ -245,7 +388,11 @@ class StartupErrorsTest(unittest.TestCase):
                 if not model_ok:
                     raise Exception("Failed to create a model")
 
-        m.Model, m.KaldiRecognizer, m.SetLogLevel = Model, object, lambda n: None
+
+        class Kaldi:
+            def __init__(self, *a):
+                pass
+        m.Model, m.KaldiRecognizer, m.SetLogLevel = Model, Kaldi, lambda n: None
         return m
 
     def test_missing_vosk_model(self):
