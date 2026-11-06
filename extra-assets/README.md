@@ -37,16 +37,13 @@ extra-assets/
 - Si faltan vídeos, se elige entre los que haya (si solo hay uno, sale siempre ese). Si no hay ninguno, se salta el Inicio.
 - Si un vídeo no se puede reproducir (formato raro), se salta solo a los ~5 segundos.
 
-## ⚠️ ¿Se reproducirán tus vídeos? (H.265 / HEVC)
+## ⚠️ ¿Se reproducirán tus vídeos? (H.265 / HEVC) — se arregla solo
 
-Chromium en la Raspberry Pi reproduce **H.264** sin problemas, pero **H.265 (HEVC)** y AV1 **pueden no verse** (el vídeo se salta solo a los ~5 s). Comprueba los tuyos en la Pi:
+Chromium en la Raspberry Pi reproduce **H.264** sin problemas, pero **H.265 (HEVC)** y AV1 **pueden no verse** (el vídeo se saltaría solo a los ~5 s). Por eso:
 
-```bash
-pcpi-intros check      # qué codec lleva cada vídeo y si hay riesgo
-pcpi-intros convert    # convierte a H.264 los que lo necesiten (guarda los originales en ~/pcpi-intros-originales)
-```
-
-(`./install.sh` y `pcpi-doctor` ya te avisan solos.) Si ejecutas `./install.sh` otra vez con los originales del repositorio, se copian sin convertir: repite entonces `pcpi-intros convert`.
+- **`./install.sh` hace solo una copia H.264** de los vídeos de inicio que lleven H.265 (si pesan menos de 150 MB; tarda unos segundos). La copia va a `extra-assets/start/.h264/` y **el servidor la usa en lugar del original**. **Tus originales no se tocan** y, si cambias un vídeo, se vuelve a convertir.
+- El **vídeo 4** (el que se descarga, ~500 MB) se convierte **en segundo plano** nada más descargarse, con prioridad baja, si lleva H.265.
+- A mano: `pcpi-intros check` (qué codec lleva cada uno y si hay copia) y `pcpi-intros convert` (`--only Inicio4.mp4`, `--max-mb N`, `--yes`).
 
 ## Pantalla de Carga (`loading/`)
 

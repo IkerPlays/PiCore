@@ -56,6 +56,14 @@ def resolve(rel, base=None):
         return None
     if f.suffix.lower() not in TYPES or not f.is_file():
         return None
+    # Videos de Inicio: si hay una copia H.264 (hecha por `pcpi-intros convert`) mas reciente, se sirve esa
+    if f.parent == (base / "start") and f.suffix.lower() == ".mp4":
+        c = f.parent / ".h264" / f.name
+        try:
+            if c.is_file() and c.stat().st_size > 0 and c.stat().st_mtime >= f.stat().st_mtime:
+                return c
+        except OSError:
+            pass
     return f
 
 

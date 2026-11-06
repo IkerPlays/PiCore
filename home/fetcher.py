@@ -25,8 +25,8 @@ class DownloadError(Exception):
 
 
 class Downloader:
-    def __init__(self, url, dest, opener=urllib.request.urlopen, attempts=3, pause=3.0, max_bytes=MAX_BYTES, timeout=30):
-        self.url, self.dest = url, Path(dest)
+    def __init__(self, url, dest, opener=urllib.request.urlopen, attempts=3, pause=3.0, max_bytes=MAX_BYTES, timeout=30, on_done=None):
+        self.url, self.dest, self.on_done = url, Path(dest), on_done
         self.opener, self.attempts, self.pause, self.max_bytes, self.timeout = opener, attempts, pause, max_bytes, timeout
         self.lock = threading.Lock()
         self.thread = None
@@ -75,6 +75,11 @@ class Downloader:
                 self._download()
                 with self.lock:
                     self.state = "done"
+                if self.on_done:
+                    try:
+                        self.on_done(self.dest)           # p. ej. preparar una copia H.264 del video
+                    except Exception:     # noqa: BLE001  (un fallo aqui no invalida la descarga)
+                        pass
                 return
             except DownloadError as e:
                 last = str(e)

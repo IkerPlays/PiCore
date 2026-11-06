@@ -704,7 +704,7 @@ scp *.gif iker@pcpi.local:~/PiCore/extra-assets/loading/gifs/
 
 **El vídeo 4 se descarga solo:** no está en GitHub (pesa ~500 MB). **La primera vez que enciendas con internet**, PiCore lo baja de `https://pcraspberrypi-video.netlify.app/ayuda.mp4` a `extra-assets/start/Inicio4.mp4` mostrando una **pantalla de progreso** (con un botón «Continuar sin esperar»). No se vuelve a descargar. Si se corta, se reanuda; si no hay internet, se reintenta en el siguiente encendido. Para desactivarlo: `pcpi-config set boot intro4_url ""`.
 
-**¿Se verán tus vídeos?** Si llevan **H.265/HEVC**, Chromium puede no reproducirlos: ejecuta `pcpi-intros check` y, si avisa, `pcpi-intros convert` (convierte a H.264 y guarda los originales).
+**¿Se verán tus vídeos?** Si llevan **H.265/HEVC**, Chromium puede no reproducirlos, así que **`./install.sh` hace solo una copia H.264** (en `extra-assets/start/.h264/`; tus originales no se tocan) y el vídeo 4 se convierte en segundo plano tras descargarse. Para comprobarlo: `pcpi-intros check`; para forzarlo, `pcpi-intros convert`.
 
 **Qué vídeo sale al encender (y la garantía del raro):** los pesos por defecto son 90, 85, 55 y 1 (≈ 38,9 %, 36,8 %, 23,8 % y 0,4 %). Si el **4.º** lleva 4 encendidos sin salir, el siguiente sale **sí o sí**, y a los 6 s del vídeo 4 aparece un **botón «Saltar» pequeño** abajo a la derecha. Todo está explicado, con la tabla, en [extra-assets/README.md](../extra-assets/README.md) y se cambia en `[boot]` (`intro_chances`, `intro_pity`, `intro_pity_slots`, `intro_skip_seconds`).
 

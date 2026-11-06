@@ -41,7 +41,7 @@ curl -fsI -m 10 https://deb.debian.org >/dev/null || { echo "No hay internet. Co
 step "Paquetes"
 sudo apt-get update
 CHROMIUM_PKG=chromium; apt-cache show chromium >/dev/null 2>&1 || CHROMIUM_PKG=chromium-browser
-sudo apt-get install -y python3 curl rsync zenity "$CHROMIUM_PKG"
+sudo apt-get install -y python3 curl rsync zenity ffmpeg "$CHROMIUM_PKG"   # ffmpeg: copias H.264 de tus videos de inicio
 
 step "Archivos en $PREFIX"
 sudo mkdir -p "$PREFIX"
@@ -56,9 +56,12 @@ sudo mkdir -p "$R/usr/local/bin"
 for f in "$PREFIX"/bin/*; do sudo ln -sf "$f" "$R/usr/local/bin/$(basename "$f")"; done
 sudo chmod +x "$PREFIX"/bin/*
 
-# Aviso (sin cambiar nada) si algun video de inicio lleva H.265, que Chromium puede no reproducir
+# Videos de inicio en H.265 (HEVC): Chromium puede no reproducirlos. Se hacen copias H.264 (los originales no se tocan);
+# solo los pequeños (<150 MB) aqui: uno grande tarda mucho, se avisa y se hace a mano (pcpi-intros convert).
 if command -v ffprobe >/dev/null && ls "$PREFIX"/extra-assets/start/Inicio*.mp4 >/dev/null 2>&1; then
-  PCPI_ASSETS="$PREFIX/extra-assets" "$PREFIX/bin/pcpi-intros" check || echo "Aviso: mira los videos marcados con «!» (se arreglan con: pcpi-intros convert)."
+  step "Videos de inicio (comprobando el codec)"
+  PCPI_ASSETS="$PREFIX/extra-assets" "$PREFIX/bin/pcpi-intros" convert --yes --max-mb 150 || echo "Aviso: no se pudo convertir algun video (pcpi-intros check)."
+  PCPI_ASSETS="$PREFIX/extra-assets" "$PREFIX/bin/pcpi-intros" check || true
 fi
 
 step "Configuracion en /etc/pcpi"

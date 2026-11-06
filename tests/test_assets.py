@@ -63,6 +63,33 @@ class ListTest(unittest.TestCase):
         finally:
             link.unlink()
 
+    def test_h264_copy_is_preferred_only_when_fresh(self):
+        import os
+        import time
+        orig = A / "start/Inicio2.mp4"
+        orig.write_bytes(b"original hevc")
+        copy = A / "start/.h264/Inicio2.mp4"
+        copy.parent.mkdir(exist_ok=True)
+        try:
+            self.assertEqual(assets.resolve("start/Inicio2.mp4"), orig.resolve())             # sin copia: el original
+            copy.write_bytes(b"copia h264")
+            os.utime(copy, (time.time() + 10, time.time() + 10))
+            self.assertEqual(assets.resolve("start/Inicio2.mp4"), copy.resolve())             # con copia reciente: la copia
+            os.utime(copy, (time.time() - 100, time.time() - 100))                            # el original es mas nuevo: caduco
+            self.assertEqual(assets.resolve("start/Inicio2.mp4"), orig.resolve())
+            os.utime(copy, (time.time() + 10, time.time() + 10))
+            copy.write_bytes(b"")                                                             # copia vacia: no vale
+            self.assertEqual(assets.resolve("start/Inicio2.mp4"), orig.resolve())
+            self.assertIsNone(assets.resolve("start/.h264/Inicio2.mp4"))                      # y no se pide a mano
+        finally:
+            import shutil
+            shutil.rmtree(A / "start/.h264", ignore_errors=True)
+            orig.unlink()
+
+    def test_cache_only_applies_to_start_videos(self):
+        other = A / "loading/videos/v.webm"
+        self.assertEqual(assets.resolve("loading/videos/v.webm"), other.resolve())
+
     def test_parse_range(self):
         self.assertEqual(assets.parse_range("bytes=0-9", 100), (0, 9))
         self.assertEqual(assets.parse_range("bytes=90-", 100), (90, 99))

@@ -24,6 +24,7 @@ import battery
 import display
 import fetcher
 import intro
+import intros_tool
 import motion
 import netmgr
 import notes_tools
@@ -565,6 +566,15 @@ def mark_loaded(mode):
 _downloaders = {}
 
 
+def _prepare_video(path):
+    """Tras descargar el intro 4: si lleva H.265 (Chromium puede no reproducirlo), se hace una copia H.264 en segundo plano.
+    Solo si hay ffmpeg y con prioridad baja (es pesado y la Pi esta haciendo otras cosas)."""
+    if not intros_tool.have_tools() or not intros_tool.needs_conversion(path):
+        return
+    os.nice(15) if hasattr(os, "nice") else None
+    intros_tool.convert_one(path)
+
+
 def intro4_downloader(cp):
     """Descargador del video del intro 4 (no esta en GitHub: pesa demasiado). None si esta desactivado
     ([boot] intro4_url vacio) o el video ya existe. Se descarga solo UNA vez, en el primer encendido."""
@@ -576,7 +586,7 @@ def intro4_downloader(cp):
     dest = assets.assets_dir() / "start" / "Inicio4.mp4"
     key = (url, str(dest))
     if key not in _downloaders:
-        _downloaders[key] = fetcher.Downloader(url, dest)
+        _downloaders[key] = fetcher.Downloader(url, dest, on_done=_prepare_video)
     dl = _downloaders[key]
     return None if dl.exists() and dl.status()["state"] != "downloading" else dl
 

@@ -187,23 +187,22 @@ class WifiCliTest(Base):
 
 
 class IntrosToolTest(Base):
-    """pcpi-intros con ffprobe/ffmpeg de mentira (el codec sale del nombre del archivo)."""
+    """pcpi-intros con ffprobe/ffmpeg de mentira (el codec sale del CONTENIDO del archivo: si pone «hevc», es hevc)."""
 
     def setUp(self):
         super().setUp()
         self.start = self.t / "assets" / "start"
         self.start.mkdir(parents=True)
-        # el «codec» de mentira sale del CONTENIDO del archivo: si pone «hevc», es hevc
         shim(self.shims, "ffprobe", 'for a; do f=$a; done\nif grep -q hevc "$f" 2>/dev/null; then c=hevc; else c=h264; fi\n'
                                     'printf \'{"streams":[{"codec_name":"%s","width":854,"height":480}],"format":{"duration":"10.0"}}\' "$c"\n')
         shim(self.shims, "ffmpeg", 'prev=""; for a; do [ "$prev" = "-i" ] && in=$a; prev=$a; out=$a; done\n'
                                    'grep -q fallar "$in" && exit 1\necho convertido > "$out"\n')
-        self.env2 = {**self.env, "PCPI_ASSETS": str(self.t / "assets"), "PCPI_INTROS_BACKUP": str(self.t / "originales")}
+        self.env2 = {**self.env, "PCPI_ASSETS": str(self.t / "assets")}
 
     def run_tool(self, *args, inp=None):
         return subprocess.run([sys.executable, str(BIN / "pcpi-intros"), *args], capture_output=True, text=True, env=self.env2, input=inp, timeout=60)
 
-    def test_check_flags_hevc(self):
+    def test_check_flags_hevc_without_a_copy(self):
         (self.start / "Inicio1.mp4").write_text("h264")
         (self.start / "Inicio2.mp4").write_text("hevc")
         r = self.run_tool("check")
@@ -217,29 +216,60 @@ class IntrosToolTest(Base):
         (self.start / "Inicio1.mp4").write_text("h264")
         self.assertEqual(self.run_tool("check").returncode, 0)
 
-    def test_convert_keeps_original_and_only_touches_hevc(self):
+    def test_convert_makes_a_cached_copy_and_never_touches_the_original(self):
         (self.start / "Inicio1.mp4").write_text("h264")
         (self.start / "Inicio2.mp4").write_text("hevc original")
         r = self.run_tool("convert", "--yes")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
-        self.assertEqual((self.start / "Inicio1.mp4").read_text(), "h264")              # el bueno no se toca
-        self.assertEqual((self.start / "Inicio2.mp4").read_text().strip(), "convertido")
-        self.assertEqual((self.t / "originales" / "Inicio2.mp4").read_text(), "hevc original")
-        self.assertEqual(sorted(p.name for p in self.start.iterdir()), ["Inicio1.mp4", "Inicio2.mp4"])   # sin restos temporales
+        self.assertEqual((self.start / "Inicio2.mp4").read_text(), "hevc original")          # el original NO se toca
+        self.assertEqual((self.start / "Inicio1.mp4").read_text(), "h264")
+        self.assertEqual((self.start / ".h264" / "Inicio2.mp4").read_text().strip(), "convertido")
+        self.assertFalse((self.start / ".h264" / "Inicio1.mp4").exists())                    # el bueno no necesita copia
+        self.assertEqual([p.name for p in (self.start / ".h264").iterdir()], ["Inicio2.mp4"])  # sin restos temporales
+        r = self.run_tool("check")
+        self.assertEqual(r.returncode, 0)                                                    # ya no avisa: se usa la copia
+        self.assertIn("se usa la copia H.264", r.stdout)
+
+    def test_second_run_does_nothing_and_a_changed_original_is_converted_again(self):
+        (self.start / "Inicio2.mp4").write_text("hevc uno")
+        self.run_tool("convert", "--yes")
+        self.assertIn("Ningún video necesita", self.run_tool("convert", "--yes").stdout)
+        import os
+        import time
+        time.sleep(0.05)
+        (self.start / "Inicio2.mp4").write_text("hevc dos")                                  # el usuario cambia el video
+        os.utime(self.start / "Inicio2.mp4", (time.time() + 5, time.time() + 5))
+        r = self.run_tool("convert", "--yes")
+        self.assertIn("convirtiendo Inicio2.mp4", r.stdout)
+
+    def test_max_mb_skips_big_files(self):
+        (self.start / "Inicio4.mp4").write_text("hevc" + "x" * 3000000)                      # ~3 MB
+        r = self.run_tool("convert", "--yes", "--max-mb", "1")
+        self.assertIn("no se convierte solo", r.stdout)
+        self.assertFalse((self.start / ".h264").exists() and list((self.start / ".h264").iterdir()))
+
+    def test_only_one_video(self):
+        (self.start / "Inicio2.mp4").write_text("hevc a")
+        (self.start / "Inicio3.mp4").write_text("hevc b")
+        self.run_tool("convert", "--yes", "--only", "Inicio3.mp4")
+        self.assertEqual([p.name for p in (self.start / ".h264").iterdir()], ["Inicio3.mp4"])
 
     def test_convert_asks_and_can_cancel(self):
         (self.start / "Inicio2.mp4").write_text("hevc original")
         r = self.run_tool("convert", inp="n\n")
         self.assertEqual(r.returncode, 1)
-        self.assertEqual((self.start / "Inicio2.mp4").read_text(), "hevc original")
+        self.assertFalse((self.start / ".h264").exists())
 
-    def test_failed_conversion_leaves_the_original(self):
+    def test_failed_conversion_leaves_no_copy(self):
         (self.start / "Inicio2.mp4").write_text("hevc fallar")
         r = self.run_tool("convert", "--yes")
         self.assertEqual(r.returncode, 1)
+        self.assertEqual(list((self.start / ".h264").iterdir()), [])                         # ni archivos a medias
         self.assertEqual((self.start / "Inicio2.mp4").read_text(), "hevc fallar")
 
-    def test_without_ffmpeg(self):
+    def test_bad_arguments_and_without_ffmpeg(self):
+        self.assertEqual(self.run_tool("convert", "--max-mb").returncode, 2)
+        self.assertEqual(self.run_tool("convert", "--max-mb", "abc").returncode, 2)
         for n in ("ffprobe", "ffmpeg"):
             (self.shims / n).unlink()
         env = {**self.env2, "PATH": str(self.shims)}

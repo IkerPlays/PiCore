@@ -36,6 +36,7 @@ class InstallerTest(unittest.TestCase):
         self.shim("df", 'echo "Avail"; echo 99999999\n')
         self.shim("id", 'if [ "$1" = "-u" ]; then echo 1000; else exec /usr/bin/id "$@"; fi\n')
         self.shim("curl", 'echo "curl $*" >> %s\ncase "$*" in *-fsI*) exit 0;; *-o*) for a; do o=$a; done; : > "$o";; *) echo "echo ejecutado:$*";; esac\n' % self.log)
+        self.shim("ffprobe", 'printf \'{"streams":[{"codec_name":"h264","width":854,"height":480}],"format":{"duration":"10.0"}}\'\n')   # sin conversiones reales
         self.shim("pip-stub", 'echo "pip $*" >> %s\n' % self.log)
         self.env = {**os.environ, "PATH": str(self.shims) + os.pathsep + os.environ["PATH"], "PCPI_ROOT": str(self.r),
                     "PCPI_HOME": str(self.home), "PCPI_PIP": str(self.shims / "pip-stub"),
@@ -111,6 +112,20 @@ class InstallerTest(unittest.TestCase):
         v.write_bytes(b"descargado")
         self.install()
         self.assertEqual(v.read_bytes(), b"descargado")                      # rsync sin --delete: no se borra
+
+    def test_hevc_intros_get_an_h264_copy_at_install_and_originals_stay(self):
+        """Si un video de inicio lleva H.265, el instalador deja una copia H.264 en .h264/ y no toca el original."""
+        self.shim("ffprobe", 'for a; do f=$a; done\nc=h264; case "$f" in *Inicio1*) c=hevc;; esac\n'
+                             'printf \'{"streams":[{"codec_name":"%s","width":854,"height":480}],"format":{"duration":"10.0"}}\' "$c"\n')
+        self.shim("ffmpeg", 'for a; do out=$a; done\necho convertido > "$out"\n')
+        self.install()
+        start = self.r / "opt/pcpi/extra-assets/start"
+        self.assertEqual((start / ".h264" / "Inicio1.mp4").read_text().strip(), "convertido")
+        self.assertNotEqual((start / "Inicio1.mp4").read_bytes().strip(), b"convertido")     # el original sigue siendo el tuyo
+        self.assertFalse((start / ".h264" / "Inicio2.mp4").exists())
+        self.install()                                                                         # reinstalar no pierde ni rehace la copia
+        self.assertEqual((start / ".h264" / "Inicio1.mp4").read_text().strip(), "convertido")
+        self.assertTrue([l for l in self.calls() if "ffmpeg" in l and l.startswith("apt-get")], "ffmpeg debe instalarse")
 
     def test_backlight_rule_and_video_group(self):
         self.install()

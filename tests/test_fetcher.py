@@ -108,6 +108,27 @@ class DownloaderTest(unittest.TestCase):
         self.assertFalse(dl.part.exists())                       # el .part se renombro
         self.assertEqual(oct(self.dest.stat().st_mode & 0o777), "0o644")
 
+    def test_on_done_runs_after_success_only(self):
+        calls = []
+        dl = self.make()
+        dl.on_done = calls.append
+        dl.start()
+        wait_done(dl)
+        time.sleep(0.1)
+        self.assertEqual(calls, [self.dest])
+        self.tearDown()
+        calls.clear()
+        dl = self.make(status=404, attempts=1)
+        dl.on_done = calls.append
+        dl.start()
+        wait_done(dl)
+        self.assertEqual(calls, [])
+        self.tearDown()
+        dl = self.make()
+        dl.on_done = lambda p: 1 / 0                                      # un fallo en el gancho no estropea la descarga
+        dl.start()
+        self.assertEqual(wait_done(dl)["state"], "done")
+
     def test_progress_is_reported_while_downloading(self):
         dl = self.make(slow=0.01)
         dl.start()
@@ -203,6 +224,25 @@ class DownloaderTest(unittest.TestCase):
         st = wait_done(dl)
         self.assertEqual(st["state"], "error")
         self.assertFalse(self.dest.exists())
+
+
+class PrepareVideoTest(unittest.TestCase):
+    def test_converts_after_download_only_when_needed_and_possible(self):
+        calls = []
+        saved = (server.intros_tool.have_tools, server.intros_tool.needs_conversion, server.intros_tool.convert_one)
+        try:
+            server.intros_tool.convert_one = lambda p: calls.append(p) or True
+            server.intros_tool.have_tools = lambda: True
+            server.intros_tool.needs_conversion = lambda p: True
+            server._prepare_video(Path("/x/Inicio4.mp4"))
+            server.intros_tool.needs_conversion = lambda p: False                  # ya es H.264
+            server._prepare_video(Path("/x/Inicio4.mp4"))
+            server.intros_tool.needs_conversion = lambda p: True
+            server.intros_tool.have_tools = lambda: False                          # sin ffmpeg
+            server._prepare_video(Path("/x/Inicio4.mp4"))
+        finally:
+            server.intros_tool.have_tools, server.intros_tool.needs_conversion, server.intros_tool.convert_one = saved
+        self.assertEqual(calls, [Path("/x/Inicio4.mp4")])
 
 
 class BootIntegrationTest(unittest.TestCase):
