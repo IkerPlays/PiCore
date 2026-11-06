@@ -17,8 +17,11 @@ def repo_path_of_installed(path):
 class PackagingTest(unittest.TestCase):
     def test_bin_scripts_are_executable_and_have_shebang(self):
         for f in glob.glob(str(ROOT / "bin" / "*")):
+            if os.path.isdir(f):          # p. ej. bin/__pycache__ (lo crea `make lint`; no esta en git)
+                continue
             self.assertTrue(os.access(f, os.X_OK), f + " no es ejecutable")
-            self.assertTrue(open(f).readline().startswith("#!"), f + " sin shebang")
+            with open(f) as fh:
+                self.assertTrue(fh.readline().startswith("#!"), f + " sin shebang")
         for f in ("install.sh", "uninstall.sh", "tools/lint-shell.sh"):
             self.assertTrue(os.access(ROOT / f, os.X_OK), f + " no es ejecutable")
 
