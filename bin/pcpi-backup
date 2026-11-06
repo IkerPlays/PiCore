@@ -1,0 +1,206 @@
+#!/usr/bin/env python3
+"""Copia de seguridad (y restauracion) de TODO lo tuyo en un solo archivo .tar.gz.
+
+  pcpi-backup create [DESTINO]    crea la copia. DESTINO = carpeta (p. ej. el USB) o nombre de archivo.
+                                  Por defecto: tu carpeta personal.
+  pcpi-backup list ARCHIVO        enseña lo que lleva una copia
+  pcpi-backup restore ARCHIVO     la restaura (pide confirmacion; --yes para no preguntar)
+
+Incluye: /etc/pcpi (configuracion y modo), tus notas, las preferencias de Wi-Fi y brillo, y extra-assets
+(tus videos/imagenes de Inicio y Carga). ⚠️ La copia lleva tu contraseña de Pi-hole (pcpi.conf): guardala con cuidado
+(se crea con permisos solo para tu usuario)."""
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tarfile
+import tempfile
+import time
+from pathlib import Path
+
+ROOT = Path(os.environ.get("PCPI_ROOT", "/"))
+# (ruta absoluta dentro del sistema, es_carpeta)
+ITEMS = [
+    ("etc/pcpi/pcpi.conf", False), ("etc/pcpi/mode", False),
+    ("var/lib/pcpi/notes", True), ("var/lib/pcpi/nets.json", False), ("var/lib/pcpi/display.json", False),
+    ("opt/pcpi/extra-assets", True),
+]
+ALLOWED = tuple(p for p, _ in ITEMS)
+PREFIX = "pcpi-backup/"
+
+
+def sudo_cmd():
+    s = os.environ.get("PCPI_SUDO")
+    if s is not None:
+        return s.split() if s else []
+    return [] if os.geteuid() == 0 else ["sudo"]
+
+
+def say(m):
+    print(m)
+
+
+def default_dest():
+    return Path(os.environ.get("PCPI_BACKUP_HOME", str(Path.home())))
+
+
+def create(dest=None, quiet=False):
+    dest = Path(dest) if dest else default_dest()
+    name = time.strftime("pcpi-backup-%Y%m%d-%H%M%S.tar.gz")
+    out = dest / name if dest.is_dir() or not dest.suffix else dest
+    out.parent.mkdir(parents=True, exist_ok=True)
+    tmp = out.with_name(out.name + ".tmp")
+    manifest = {"created": time.strftime("%Y-%m-%d %H:%M:%S"), "files": []}
+    n = 0
+    old_umask = os.umask(0o077)                          # la copia lleva contraseñas: solo tu usuario
+    try:
+        with tarfile.open(tmp, "w:gz") as tf:
+            for rel, is_dir in ITEMS:
+                src = ROOT / rel
+                if not src.exists():
+                    continue
+                files = [p for p in sorted(src.rglob("*")) if p.is_file() and not p.is_symlink()] if is_dir else [src]
+                for f in files:
+                    arc = PREFIX + f.relative_to(ROOT).as_posix()
+                    try:
+                        tf.add(f, arcname=arc, recursive=False)
+                    except OSError as e:
+                        print("Aviso: no pude leer %s (%s)" % (f, e.strerror), file=sys.stderr)
+                        continue
+                    manifest["files"].append(arc)
+                    n += 1
+            data = json.dumps(manifest, indent=1).encode()
+            info = tarfile.TarInfo(PREFIX + "MANIFEST.json")
+            info.size = len(data)
+            info.mtime = time.time()
+            import io
+            tf.addfile(info, io.BytesIO(data))
+        os.replace(tmp, out)
+    finally:
+        os.umask(old_umask)
+        if tmp.exists():
+            tmp.unlink()
+    os.chmod(out, 0o600)
+    if not n:
+        print("No encontre nada que guardar (¿está PCPi instalado?).", file=sys.stderr)
+        out.unlink(missing_ok=True)
+        return None
+    if not quiet:
+        say("✔ Copia creada: %s  (%d archivos, %.1f MB)" % (out, n, out.stat().st_size / 1e6))
+        say("  ⚠️ Lleva tu contraseña de Pi-hole: no la compartas.")
+    return out
+
+
+def check_member(m):
+    """Solo se acepta lo que esta copia sabe crear: ficheros normales bajo rutas conocidas, sin `..`, sin enlaces."""
+    if not m.name.startswith(PREFIX):
+        raise ValueError("miembro fuera de la copia: %r" % m.name)
+    if m.name == PREFIX + "MANIFEST.json":
+        return None
+    rel = m.name[len(PREFIX):]
+    parts = rel.split("/")
+    if rel.startswith("/") or ".." in parts or "" in parts:
+        raise ValueError("ruta peligrosa: %r" % m.name)
+    if not m.isreg():
+        raise ValueError("solo se admiten archivos normales: %r" % m.name)
+    if not any(rel == a or rel.startswith(a + "/") for a in ALLOWED):
+        raise ValueError("ruta no permitida: %r" % rel)
+    return rel
+
+
+def read_members(archive):
+    with tarfile.open(archive) as tf:
+        members = tf.getmembers()
+        rels = [(m, check_member(m)) for m in members]
+    return rels
+
+
+def list_(archive):
+    try:
+        rels = read_members(archive)
+    except (OSError, tarfile.TarError) as e:
+        print("No puedo leer la copia: %s" % e, file=sys.stderr)
+        return 1
+    except ValueError as e:
+        print("Copia no válida (%s)." % e, file=sys.stderr)
+        return 1
+    for m, rel in rels:
+        if rel:
+            say("%8d  %s" % (m.size, rel))
+    return 0
+
+
+def restore(archive, yes=False):
+    try:
+        rels = read_members(archive)
+    except (OSError, tarfile.TarError) as e:
+        print("No puedo leer la copia: %s" % e, file=sys.stderr)
+        return 1
+    except ValueError as e:
+        print("Copia no válida, no se restaura nada (%s)." % e, file=sys.stderr)
+        return 1
+    files = [r for _, r in rels if r]
+    if not files:
+        print("La copia está vacía.", file=sys.stderr)
+        return 1
+    if not yes:
+        say("Se restaurarán %d archivos (configuración, notas, extra-assets…) SOBRE los actuales." % len(files))
+        say("La configuración actual se guarda antes como pcpi.conf.antes-de-restaurar.")
+        if input("¿Continuar? [s/N] ").strip().lower() not in ("s", "si", "sí", "y", "yes"):
+            say("Cancelado.")
+            return 1
+    tmp = Path(tempfile.mkdtemp(prefix="pcpi-restore-"))
+    try:
+        with tarfile.open(archive) as tf:
+            for m, rel in rels:
+                if not rel:
+                    continue
+                dest = tmp / rel
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                with tf.extractfile(m) as src, open(dest, "wb") as out:
+                    shutil.copyfileobj(src, out)
+        conf = ROOT / "etc/pcpi/pcpi.conf"
+        if conf.exists() and (tmp / "etc/pcpi/pcpi.conf").exists():
+            shutil.copy2(conf, conf.with_name("pcpi.conf.antes-de-restaurar"))
+        for rel, is_dir in ITEMS:
+            src = tmp / rel
+            if not src.exists():
+                continue
+            dst = ROOT / rel
+            if rel.startswith("opt/"):                       # carpeta de root: hace falta sudo
+                subprocess.run(sudo_cmd() + ["mkdir", "-p", str(dst)], check=False)
+                subprocess.run(sudo_cmd() + ["cp", "-a", str(src) + "/.", str(dst) + "/"], check=True)
+            elif is_dir:
+                dst.mkdir(parents=True, exist_ok=True, mode=0o700)
+                shutil.copytree(src, dst, dirs_exist_ok=True)
+            else:
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src, dst)
+                if rel == "etc/pcpi/pcpi.conf":
+                    os.chmod(dst, 0o640)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    say("✔ Restaurado (%d archivos). Aplica los cambios:  sudo systemctl restart pcpi-home" % len(files))
+    return 0
+
+
+def main(argv):
+    if not argv or argv[0] in ("-h", "--help", "help"):
+        print(__doc__)
+        return 0
+    cmd, rest = argv[0], argv[1:]
+    yes = "--yes" in rest
+    rest = [a for a in rest if a not in ("--yes", "--quiet")]
+    if cmd == "create":
+        return 0 if create(rest[0] if rest else None, quiet="--quiet" in argv) else 1
+    if cmd == "list" and rest:
+        return list_(rest[0])
+    if cmd == "restore" and rest:
+        return restore(rest[0], yes)
+    print(__doc__, file=sys.stderr)
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

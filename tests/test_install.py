@@ -75,6 +75,17 @@ class InstallerTest(unittest.TestCase):
         self.assertEqual(self.read("etc/pcpi/mode").strip(), "desktop")
         self.assertEqual(self.read("etc/tmpfiles.d/pcpi.conf").strip(), "d /run/pcpi 1777 root root -")
 
+    def test_remembers_install_options_for_pcpi_update(self):
+        self.install("--camera", "--pihole")
+        f = self.r / "etc/pcpi/install"
+        self.assertIn("src=%s" % ROOT, f.read_text())
+        self.assertIn("options=--camera\n", f.read_text())              # --pihole no se recuerda
+        self.install("--voice")                                          # una 2.ª vez no olvida lo anterior
+        self.assertIn("options=--voice --camera\n", (self.r / "etc/pcpi/install").read_text())
+        self.install()                                                   # ni sin opciones
+        self.assertIn("--camera", (self.r / "etc/pcpi/install").read_text())
+        self.assertIn("--voice", (self.r / "etc/pcpi/install").read_text())
+
     def test_backlight_rule_and_video_group(self):
         self.install()
         rule = (self.r / "etc/udev/rules.d/90-pcpi-backlight.rules").read_text()

@@ -1,0 +1,103 @@
+#!/usr/bin/env python3
+"""Actualiza PCPi: descarga la ultima version (git pull) y la reinstala con LAS MISMAS opciones que usaste.
+
+  pcpi-update             actualiza (antes hace una copia de seguridad rapida de tu configuracion y notas)
+  pcpi-update --check     solo mira si hay novedades, sin tocar nada
+  pcpi-update --no-backup no hace la copia previa
+  pcpi-update --force     reinstala aunque no haya novedades
+
+Las opciones del instalador (--camera, --voice...) las recuerda /etc/pcpi/install, que escribe ./install.sh."""
+import os
+import shlex
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(os.environ.get("PCPI_ROOT", "/"))
+KNOWN = {"--camera", "--voice", "--spotify", "--stats", "--battery"}   # --pihole es interactivo: nunca se repite al actualizar
+
+
+def say(m):
+    print(m, flush=True)
+
+
+def read_install():
+    """(carpeta_del_proyecto, [opciones]) segun /etc/pcpi/install."""
+    f = ROOT / "etc/pcpi/install"
+    src, opts = None, []
+    try:
+        for line in f.read_text().splitlines():
+            k, _, v = line.partition("=")
+            if k == "src":
+                src = v.strip()
+            elif k == "options":
+                opts = [o for o in shlex.split(v) if o in KNOWN]
+    except OSError:
+        pass
+    return src, opts
+
+
+def git(src, *args, check=True):
+    return subprocess.run(["git", "-C", src, *args], capture_output=True, text=True, check=check)
+
+
+def main(argv):
+    if "-h" in argv or "--help" in argv:
+        print(__doc__)
+        return 0
+    check_only, backup, force = "--check" in argv, "--no-backup" not in argv, "--force" in argv
+    src, opts = read_install()
+    if not src:
+        say("No sé dónde está el proyecto (falta /etc/pcpi/install). Ve a su carpeta y ejecuta:  ./install.sh --camera --voice --spotify")
+        return 1
+    if not (Path(src) / ".git").exists() or not (Path(src) / "install.sh").exists():
+        say("No encuentro el proyecto en %s (¿lo moviste o lo borraste?). Vuelve a clonarlo y ejecuta ./install.sh" % src)
+        return 1
+    try:
+        dirty = git(src, "status", "--porcelain").stdout.strip()
+        branch = git(src, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
+        git(src, "fetch", "--quiet", "origin", branch)
+        behind = int(git(src, "rev-list", "--count", "HEAD..FETCH_HEAD").stdout.strip() or 0)
+    except subprocess.CalledProcessError as e:
+        say("No pude consultar GitHub: %s" % (e.stderr or e.stdout or e).strip()[:200])
+        say("¿Hay internet? Prueba:  ping -c 3 github.com")
+        return 1
+    if behind == 0 and not force:
+        say("✔ Ya tienes la última versión.")
+        return 0
+    if check_only:
+        say("Hay %d cambio(s) nuevo(s). Para actualizar:  pcpi-update" % behind)
+        return 0
+    if dirty:
+        say("Has modificado archivos del proyecto en %s:" % src)
+        say(dirty)
+        say("Para no perder nada, no actualizo. Si no te importan esos cambios:  git -C %s checkout -- .   y repite." % shlex.quote(src))
+        return 1
+    if backup:
+        here = Path(__file__).resolve().parent
+        dest = Path.home() / "pcpi-backups"
+        r = subprocess.run([sys.executable, str(here / "pcpi-backup"), "create", str(dest), "--quiet"])
+        if r.returncode == 0:
+            for old in sorted(dest.glob("pcpi-backup-*.tar.gz"))[:-5]:
+                old.unlink(missing_ok=True)                  # se guardan las 5 ultimas
+            say("✔ Copia de seguridad previa en %s" % dest)
+        else:
+            say("Aviso: no se pudo hacer la copia previa; sigo igualmente.")
+    if behind:
+        say("Descargando %d cambio(s)…" % behind)
+        r = git(src, "pull", "--ff-only", "--quiet", "origin", branch, check=False)
+        if r.returncode != 0:
+            say("git pull falló:\n%s" % (r.stderr or r.stdout).strip()[:400])
+            return 1
+    say("Reinstalando con tus opciones: %s" % (" ".join(opts) or "(solo lo básico)"))
+    r = subprocess.run(["bash", str(Path(src) / "install.sh"), *opts], cwd=src)
+    if r.returncode != 0:
+        say("✘ El instalador falló (código %d). Tu configuración y notas no se han tocado. Repite: cd %s && ./install.sh %s"
+            % (r.returncode, shlex.quote(src), " ".join(opts)))
+        return r.returncode
+    say("✔ Actualizado. Si cambió la interfaz, se verá la próxima vez que cambies de modo; para todo: sudo reboot")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

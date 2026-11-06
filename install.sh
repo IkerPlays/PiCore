@@ -162,6 +162,23 @@ if [ "$PIHOLE" = 1 ]; then
   echo "Ahora pon la contraseña:  sudo pihole setpassword   y copiala en /etc/pcpi/pcpi.conf (seccion [pihole])."
 fi
 
+# Recuerda de donde se instalo y con que opciones: lo usa `pcpi-update` para reinstalar igual
+PREV_FILE="$R/etc/pcpi/install"
+OPTS_PREV="$(sed -n 's/^options=//p' "$PREV_FILE" 2>/dev/null || true)"
+{
+  echo "src=$SRC"
+  OPTS=""
+  [ "$CAMERA" = 1 ] && OPTS="$OPTS --camera"; [ "$VOICE" = 1 ] && OPTS="$OPTS --voice"
+  [ "$SPOTIFY" = 1 ] && OPTS="$OPTS --spotify"; [ "$STATS" = 1 ] && OPTS="$OPTS --stats"
+  [ "$BATTERY" = 1 ] && OPTS="$OPTS --battery"
+  # lo ya instalado antes no se olvida aunque esta vez no lo pidas (p. ej. ./install.sh a secas para copiar tus extra-assets)
+  for o in $OPTS_PREV; do
+    case "$o" in --camera|--voice|--spotify|--stats|--battery) case " $OPTS " in *" $o "*) ;; *) OPTS="$OPTS $o" ;; esac ;; esac
+  done
+  # --pihole NO se recuerda: es el instalador interactivo de Pi-hole y no hay que repetirlo al actualizar
+  echo "options=${OPTS# }"
+} > "$R/etc/pcpi/install"
+
 # el servidor se reinicia al final: los grupos nuevos (video, audio...) solo se leen al arrancar el servicio
 sudo systemctl restart pcpi-home.service
 
