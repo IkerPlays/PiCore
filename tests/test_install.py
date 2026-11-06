@@ -75,6 +75,13 @@ class InstallerTest(unittest.TestCase):
         self.assertEqual(self.read("etc/pcpi/mode").strip(), "desktop")
         self.assertEqual(self.read("etc/tmpfiles.d/pcpi.conf").strip(), "d /run/pcpi 1777 root root -")
 
+    def test_backlight_rule_and_video_group(self):
+        self.install()
+        rule = (self.r / "etc/udev/rules.d/90-pcpi-backlight.rules").read_text()
+        self.assertIn("backlight", rule)
+        self.assertIn("chgrp video", rule)
+        self.assertTrue([l for l in self.calls() if l.startswith("usermod -aG video")])
+
     def test_wifi_group_for_networkmanager(self):
         self.install()
         c = self.calls()

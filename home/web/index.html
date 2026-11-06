@@ -22,8 +22,7 @@
   .orb.b { background:var(--orb2); bottom:-38vmax; right:-26vmax; animation:drift 28s ease-in-out infinite alternate-reverse; }
   @keyframes drift { to { transform:translate(9vmax,6vmax) scale(1.14); } }
 
-  #dim { position:fixed; inset:0; background:#000; opacity:0; pointer-events:none; z-index:4; transition:opacity 1.5s; }
-  body.night #dim { opacity:.38; }
+  #dim { position:fixed; inset:0; background:#000; opacity:var(--dim,0); pointer-events:none; z-index:4; transition:opacity 2s; }
   body.night .orb { animation-play-state:paused; }          /* de madrugada, sin animaciones de fondo */
 
   main { position:relative; z-index:1; height:100%; display:grid; grid-template-columns:1.25fr 1fr; grid-template-rows:minmax(0,1fr) 64px; gap:14px; padding:14px; }
@@ -147,6 +146,19 @@
   .spin { display:inline-block; width:18px; height:18px; border:3px solid var(--line); border-top-color:var(--acc); border-radius:50%; animation:spin .8s linear infinite; vertical-align:-3px; margin-right:8px; }
   @keyframes spin { to { transform:rotate(360deg); } }
 
+  /* ---------------- brillo ---------------- */
+  #bpanel { position:fixed; left:50%; bottom:0; z-index:21; width:min(560px,100vw); background:var(--card); border:1px solid var(--line); border-bottom:0;
+            border-radius:26px 26px 0 0; box-shadow:0 -20px 60px #0008; padding:20px 24px 26px; transform:translate(-50%,105%); transition:transform .5s var(--ease); }
+  #bpanel.on { transform:translate(-50%,0); }
+  #bpanel h3 { font-size:22px; display:flex; justify-content:space-between; align-items:center; }
+  #bpanel h3 button { width:44px; height:44px; font-size:20px; border-radius:50%; }
+  .bl { display:flex; align-items:center; gap:14px; margin:22px 0 8px; font-size:26px; }
+  .bl output { min-width:3.6ch; text-align:right; font-size:22px; font-variant-numeric:tabular-nums; }
+  input[type=range] { -webkit-appearance:none; appearance:none; flex:1; height:12px; border-radius:999px; background:linear-gradient(90deg,var(--acc) var(--p,100%),var(--line) var(--p,100%)); outline:none; cursor:pointer; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:38px; height:38px; border-radius:50%; background:#fff; box-shadow:0 2px 10px #0006; border:0; }
+  input[type=range]::-moz-range-thumb { width:38px; height:38px; border-radius:50%; background:#fff; border:0; }
+  #bnote { color:var(--dim); font-size:14px; margin-top:12px; min-height:36px; }
+
   /* ---------------- cambio de modo ---------------- */
   #switching { position:fixed; inset:0; z-index:40; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; background:var(--bg);
                opacity:0; pointer-events:none; transition:opacity .45s ease; font-size:26px; }
@@ -166,6 +178,7 @@
     <div id="greet"></div>
     <div id="chips">
       <span class="chip" id="chip-cpu" hidden></span>
+      <button class="chip" id="chip-bright" aria-label="Brillo" style="color:var(--fg)">☀</button>
       <button class="chip" id="chip-wifi" hidden aria-label="Wi-Fi">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 9a14 14 0 0 1 19 0"/><path d="M5.5 12.5a9.5 9.5 0 0 1 13 0"/><path d="M8.7 16a5 5 0 0 1 6.6 0"/><circle cx="12" cy="19.4" r="1.2" fill="currentColor" stroke="none"/></svg>
         <span id="wifi-name">Wi-Fi</span>
@@ -231,6 +244,13 @@
   <div class="sh-body" id="sh-body"></div>
 </section>
 
+<section id="bpanel" aria-label="Brillo">
+  <h3>Brillo <button id="b-close" aria-label="Cerrar">✕</button></h3>
+  <div class="bl"><span>🔅</span><input type="range" id="b-range" min="10" max="100" step="1" value="100"><span>🔆</span><output id="b-val">100%</output></div>
+  <div class="tg"><div>Automático<small id="b-auto-sub">Baja poco a poco de noche</small></div><button class="sw on" id="b-auto" aria-label="Automático"></button></div>
+  <div id="bnote"></div>
+</section>
+
 <div id="switching"><div class="spin"></div><div id="sw-text">Cambiando de modo…</div></div>
 
 <script src="/static/osk.js"></script>
@@ -253,7 +273,6 @@ function applyTheme() {
   const h = new Date().getHours();
   const auto = (h >= 8 && h < 20) ? "light" : "dark";
   document.documentElement.dataset.theme = themeOverride || auto;
-  document.body.classList.toggle("night", !themeOverride && (h >= 23 || h < 7));
 }
 $("time").onclick = () => {
   themeOverride = document.documentElement.dataset.theme === "light" ? "dark" : "light";
@@ -340,6 +359,41 @@ function showVoice(text, pulse, ms) {
   const v = $("voice"); v.textContent = text; v.classList.add("on"); v.classList.toggle("pulse", pulse);
   clearTimeout(hideVoice); if (ms) hideVoice = setTimeout(() => v.classList.remove("on"), ms);
 }
+
+/* ---- brillo: la rampa nocturna la calcula el servidor; sin backlight por hardware se atenua por software ---- */
+let disp = null, bUser = false, bTimer = 0;
+function paintDisplay(d) {
+  if (!d) return;
+  disp = d;
+  const hw = d.hw && d.hw.writable;
+  const dim = hw ? 0 : Math.min(0.8, (100 - d.effective) / 100 * 0.8);     // nunca negro del todo
+  document.documentElement.style.setProperty("--dim", dim.toFixed(2));
+  document.body.classList.toggle("night", d.effective <= 60);
+  if (!bUser && !$("bpanel").classList.contains("on")) syncBPanel();
+}
+function syncBPanel() {
+  if (!disp) return;
+  $("b-range").value = disp.level; $("b-range").style.setProperty("--p", disp.level + "%");
+  $("b-val").textContent = (disp.auto ? disp.effective : disp.level) + "%";
+  $("b-auto").classList.toggle("on", disp.auto);
+  const hw = disp.hw || {};
+  $("b-auto-sub").textContent = `De ${disp.night_from}:00 a ${disp.night_to}:00 baja a ${disp.night_level}% (poco a poco, ${disp.ramp} min)`;
+  $("bnote").textContent = hw.writable ? "Controla la retroiluminación de la pantalla."
+    : "Tu pantalla no tiene control de brillo por software: se oscurece con una capa (el brillo real lo cambias en sus botones).";
+}
+async function sendDisplay(body) {
+  try { const r = await post("/api/display", body); if (r.ok) paintDisplay(await r.json()); } catch (e) {}
+}
+$("b-range").oninput = () => {
+  bUser = true; clearTimeout(bTimer);
+  const v = +$("b-range").value; $("b-range").style.setProperty("--p", v + "%"); $("b-val").textContent = v + "%";
+  if (disp) { disp.level = v; paintDisplay({...disp, level: v, effective: disp.auto ? Math.min(v, disp.effective) : v}); }
+  bTimer = setTimeout(() => { bUser = false; sendDisplay({level: v}); }, 250);
+};
+$("b-auto").onclick = () => { const on = !$("b-auto").classList.contains("on"); $("b-auto").classList.toggle("on", on); sendDisplay({auto: on}); };
+$("chip-bright").onclick = () => { syncBPanel(); $("scrim").classList.add("on"); $("bpanel").classList.add("on"); };
+function closeBright() { $("bpanel").classList.remove("on"); if (!$("sheet").classList.contains("on")) $("scrim").classList.remove("on"); }
+$("b-close").onclick = closeBright;
 
 /* ---- chip de Wi-Fi ---- */
 let netState = null;
@@ -443,7 +497,7 @@ function closeSheet() {
 }
 $("chip-wifi").onclick = openSheet;
 $("sh-close").onclick = closeSheet;
-$("scrim").onclick = closeSheet;
+$("scrim").onclick = () => { closeSheet(); closeBright(); };
 
 async function refresh() {
   let s;
@@ -495,6 +549,7 @@ async function refresh() {
 
   if (s.cpu_temp != null) { $("chip-cpu").hidden = false; $("chip-cpu").textContent = "🌡 " + s.cpu_temp + "°"; }
   paintNet(s.net);
+  paintDisplay(s.display);
 
   const c = s.camera || {};
   $("open-cam").style.display = c.available ? "" : "none";

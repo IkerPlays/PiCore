@@ -19,6 +19,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import assets
+import display
 import netmgr
 import pcpiconf
 
@@ -381,12 +382,42 @@ def status():
         "voice": voice_state(),
         "camera": camera_status(cp),
         "net": net_summary(),
+        "display": display_info(cp),
         "ip": cached("ip", 60, local_ip),
         "host": socket.gethostname(),
     }
 
 
 NETWATCH = None
+
+
+def display_info(cp):
+    """Brillo actual (manual + automatico) y datos para pintar el control. Todo en %."""
+    def num(key, default, lo, hi):
+        try:
+            return max(lo, min(cp.getint("display", key, fallback=default), hi))
+        except ValueError:
+            return default
+    cfg = {"night_from": num("night_from", 22, 0, 23), "night_to": num("night_to", 7, 0, 23),
+           "night_level": num("night_level", 40, display.MIN_LEVEL, 100), "ramp": num("ramp_minutes", 60, 0, 240)}
+    st = display.load()
+    t = time.localtime()
+    eff = display.effective(st, t.tm_hour * 60 + t.tm_min, cfg["night_from"], cfg["night_to"], cfg["night_level"], cfg["ramp"])
+    return {"level": st["level"], "auto": st["auto"], "effective": eff, **cfg, "hw": display.hardware_info()}
+
+
+def display_loop():
+    """Aplica el brillo al backlight (si existe y se puede escribir) cuando cambia. Sin backlight, la UI atenua por software."""
+    last = None
+    while True:
+        try:
+            info = display_info(read_conf())
+            if info["hw"]["writable"] and info["effective"] != last:
+                if display.apply_hardware(info["effective"]):
+                    last = info["effective"]
+        except Exception:       # noqa: BLE001
+            pass
+        time.sleep(20)
 
 
 def net_summary():
@@ -661,7 +692,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self._host_ok():
             return self._send(403, {"error": "host no permitido"})
         paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/loaded",
-                 "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal")
+                 "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display")
         if self.path not in paths or self.headers.get("X-PCPI") != "1":
             return self._send(403, {"error": "prohibido"})
         try:
@@ -673,6 +704,15 @@ class Handler(BaseHTTPRequestHandler):
             if self.path == "/api/mode":
                 set_mode(body["mode"])
                 return self._send(200, {"mode": body["mode"]})
+            if self.path == "/api/display":
+                lvl = body.get("level")
+                auto = body.get("auto")
+                if lvl is not None and (isinstance(lvl, bool) or not isinstance(lvl, (int, float))):
+                    raise ValueError("nivel invalido")
+                if auto is not None and not isinstance(auto, bool):
+                    raise ValueError("auto invalido")
+                display.save(lvl, auto)
+                return self._send(200, display_info(read_conf()))
             if self.path.startswith("/api/wifi/"):
                 wifi_post(self.path, body)
                 return self._send(200, {"ok": True})
@@ -718,6 +758,7 @@ def main():
     host = cp.get("server", "host", fallback="127.0.0.1")
     port = cp.getint("server", "port", fallback=8080)
     start_netwatch(cp)
+    threading.Thread(target=display_loop, daemon=True).start()
     print("PCPi escuchando en http://%s:%d" % (host, port), flush=True)
     make_server(host, port).serve_forever()
 

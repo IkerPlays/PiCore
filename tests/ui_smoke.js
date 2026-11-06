@@ -55,6 +55,22 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('el boton «Modo Iker» cambia el modo', (await (await page.request.get(base + '/api/mode')).json()).mode === 'iker');
   await page.request.post(base + '/api/mode', { headers: { 'X-PCPI': '1' }, data: { mode: 'home' } });
 
+  // ------------------------------------------------------------------ brillo
+  await page.goto(base + '/');
+  await page.click('#chip-bright');
+  await sleep(700);
+  check('el panel de brillo se abre', await page.evaluate(() => document.getElementById('bpanel').classList.contains('on')));
+  await page.click('#b-auto');                                    // pasa a manual
+  await page.fill('#b-range', '30');
+  await page.dispatchEvent('#b-range', 'input');
+  await sleep(900);
+  const dsp = await (await page.request.get(base + '/api/status')).json();
+  check('el deslizante guarda el brillo en el servidor', dsp.display.level === 30 && dsp.display.auto === false, JSON.stringify(dsp.display));
+  const dimv = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--dim'));
+  check('sin backlight se atenua por software (nunca negro del todo)', parseFloat(dimv) > 0.4 && parseFloat(dimv) <= 0.8, dimv);
+  await page.request.post(base + '/api/display', { headers: { 'X-PCPI': '1' }, data: { level: 100, auto: true } });
+  await page.click('#b-close');
+
   // ------------------------------------------------------------------ Wi-Fi (panel + teclado en pantalla)
   await page.goto(base + '/');
   await page.waitForFunction(() => !document.getElementById('chip-wifi').hidden, null, { timeout: 8000 }).catch(() => {});

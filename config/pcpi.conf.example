@@ -90,3 +90,12 @@ pihole_default = true
 # false = no se abre sola; sale un boton «Iniciar sesion» en el panel de Wi-Fi.
 auto_portal = true
 
+[display]
+# Brillo. El deslizante de la pantalla de Casa (icono ☀) elige el nivel maximo; en automatico baja de noche.
+# Hora a la que empieza la noche (0-23) y a la que acaba.
+night_from = 22
+night_to = 7
+# Brillo (10-100 %) durante la noche.
+night_level = 40
+# Minutos en los que el brillo baja (antes de night_from) y sube (despues de night_to) poco a poco.
+ramp_minutes = 60

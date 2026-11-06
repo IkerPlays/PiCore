@@ -71,6 +71,13 @@ step "Wi-Fi (NetworkManager)"
 command -v nmcli >/dev/null || echo "Aviso: no hay NetworkManager (nmcli): el panel de Wi-Fi no estara disponible. Usa Raspberry Pi OS Bookworm o Trixie." >&2
 sudo usermod -aG netdev "$ME"
 
+step "Brillo de la pantalla"
+# Si la pantalla tiene retroiluminacion controlable (/sys/class/backlight), el grupo video podra cambiarla.
+# Muchas pantallas HDMI baratas no la tienen: entonces la interfaz atenua por software.
+sudo mkdir -p "$R/etc/udev/rules.d"
+printf '%s\n' 'SUBSYSTEM=="backlight", ACTION=="add|change", RUN+="/bin/chgrp video /sys/class/backlight/%k/brightness", RUN+="/bin/chmod g+w /sys/class/backlight/%k/brightness"' | sudo tee "$R/etc/udev/rules.d/90-pcpi-backlight.rules" >/dev/null
+sudo usermod -aG video "$ME"
+
 step "Servicio pcpi-home"
 sudo mkdir -p "$R/etc/systemd/system"
 sed "s/__USER__/$ME/" "$SRC/systemd/pcpi-home.service" | sudo tee "$R/etc/systemd/system/pcpi-home.service" >/dev/null
