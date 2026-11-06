@@ -67,8 +67,17 @@ off_to = -1
 [boot]
 # Pantalla de Inicio (al encender) y pantalla de Carga (al encender y en cada cambio de modo).
 # Tus videos/imagenes van en extra-assets/ (ver extra-assets/README.md).
-# Reproducir extra-assets/start/Inicio.mp4 al encender (si el archivo no existe, se salta solo).
+# Reproducir un video de extra-assets/start/ al encender (si no hay ninguno, se salta solo).
 intro = true
+# Hasta 4 videos: Inicio1.mp4 (vale tambien Inicio.mp4), Inicio2.mp4, Inicio3.mp4 e Inicio4.mp4. Al encender sale UNO al azar.
+# Probabilidad de cada uno (pesos relativos: con 90, 85, 55 y 1 salen ~38,9 %, 36,8 %, 23,8 % y 0,4 %).
+intro_chances = 90, 85, 55, 1
+# Garantia: si el video raro lleva este numero de encendidos SIN salir, en el siguiente sale si o si (0 = sin garantia).
+intro_pity = 4
+# A que videos se aplica la garantia (por defecto solo al 4.º, el raro). Ejemplo para todos: 1, 2, 3, 4
+intro_pity_slots = 4
+# Segundos tras los que aparece un boton pequeño «Saltar» (esquina inferior derecha) en cada video; 0 = nunca.
+intro_skip_seconds = 0, 0, 0, 6
 # Tras llegar al 85 % real, el efecto TV «x2» sube hasta el 100 % (carga rapida). false = pasa directo.
 fake_loading = true
 # Segundos que dura ese tramo final del 85 % al 100 % (1-30).

@@ -6,7 +6,6 @@ import mimetypes
 import os
 from pathlib import Path
 
-START_FILE = "Inicio.mp4"
 KINDS = {
     "images": (".png", ".jpg", ".jpeg", ".webp", ".svg"),
     "gifs": (".gif",),
@@ -19,11 +18,6 @@ MAX_MEDIA = 60            # tope de elementos del carrusel (por si alguien copia
 
 def assets_dir():
     return Path(os.environ.get("PCPI_ASSETS", "/opt/pcpi/extra-assets"))
-
-
-def intro_url(base=None):
-    base = base or assets_dir()
-    return "/assets/start/" + START_FILE if (base / "start" / START_FILE).is_file() else None
 
 
 def loading_media(base=None):

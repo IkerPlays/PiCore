@@ -665,7 +665,7 @@ Hay dos pantallas especiales que cuidan la «entrada» al sistema:
 
 | Pantalla | Cuándo sale | Qué ves |
 |---|---|---|
-| **Inicio** | Solo al **encender** el PC | Una pantalla **en blanco** que reproduce tu vídeo `extra-assets/start/Inicio.mp4`. Cuando acaba, empieza la carga del **último modo que usaste** |
+| **Inicio** | Solo al **encender** el PC | Una pantalla **en blanco** que reproduce **uno de tus vídeos** de `extra-assets/start/` (hasta 4, elegido al azar). Cuando acaba, empieza la carga del **último modo que usaste** |
 | **Carga** | Tras el Inicio **y cada vez que cambias de modo** | Un pop-up **«Cargando…»** con barra de progreso y porcentaje, y debajo van pasando tus imágenes, GIFs y vídeos pequeños |
 
 **Cómo funciona la barra:** carga de verdad (servidor, página de destino y tus archivos) y esa carga real llega al **100 % real, pero se muestra como 85 %**. Entonces aparece un **efecto de televisión antigua con «▶▶ x2»** y la barra y el porcentaje suben **más rápido** hasta el 100 %. Durante ese tramo final hay un botón pequeño **«Saltar ⏭»** en la esquina de la pantalla táctil para pasar directamente.
@@ -676,7 +676,8 @@ Hay dos pantallas especiales que cuidan la «entrada» al sistema:
 
 ```
 extra-assets/
-├── start/Inicio.mp4          ← el vídeo de inicio (el nombre EXACTO, con I mayúscula)
+├── start/                    ← vídeos de inicio (hasta 4): Inicio1.mp4, Inicio2.mp4, Inicio3.mp4, Inicio4.mp4
+│                                (nombres EXACTOS, con I mayúscula; Inicio.mp4 vale como el 1)
 └── loading/
     ├── images/               ← .png .jpg .jpeg .webp .svg
     ├── gifs/                 ← .gif
@@ -688,7 +689,7 @@ extra-assets/
 1. **Desde tu ordenador con `scp`** (cópialos tal cual a la Pi; en Windows, PowerShell funciona igual):
 
 ```bash
-scp Inicio.mp4 iker@pcpi.local:~/PCRaspberryPI5/extra-assets/start/
+scp Inicio1.mp4 Inicio2.mp4 Inicio3.mp4 Inicio4.mp4 iker@pcpi.local:~/PCRaspberryPI5/extra-assets/start/
 scp *.gif iker@pcpi.local:~/PCRaspberryPI5/extra-assets/loading/gifs/
 ```
 
@@ -696,11 +697,13 @@ scp *.gif iker@pcpi.local:~/PCRaspberryPI5/extra-assets/loading/gifs/
 2. **Por GitHub:** súbelos al repositorio y en la Pi `git pull && ./install.sh`.
 3. **Con un pendrive:** cópialos a `~/PCRaspberryPI5/extra-assets/…` con el gestor de archivos y ejecuta `./install.sh`.
 
+**Qué vídeo sale al encender (y la garantía del raro):** los pesos por defecto son 90, 85, 55 y 1 (≈ 38,9 %, 36,8 %, 23,8 % y 0,4 %). Si el **4.º** lleva 4 encendidos sin salir, el siguiente sale **sí o sí**, y a los 6 s del vídeo 4 aparece un **botón «Saltar» pequeño** abajo a la derecha. Todo está explicado, con la tabla, en [extra-assets/README.md](../extra-assets/README.md) y se cambia en `[boot]` (`intro_chances`, `intro_pity`, `intro_pity_slots`, `intro_skip_seconds`).
+
 **Probar sin reiniciar:** `pcpi-mode iker` y luego `pcpi-mode home` → verás la pantalla de Carga con tu contenido. La de **Inicio** solo sale al encender: `sudo reboot`.
 
 | Problema | Solución |
 |---|---|
-| El vídeo de inicio no se ve y pasa a la carga a los ~5 s | Formato no compatible. Conviértelo a **MP4 con H.264 + AAC**; comando de `ffmpeg` en [extra-assets/README.md](../extra-assets/README.md) |
+| Un vídeo de inicio no se ve y pasa a la carga a los ~5 s | Formato no compatible. Conviértelo a **MP4 con H.264 + AAC**; comando de `ffmpeg` en [extra-assets/README.md](../extra-assets/README.md) |
 | El vídeo se ve pero sin sonido | Comprueba que la salida de audio es **HDMI** y el volumen de la pantalla |
 | Va a tirones | Redúcelo a 720p/30 fps; los vídeos de carga, máx. 480 px de ancho |
 | No salen mis imágenes de carga | Extensión no válida o carpeta equivocada; tras copiarlas, ejecuta `./install.sh` |
@@ -998,7 +1001,7 @@ Empieza **siempre** por `pcpi-doctor`: marca con `✘` lo que está mal y con `!
 | No suena nada | Clic derecho en el volumen → **HDMI**; sube el volumen de la pantalla. Si solo falla **Spotify**, mira el punto 3 de [7.2](#72-spotify) (`LIBRESPOT_DEVICE`) |
 | Al reiniciar no arranca el modo | `pcpi-doctor`; vuelve a un modo seguro con `pcpi-mode desktop`; si falta `pcpi-session`, cierra sesión y entra |
 | **El panel de Wi-Fi no deja conectar**, o no sale la ventana de inicio de sesión de una wifi pública | Mira el [Paso 9](#paso-9-wi-fi-en-casa-de-viaje-y-wifis-públicas), tabla «Si algo sale mal con la red» |
-| La pantalla de **Inicio/Carga** no sale, o se ve sin mi vídeo | Mira el [8.2](#82-las-pantallas-de-inicio-y-de-carga-tus-vídeos-y-gifs): nombre exacto `Inicio.mp4`, formato H.264 y `./install.sh` tras copiar |
+| La pantalla de **Inicio/Carga** no sale, o se ve sin mi vídeo | Mira el [8.2](#82-las-pantallas-de-inicio-y-de-carga-tus-vídeos-y-gifs): nombres exactos `Inicio1.mp4`…`Inicio4.mp4`, formato H.264 y `./install.sh` tras copiar |
 | Pi-hole «Sin conexión» | Contraseña en `[pihole]` (prueba `pcpi-setup pihole`: te dice si Pi-hole la acepta; ya funcionan contraseñas con `%`, `#` y espacios); `systemctl status pihole-FTL` |
 | Spotify no ve «PCPi» | Misma red; `systemctl status raspotify` |
 | **«Hey Jarvis» no responde** | `arecord -l`, ajusta `device` ([7.5](#75-voz-hey-jarvis)), baja `wake_threshold`, `journalctl --user -u pcpi-voice -f` |

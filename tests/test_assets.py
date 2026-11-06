@@ -12,7 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "home"))
 
 tmp = Path(tempfile.mkdtemp())
-ENV = {"PCPI_CONF": str(tmp / "pcpi.conf"), "PCPI_MODE_FILE": str(tmp / "mode"), "PCPI_RUN_DIR": str(tmp / "run"),
+ENV = {"PCPI_INTRO_STATE": str(tmp / "intro.json"), "PCPI_BOOT_ID_FILE": str(tmp / "boot_id"), "PCPI_CONF": str(tmp / "pcpi.conf"), "PCPI_MODE_FILE": str(tmp / "mode"), "PCPI_RUN_DIR": str(tmp / "run"),
        "PCPI_ASSETS": str(tmp / "assets")}
 os.environ.update(ENV)          # (se reaplican en cada prueba: otros modulos cambian estas variables)
 import assets  # noqa: E402
@@ -44,10 +44,6 @@ class ListTest(unittest.TestCase):
         self.assertEqual(len(urls), 5)
         self.assertEqual({m["type"] for m in assets.loading_media()}, {"image", "gif", "video"})
         self.assertFalse([u for u in urls if "oculta" in u or "txt" in u])
-
-    def test_intro_only_with_the_exact_file(self):
-        self.assertEqual(assets.intro_url(), "/assets/start/Inicio.mp4")
-        self.assertIsNone(assets.intro_url(tmp / "nada"))
 
     def test_empty_folders(self):
         self.assertEqual(assets.loading_media(tmp / "vacio"), [])
@@ -125,7 +121,9 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(cm.exception.code, 403)
 
     def test_boot_info_defaults(self):
-        code, body, _ = self.req("/api/boot")
+        d = json.loads(self.req("/api/boot")[1])
+        self.assertIsNone(d["intro"])                          # sin ?boot=1 no se elige video (no es un encendido)
+        code, body, _ = self.req("/api/boot?boot=1")
         d = json.loads(body)
         self.assertEqual(d["intro"], "/assets/start/Inicio.mp4")
         self.assertEqual(len(d["media"]), 5)
@@ -136,7 +134,7 @@ class HttpTest(unittest.TestCase):
         Path(os.environ["PCPI_CONF"]).write_text(
             "[boot]\nintro = false\nfake_loading = no\nfake_seconds = 999\nmin_seconds = abc\nskip_button = false\n")
         try:
-            d = json.loads(self.req("/api/boot")[1])
+            d = json.loads(self.req("/api/boot?boot=1")[1])
             self.assertIsNone(d["intro"])
             self.assertFalse(d["fake"] or d["skip_button"])
             self.assertEqual(d["fake_seconds"], 30)          # tope

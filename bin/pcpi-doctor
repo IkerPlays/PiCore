@@ -71,8 +71,9 @@ if command -v nmcli >/dev/null; then
   id -nG | grep -qw netdev && ok "usuario en el grupo netdev (puede cambiar de wifi)" || warn "tu usuario no esta en el grupo netdev: sudo usermod -aG netdev \$USER y reinicia"
   pcpi-wifi status 2>/dev/null | sed 's/^/      /' || true
 else warn "sin NetworkManager: el panel de Wi-Fi no estara disponible"; fi
-if [ -f /opt/pcpi/extra-assets/start/Inicio.mp4 ]; then ok "video de inicio encontrado (extra-assets/start/Inicio.mp4)"
-else warn "sin extra-assets/start/Inicio.mp4: al encender no habra video (opcional, ver extra-assets/README.md)"; fi
+n_intro="$(find /opt/pcpi/extra-assets/start -maxdepth 1 -type f \( -name 'Inicio.mp4' -o -name 'Inicio[1-4].mp4' \) 2>/dev/null | wc -l)"
+[ "$n_intro" -gt 0 ] && ok "$n_intro video(s) de inicio en extra-assets/start (Inicio1..Inicio4.mp4)" \
+  || warn "sin videos en extra-assets/start (Inicio1.mp4..Inicio4.mp4): al encender no habra video (opcional, ver extra-assets/README.md)"
 n_media="$(find /opt/pcpi/extra-assets/loading -type f ! -name '.*' ! -name '*.md' 2>/dev/null | wc -l)"
 [ "$n_media" -gt 0 ] && ok "$n_media archivo(s) para la pantalla de carga" || warn "la pantalla de carga no tiene imagenes/videos (opcional, carpeta extra-assets/loading)"
 

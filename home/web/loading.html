@@ -16,6 +16,11 @@
            transition:opacity .7s ease; }
   #intro video { max-width:100%; max-height:100%; width:100%; height:100%; object-fit:contain; background:#fff; }
   #intro.out { opacity:0; pointer-events:none; }
+  /* boton pequeño en la esquina inferior derecha del Inicio (solo en los videos que lo piden, p. ej. el 4.º) */
+  #intro-skip { position:absolute; right:14px; bottom:12px; z-index:2; font:inherit; font-size:12px; padding:5px 11px; border-radius:999px; color:#222; background:#ffffffd9;
+                border:1px solid #00000033; opacity:0; transition:opacity .4s ease; }
+  #intro-skip.on { opacity:1; }
+  #intro-skip:active { background:#222; color:#fff; }
 
   /* ---------- 2. Pantalla de Carga ---------- */
   #stage { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:18px;
@@ -84,7 +89,7 @@
 </head>
 <body>
 
-<div id="intro" hidden><video id="intro-video" playsinline preload="auto"></video></div>
+<div id="intro" hidden><video id="intro-video" playsinline preload="auto"></video><button id="intro-skip" hidden>Saltar ⏭</button></div>
 
 <div id="stage">
   <div class="popup">
@@ -116,7 +121,7 @@ const NAMES = {home: "Casa", iker: "Iker", desktop: "Escritorio"};
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const post = (url, body) => fetch(url, {method: "POST", headers: {"X-PCPI": "1"}, body: JSON.stringify(body || {})}).catch(() => {});
 
-let cfg = {intro: null, media: [], fake: true, fake_seconds: 6, min_seconds: 3, skip_button: true, media_seconds: 3};
+let cfg = {intro: null, intro_skip_after: 0, media: [], fake: true, fake_seconds: 6, min_seconds: 3, skip_button: true, media_seconds: 3};
 
 /* ---------------- 1. Inicio ---------------- */
 async function playIntro() {
@@ -128,6 +133,16 @@ async function playIntro() {
     const end = () => { if (!finished) { finished = true; clearInterval(watch); done(); } };
     v.addEventListener("ended", end);
     v.addEventListener("error", end);
+    /* boton «Saltar»: aparece cuando el VIDEO llega a `intro_skip_after` segundos (reproduccion real, no reloj de pared) */
+    const sb = $("intro-skip");
+    sb.onclick = end;
+    if (cfg.intro_skip_after > 0) {
+      (function check() {
+        if (finished) return;
+        if (v.currentTime >= cfg.intro_skip_after) { sb.hidden = false; requestAnimationFrame(() => sb.classList.add("on")); return; }
+        requestAnimationFrame(check);
+      })();
+    }
     /* Vigilante: si el video no arranca o se queda parado (formato no soportado), no bloquea el arranque */
     const watch = setInterval(() => {
       const t = v.currentTime;
@@ -276,7 +291,7 @@ async function handoff() {
 }
 
 (async function main() {
-  try { cfg = Object.assign(cfg, await (await fetch("/api/boot")).json()); } catch (e) {}
+  try { cfg = Object.assign(cfg, await (await fetch("/api/boot" + (IS_BOOT ? "?boot=1" : ""))).json()); } catch (e) {}
   await playIntro();
   await loadingPhase();
   await handoff();

@@ -5,19 +5,35 @@ Aquí pones **tus** vídeos, GIFs e imágenes. El proyecto los detecta solo: no 
 ```
 extra-assets/
 ├── start/
-│   └── Inicio.mp4          ← vídeo de la Pantalla de Inicio (al encender el PC)
+│   ├── Inicio1.mp4         ← vídeos de la Pantalla de Inicio (al encender el PC): hasta 4
+│   ├── Inicio2.mp4            (Inicio.mp4 vale como Inicio1.mp4)
+│   ├── Inicio3.mp4
+│   └── Inicio4.mp4
 └── loading/
     ├── images/             ← imágenes pequeñas  (.png .jpg .jpeg .webp .svg)
     ├── gifs/               ← GIFs               (.gif)
     └── videos/             ← vídeos cortos      (.mp4 .webm)
 ```
 
-## Pantalla de Inicio (`start/Inicio.mp4`)
+## Pantalla de Inicio (`start/`)
 
 - Se reproduce **al encender el PC**, sobre una pantalla en blanco, y al terminar carga el último modo que usaste.
-- El archivo debe llamarse **exactamente** `Inicio.mp4` (respeta mayúsculas y minúsculas).
-- Si no existe, se salta el vídeo y va directo a la pantalla de carga.
-- Si el vídeo no se puede reproducir (formato raro), se salta solo a los 3 segundos.
+- Puedes poner **hasta 4 vídeos**, con estos nombres **exactos** (respeta mayúsculas): `Inicio1.mp4` (o `Inicio.mp4`), `Inicio2.mp4`, `Inicio3.mp4`, `Inicio4.mp4`. Al encender sale **uno al azar**:
+
+| Vídeo | Probabilidad (peso) | Porcentaje real* | Botón «Saltar» |
+|---|---|---|---|
+| `Inicio1.mp4` | 90 | ≈ 38,9 % | no |
+| `Inicio2.mp4` | 85 | ≈ 36,8 % | no |
+| `Inicio3.mp4` | 55 | ≈ 23,8 % | no |
+| `Inicio4.mp4` | 1 | ≈ 0,4 % (pero ver la garantía) | **sí, a los 6 s** |
+
+\* 90 + 85 + 55 + 1 suman más de 100, así que se usan como **pesos**: cada vídeo sale en proporción a su número. Se cambian en `[boot] intro_chances`.
+
+- **Garantía:** si el vídeo 4 lleva **4 encendidos sin salir**, en el **siguiente sale sí o sí** (después la cuenta vuelve a empezar). Por eso, en la práctica, el 4.º sale **al menos 1 de cada 5 encendidos**. La garantía se aplica solo al 4.º por defecto (en los demás distorsionaría sus probabilidades); se puede ampliar con `intro_pity_slots = 1, 2, 3, 4`, y quitarla con `intro_pity = 0`.
+- **Un encendido cuenta una sola vez**, aunque la pantalla se recargue (la elección se guarda junto al identificador de arranque del sistema, en `/var/lib/pcpi/intro.json`). Cambiar de modo **no** cuenta como encendido.
+- **Botón «Saltar»:** el del vídeo 4 es **pequeño**, está en la **esquina inferior derecha** y aparece cuando el **vídeo** llega al segundo 6 (si el vídeo dura menos de 6 s, no hace falta). Los demás no llevan botón; se cambia con `intro_skip_seconds = 0, 0, 0, 6`.
+- Si faltan vídeos, se elige entre los que haya (si solo hay uno, sale siempre ese). Si no hay ninguno, se salta el Inicio.
+- Si un vídeo no se puede reproducir (formato raro), se salta solo a los ~5 segundos.
 
 ## Pantalla de Carga (`loading/`)
 
@@ -38,7 +54,7 @@ Si tienes un vídeo en otro formato, conviértelo en tu ordenador con **ffmpeg**
 
 ```bash
 # vídeo de inicio compatible (H.264 + AAC, 1280 de ancho)
-ffmpeg -i mi_video.mov -vf scale=1280:-2 -c:v libx264 -crf 23 -preset medium -c:a aac -movflags +faststart Inicio.mp4
+ffmpeg -i mi_video.mov -vf scale=1280:-2 -c:v libx264 -crf 23 -preset medium -c:a aac -movflags +faststart Inicio1.mp4
 
 # vídeo de carga pequeño y sin audio
 ffmpeg -i clip.mp4 -vf scale=480:-2 -an -c:v libx264 -crf 28 -movflags +faststart clip_pequeno.mp4

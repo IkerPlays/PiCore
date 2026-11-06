@@ -22,6 +22,7 @@ from pathlib import Path
 import assets
 import battery
 import display
+import intro
 import motion
 import netmgr
 import notes_tools
@@ -556,14 +557,30 @@ def mark_loaded(mode):
 
 
 def boot_info(cp, query=""):
-    """Datos de las pantallas de Inicio y de Carga: video de inicio, carrusel y tiempos (seccion [boot])."""
+    """Datos de las pantallas de Inicio y de Carga: video de inicio, carrusel y tiempos (seccion [boot]).
+    El video de inicio solo se elige (y cuenta como un encendido) con `?boot=1`: lo pide la pagina de carga cuando se lanza al encender."""
+    boot = "boot=1" in query.partition("?")[2].split("&")
     def num(key, default, lo, hi):
         try:
             return max(lo, min(cp.getfloat("boot", key, fallback=default), hi))
         except ValueError:
             return default
+    intro_url, slot, skip_after = None, None, 0
+    if boot and cp.getboolean("boot", "intro", fallback=True):
+        base = assets.assets_dir() / "start"
+        chances = intro.parse_list(cp.get("boot", "intro_chances", fallback=""), intro.DEFAULT_CHANCES)
+        try:
+            pity = max(0, min(cp.getint("boot", "intro_pity", fallback=4), 99))
+        except ValueError:
+            pity = 4
+        slot = intro.choose_for_boot(base, chances, pity, pity_slots=intro.parse_slots(cp.get("boot", "intro_pity_slots", fallback="")))
+        if slot:
+            intro_url = "/assets/start/" + intro.slot_files(base)[slot]
+            skip_after = intro.parse_list(cp.get("boot", "intro_skip_seconds", fallback=""), intro.DEFAULT_SKIP, hi=600.0)[slot - 1]
     return {
-        "intro": assets.intro_url() if cp.getboolean("boot", "intro", fallback=True) else None,
+        "intro": intro_url,
+        "intro_slot": slot,
+        "intro_skip_after": skip_after,
         "media": assets.loading_media(),
         "fake": cp.getboolean("boot", "fake_loading", fallback=True),
         "fake_seconds": num("fake_seconds", 6, 1, 30),
