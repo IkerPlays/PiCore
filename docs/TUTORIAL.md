@@ -72,7 +72,7 @@ Abre <http://127.0.0.1:8080> en el navegador.
 
 ✅ Ves el modo Casa con un Pi-hole de mentira, el tiempo, un Spotify de prueba y (si tienes `ffmpeg`) la cámara. `http://127.0.0.1:8080/iker` es el bloc de notas.
 
-**Para ver los intros y la pantalla de carga** (como al encender la Pi) abre <http://127.0.0.1:8080/loading?to=home&boot=1>. En la terminal del emulador: `/boot` = «encender de nuevo» (elige otro intro), `/intro 1` … `/intro 4` fuerza uno (el 4 enseña también el botón «Saltar» a los 6 s), `/intro4 reset` vuelve a mostrar la pantalla de descarga, `/battery 15`, `/portal on`, `/motion` enseñan la batería, la wifi pública y el aviso de movimiento. El intro 4 se «descarga» de un servidor local con uno de tus vídeos como sustituto (para bajar el real, `--real-intro4`, unos 530 MB).
+**Para ver los intros y la pantalla de carga** (como al encender la Pi) abre <http://127.0.0.1:8080/loading?to=home&boot=1>. En la terminal del emulador: `/boot` = «encender de nuevo» (elige otro intro; **recargar la página de arranque también cuenta como encender de nuevo**), `/intro 1` … `/intro 4` fuerza uno (el 4 enseña también el botón «Saltar» a los 6 s), `/intro4 reset` vuelve a mostrar la pantalla de descarga, `/battery 15`, `/portal on`, `/motion` enseñan la batería, la wifi pública y el aviso de movimiento. El intro 4 se «descarga» de un servidor local con uno de tus vídeos como sustituto (para bajar el real, `--real-intro4`, unos 530 MB).
 
 En la misma terminal puedes **escribir órdenes de voz**: `hey jarvis qué hora es`, `hey jarvis modo iker`, `hey jarvis muestra la cámara`. Usa el mismo código que la Pi. `Ctrl+C` para salir.
 
@@ -713,7 +713,7 @@ scp *.gif iker@pcpi.local:~/PiCore/extra-assets/loading/gifs/
 | Problema | Solución |
 |---|---|
 | Un vídeo de inicio no se ve y pasa a la carga a los ~5 s | Formato no compatible. Conviértelo a **MP4 con H.264 + AAC**; comando de `ffmpeg` en [extra-assets/README.md](../extra-assets/README.md) |
-| El vídeo se ve pero sin sonido | Comprueba que la salida de audio es **HDMI** y el volumen de la pantalla |
+| El vídeo se ve pero **sin sonido** | **En la Pi** el sonido va activado de serie (Chromium se lanza con permiso de autoplay): comprueba que la salida de audio es **HDMI** (clic derecho en el icono de volumen), sube el volumen (también el de la pantalla) y que el vídeo **tenga pista de audio** (`pcpi-intros check` no lo dice; `ffprobe Inicio1.mp4` sí). **En el emulador** (un navegador normal) el navegador bloquea el sonido automático: el vídeo empieza mudo y sale «🔇 Toca para activar el sonido»; toca la pantalla |
 | Va a tirones | Redúcelo a 720p/30 fps; los vídeos de carga, máx. 480 px de ancho |
 | No salen mis imágenes de carga | Extensión no válida o carpeta equivocada; tras copiarlas, ejecuta `./install.sh` |
 | Quiero quitar el vídeo de inicio | `pcpi-config set boot intro false` (se aplica al momento) |

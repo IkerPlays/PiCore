@@ -1,12 +1,13 @@
 // Boton «Saltar» del Inicio. Uso: node intro_skip_smoke.js URL [noskip]
 const { chromium } = require('playwright');
-const base = process.argv[2], expectNoSkip = process.argv[3] === 'noskip';
+const base = process.argv[2], expectNoSkip = process.argv[3] === 'noskip', noFlag = process.argv[3] === 'nosound';
 const results = [];
 const check = (name, ok, extra) => results.push({ name, ok: !!ok, extra: extra || '' });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 (async () => {
-  const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
+  // como la Pi (con la bandera de autoplay) o como un navegador normal (sin ella: el sonido esta bloqueado hasta tocar)
+  const browser = await chromium.launch({ args: noFlag ? [] : ['--autoplay-policy=no-user-gesture-required'] });
   const ctx = await browser.newContext({ viewport: { width: 1024, height: 600 } });
   const page = await ctx.newPage();
   const problems = [];
@@ -17,11 +18,22 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const playing = await page.evaluate(() => document.getElementById('intro-video').currentTime);
   check('el video de inicio se reproduce', playing > 0, String(playing));
 
+  if (noFlag) {
+    check('sin permiso de sonido el video va mudo y lo avisa', (await page.evaluate(() => document.getElementById('intro-video').muted)) && await page.isVisible('#unmute'));
+    await page.click('#intro');                                     // un toque en cualquier sitio
+    check('un toque activa el sonido', !(await page.evaluate(() => document.getElementById('intro-video').muted)) && await page.isHidden('#unmute'));
+    check('y el video sigue reproduciendose', (await page.evaluate(() => !document.getElementById('intro-video').paused)));
+  } else {
+    check('con permiso (como en la Pi) suena desde el principio, sin aviso', !(await page.evaluate(() => document.getElementById('intro-video').muted)) && await page.isHidden('#unmute'));
+  }
+
   // el boton NO esta antes de los 6 s del video
   await page.waitForFunction(() => document.getElementById('intro-video').currentTime >= 4, null, { timeout: 15000 }).catch(() => {});
   check('a los 4 s todavia no hay boton', await page.isHidden('#intro-skip'));
 
-  if (expectNoSkip) {
+  if (noFlag) {
+    // (solo se comprueba el sonido)
+  } else if (expectNoSkip) {
     await page.waitForFunction(() => document.getElementById('intro-video').currentTime >= 7.5, null, { timeout: 15000 }).catch(() => {});
     check('este video no lleva boton ni a los 7 s', await page.isHidden('#intro-skip'));
   } else {

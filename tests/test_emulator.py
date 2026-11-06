@@ -80,7 +80,7 @@ class EmulatorIntrosTest(unittest.TestCase):
     def cmd(self, text):
         self.p.stdin.write(text + "\n")
         self.p.stdin.flush()
-        time.sleep(0.6)
+        time.sleep(1.2)                       # da tiempo al emulador a procesar la orden (la maquina puede ir cargada)
 
     def wait_boot(self):
         end = time.time() + 25
@@ -100,6 +100,22 @@ class EmulatorIntrosTest(unittest.TestCase):
         with urllib.request.urlopen(self.base + d["intro"]) as r:                # el video se sirve
             self.assertEqual((r.status, r.headers["Content-Type"]), (200, "video/mp4"))
         self.assertTrue(self.get("/api/status"))
+
+    def test_reloading_the_boot_screen_is_a_new_power_on(self):
+        """Recargar /loading debe poder sacar otro intro (antes salia siempre el mismo: el encendido no cambiaba)."""
+        self.start("--no-intro4")
+        seen = set()
+        for _ in range(40):
+            urllib.request.urlopen(self.base + "/loading?to=home&boot=1", timeout=3).read()
+            seen.add(self.get("/api/boot?boot=1")["intro_slot"])
+        self.assertGreaterEqual(len(seen), 2, seen)
+        self.tearDown()
+        self.start("--no-intro4", "--same-boot")                                # con --same-boot, no
+        seen = set()
+        for _ in range(15):
+            urllib.request.urlopen(self.base + "/loading?to=home&boot=1", timeout=3).read()
+            seen.add(self.get("/api/boot?boot=1")["intro_slot"])
+        self.assertEqual(len(seen), 1)
 
     def test_no_intro4_flag(self):
         self.start("--no-intro4")

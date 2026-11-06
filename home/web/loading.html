@@ -31,6 +31,9 @@
   #intro-skip { position:absolute; right:14px; bottom:12px; z-index:2; font:inherit; font-size:12px; padding:5px 11px; border-radius:999px; color:#222; background:#ffffffd9;
                 border:1px solid #00000033; opacity:0; transition:opacity .4s ease; }
   #intro-skip.on { opacity:1; }
+  /* Si el navegador no deja reproducir con sonido (politica de autoplay), el video va mudo y esto lo avisa; un toque lo activa.
+     En la Pi no hace falta: pcpi-session lanza Chromium con --autoplay-policy=no-user-gesture-required. */
+  #unmute { position:absolute; left:14px; bottom:12px; z-index:2; font:inherit; font-size:12px; padding:5px 11px; border-radius:999px; color:#222; background:#ffffffd9; border:1px solid #00000033; }
   #intro-skip:active { background:#222; color:#fff; }
 
   /* ---------- 2. Pantalla de Carga ---------- */
@@ -110,7 +113,7 @@
       <button id="dl-skip">Continuar sin esperar</button>
     </div>
   </div>
-  <video id="intro-video" playsinline preload="auto"></video><button id="intro-skip" hidden>Saltar ⏭</button></div>
+  <video id="intro-video" playsinline preload="auto"></video><button id="intro-skip" hidden>Saltar ⏭</button><button id="unmute" hidden>🔇 Toca para activar el sonido</button></div>
 
 <div id="stage">
   <div class="popup">
@@ -196,7 +199,12 @@ async function playIntro() {
       if (stuck >= 20) end();                       // ~5 s sin avanzar
     }, 250);
     v.src = cfg.intro;
-    v.play().catch(() => { v.muted = true; v.play().catch(end); });   // sin permiso de sonido: se reproduce mudo
+    v.muted = false; v.volume = 1;
+    const um = $("unmute");
+    const unmute = () => { v.muted = false; v.volume = 1; um.hidden = true; };
+    um.onclick = unmute;
+    box.addEventListener("pointerdown", e => { if (e.target.id !== "intro-skip" && v.muted) unmute(); });   // un toque en cualquier sitio activa el sonido
+    v.play().catch(() => { v.muted = true; um.hidden = false; v.play().catch(end); });   // sin permiso de sonido: va mudo y se avisa
   });
   box.classList.add("out");
   await wait(700);

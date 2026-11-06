@@ -109,6 +109,21 @@ class IntroSkipUiTest(unittest.TestCase):
             srv.terminate()
             srv.wait(5)
 
+    def test_browser_without_autoplay_permission_gets_an_unmute_hint(self):
+        t = Path(tempfile.mkdtemp())
+        a = t / "assets"
+        (a / "start").mkdir(parents=True)
+        if not make_test_video(a / "start/Inicio2.mp4", 9):
+            self.skipTest("este ffmpeg no sabe generar el video de prueba")
+        srv, port = start_server(t, a, "[boot]\nmin_seconds = 0\nfake_loading = false\n")
+        try:
+            r = subprocess.run(["node", str(ROOT / "tests" / "intro_skip_smoke.js"), "http://127.0.0.1:%d" % port, "nosound"],
+                               capture_output=True, text=True, env=node_env(), timeout=120)
+            self.assertEqual(r.returncode, 0, "\n" + r.stdout + r.stderr)
+        finally:
+            srv.terminate()
+            srv.wait(5)
+
     def test_other_videos_have_no_skip_button(self):
         t = Path(tempfile.mkdtemp())
         a = t / "assets"

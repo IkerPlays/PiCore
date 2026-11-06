@@ -18,7 +18,8 @@ Comandos en la terminal:
   /spotify play Titulo - Artista | /spotify pause | /spotify stop
   /mode home|iker|desktop      /quit
   /motion                 -> simula un aviso de movimiento (activa antes la vigilancia con el icono 👁)
-  /boot                   -> simula ENCENDER la Pi: nuevo arranque (elige otro intro). Abre la URL que imprime
+  /boot                   -> simula ENCENDER la Pi: nuevo arranque (elige otro intro). (Recargar la pantalla de
+                             arranque tambien lo hace, salvo con --same-boot)
   /intro 1|2|3|4|auto     -> fuerza que el proximo encendido ensene ese intro (auto = al azar con los pesos reales)
   /intro4 reset           -> borra el intro 4 «descargado» para volver a ver la pantalla de descarga
   /battery 15 [carga]     -> simula una bateria (porcentaje, y si esta cargando)   /battery off
@@ -96,6 +97,7 @@ def main():
     ap.add_argument("--mode", default="home", choices=["home", "iker", "desktop"])
     ap.add_argument("--open", action="store_true", help="abre el navegador en la pantalla de arranque (intro + carga)")
     ap.add_argument("--real-intro4", action="store_true", help="descarga el intro 4 de verdad (~530 MB) en vez de simularlo")
+    ap.add_argument("--same-boot", action="store_true", help="recargar la pantalla de arranque NO cuenta como un encendido nuevo (usa /boot)")
     ap.add_argument("--no-intro4", action="store_true", help="sin descarga del intro 4")
     a = ap.parse_args()
 
@@ -187,6 +189,16 @@ def main():
     import motion
     os.environ["PCPI_MOTION_STATE"] = str(tmp / "motion.json")
     server.WATCHER = motion.Watcher(lambda: (_ for _ in ()).throw(OSError("emulador")), lambda ts: None, lambda: False)
+    # Cada vez que cargas /loading es «encender la Pi» otra vez (nuevo arranque -> puede salir otro intro). En la Pi real
+    # cada encendido tiene su propio identificador de arranque; aqui lo simulamos para que recargar la pagina sirva.
+    _page_bytes = server.page_bytes
+
+    def page_bytes(name):
+        if name == "loading.html" and not a.same_boot:
+            boot_n[0] += 1
+            (tmp / "boot_id").write_text("emulador-%d" % boot_n[0])
+        return _page_bytes(name)
+    server.page_bytes = page_bytes
     srv = server.make_server(a.host, a.port)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     print("PiCore emulado en http://%s:%d   (modo %s, datos en %s)" % (a.host, a.port, a.mode, tmp), flush=True)
