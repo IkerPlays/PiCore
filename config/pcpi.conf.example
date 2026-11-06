@@ -101,6 +101,10 @@ pihole_default = true
 # Abrir solo la ventana de inicio de sesion cuando una wifi publica lo pida (hotel, aeropuerto...).
 # false = no se abre sola; sale un boton «Iniciar sesion» en el panel de Wi-Fi.
 auto_portal = true
+# Direccion con la que se comprueba si hay internet libre o un portal (cada 60 s, y cada 4 s mientras haya portal).
+# Debe devolver «204 sin contenido» cuando hay internet. Por defecto la de Google (generate_204); si no quieres que
+# la Pi la consulte, pon otra (p. ej. http://connectivity-check.ubuntu.com/) o la de tu propio servidor.
+# probe_url = http://connectivitycheck.gstatic.com/generate_204
 
 [display]
 # Brillo. El deslizante de la pantalla de Casa (icono ☀) elige el nivel maximo; en automatico baja de noche.

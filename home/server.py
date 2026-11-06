@@ -513,7 +513,7 @@ def wifi_post(path, body):
     if NETWATCH is None or not netmgr.available():
         raise netmgr.NMError("No hay NetworkManager en este equipo")
     if path == "/api/wifi/connect":
-        netmgr.connect(body.get("ssid"), body.get("password"))
+        netmgr.connect(body.get("ssid"), body.get("password"), hidden=body.get("hidden") is True)
     elif path == "/api/wifi/forget":
         netmgr.forget(body.get("ssid"))
     elif path == "/api/wifi/pihole":
@@ -916,7 +916,8 @@ def start_netwatch(cp):
     if not cp.getboolean("wifi", "manage", fallback=True) or not netmgr.available():
         return
     NETWATCH = netmgr.NetWatch(run_dir(), pihole_default=cp.getboolean("wifi", "pihole_default", fallback=True),
-                               auto_portal=cp.getboolean("wifi", "auto_portal", fallback=True))
+                               auto_portal=cp.getboolean("wifi", "auto_portal", fallback=True),
+                               probe_url=cp.get("wifi", "probe_url", fallback="").strip() or None)
     threading.Thread(target=NETWATCH.loop, daemon=True).start()
 
 

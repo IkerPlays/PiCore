@@ -96,6 +96,17 @@ class CommandsTest(unittest.TestCase):
         netmgr.forget("CasaIker")
         self.assertNotIn("CasaIker", netmgr.saved())
 
+    def test_hidden_network_is_not_listed_but_can_be_joined(self):
+        self.assertNotIn("RedOculta", [n["ssid"] for n in netmgr.scan()])         # las ocultas no salen en la lista
+        with self.assertRaises(netmgr.NMError) as cm:
+            netmgr.connect("RedOculta", "ocultaclave1")                           # sin «hidden»: no la encuentra
+        self.assertIn("No encuentro", str(cm.exception))
+        with self.assertRaises(netmgr.NMError):
+            netmgr.connect("RedOculta", "mal-clave-123", hidden=True)             # con «hidden» pero clave mala
+        netmgr.connect("RedOculta", "ocultaclave1", hidden=True)
+        self.assertEqual(netmgr.active()["ssid"], "RedOculta")
+        self.assertIn("RedOculta", netmgr.saved())
+
     def test_password_never_in_arguments(self):
         seen = []
         real = netmgr.run
@@ -176,6 +187,34 @@ class FakeNM:
     def set_dns_mode(self, conn, mode, device=None):
         self.calls.append(mode)
         self.mode = mode
+
+
+class WatchIntervalTest(unittest.TestCase):
+    """El sondeo va a un servidor externo: poco a menudo cuando todo va bien, rapido cuando hay portal o fallo."""
+
+    def waits(self, state, portal=False, stable=60):
+        w = netmgr.NetWatch(Path(tempfile.mkdtemp()), nm=FakeNM(), probe_fn=lambda: ("full", None), dns_ok=lambda: True, stable_s=stable)
+        w.state, w.portal = state, portal
+        got = []
+
+        class Stop:
+            n = 0
+
+            def is_set(self):
+                Stop.n += 1
+                return Stop.n > 2
+
+            def wait(self, t):
+                got.append(t)
+        w.tick = lambda: None
+        w.loop(Stop())
+        return got[0]
+
+    def test_intervals(self):
+        self.assertEqual(self.waits({"connectivity": "full"}), 60)
+        self.assertEqual(self.waits({"connectivity": "none"}), 20)
+        self.assertEqual(self.waits({"connectivity": "portal"}, portal=True), 4)
+        self.assertEqual(self.waits({"connectivity": "full"}, stable=15), 15)
 
 
 class WatchTest(unittest.TestCase):
@@ -291,6 +330,13 @@ class ProbeTest(unittest.TestCase):
         threading.Thread(target=srv.serve_forever, daemon=True).start()
         self.addCleanup(srv.shutdown)
         return "http://127.0.0.1:%d/generate_204" % srv.server_address[1]
+
+    def test_configured_probe_url_is_used_by_the_watcher(self):
+        url = self.serve(204)
+        w = netmgr.NetWatch(Path(tempfile.mkdtemp()), nm=netmgr, probe_url=url, dns_ok=lambda: True)
+        self.assertEqual(w.probe(), ("full", None))
+        w2 = netmgr.NetWatch(Path(tempfile.mkdtemp()), nm=netmgr, probe_url="http://127.0.0.1:1/x", dns_ok=lambda: True)
+        self.assertEqual(w2.probe()[0], "none")
 
     def test_204_is_free_internet(self):
         self.assertEqual(netmgr.probe(self.serve(204)), ("full", None))

@@ -746,6 +746,7 @@ Tienes tres formas; usa la que te venga mejor:
 | Botón del panel | Para qué |
 |---|---|
 | ↻ **Buscar redes** | Vuelve a escanear |
+| ＋ **Red oculta…** | Para redes que **no salen en la lista** (SSID oculto): escribe su nombre y su contraseña con el teclado en pantalla |
 | **Olvidar** | Borra la red guardada (te pide tocar dos veces) |
 | **Usar Pi-hole en esta red** (interruptor) | Si una red no va bien con Pi-hole, apágalo **solo para esa red** |
 | 🔑 **Iniciar sesión** | Aparece solo en wifis con [portal](#94-wifis-públicas-con-inicio-de-sesión-hotel-aeropuerto-cafetería) |
@@ -757,6 +758,7 @@ pcpi-wifi list                       # redes visibles
 pcpi-wifi connect "NombreDeLaWifi"   # te pide la contraseña sin mostrarla
 pcpi-wifi status                     # red actual, internet, DNS y Pi-hole
 pcpi-wifi forget "NombreDeLaWifi"    # olvidar una red
+(las redes ocultas se añaden desde el panel táctil: «＋ Red oculta…»)
 ```
 
 **3. En el modo Escritorio**: el icono de red de la barra de arriba (el de Raspberry Pi OS de siempre).
@@ -794,6 +796,7 @@ Algunas wifis te dejan conectar pero **no te dan internet hasta que aceptas unas
 | **No se abre la ventana** | Toca el icono naranja de Wi-Fi → **🔑 Iniciar sesión**. O en la terminal: `pcpi-wifi portal`. Si aun así no sale: abre el navegador (Modo Iker o Escritorio) y entra en <http://neverssl.com> (una web *sin* cifrar: así el portal puede interceptarla) |
 | La página del portal sale en blanco | Ese portal usa una dirección que Pi-hole bloquea (raro, porque durante el portal se usa el DNS de la red). Apaga el interruptor **«Usar Pi-hole en esta red»** y repite |
 | Pide iniciar sesión **otra vez** al rato | Muchos portales caducan (cada hora, o al día). La ventana vuelve a abrirse sola |
+| Me preocupa que la Pi consulte un servidor de Google para saber si hay internet | PiCore lo hace **cada 60 s** (y cada 4 s solo mientras hay un portal). Cambia la dirección con `[wifi] probe_url` en `pcpi.conf` (debe devolver «204 sin contenido»), p. ej. `http://connectivity-check.ubuntu.com/` |
 | No quiero que se abra sola | `pcpi-config set wifi auto_portal false`: seguirás teniendo el botón 🔑 en el panel |
 | Se queda con el naranja tras iniciar sesión | Espera 5–10 s; si sigue: `pcpi-wifi status` y `pcpi-wifi portal close` |
 

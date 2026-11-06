@@ -191,17 +191,19 @@ def friendly(out):
     return "No se pudo conectar" + (": " + out[:120] if out else "")
 
 
-def connect(ssid, password=None):
-    """Conecta (o reconecta si ya esta guardada y no se da contraseña). La contraseña va por stdin: no sale en `ps`."""
+def connect(ssid, password=None, hidden=False):
+    """Conecta (o reconecta si ya esta guardada y no se da contraseña). La contraseña va por stdin: no sale en `ps`.
+    `hidden=True` para redes ocultas (no salen en la lista: hay que saber el nombre)."""
     ssid = check_ssid(ssid)
     password = check_password(password)
+    extra = ["hidden", "yes"] if hidden else []
     known = saved_map()
     if not password and ssid in known:
         code, out = run(["connection", "up", "id", known[ssid]], timeout=60)
     elif password:
-        code, out = run(["--ask", "device", "wifi", "connect", ssid], stdin=password + "\n", timeout=60)
+        code, out = run(["--ask", "device", "wifi", "connect", ssid, *extra], stdin=password + "\n", timeout=60)
     else:
-        code, out = run(["device", "wifi", "connect", ssid], timeout=60)
+        code, out = run(["device", "wifi", "connect", ssid, *extra], timeout=60)
     if code != 0:
         raise NMError(friendly(out))
     return True
@@ -299,7 +301,7 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 
 def probe(url=None, timeout=5):
     """('full'|'portal'|'none', url_del_portal). 204 = internet libre; redireccion o 200 con contenido = portal."""
-    url = url or os.environ.get("PCPI_PROBE_URL", PROBE_URL)
+    url = url or os.environ.get("PCPI_PROBE_URL") or PROBE_URL
     opener = urllib.request.build_opener(_NoRedirect)
     try:
         with opener.open(urllib.request.Request(url, headers={"User-Agent": "pcpi"}), timeout=timeout) as r:
@@ -323,11 +325,13 @@ class NetWatch:
 
     Todo lo externo esta inyectado (`nm`, `probe`, `dns_ok`, `clock`, ficheros) para probarlo sin red ni NetworkManager."""
 
-    def __init__(self, run_dir, pihole_default=True, nm=None, probe_fn=None, dns_ok=None, clock=time.time, retry_s=60, auto_portal=True):
+    def __init__(self, run_dir, pihole_default=True, nm=None, probe_fn=None, dns_ok=None, clock=time.time, retry_s=60, auto_portal=True,
+                 probe_url=None, stable_s=60):
         self.run_dir = Path(run_dir)
         self.pihole_default = pihole_default
         self.nm = nm or sys.modules[__name__]
-        self.probe = probe_fn or probe
+        self.probe_url, self.stable_s = probe_url, stable_s
+        self.probe = probe_fn or (lambda: probe(self.probe_url))
         self.dns_ok = dns_ok or dns_answers
         self.clock = clock
         self.retry_s = retry_s
@@ -409,7 +413,10 @@ class NetWatch:
                 self.tick()
             except Exception:       # noqa: BLE001
                 pass
-            wait = 4 if self.portal else 20
+            # 4 s mientras hay portal (para cerrar la ventana en cuanto hay internet); 60 s si todo va bien (menos trafico
+            # hacia el servidor de comprobacion); 20 s si no hay internet o no hay red (para recuperarse pronto)
+            st = self.state
+            wait = 4 if self.portal else self.stable_s if st.get("connectivity") == "full" else 20
             if stop:
                 stop.wait(wait)
             else:

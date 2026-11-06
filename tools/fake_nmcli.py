@@ -14,6 +14,7 @@ INITIAL = {
         {"ssid": "CasaIker", "signal": 82, "security": "WPA2", "password": "supersecreta"},
         {"ssid": "Hotel:Canarias", "signal": 64, "security": "", "password": ""},
         {"ssid": "Vecino", "signal": 40, "security": "WPA2", "password": "otraclave1"},
+        {"ssid": "RedOculta", "signal": 55, "security": "WPA2", "password": "ocultaclave1", "hidden": True},
     ],
     "connections": {"CasaIker": {"type": "802-11-wireless", "dns": "", "ignore": "no"}},
     "active": "CasaIker",
@@ -47,6 +48,8 @@ def main(argv):
     args = [a for a in args if a != "--ask"]
     if args[:2] == ["-f", "IN-USE,SSID,SIGNAL,SECURITY"]:
         for n in st["networks"]:
+            if n.get("hidden"):                  # las ocultas no salen en la lista
+                continue
             on = "*" if st["active"] == n["ssid"] else " "
             print(":".join([on, esc(n["ssid"]), str(n["signal"]), n["security"]]))
     elif args[:2] == ["-f", "NAME,TYPE"]:
@@ -93,6 +96,8 @@ def main(argv):
     elif args[:3] == ["device", "wifi", "connect"]:
         ssid = args[3]
         net = next((n for n in st["networks"] if n["ssid"] == ssid), None)
+        if net is not None and net.get("hidden") and args[4:6] != ["hidden", "yes"]:
+            net = None                           # una red oculta solo se encuentra diciendo «hidden yes»
         if net is None:
             fail("Error: No network with SSID '%s' found." % ssid, 10)
         pw = sys.stdin.readline().rstrip("\n") if ask else ""

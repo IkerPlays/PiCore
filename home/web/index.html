@@ -495,6 +495,7 @@ function renderSheet() {
     h += `<button class="net${n.active ? " active" : ""}" style="--k:${i}" data-ssid="${esc(n.ssid)}" data-secure="${n.secure ? 1 : 0}">${bars(n.signal)}<span class="nm">${esc(n.ssid)}</span>${n.active ? '<span class="tag">conectada</span>' : saved.has(n.ssid) ? '<span class="tag">guardada</span>' : ""}${n.secure ? LOCK : ""}</button>`;
   });
   if (!(w.networks || []).length) h += '<div class="cur"><div class="s">No veo ninguna red. Pulsa «Buscar redes».</div></div>';
+  h += '<button class="net" id="b-hidden" style="--k:' + (w.networks || []).length + '"><span class="nm">＋ Red oculta…</span><span class="tag">escribir el nombre</span></button>';
   body.innerHTML = h;
   const sw = $("sw-pi"); if (sw) sw.onclick = async () => {
     const on = !sw.classList.contains("on"); sw.classList.toggle("on", on);
@@ -506,7 +507,8 @@ function renderSheet() {
     if (bf.dataset.sure !== "1") { bf.dataset.sure = "1"; bf.textContent = "¿Seguro? Tócalo otra vez"; setTimeout(() => { bf.dataset.sure = ""; bf.textContent = "Olvidar"; }, 3500); return; }
     await post("/api/wifi/forget", {ssid: a.name}); setTimeout(() => loadWifi(true), 800);
   };
-  body.querySelectorAll(".net").forEach(b => b.onclick = () => pick(b.dataset.ssid, b.dataset.secure === "1", saved.has(b.dataset.ssid), b.classList.contains("active")));
+  $("b-hidden").onclick = hiddenForm;
+  body.querySelectorAll(".net[data-ssid]").forEach(b => b.onclick = () => pick(b.dataset.ssid, b.dataset.secure === "1", saved.has(b.dataset.ssid), b.classList.contains("active")));
 }
 function setErr(msg, ok) { const e = $("sh-err"); if (e) { e.textContent = msg; e.style.color = ok ? "var(--ok)" : "var(--bad)"; } }
 function pick(ssid, secure, isSaved, isActive) {
@@ -523,12 +525,31 @@ function pick(ssid, secure, isSaved, isActive) {
   $("pw-go").onclick = go;
   inp.focus(); box.scrollIntoView({block:"start", behavior:"smooth"});
 }
-async function doConnect(ssid, pw) {
+/* red oculta: no sale en la lista, se escribe su nombre (y su contraseña si la tiene) */
+function hiddenForm() {
+  formFor = "__hidden__";
+  const box = $("pwbox");
+  box.innerHTML = `<div class="pw"><div class="l">Conectar a una <b>red oculta</b></div>
+    <div class="f" style="margin-bottom:8px"><input id="hid-ssid" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Nombre de la red (SSID)"></div>
+    <div class="f"><input id="hid-pw" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Contraseña (vacía si es abierta)"><button id="hid-eye" aria-label="Mostrar">👁</button><button id="hid-go" style="background:var(--acc);color:var(--acc-fg)">Conectar</button></div>
+    <div class="err" id="pw-err"></div></div>`;
+  const ssid = $("hid-ssid"), pw = $("hid-pw");
+  const go = () => {
+    if (!ssid.value.trim()) { $("pw-err").textContent = "Escribe el nombre de la red"; return; }
+    if (pw.value && pw.value.length < 8) { $("pw-err").textContent = "La contraseña tiene mínimo 8 caracteres"; return; }
+    PCPIKeyboard.close(); doConnect(ssid.value, pw.value || null, true);
+  };
+  for (const el of [ssid, pw]) { el.onfocus = () => PCPIKeyboard.open(el, {onEnter: el === ssid ? () => pw.focus() : go}); el.onkeydown = e => { if (e.key === "Enter") (el === ssid ? pw.focus() : go()); }; }
+  $("hid-eye").onclick = () => { pw.type = pw.type === "password" ? "text" : "password"; };
+  $("hid-go").onclick = go;
+  ssid.focus(); box.scrollIntoView({block:"start", behavior:"smooth"});
+}
+async function doConnect(ssid, pw, hidden) {
   busy = true; formFor = null; PCPIKeyboard.close();
   $("pwbox").innerHTML = `<div class="pw"><span class="spin"></span>Conectando a <b>${esc(ssid)}</b>…</div>`;
   let ok = false, msg = "";
   try {
-    const r = await post("/api/wifi/connect", {ssid, password: pw});
+    const r = await post("/api/wifi/connect", {ssid, password: pw, hidden: hidden === true});
     ok = r.ok; if (!ok) msg = (await r.json()).error || "No se pudo conectar";
   } catch (e) { msg = "El servidor no responde"; }
   busy = false;
