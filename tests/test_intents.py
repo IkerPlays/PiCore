@@ -54,6 +54,14 @@ class IntentTest(unittest.TestCase):
         self.assertIsNone(P("cuéntame un chiste"))
         self.assertIsNone(P(""))
 
+    def test_say_weather_with_rain(self):
+        w = {"ok": True, "temp": 21.4, "code": 1, "rain": 10, "rain_alert": {"in_hours": 2, "prob": 80}}
+        self.assertIn("Puede llover en 2 horas, con un 80 por ciento", i.say_weather(w))
+        self.assertIn("en una hora", i.say_weather({**w, "rain_alert": {"in_hours": 1, "prob": 70}}))
+        self.assertIn("ahora mismo", i.say_weather({**w, "rain_alert": {"in_hours": 0, "prob": 70}}))
+        self.assertIn("Hoy hay un 60 por ciento", i.say_weather({"ok": True, "temp": 20, "code": 3, "rain": 60}))
+        self.assertNotIn("lluvia", i.say_weather({"ok": True, "temp": 20, "code": 3, "rain": 10}))
+
     def test_say(self):
         d = datetime.datetime(2026, 11, 4, 14, 5)  # miercoles
         self.assertEqual(i.say_time(d), "Son las 14 y 5")

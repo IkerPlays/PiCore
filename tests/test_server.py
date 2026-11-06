@@ -171,6 +171,53 @@ class ServerTest(unittest.TestCase):
         finally:
             server.http_json = real
 
+    def forecast(self, rain_hours=(), hours=30, now="2026-11-06T14:00"):
+        base = __import__("datetime").datetime(2026, 11, 6, 12)
+        times = [(base + __import__("datetime").timedelta(hours=i)).strftime("%Y-%m-%dT%H:%M") for i in range(hours)]
+        return {"current": {"time": now, "temperature_2m": 20, "weather_code": 1},
+                "hourly": {"time": times, "temperature_2m": [10 + i for i in range(hours)],
+                           "precipitation_probability": [80 if t[11:13] in rain_hours else 5 for t in times],
+                           "weather_code": [61 if t[11:13] in rain_hours else 1 for t in times]},
+                "daily": {"time": ["2026-11-06", "2026-11-07", "2026-11-08"], "temperature_2m_max": [24, 25, 26], "temperature_2m_min": [17, 18, 19],
+                          "precipitation_probability_max": [10, 70, 30], "weather_code": [1, 61, 2]}}
+
+    def test_weather_hours_days_and_rain_alert(self):
+        import configparser
+        cp = configparser.ConfigParser()
+        cp.read_string("[weather]\nlat = 1\nlon = 1\n")
+        real = server.http_json
+        try:
+            server.http_json = lambda url, timeout=4, **k: self.forecast(rain_hours=("16",))
+            w = server.weather(cp)
+        finally:
+            server.http_json = real
+        self.assertEqual([x["h"] for x in w["hourly"]][:3], ["14:00", "15:00", "16:00"])          # empieza en la hora actual
+        self.assertEqual(len(w["hourly"]), 12)
+        self.assertEqual(w["hourly"][0]["temp"], 12)
+        self.assertEqual([d["date"] for d in w["days"]], ["2026-11-07", "2026-11-08"])           # sin «hoy»
+        self.assertEqual(w["days"][0]["rain"], 70)
+        self.assertEqual(w["rain_alert"], {"in_hours": 2, "prob": 80})                            # llueve a las 16:00 = en 2 h
+
+    def test_no_rain_alert_when_far_or_low(self):
+        self.assertIsNone(server.rain_alert([{"rain": 10}] * 6))
+        self.assertIsNone(server.rain_alert([{"rain": 5}, {"rain": 5}, {"rain": 5}, {"rain": 5}, {"rain": 90}]))   # a 4 h: fuera del aviso
+        self.assertEqual(server.rain_alert([{"rain": 70}, {"rain": 90}], 60), {"in_hours": 1, "prob": 90})
+        self.assertIsNone(server.rain_alert([{"rain": None}, {}]))
+        self.assertEqual(server.rain_alert([{"rain": 50}], 40), {"in_hours": 0, "prob": 50})
+
+    def test_weather_tolerates_a_minimal_response(self):
+        import configparser
+        cp = configparser.ConfigParser()
+        cp.read_string("[weather]\nlat = 1\nlon = 1\n")
+        real = server.http_json
+        try:
+            server.http_json = lambda url, timeout=4, **k: {"current": {"temperature_2m": 20, "weather_code": 1}}
+            w = server.weather(cp)
+        finally:
+            server.http_json = real
+        self.assertTrue(w["ok"])
+        self.assertEqual((w["hourly"], w["days"], w["rain_alert"]), ([], [], None))
+
     def test_nowplaying(self):
         Path(os.environ["PCPI_NOWPLAYING"]).write_text('{"state":"playing","title":"T","artist":"A"}')
         self.assertEqual(json.loads(self.req("/api/status")[1])["nowplaying"]["title"], "T")

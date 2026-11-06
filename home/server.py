@@ -269,18 +269,63 @@ def weather(cp):
         base = cp.get("weather", "api_url", fallback="https://api.open-meteo.com/v1/forecast")
         d = http_json(
             "%s?latitude=%s&longitude=%s&current=temperature_2m,weather_code"
-            "&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=1"
+            "&hourly=temperature_2m,precipitation_probability,weather_code"
+            "&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code&timezone=auto&forecast_days=6"
             % (base, lat, lon),
             timeout=4,
         )
         cur = d["current"]
         day = d.get("daily", {})
         first = lambda k: (day.get(k) or [None])[0]
-        return {"ok": True, "temp": cur["temperature_2m"], "code": cur["weather_code"],
-                "tmax": first("temperature_2m_max"), "tmin": first("temperature_2m_min"),
-                "rain": first("precipitation_probability_max")}
+        out = {"ok": True, "temp": cur["temperature_2m"], "code": cur["weather_code"],
+               "tmax": first("temperature_2m_max"), "tmin": first("temperature_2m_min"),
+               "rain": first("precipitation_probability_max")}
+        out["hourly"] = weather_hours(d, cur.get("time"))
+        out["days"] = weather_days(day)
+        try:
+            limit = max(10, min(cp.getint("weather", "rain_alert", fallback=60), 100))
+        except ValueError:
+            limit = 60
+        out["rain_alert"] = rain_alert(out["hourly"], limit)
+        return out
     except Exception as e:
         return {"ok": False, "error": type(e).__name__}
+
+
+def weather_hours(d, now_iso, count=12):
+    """Proximas `count` horas: [{h: '14:00', temp, rain, code}] a partir de la hora actual (o de la primera si no hay hora)."""
+    h = d.get("hourly") or {}
+    times = h.get("time") or []
+    start = 0
+    if now_iso and times:
+        key = str(now_iso)[:13]                                   # '2026-11-06T14'
+        start = next((i for i, t in enumerate(times) if str(t)[:13] >= key), 0)
+    out = []
+    for i in range(start, min(len(times), start + count)):
+        get = lambda k: (h.get(k) or [None] * len(times))[i] if i < len(h.get(k) or []) else None
+        out.append({"h": str(times[i])[11:16], "temp": get("temperature_2m"), "rain": get("precipitation_probability"), "code": get("weather_code")})
+    return out
+
+
+def weather_days(day, count=5):
+    """Proximos dias (sin hoy): [{date, tmax, tmin, rain, code}]."""
+    dates = day.get("time") or []
+    out = []
+    for i in range(1, min(len(dates), count + 1)):
+        get = lambda k: (day.get(k) or [])[i] if i < len(day.get(k) or []) else None
+        out.append({"date": dates[i], "tmax": get("temperature_2m_max"), "tmin": get("temperature_2m_min"),
+                    "rain": get("precipitation_probability_max"), "code": get("weather_code")})
+    return out
+
+
+def rain_alert(hourly, limit=60, within=3):
+    """{in_hours, prob} si en las proximas `within` horas la probabilidad de lluvia llega a `limit` %; si no, None."""
+    best = None
+    for i, x in enumerate(hourly[:within + 1]):
+        p = x.get("rain")
+        if isinstance(p, (int, float)) and p >= limit and (best is None or p > best["prob"]):
+            best = {"in_hours": i, "prob": p}
+    return best
 
 
 def nowplaying():

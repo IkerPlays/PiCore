@@ -55,6 +55,18 @@
   #weather { margin-top:18px; font-size:28px; display:flex; align-items:center; gap:14px; min-height:52px; }
   #weather .wi { display:inline-block; font-size:44px; animation:bob 5s ease-in-out infinite; }
   @keyframes bob { 50% { transform:translateY(-5px) rotate(-3deg); } }
+  #weather, #wsub { cursor:pointer; }
+  #wsub .rain { color:var(--warn); font-weight:600; }
+  #wpanel { position:fixed; left:50%; bottom:0; z-index:21; width:min(760px,100vw); background:var(--card); border:1px solid var(--line); border-bottom:0; border-radius:26px 26px 0 0;
+            box-shadow:0 -20px 60px #0008; padding:20px 22px 24px; transform:translate(-50%,105%); transition:transform .5s var(--ease); max-height:86vh; overflow:auto; }
+  #wpanel.on { transform:translate(-50%,0); }
+  #wpanel h3 { font-size:22px; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  #wpanel h3 button { width:44px; height:44px; font-size:20px; border-radius:50%; }
+  .hours { display:flex; gap:8px; overflow-x:auto; padding-bottom:8px; margin-bottom:14px; touch-action:pan-x; }
+  .hr { flex:0 0 auto; width:74px; text-align:center; padding:10px 4px; background:var(--card2); border:1px solid var(--line); border-radius:16px; }
+  .hr .ic { font-size:26px; margin:4px 0; } .hr b { font-size:20px; } .hr small { display:block; color:var(--dim); font-size:13px; } .hr small.r { color:var(--acc); }
+  .days .dy { display:grid; grid-template-columns:1fr 40px 1fr 70px; align-items:center; gap:10px; padding:10px 14px; margin-bottom:6px; background:var(--card2); border:1px solid var(--line); border-radius:14px; font-size:18px; }
+  .days .dy span:last-child { text-align:right; color:var(--acc); font-size:15px; }
   #wsub { font-size:17px; color:var(--dim); margin-top:6px; min-height:22px; }
   #hint { position:absolute; bottom:14px; left:0; right:0; font-size:16px; color:var(--dim); }
 
@@ -285,6 +297,11 @@
   <button id="close-cam">Cerrar</button>
 </div>
 
+<section id="wpanel" aria-label="Tiempo">
+  <h3>Tiempo <button id="w-close" aria-label="Cerrar">✕</button></h3>
+  <div class="dim" style="font-size:14px;margin-bottom:6px">Próximas horas</div><div class="hours" id="w-hours"></div>
+  <div class="dim" style="font-size:14px;margin-bottom:6px">Próximos días</div><div class="days" id="w-days"></div>
+</section>
 <div id="scrim"></div>
 <section id="sheet" aria-label="Wi-Fi">
   <div class="sh-head"><h3>Wi-Fi</h3><button id="sh-close" aria-label="Cerrar">✕</button></div>
@@ -307,6 +324,7 @@ const post = (url, body) => fetch(url, {method:"POST", headers:{"X-PCPI":"1"}, b
 /* la portada viene de fuera: solo https, y entre comillas bien escapadas (nada de romper el CSS) */
 function safeUrl(u) { try { const x = new URL(u); return x.protocol === "https:" ? x.href : null; } catch (e) { return null; } }
 const fmt = n => (n ?? "--").toLocaleString("es-ES");
+let lastWeather = null;
 const WMO = {0:["☀️","Despejado"],1:["🌤","Poco nuboso"],2:["⛅","Nuboso"],3:["☁️","Cubierto"],45:["🌫","Niebla"],48:["🌫","Niebla"],
   51:["🌦","Llovizna"],53:["🌦","Llovizna"],55:["🌦","Llovizna"],61:["🌧","Lluvia"],63:["🌧","Lluvia"],65:["🌧","Lluvia fuerte"],
   71:["❄️","Nieve"],73:["❄️","Nieve"],75:["❄️","Nieve"],80:["🌦","Chubascos"],81:["🌧","Chubascos"],82:["🌧","Chubascos"],95:["⛈","Tormenta"]};
@@ -452,6 +470,32 @@ function paintBattery(b) {
   chip.lastChild.textContent = (b.charging ? "⚡" : "") + b.percent + "%";
   chip.title = b.critical ? "Batería crítica: conecta el cargador" : b.low ? "Batería baja" : b.charging ? "Cargando" : "Batería";
 }
+
+/* ---- detalle del tiempo: por horas y proximos dias ---- */
+function renderWeather() {
+  const w = lastWeather, H = $("w-hours"), D = $("w-days");
+  H.textContent = ""; D.textContent = "";
+  if (!w) { H.textContent = "Sin datos del tiempo."; return; }
+  for (const x of w.hourly || []) {
+    const d = document.createElement("div"); d.className = "hr";
+    const ic = (WMO[x.code] || ["🌡"])[0];
+    d.innerHTML = `<small>${esc(x.h)}</small><div class="ic">${ic}</div><b>${x.temp == null ? "--" : Math.round(x.temp) + "°"}</b><small class="r">${x.rain == null ? "" : x.rain + "%"}</small>`;
+    H.append(d);
+  }
+  for (const x of w.days || []) {
+    const row = document.createElement("div"); row.className = "dy";
+    const name = new Date(x.date + "T12:00").toLocaleDateString("es-ES", {weekday:"long"});
+    const a = document.createElement("span"); a.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+    const ic = document.createElement("span"); ic.textContent = (WMO[x.code] || ["🌡"])[0];
+    const t = document.createElement("span"); t.textContent = (x.tmax == null ? "--" : Math.round(x.tmax)) + "° / " + (x.tmin == null ? "--" : Math.round(x.tmin)) + "°";
+    const r = document.createElement("span"); r.textContent = x.rain ? x.rain + "%" : "";
+    row.append(a, ic, t, r); D.append(row);
+  }
+}
+function openWeather() { renderWeather(); $("scrim").classList.add("on"); $("wpanel").classList.add("on"); }
+function closeWeather() { $("wpanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on")) $("scrim").classList.remove("on"); }
+$("weather").onclick = $("wsub").onclick = openWeather;
+$("w-close").onclick = closeWeather;
 
 /* ---- temporizadores y alarmas ---- */
 let tList = [], tAt = 0, beepCtx = null, beepTimer = 0;
@@ -653,7 +697,7 @@ function closeSheet() {
 }
 $("chip-wifi").onclick = openSheet;
 $("sh-close").onclick = closeSheet;
-$("scrim").onclick = () => { closeSheet(); closeBright(); closeTimers(); };
+$("scrim").onclick = () => { closeSheet(); closeBright(); closeTimers(); closeWeather(); };
 
 async function refresh() {
   let s;
@@ -682,7 +726,13 @@ async function refresh() {
     if (w.tmax != null) bits.push(`Máx ${Math.round(w.tmax)}° · Mín ${Math.round(w.tmin)}°`);
     if (w.rain != null) bits.push(`💧 ${w.rain}%`);
     $("wsub").textContent = bits.join("   ");
-  } else { $("weather").textContent = ""; $("wsub").textContent = ""; }
+    if (w.rain_alert) {                                   // aviso de lluvia en las proximas horas
+      const a = w.rain_alert, sp = document.createElement("span"); sp.className = "rain";
+      sp.textContent = "   " + (a.in_hours === 0 ? "Lluvia ahora" : "Lluvia en " + a.in_hours + " h") + " (" + a.prob + "%)";
+      $("wsub").append(sp);
+    }
+    lastWeather = w;
+  } else { $("weather").textContent = ""; $("wsub").textContent = ""; lastWeather = null; }
 
   const n = s.nowplaying || {};
   const on = n.state === "playing" || n.state === "paused";

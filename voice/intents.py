@@ -232,7 +232,14 @@ def say_date(now):
 def say_weather(w):
     if not w or not w.get("ok"):
         return "No tengo el tiempo configurado"
-    return "Ahora hay %d grados y está %s" % (round(w["temp"]), WMO.get(w["code"], "variable"))
+    txt = "Ahora hay %d grados y está %s" % (round(w["temp"]), WMO.get(w["code"], "variable"))
+    ra = w.get("rain_alert")
+    if ra:
+        when = "ahora mismo" if ra["in_hours"] == 0 else "en %s" % ("una hora" if ra["in_hours"] == 1 else "%d horas" % ra["in_hours"])
+        txt += ". Puede llover %s, con un %d por ciento de probabilidad" % (when, ra["prob"])
+    elif w.get("rain") is not None and w["rain"] >= 50:
+        txt += ". Hoy hay un %d por ciento de probabilidad de lluvia" % w["rain"]
+    return txt
 
 
 def say_duration(secs):

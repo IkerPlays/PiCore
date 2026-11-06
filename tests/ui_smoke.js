@@ -144,6 +144,19 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('Parar lo silencia y lo borra', !(await page.evaluate(() => document.getElementById('tring').classList.contains('on'))));
   check('ya no queda ninguno', ((await (await page.request.get(base + '/api/status')).json()).timers || []).length === 0);
 
+  // ------------------------------------------------------------------ tiempo: por horas, dias y aviso de lluvia
+  await page.goto(base + '/');
+  await page.waitForFunction(() => document.getElementById('weather').textContent.includes('°C'), null, { timeout: 8000 }).catch(() => {});
+  check('el aviso de lluvia sale junto al tiempo', (await page.textContent('#wsub')).includes('Lluvia'), await page.textContent('#wsub'));
+  await page.click('#weather');
+  await sleep(700);
+  check('tocar el tiempo abre el detalle', await page.evaluate(() => document.getElementById('wpanel').classList.contains('on')));
+  check('con 12 horas', (await page.locator('#w-hours .hr').count()) === 12);
+  check('y 5 dias', (await page.locator('#w-days .dy').count()) === 5);
+  check('los dias estan en español', /lunes|martes|miércoles|jueves|viernes|sábado|domingo/i.test(await page.textContent('#w-days')));
+  await page.click('#w-close');
+  await sleep(600);
+
   // ------------------------------------------------------------------ Wi-Fi (panel + teclado en pantalla)
   await page.goto(base + '/');
   await page.waitForFunction(() => !document.getElementById('chip-wifi').hidden, null, { timeout: 8000 }).catch(() => {});

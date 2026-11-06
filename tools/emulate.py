@@ -72,9 +72,18 @@ class FakePiHole(BaseHTTPRequestHandler):
         if path == "/api/dns/blocking":
             return self._json({"blocking": "enabled" if st["enabled"] else "disabled"})
         if path == "/v1/forecast":
-            return self._json({"current": {"temperature_2m": 21.4, "weather_code": 1},
-                               "daily": {"temperature_2m_max": [24.1], "temperature_2m_min": [17.6],
-                                         "precipitation_probability_max": [10]}})
+            import datetime
+            now = datetime.datetime.now().replace(minute=0, second=0, microsecond=0)
+            hours = [now + datetime.timedelta(hours=i) for i in range(-2, 24 * 6)]
+            return self._json({
+                "current": {"time": now.strftime("%Y-%m-%dT%H:%M"), "temperature_2m": 21.4, "weather_code": 1},
+                "hourly": {"time": [h.strftime("%Y-%m-%dT%H:%M") for h in hours],
+                           "temperature_2m": [round(20 + 4 * __import__("math").sin(i / 4), 1) for i in range(len(hours))],
+                           "precipitation_probability": [70 if 3 <= i % 24 <= 5 else 10 for i in range(len(hours))],
+                           "weather_code": [61 if 3 <= i % 24 <= 5 else 1 for i in range(len(hours))]},
+                "daily": {"time": [(now + datetime.timedelta(days=i)).strftime("%Y-%m-%d") for i in range(6)],
+                          "temperature_2m_max": [24.1, 25, 23, 22, 24, 26], "temperature_2m_min": [17.6, 18, 17, 16, 17, 18],
+                          "precipitation_probability_max": [10, 70, 20, 5, 0, 40], "weather_code": [1, 61, 2, 1, 0, 3]}})
         self._json({"error": "no"}, 404)
 
     def do_POST(self):
