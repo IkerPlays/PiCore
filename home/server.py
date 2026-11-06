@@ -29,6 +29,7 @@ import motion
 import netmgr
 import notes_tools
 import pcpiconf
+import timers
 
 ROOT = Path(__file__).resolve().parent
 WEB = ROOT / "web"
@@ -457,6 +458,7 @@ def status():
         "display": display_info(cp),
         "motion": motion_status(cp),
         "battery": cached("battery", 15, lambda: battery.read(cp)),
+        "timers": TIMERS.snapshot() if TIMERS else [],
         "ip": cached("ip", 60, local_ip),
         "host": socket.gethostname(),
     }
@@ -846,7 +848,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self._host_ok():
             return self._send(403, {"error": "host no permitido"})
         paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/notes/export", "/api/loaded",
-                 "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display", "/api/motion")
+                 "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display", "/api/motion", "/api/timers")
         if self.path not in paths or self.headers.get("X-PCPI") != "1":
             return self._send(403, {"error": "prohibido"})
         try:
@@ -862,6 +864,8 @@ class Handler(BaseHTTPRequestHandler):
             if self.path == "/api/mode":
                 set_mode(body["mode"])
                 return self._send(200, {"mode": body["mode"]})
+            if self.path == "/api/timers":
+                return self._send(200, timers_post(body))
             if self.path == "/api/motion":
                 if not isinstance(body.get("enabled"), bool):
                     raise ValueError("enabled invalido")
@@ -912,6 +916,45 @@ def make_server(host, port):
     return ThreadingHTTPServer((host, port), Handler)
 
 
+TIMERS = None
+RINGER = None
+
+
+def start_timers():
+    """Temporizadores y alarmas: hilo que mira el reloj cada segundo y, al vencer uno, hace sonar el altavoz."""
+    global TIMERS, RINGER
+    TIMERS = timers.TimerStore()
+    RINGER = timers.Ringer(TIMERS.ringing)
+
+    def loop():
+        while True:
+            try:
+                if TIMERS.tick():
+                    RINGER.start()
+            except Exception:       # noqa: BLE001
+                pass
+            time.sleep(1)
+    threading.Thread(target=loop, daemon=True).start()
+
+
+def timers_post(body):
+    if TIMERS is None:
+        raise ValueError("temporizadores no disponibles")
+    act = body.get("action")
+    label = body.get("label", "")
+    if act == "timer":
+        TIMERS.add_timer(body.get("seconds"), label)
+    elif act == "alarm":
+        TIMERS.add_alarm(body.get("hour"), body.get("minute"), label, body.get("daily") is True)
+    elif act == "dismiss":
+        TIMERS.dismiss(body.get("id"))
+    elif act == "cancel":
+        TIMERS.cancel(body.get("id"), body.get("kind") if body.get("kind") in ("timer", "alarm") else None)
+    else:
+        raise ValueError("accion invalida")
+    return {"timers": TIMERS.snapshot()}
+
+
 def backup_loop():
     """Copia automatica de las notas: como mucho una cada hora si han cambiado; guarda las ultimas N ([notes] backup_keep)."""
     while True:
@@ -944,6 +987,7 @@ def main():
     threading.Thread(target=display_loop, daemon=True).start()
     threading.Thread(target=backup_loop, daemon=True).start()
     start_motion(cp)
+    start_timers()
     print("PiCore escuchando en http://%s:%d" % (host, port), flush=True)
     make_server(host, port).serve_forever()
 

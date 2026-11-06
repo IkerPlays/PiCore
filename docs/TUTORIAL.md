@@ -584,6 +584,9 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «sube el brillo» · «baja el brillo» | ±20 % (nunca por debajo del 10 %) |
 | «brillo al cincuenta» · «brillo al máximo» · «brillo automático» | Pone el brillo a ese número, o vuelve al modo automático |
 | «activa la vigilancia» · «desactiva la vigilancia» | Enciende o apaga la detección de movimiento (si hay cámara) |
+| «pon un temporizador de diez minutos» · «temporizador de una hora y media» · «de treinta segundos» | Crea un temporizador (hasta 48 h). Al acabar **suena por el altavoz y sale un aviso a pantalla completa** con el botón «Parar» |
+| «despiértame a las siete y media» · «pon una alarma a las ocho menos cuarto» · «alarma a las 7 de la tarde» | Crea una alarma para la próxima vez que el reloj marque esa hora |
+| «cuánto queda del temporizador» · «cancela el temporizador» · «para la alarma» | Consultar, cancelar o parar lo que suena |
 
 Si no entiende, dice *«No te he entendido»*. Si no dices nada en 8 segundos, vuelve a esperar la palabra.
 
@@ -1054,6 +1057,7 @@ No son necesarios. Puedes añadirlos cuando quieras:
 |---|---|
 | **☀ Brillo** | Un **deslizante** (10–100 %) y un interruptor **Automático**: de noche (por defecto de 22:00 a 07:00) el brillo **baja poco a poco** hasta el 40 % durante una hora antes, y vuelve a subir despacio por la mañana. Se ajusta en `[display]` de `pcpi.conf`. ⚠️ Si tu pantalla **no tiene control de brillo por software** (la mayoría de pantallas HDMI baratas no lo tienen), PiCore la oscurece con una capa por encima: ayuda a la vista, pero el brillo real de la luz de fondo solo lo cambian los botones de la propia pantalla |
 | **👁 Vigilancia** | Detecta **movimiento con la cámara** y muestra un aviso naranja «Movimiento detectado» con la hora (toca el aviso para ver la cámara). **Privacidad:** compara imágenes diminutas en memoria; **no guarda ni envía ninguna foto ni vídeo**. Está **apagada** por defecto: tócalo para activarla. Gasta algo de CPU (mantiene la cámara abierta) y se pausa sola mientras tú miras la cámara. Sensibilidad en `[motion]` (`low`, `medium`, `high`) |
+| **Temporizador** (icono del reloj) | Muestra la cuenta atrás del siguiente temporizador; al tocarlo ves todos, los cancelas y creas uno con 1, 5, 10 o 30 min. Los temporizadores y alarmas **sobreviven a un reinicio**. Suenan por el altavoz aunque estés en el modo Iker o en el Escritorio (el aviso a pantalla completa es solo del modo Casa). Si no oyes nada: `aplay` debe poder usar el audio de tu sesión (el instalador lo prepara; mira «No suena nada» en [Si algo falla](#si-algo-falla)) |
 | **🔋 Batería** | **Solo aparece si hay forma de medirla.** ⚠️ La Raspberry Pi 5 **no mide** la batería, y una power bank normal tampoco dice cuánto le queda: hace falta un **UPS / HAT con batería** que aparezca en `/sys/class/power_supply`, o un comando tuyo en `[battery] command` que escriba el porcentaje. Con eso sale el indicador (naranja por debajo del 20 %, rojo y parpadeando por debajo del 10 %) y también la fila `BAT` de la mini pantalla |
 
 ### 8.4 Si la pantalla se queda en blanco o Chromium se cae

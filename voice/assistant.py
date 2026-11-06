@@ -124,6 +124,25 @@ def execute(cfg, intent):
             level = max(10, min(100, level))
             api(cfg, "/api/display", {"level": level, "auto": False})
             return "Brillo al %d por ciento" % level
+        if n == "timer_set":
+            api(cfg, "/api/timers", {"action": "timer", "seconds": a})
+            return "Temporizador de " + intents.say_duration(a)
+        if n == "alarm_set":
+            api(cfg, "/api/timers", {"action": "alarm", "hour": a[0], "minute": a[1]})
+            return "Alarma a las %d y %02d" % a if a[1] else "Alarma a las %d en punto" % a[0]
+        if n in ("timer_cancel", "alarm_cancel"):
+            api(cfg, "/api/timers", {"action": "cancel", "kind": "timer" if n == "timer_cancel" else "alarm"})
+            return "Temporizador cancelado" if n == "timer_cancel" else "Alarma cancelada"
+        if n == "timers_stop":
+            api(cfg, "/api/timers", {"action": "dismiss"})
+            return "Hecho"
+        if n == "timer_query":
+            with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
+                ts = [t for t in json.load(r).get("timers", []) if not t["ringing"]]
+            if not ts:
+                return "No hay ningún temporizador ni alarma"
+            t = ts[0]
+            return ("Quedan " if t["kind"] == "timer" else "La alarma suena en ") + intents.say_duration(t["remaining"])
         if n == "motion":
             with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
                 if not json.load(r).get("motion", {}).get("available"):

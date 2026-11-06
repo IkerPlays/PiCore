@@ -120,6 +120,30 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('cargando muestra el rayo y quita el aviso', (await page.textContent('#chip-bat')).includes('⚡80%') && !(await page.getAttribute('#chip-bat', 'class')).includes('low'));
   await page.unroute('**/api/status');
 
+  // ------------------------------------------------------------------ temporizadores y alarmas
+  await page.goto(base + '/');
+  await page.waitForSelector('#chip-timer');
+  check('el icono de temporizador esta y dice «Temporizador» sin ninguno', (await page.textContent('#chip-timer')).includes('Temporizador'));
+  await page.click('#chip-timer');
+  await sleep(600);
+  await page.click('#tpanel .presets button[data-s="300"]');
+  await page.waitForFunction(() => /\d\d:\d\d/.test(document.getElementById('timer-txt').textContent), null, { timeout: 8000 }).catch(() => {});
+  check('un temporizador de 5 min cuenta atras en el icono', /0[45]:\d\d/.test(await page.textContent('#timer-txt')), await page.textContent('#timer-txt'));
+  check('sale en la lista con su boton Cancelar', (await page.textContent('#t-list')).includes('Cancelar'));
+  await page.click('#t-list button');
+  await sleep(1200);
+  check('Cancelar lo quita', (await page.textContent('#timer-txt')).includes('Temporizador'));
+  // suena: un temporizador de 1 s vence y sale la pantalla de aviso
+  await page.request.post(base + '/api/timers', { headers: { 'X-PCPI': '1' }, data: { action: 'timer', seconds: 1, label: 'pasta' } });
+  await page.click('#t-close');
+  await page.waitForFunction(() => document.getElementById('tring').classList.contains('on'), null, { timeout: 12000 }).catch(() => {});
+  check('al vencer sale el aviso a pantalla completa', await page.evaluate(() => document.getElementById('tring').classList.contains('on')));
+  check('con su nombre', (await page.textContent('#tring-big')).includes('pasta'));
+  await page.click('#tring-stop');
+  await sleep(1500);
+  check('Parar lo silencia y lo borra', !(await page.evaluate(() => document.getElementById('tring').classList.contains('on'))));
+  check('ya no queda ninguno', ((await (await page.request.get(base + '/api/status')).json()).timers || []).length === 0);
+
   // ------------------------------------------------------------------ Wi-Fi (panel + teclado en pantalla)
   await page.goto(base + '/');
   await page.waitForFunction(() => !document.getElementById('chip-wifi').hidden, null, { timeout: 8000 }).catch(() => {});

@@ -5,6 +5,8 @@ After=network-online.target
 [Service]
 User=__USER__
 Environment=PCPI_CONF=/etc/pcpi/pcpi.conf
+# Para que aplay (alarmas y temporizadores) llegue al audio de la sesion del usuario (PipeWire)
+Environment=XDG_RUNTIME_DIR=/run/user/__UID__
 ExecStart=/usr/bin/python3 /opt/pcpi/home/server.py
 Restart=always
 RestartSec=2

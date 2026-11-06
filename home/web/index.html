@@ -146,6 +146,27 @@
   .spin { display:inline-block; width:18px; height:18px; border:3px solid var(--line); border-top-color:var(--acc); border-radius:50%; animation:spin .8s linear infinite; vertical-align:-3px; margin-right:8px; }
   @keyframes spin { to { transform:rotate(360deg); } }
 
+  /* ---------------- temporizadores y alarmas ---------------- */
+  #chip-timer.on { border-color:var(--acc); font-variant-numeric:tabular-nums; }
+  #tpanel { position:fixed; left:50%; bottom:0; z-index:21; width:min(560px,100vw); background:var(--card); border:1px solid var(--line); border-bottom:0; border-radius:26px 26px 0 0;
+            box-shadow:0 -20px 60px #0008; padding:20px 24px 26px; transform:translate(-50%,105%); transition:transform .5s var(--ease); max-height:80vh; overflow:auto; }
+  #tpanel.on { transform:translate(-50%,0); }
+  #tpanel h3 { font-size:22px; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  #tpanel h3 button { width:44px; height:44px; font-size:20px; border-radius:50%; }
+  .trow { display:flex; align-items:center; gap:12px; padding:12px 14px; margin-bottom:8px; background:var(--card2); border:1px solid var(--line); border-radius:16px; font-size:18px; }
+  .trow .tt { flex:1; min-width:0; } .trow small { color:var(--dim); display:block; font-size:13px; }
+  .trow b { font-size:26px; font-variant-numeric:tabular-nums; }
+  .trow button { padding:8px 14px; font-size:15px; }
+  .presets { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:12px; }
+  .presets button { padding:14px 0; font-size:17px; }
+  #tring { position:fixed; inset:0; z-index:50; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; background:var(--acc); color:var(--acc-fg);
+          opacity:0; pointer-events:none; transition:opacity .4s; text-align:center; }
+  #tring.on { opacity:1; pointer-events:auto; animation:ringpulse 1s ease-in-out infinite; }
+  @keyframes ringpulse { 50% { filter:brightness(1.18); } }
+  #tring .big { font-size:clamp(44px,9vw,92px); font-weight:750; letter-spacing:-.02em; padding:0 20px; }
+  #tring .sub { font-size:26px; opacity:.85; }
+  #tring button { padding:18px 60px; font-size:26px; border-radius:999px; background:var(--acc-fg); color:var(--acc); border:0; font-weight:700; }
+
   /* ---------------- bateria ---------------- */
   #chip-bat { color:var(--fg); border-color:var(--line); display:flex; align-items:center; gap:7px; }
   #chip-bat .cell { width:26px; height:13px; border:2px solid currentColor; border-radius:4px; position:relative; padding:1px; }
@@ -193,6 +214,7 @@
     <div id="greet"></div>
     <div id="chips">
       <span class="chip" id="chip-cpu" hidden></span>
+      <button class="chip" id="chip-timer" aria-label="Temporizadores" style="color:var(--fg)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:17px;height:17px;vertical-align:-3px"><circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 2M9.5 3h5"/></svg> <span id="timer-txt">Temporizador</span></button>
       <span class="chip" id="chip-bat" hidden></span>
       <button class="chip" id="chip-motion" hidden aria-label="Vigilancia">👁</button>
       <button class="chip" id="chip-bright" aria-label="Brillo" style="color:var(--fg)">☀</button>
@@ -249,6 +271,13 @@
 
 <div id="dim"></div>
 <div id="voice"></div>
+<section id="tpanel" aria-label="Temporizadores">
+  <h3>Temporizadores y alarmas <button id="t-close" aria-label="Cerrar">✕</button></h3>
+  <div id="t-list"></div>
+  <div class="dim" style="font-size:14px;margin:6px 2px">Nuevo temporizador (o dilo: «pon un temporizador de diez minutos»)</div>
+  <div class="presets"><button data-s="60">1 min</button><button data-s="300">5 min</button><button data-s="600">10 min</button><button data-s="1800">30 min</button></div>
+</section>
+<div id="tring"><div class="sub" id="tring-sub">Temporizador</div><div class="big" id="tring-big"></div><button id="tring-stop">Parar</button></div>
 <button id="motion" hidden>Movimiento detectado!<small id="motion-t"></small></button>
 <div id="cam">
   <div class="msg">Conectando con la cámara del dispositivo…</div>
@@ -424,6 +453,61 @@ function paintBattery(b) {
   chip.title = b.critical ? "Batería crítica: conecta el cargador" : b.low ? "Batería baja" : b.charging ? "Cargando" : "Batería";
 }
 
+/* ---- temporizadores y alarmas ---- */
+let tList = [], tAt = 0, beepCtx = null, beepTimer = 0;
+const pad2 = n => String(n).padStart(2, "0");
+const fmtRem = sec => sec >= 3600 ? Math.floor(sec / 3600) + ":" + pad2(Math.floor(sec % 3600 / 60)) + ":" + pad2(sec % 60) : pad2(Math.floor(sec / 60)) + ":" + pad2(sec % 60);
+const remNow = t => Math.max(0, t.remaining - Math.floor((Date.now() - tAt) / 1000));
+function beep() {                                         // pitido en pantalla (el altavoz lo hace ademas el servidor con aplay)
+  try {
+    beepCtx = beepCtx || new (window.AudioContext || window.webkitAudioContext)();
+    for (let k = 0; k < 3; k++) {
+      const o = beepCtx.createOscillator(), g = beepCtx.createGain(), t0 = beepCtx.currentTime + k * 0.3;
+      o.frequency.value = 880; g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.4, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.2);
+      o.connect(g); g.connect(beepCtx.destination); o.start(t0); o.stop(t0 + 0.22);
+    }
+  } catch (e) {}
+}
+function paintTimers(list) {
+  tList = list || []; tAt = Date.now();
+  const ringing = tList.filter(t => t.ringing);
+  const ring = $("tring");
+  if (ringing.length) {
+    const t = ringing[0];
+    $("tring-sub").textContent = t.kind === "alarm" ? "Alarma" : "Temporizador terminado";
+    $("tring-big").textContent = t.label || (t.kind === "alarm" ? pad2(t.hour) + ":" + pad2(t.minute) : fmtRem(t.remaining || 0) === "00:00" ? "¡Tiempo!" : "¡Tiempo!");
+    if (!ring.classList.contains("on")) { ring.classList.add("on"); beep(); clearInterval(beepTimer); beepTimer = setInterval(beep, 1300); }
+  } else if (ring.classList.contains("on")) { ring.classList.remove("on"); clearInterval(beepTimer); }
+  tickTimers();
+  if ($("tpanel").classList.contains("on")) renderTimers();
+}
+function tickTimers() {
+  const waiting = tList.filter(t => !t.ringing).sort((a, b) => remNow(a) - remNow(b));
+  const chip = $("chip-timer");
+  chip.classList.toggle("on", waiting.length > 0);
+  $("timer-txt").textContent = waiting.length ? fmtRem(remNow(waiting[0])) + (waiting.length > 1 ? " +" + (waiting.length - 1) : "") : "Temporizador";
+}
+setInterval(() => { if (tList.length) { tickTimers(); if ($("tpanel").classList.contains("on")) renderTimers(); } }, 1000);
+function renderTimers() {
+  const l = $("t-list");
+  const items = tList.filter(t => !t.ringing);
+  l.innerHTML = items.length ? "" : '<div class="dim" style="padding:8px 2px 14px">No hay ninguno.</div>';
+  for (const t of items) {
+    const d = document.createElement("div"); d.className = "trow";
+    const tt = document.createElement("div"); tt.className = "tt";
+    tt.textContent = t.kind === "alarm" ? "Alarma " + pad2(t.hour) + ":" + pad2(t.minute) + (t.daily ? " · cada día" : "") : "Temporizador";
+    if (t.label) { const sm = document.createElement("small"); sm.textContent = t.label; tt.append(sm); }
+    const b = document.createElement("b"); b.textContent = fmtRem(remNow(t));
+    const x = document.createElement("button"); x.textContent = "Cancelar"; x.onclick = async () => { await post("/api/timers", {action:"cancel", id:t.id}); refresh(); };
+    d.append(tt, b, x); l.append(d);
+  }
+}
+$("chip-timer").onclick = () => { renderTimers(); $("scrim").classList.add("on"); $("tpanel").classList.add("on"); };
+function closeTimers() { $("tpanel").classList.remove("on"); if (!$("sheet").classList.contains("on") && !$("bpanel").classList.contains("on")) $("scrim").classList.remove("on"); }
+$("t-close").onclick = closeTimers;
+document.querySelectorAll("#tpanel .presets button").forEach(b => b.onclick = async () => { await post("/api/timers", {action:"timer", seconds:+b.dataset.s}); refresh(); });
+$("tring-stop").onclick = async () => { await post("/api/timers", {action:"dismiss"}); $("tring").classList.remove("on"); clearInterval(beepTimer); refresh(); };
+
 /* ---- vigilancia de movimiento ---- */
 let motionSeen = null, motionEnabled = false, motionTimer = 0;
 function paintMotion(m) {
@@ -569,7 +653,7 @@ function closeSheet() {
 }
 $("chip-wifi").onclick = openSheet;
 $("sh-close").onclick = closeSheet;
-$("scrim").onclick = () => { closeSheet(); closeBright(); };
+$("scrim").onclick = () => { closeSheet(); closeBright(); closeTimers(); };
 
 async function refresh() {
   let s;
@@ -622,6 +706,7 @@ async function refresh() {
   if (s.cpu_temp != null) { $("chip-cpu").hidden = false; $("chip-cpu").textContent = "🌡 " + s.cpu_temp + "°"; }
   paintNet(s.net);
   paintDisplay(s.display);
+  paintTimers(s.timers);
   paintMotion(s.motion);
   paintBattery(s.battery);
 

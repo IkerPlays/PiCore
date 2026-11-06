@@ -45,6 +45,83 @@ def find_number(words):
     return None
 
 
+UNITS_S = {"hora": 3600, "horas": 3600, "minuto": 60, "minutos": 60, "min": 60, "segundo": 1, "segundos": 1, "seg": 1}
+
+
+def parse_duration(words):
+    """Segundos de «diez minutos», «una hora y media», «2 horas 30 minutos», «tres cuartos de hora»... o None."""
+    total, i, seen = 0, 0, False
+    while i < len(words):
+        w = words[i]
+        n = None
+        if w.isdigit():
+            n, step = int(w), 1
+        elif w in DECENAS:
+            n, step = DECENAS[w], 1
+            if i + 2 < len(words) and words[i + 1] == "y" and words[i + 2] in UNIDADES and n < 100:
+                n, step = n + UNIDADES[words[i + 2]], 3
+        elif w in UNIDADES:
+            n, step = UNIDADES[w], 1
+        if n is not None and i + step < len(words) and words[i + step] in UNITS_S:
+            unit = words[i + step]
+            total += n * UNITS_S[unit]
+            seen = True
+            i += step + 1
+            if unit in ("hora", "horas") and i < len(words) - 0:
+                if words[i:i + 2] == ["y", "media"]:
+                    total += 1800
+                    i += 2
+                elif words[i:i + 2] == ["y", "cuarto"]:
+                    total += 900
+                    i += 2
+            continue
+        if w == "media" and i + 1 < len(words) and words[i + 1] == "hora":      # «media hora»
+            total, seen, i = total + 1800, True, i + 2
+            continue
+        if w == "cuarto" and words[i + 1:i + 3] == ["de", "hora"]:               # «un cuarto de hora»
+            total, seen, i = total + 900, True, i + 3
+            continue
+        if w == "tres" and words[i + 1:i + 4] == ["cuartos", "de", "hora"]:
+            total, seen, i = total + 2700, True, i + 4
+            continue
+        i += 1
+    return total if seen and total > 0 else None
+
+
+def parse_clock(words):
+    """(hora, minuto) de «a las siete y media», «a las 7 30», «a las 7:30 de la tarde», «a las ocho menos cuarto»... o None."""
+    for i, w in enumerate(words):
+        if w not in ("las", "la") or i == 0 or words[i - 1] != "a":
+            continue
+        rest = words[i + 1:]
+        h = find_number(rest[:3])
+        if h is None or not 0 <= h <= 24:
+            return None
+        consumed = 1
+        if rest[0] in DECENAS and len(rest) > 2 and rest[1] == "y":
+            consumed = 3
+        m, tail = 0, rest[consumed:]
+        if tail[:2] == ["y", "media"]:
+            m = 30
+        elif tail[:2] == ["y", "cuarto"]:
+            m = 15
+        elif tail[:2] == ["menos", "cuarto"]:
+            h, m = (h - 1) % 24, 45
+        elif tail[:1] and tail[0] == "y" and len(tail) > 1 and (tail[1].isdigit() or tail[1] in UNIDADES or tail[1] in DECENAS):
+            m = find_number(tail[1:3]) or 0
+        elif tail[:1] and (tail[0].isdigit() or tail[0] in UNIDADES or tail[0] in DECENAS) and (rest[0].isdigit() or consumed == 1):
+            m = find_number(tail[:3]) or 0                       # «7 30» (asi llega «7:30» tras normalizar)
+        if not 0 <= m <= 59:
+            m = 0
+        late = any(x in words for x in ("tarde", "noche"))
+        if late and 1 <= h <= 11:
+            h += 12
+        if h == 12 and ("manana" in words or "noche" in words or "madrugada" in words):
+            h = 0
+        return h % 24, m
+    return None
+
+
 def strip_wake(text, wakes):
     """(desperto, resto). 'oye pi pon modo casa' -> (True, 'pon modo casa')."""
     t = norm(text)
@@ -63,6 +140,26 @@ def parse(text):
     words = t.split()
     has = lambda *ks: any(k in t for k in ks)
 
+    if has("temporizador", "cuenta atras", "cuentaatras"):
+        if has("cancela", "quita", "borra", "elimina", "olvida"):
+            return Intent("timer_cancel", None)
+        if has("cuanto queda", "cuanto falta", "que queda", "que falta"):
+            return Intent("timer_query", None)
+        if has("para ", "silencia", "apaga", "detener", "deten") and not has("pon", "programa", "crea"):
+            return Intent("timers_stop", None)
+        secs = parse_duration(words)
+        if secs:
+            return Intent("timer_set", secs)
+    if has("cuanto queda", "cuanto falta") and not has("camara"):
+        return Intent("timer_query", None)
+    if has("alarma", "despiertame", "despierta", "levantame") and not has("alarma de camara"):
+        if has("cancela", "quita", "borra", "elimina"):
+            return Intent("alarm_cancel", None)
+        if has("para", "silencia", "apaga", "detener", "deten") and not has("pon", "programa", "crea", "a las"):
+            return Intent("timers_stop", None)
+        clock = parse_clock(words)
+        if clock:
+            return Intent("alarm_set", clock)
     if has("pihole", "pi hole", "pi jol", "anuncios", "bloqueador"):
         if has("desactiva", "pausa", "apaga", "para ", "quita", "deshabilita"):
             return Intent("pihole_disable", find_number(words) or 5)
@@ -136,3 +233,18 @@ def say_weather(w):
     if not w or not w.get("ok"):
         return "No tengo el tiempo configurado"
     return "Ahora hay %d grados y está %s" % (round(w["temp"]), WMO.get(w["code"], "variable"))
+
+
+def say_duration(secs):
+    """90 -> 'un minuto y 30 segundos'; 600 -> '10 minutos'; 5400 -> 'una hora y 30 minutos'."""
+    secs = int(secs)
+    h, rem = divmod(secs, 3600)
+    m, sec = divmod(rem, 60)
+    parts = []
+    if h:
+        parts.append("una hora" if h == 1 else "%d horas" % h)
+    if m:
+        parts.append("un minuto" if m == 1 else "%d minutos" % m)
+    if sec or not parts:
+        parts.append("un segundo" if sec == 1 else "%d segundos" % sec)
+    return " y ".join([", ".join(parts[:-1]), parts[-1]] if len(parts) > 2 else parts)

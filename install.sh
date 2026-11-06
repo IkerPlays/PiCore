@@ -41,7 +41,7 @@ curl -fsI -m 10 https://deb.debian.org >/dev/null || { echo "No hay internet. Co
 step "Paquetes"
 sudo apt-get update
 CHROMIUM_PKG=chromium; apt-cache show chromium >/dev/null 2>&1 || CHROMIUM_PKG=chromium-browser
-sudo apt-get install -y python3 curl rsync zenity ffmpeg "$CHROMIUM_PKG"   # ffmpeg: copias H.264 de tus videos de inicio
+sudo apt-get install -y python3 curl rsync zenity ffmpeg alsa-utils "$CHROMIUM_PKG"   # ffmpeg: copias H.264 de tus videos de inicio
 
 step "Archivos en $PREFIX"
 sudo mkdir -p "$PREFIX"
@@ -84,6 +84,7 @@ step "Wi-Fi (NetworkManager)"
 # instalarlo reemplazaria el sistema de red y podria dejarte sin conexion.
 command -v nmcli >/dev/null || echo "Aviso: no hay NetworkManager (nmcli): el panel de Wi-Fi no estara disponible. Usa Raspberry Pi OS Bookworm o Trixie." >&2
 sudo usermod -aG netdev "$ME"
+sudo usermod -aG audio "$ME"            # alarmas y temporizadores suenan por el altavoz
 
 step "Brillo de la pantalla"
 # Si la pantalla tiene retroiluminacion controlable (/sys/class/backlight), el grupo video podra cambiarla.
@@ -94,7 +95,7 @@ sudo usermod -aG video "$ME"
 
 step "Servicio pcpi-home"
 sudo mkdir -p "$R/etc/systemd/system"
-sed "s/__USER__/$ME/" "$SRC/systemd/pcpi-home.service" | sudo tee "$R/etc/systemd/system/pcpi-home.service" >/dev/null
+sed "s/__USER__/$ME/;s/__UID__/$UID_ME/" "$SRC/systemd/pcpi-home.service" | sudo tee "$R/etc/systemd/system/pcpi-home.service" >/dev/null
 sudo systemctl daemon-reload
 sudo systemctl enable pcpi-home.service
 

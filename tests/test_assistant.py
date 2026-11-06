@@ -209,6 +209,24 @@ class ExecuteApiIntentsTest(unittest.TestCase):
         self.assertEqual(assistant.execute(self.cfg, ("motion", True)), "No hay cámara para vigilar")
         self.assertEqual(len(self.posts), n)
 
+    def test_timers_and_alarms_by_voice(self):
+        self.status["timers"] = []
+        self.assertEqual(assistant.execute(self.cfg, ("timer_set", 600)), "Temporizador de 10 minutos")
+        self.assertEqual(self.posts[-1], ("/api/timers", {"action": "timer", "seconds": 600}, "1"))
+        self.assertEqual(assistant.execute(self.cfg, ("alarm_set", (7, 30))), "Alarma a las 7 y 30")
+        self.assertEqual(self.posts[-1][1], {"action": "alarm", "hour": 7, "minute": 30})
+        self.assertEqual(assistant.execute(self.cfg, ("alarm_set", (7, 0))), "Alarma a las 7 en punto")
+        self.assertEqual(assistant.execute(self.cfg, ("timer_cancel", None)), "Temporizador cancelado")
+        self.assertEqual(self.posts[-1][1], {"action": "cancel", "kind": "timer"})
+        self.assertEqual(assistant.execute(self.cfg, ("timers_stop", None)), "Hecho")
+        self.assertEqual(self.posts[-1][1], {"action": "dismiss"})
+
+    def test_timer_query(self):
+        self.status["timers"] = []
+        self.assertEqual(assistant.execute(self.cfg, ("timer_query", None)), "No hay ningún temporizador ni alarma")
+        self.status["timers"] = [{"kind": "timer", "remaining": 250, "ringing": False}]
+        self.assertEqual(assistant.execute(self.cfg, ("timer_query", None)), "Quedan 4 minutos y 10 segundos")
+
     def test_server_down_is_a_polite_error(self):
         self.srv.shutdown()
         self.assertEqual(assistant.execute({"api": "http://127.0.0.1:1"}, ("brightness", "+20")), "No he podido hacerlo")

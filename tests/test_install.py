@@ -151,6 +151,13 @@ class InstallerTest(unittest.TestCase):
         self.assertEqual((a / "start/Inicio.mp4").read_bytes(), b"mio")     # no se borra
         self.assertFalse((a / "README.md").exists())              # la documentacion no se copia
 
+    def test_service_unit_can_reach_the_user_audio_for_alarms(self):
+        self.install()
+        unit = (self.r / "etc/systemd/system/pcpi-home.service").read_text()
+        self.assertIn("XDG_RUNTIME_DIR=/run/user/1000", unit)               # el id del usuario (el shim de `id -u` dice 1000)
+        self.assertNotIn("__UID__", unit)
+        self.assertTrue([l for l in self.calls() if l.startswith("usermod -aG audio")])
+
     def test_service_unit_gets_the_real_user(self):
         self.install()
         unit = self.read("etc/systemd/system/pcpi-home.service")
