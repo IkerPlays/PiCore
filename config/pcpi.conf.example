@@ -13,8 +13,8 @@ password =
 
 [weather]
 # Open-Meteo (sin API key). Vacio = sin tiempo. Ejemplo: Madrid
-lat = 40.4168
-lon = -3.7038
+lat = 28,0989
+lon = -15,4722
 
 [voice]
 # Asistente de voz local (./install.sh --voice).
