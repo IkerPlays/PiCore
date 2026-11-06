@@ -23,7 +23,8 @@ class EmulatorTest(unittest.TestCase):
     def test_emulator_serves_everything(self):
         port = free_port()
         p = subprocess.Popen([sys.executable, str(ROOT / "tools" / "emulate.py"), "--no-repl", "--port", str(port)],
-                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                             env={k: v for k, v in os.environ.items() if not k.startswith("PCPI_")})
         try:
             base = "http://127.0.0.1:%d" % port
             for _ in range(50):
@@ -62,7 +63,7 @@ class EmulatorIntrosTest(unittest.TestCase):
         fake_mp4 = b"\x00\x00\x00\x18ftypmp42\x00\x00\x00\x00mp42isom" + bytes(range(256)) * 600
         for n in (1, 2, 3):
             (assets / "start" / ("Inicio%d.mp4" % n)).write_bytes(fake_mp4 + bytes([n]))
-        env = {**os.environ, "PCPI_ASSETS": str(assets)}
+        env = {**{k: v for k, v in os.environ.items() if not k.startswith("PCPI_")}, "PCPI_ASSETS": str(assets)}
         self.p = subprocess.Popen([sys.executable, str(ROOT / "tools" / "emulate.py"), *([] if repl else ["--no-repl"]), "--port", str(self.port), *extra],
                                   stdin=subprocess.PIPE if repl else None, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, env=env)
         self.base = "http://127.0.0.1:%d" % self.port

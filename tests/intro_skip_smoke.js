@@ -8,7 +8,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 (async () => {
   // como la Pi (con la bandera de autoplay) o como un navegador normal (sin ella: el sonido esta bloqueado hasta tocar)
-  const browser = await chromium.launch({ args: noFlag ? [] : ['--autoplay-policy=no-user-gesture-required'] });
+  const browser = await chromium.launch({ args: ['--autoplay-policy=' + (noFlag ? 'document-user-activation-required' : 'no-user-gesture-required')] });
   const ctx = await browser.newContext({ viewport: { width: 1024, height: 600 } });
   const page = await ctx.newPage();
   patchWaitForFunction(page);

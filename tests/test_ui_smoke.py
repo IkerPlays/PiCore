@@ -24,6 +24,11 @@ def node_env():
     return env if ok else None
 
 
+def clean_env():
+    """Entorno sin las variables PCPI_* que otras pruebas dejan puestas en este mismo proceso (el emulador pone las suyas)."""
+    return {k: v for k, v in os.environ.items() if not k.startswith("PCPI_")}
+
+
 def free_port():
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
@@ -35,7 +40,7 @@ class UiSmokeTest(unittest.TestCase):
     def test_ui_in_real_browser(self):
         port = free_port()
         emu = subprocess.Popen([sys.executable, str(ROOT / "tools" / "emulate.py"), "--no-repl", "--port", str(port)],
-                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=clean_env())
         try:
             for _ in range(150):                      # hasta ~30 s: el emulador copia tus assets y arranca varios servicios
                 if emu.poll() is not None:

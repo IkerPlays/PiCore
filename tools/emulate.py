@@ -110,7 +110,8 @@ def main():
     # Copia de TUS assets a una carpeta temporal: asi el «intro 4 descargado» no ensucia el repositorio
     src_assets = Path(os.environ.get("PCPI_ASSETS", str(ROOT / "extra-assets")))
     assets = tmp / "assets"
-    shutil.copytree(src_assets, assets, ignore=shutil.ignore_patterns(".gitkeep", "*.part", "README.md"), dirs_exist_ok=True)
+    if src_assets.is_dir():
+        shutil.copytree(src_assets, assets, ignore=shutil.ignore_patterns(".gitkeep", "*.part", "README.md"), dirs_exist_ok=True)
     (assets / "start").mkdir(parents=True, exist_ok=True)
 
     # Servidor local que hace de «netlify»: sirve despacio (para que se vea la barra) un video de tu carpeta como intro 4
