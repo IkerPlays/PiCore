@@ -79,3 +79,14 @@ min_seconds = 3
 skip_button = true
 # Segundos que se ve cada imagen/GIF/video de la carga (1-20).
 media_seconds = 3
+
+[wifi]
+# Gestion de Wi-Fi con NetworkManager (panel en la pantalla y «pcpi-wifi»).
+# false = PCPi no toca nada de la red.
+manage = true
+# En las redes NUEVAS, usar el Pi-hole como DNS (se puede cambiar red por red en el panel o con «pcpi-wifi pihole»).
+pihole_default = true
+# Abrir solo la ventana de inicio de sesion cuando una wifi publica lo pida (hotel, aeropuerto...).
+# false = no se abre sola; sale un boton «Iniciar sesion» en el panel de Wi-Fi.
+auto_portal = true
+

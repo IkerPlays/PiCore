@@ -12,10 +12,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "home"))
 
 tmp = Path(tempfile.mkdtemp())
-os.environ["PCPI_CONF"] = str(tmp / "pcpi.conf")
-os.environ["PCPI_MODE_FILE"] = str(tmp / "mode")
-os.environ["PCPI_RUN_DIR"] = str(tmp / "run")
-os.environ["PCPI_ASSETS"] = str(tmp / "assets")
+ENV = {"PCPI_CONF": str(tmp / "pcpi.conf"), "PCPI_MODE_FILE": str(tmp / "mode"), "PCPI_RUN_DIR": str(tmp / "run"),
+       "PCPI_ASSETS": str(tmp / "assets")}
+os.environ.update(ENV)          # (se reaplican en cada prueba: otros modulos cambian estas variables)
 import assets  # noqa: E402
 import server  # noqa: E402
 
@@ -34,6 +33,9 @@ for d in ("start", "loading/images", "loading/videos", "loading/gifs"):
 
 
 class ListTest(unittest.TestCase):
+    def setUp(self):
+        os.environ.update(ENV)
+
     def test_media_sorted_and_filtered(self):
         urls = [m["url"] for m in assets.loading_media()]
         self.assertEqual(urls[:3], ["/assets/loading/images/a.JPG", "/assets/loading/images/b.png",
@@ -78,8 +80,12 @@ class ListTest(unittest.TestCase):
 
 
 class HttpTest(unittest.TestCase):
+    def setUp(self):
+        os.environ.update(ENV)
+
     @classmethod
     def setUpClass(cls):
+        os.environ.update(ENV)
         cls.srv = server.make_server("127.0.0.1", 0)
         cls.base = "http://127.0.0.1:%d" % cls.srv.server_address[1]
         threading.Thread(target=cls.srv.serve_forever, daemon=True).start()

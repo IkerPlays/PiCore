@@ -75,6 +75,12 @@ class InstallerTest(unittest.TestCase):
         self.assertEqual(self.read("etc/pcpi/mode").strip(), "desktop")
         self.assertEqual(self.read("etc/tmpfiles.d/pcpi.conf").strip(), "d /run/pcpi 1777 root root -")
 
+    def test_wifi_group_for_networkmanager(self):
+        self.install()
+        c = self.calls()
+        self.assertTrue([l for l in c if l.startswith("usermod -aG netdev ")], c)
+        self.assertFalse([l for l in c if "network-manager" in l], "no debe instalar NetworkManager (podria romper la red)")
+
     def test_extra_assets_copied_without_deleting_existing(self):
         old = self.r / "opt/pcpi/extra-assets/start"
         old.mkdir(parents=True)

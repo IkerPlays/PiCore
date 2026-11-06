@@ -102,10 +102,14 @@ def main():
         "[camera]\ncommand = %s\n" % (a.host, a.port, fport, fport, cam))
     (tmp / "mode").write_text(a.mode + "\n")
     os.environ.update(PCPI_CONF=str(tmp / "pcpi.conf"), PCPI_MODE_FILE=str(tmp / "mode"),
-                      PCPI_NOWPLAYING=str(tmp / "np.json"), PCPI_VOICE_STATE=str(tmp / "voice.json"), PCPI_NOTES_DIR=str(tmp / "notes"))
+                      PCPI_NOWPLAYING=str(tmp / "np.json"), PCPI_VOICE_STATE=str(tmp / "voice.json"), PCPI_NOTES_DIR=str(tmp / "notes"),
+                      PCPI_RUN_DIR=str(tmp / "run"), PCPI_NETS=str(tmp / "nets.json"), PCPI_FAKE_NM=str(tmp / "nm.json"),
+                      PCPI_NMCLI="%s %s" % (sys.executable, ROOT / "tools" / "fake_nmcli.py"))
+    os.environ.setdefault("PCPI_ASSETS", str(ROOT / "extra-assets"))        # tus videos/imagenes de Inicio y Carga
     sys.path[:0] = [str(ROOT / "home"), str(ROOT / "voice")]
     import assistant
     import intents
+    import netmgr
     import server
 
     def nowplaying(state, title="", artist=""):
@@ -114,6 +118,10 @@ def main():
     nowplaying("playing", "Bohemian Rhapsody", "Queen")
     server.save_note(None, "Lista de la compra\n- leche\n- pan\n- café")
     server.save_note(None, "Ideas para el proyecto\nProbar la voz en la Pi real y ajustar el umbral.")
+    # Wi-Fi emulado: nmcli de mentira (3 redes) y un internet que siempre responde
+    server.NETWATCH = netmgr.NetWatch(tmp / "run", nm=netmgr, probe_fn=lambda: ("full", None), dns_ok=lambda: True)
+    server.NETWATCH.tick()
+    threading.Thread(target=server.NETWATCH.loop, daemon=True).start()
     srv = server.make_server(a.host, a.port)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     print("PCPi emulado en http://%s:%d   (modo %s, datos en %s)" % (a.host, a.port, a.mode, tmp), flush=True)

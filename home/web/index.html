@@ -5,71 +5,173 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PCPi · Casa</title>
 <style>
-  :root { --bg:#0e1014; --card:#181b22; --fg:#f2f4f8; --dim:#8b93a3; --line:#252a33; --ok:#4ade80; --bad:#f87171; --acc:#7aa7ff; --acc-fg:#07101f; }
-  html[data-theme=light] { --bg:#ece6da; --card:#fbf8f1; --fg:#23201b; --dim:#7a7468; --line:#ded6c6; --ok:#2f9e5b; --bad:#d04a3f; --acc:#2f64d8; --acc-fg:#fff; }
-  * { box-sizing:border-box; margin:0; user-select:none; -webkit-user-select:none; }
-  html,body { height:100%; background:var(--bg); color:var(--fg); font-family:system-ui,"Segoe UI",sans-serif; overflow:hidden; cursor:none; transition:background .6s,color .6s; }
+  :root { --bg:#0b0d12; --card:#161a22; --card2:#1c2029; --fg:#f2f4f8; --dim:#8b93a3; --line:#262c38; --ok:#4ade80; --bad:#f87171; --warn:#fbbf24;
+          --acc:#7aa7ff; --acc2:#b18cff; --acc-fg:#07101f; --orb1:#7aa7ff; --orb2:#b18cff; --orbo:.15; --shadow:0 18px 50px #0006;
+          --ease:cubic-bezier(.2,.9,.25,1); }
+  html[data-theme=light] { --bg:#ece6da; --card:#fbf8f1; --card2:#f3eee2; --fg:#23201b; --dim:#7a7468; --line:#ded6c6; --ok:#2f9e5b; --bad:#d04a3f; --warn:#c78a00;
+          --acc:#2f64d8; --acc2:#8a5cf0; --acc-fg:#fff; --orb1:#ffb86b; --orb2:#7aa7ff; --orbo:.28; --shadow:0 18px 40px #7a6a4a26; }
+  * { box-sizing:border-box; margin:0; user-select:none; -webkit-user-select:none; -webkit-tap-highlight-color:transparent; }
+  [hidden] { display:none !important; }
+  html,body { height:100%; background:var(--bg); color:var(--fg); font-family:system-ui,"Segoe UI",sans-serif; overflow:hidden; cursor:none; transition:background .8s,color .8s; }
+  body { animation:pagein .7s var(--ease) both; }
+  @keyframes pagein { from { opacity:0 } to { opacity:1 } }
+
+  /* fondo vivo: dos manchas de luz que se desplazan muy despacio (solo transform: casi no gasta CPU/GPU) */
+  .orb { position:fixed; width:62vmax; height:62vmax; border-radius:50%; filter:blur(80px); opacity:var(--orbo); pointer-events:none; z-index:0; transition:opacity 1s; will-change:transform; }
+  .orb.a { background:var(--orb1); top:-34vmax; left:-22vmax; animation:drift 22s ease-in-out infinite alternate; }
+  .orb.b { background:var(--orb2); bottom:-38vmax; right:-26vmax; animation:drift 28s ease-in-out infinite alternate-reverse; }
+  @keyframes drift { to { transform:translate(9vmax,6vmax) scale(1.14); } }
+
   #dim { position:fixed; inset:0; background:#000; opacity:0; pointer-events:none; z-index:4; transition:opacity 1.5s; }
   body.night #dim { opacity:.38; }
-  main { height:100%; display:grid; grid-template-columns:1.25fr 1fr; grid-template-rows:minmax(0,1fr) 64px; gap:14px; padding:14px; }
-  .card { background:var(--card); border-radius:22px; padding:16px 20px; overflow:hidden; transition:background .6s; border:1px solid var(--line); }
+  body.night .orb { animation-play-state:paused; }          /* de madrugada, sin animaciones de fondo */
+
+  main { position:relative; z-index:1; height:100%; display:grid; grid-template-columns:1.25fr 1fr; grid-template-rows:minmax(0,1fr) 64px; gap:14px; padding:14px; }
+  .card { background:var(--card); border-radius:24px; padding:16px 20px; overflow:hidden; border:1px solid var(--line); box-shadow:var(--shadow);
+          transition:background .8s, border-color .8s, transform .4s var(--ease); opacity:0; animation:rise .8s var(--ease) both; animation-delay:calc(var(--i,0) * 110ms + 120ms); }
+  @keyframes rise { from { opacity:0; transform:translateY(22px) scale(.97); } to { opacity:1; transform:none; } }
   h2 { font-size:13px; text-transform:uppercase; letter-spacing:.12em; color:var(--dim); font-weight:600; }
   .dim { color:var(--dim); }
 
-  /* reloj */
-  .clock { position:relative; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; }
-  #greet { position:absolute; top:16px; left:22px; font-size:19px; color:var(--dim); }
-  #chips { position:absolute; top:16px; right:18px; display:flex; gap:8px; font-size:14px; color:var(--dim); }
-  #chips span { background:var(--bg); border-radius:999px; padding:4px 11px; }
-  #time { font-size:clamp(84px,17vw,172px); font-weight:700; letter-spacing:-.045em; line-height:.95; font-variant-numeric:tabular-nums; }
+  /* ---------------- reloj ---------------- */
+  .clock { position:relative; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; --i:0; }
+  #greet { position:absolute; top:16px; left:22px; font-size:19px; color:var(--dim); transition:opacity .5s; }
+  #chips { position:absolute; top:12px; right:14px; display:flex; gap:8px; font-size:14px; color:var(--dim); align-items:center; }
+  .chip { background:var(--bg); border-radius:999px; padding:5px 12px; transition:background .6s, color .4s, transform .15s; border:1px solid transparent; font:inherit; font-size:14px; color:var(--dim); }
+  .chip:active { transform:scale(.94); }
+  #chip-wifi { display:flex; align-items:center; gap:7px; max-width:210px; border-color:var(--line); color:var(--fg); }
+  #chip-wifi span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #chip-wifi svg { flex:none; width:19px; height:19px; }
+  #chip-wifi.ok svg { color:var(--ok); } #chip-wifi.warn { border-color:var(--warn); } #chip-wifi.warn svg { color:var(--warn); } #chip-wifi.off svg { color:var(--bad); }
+  #chip-wifi.warn { animation:blink 1.6s ease-in-out infinite; }
+  @keyframes blink { 50% { box-shadow:0 0 0 6px #fbbf2433; } }
+
+  #time { display:flex; font-size:clamp(84px,17vw,172px); font-weight:700; letter-spacing:-.045em; line-height:.95; font-variant-numeric:tabular-nums; }
+  #time .d { display:inline-block; }
+  #time .d.roll { animation:roll .55s var(--ease); }
+  @keyframes roll { from { transform:translateY(38%); opacity:0; filter:blur(6px); } to { transform:none; opacity:1; filter:none; } }
+  #time .colon { animation:colon 2s ease-in-out infinite; }
+  @keyframes colon { 0%,100% { opacity:1 } 50% { opacity:.35 } }
   #date { font-size:27px; color:var(--dim); margin-top:10px; }
-  #weather { margin-top:18px; font-size:28px; display:flex; align-items:center; gap:14px; }
+  #weather { margin-top:18px; font-size:28px; display:flex; align-items:center; gap:14px; min-height:52px; }
+  #weather .wi { display:inline-block; font-size:44px; animation:bob 5s ease-in-out infinite; }
+  @keyframes bob { 50% { transform:translateY(-5px) rotate(-3deg); } }
   #wsub { font-size:17px; color:var(--dim); margin-top:6px; min-height:22px; }
   #hint { position:absolute; bottom:14px; left:0; right:0; font-size:16px; color:var(--dim); }
 
-  /* columna derecha */
+  /* ---------------- columna derecha ---------------- */
   .side { display:grid; grid-template-rows:minmax(0,1.05fr) minmax(0,1fr); gap:14px; min-height:0; }
+  .side .card:nth-child(1) { --i:1; } .side .card:nth-child(2) { --i:2; }
   .ph { display:grid; grid-template-columns:116px 1fr; gap:16px; align-items:center; }
   .ring { position:relative; width:116px; height:116px; }
   .ring svg { transform:rotate(-90deg); }
   .ring circle { fill:none; stroke-width:11; }
   .ring .bg { stroke:var(--line); }
-  .ring .fg { stroke:var(--ok); stroke-linecap:round; transition:stroke-dashoffset .8s, stroke .4s; }
+  .ring .fg { stroke:url(#rg); stroke-linecap:round; transition:stroke-dashoffset 1.2s var(--ease); }
+  .ring.off .fg { stroke:var(--bad); }
   .ring b { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:26px; }
   .row { display:flex; justify-content:space-between; font-size:18px; margin-top:5px; }
-  button { font:inherit; border-radius:16px; background:var(--card); color:var(--fg); border:1px solid var(--line); }
-  button:active { background:var(--acc); color:var(--acc-fg); }
+  button { font:inherit; border-radius:16px; background:var(--card); color:var(--fg); border:1px solid var(--line); transition:transform .12s var(--ease), background .2s, color .2s, border-color .2s; }
+  button:active { background:var(--acc); color:var(--acc-fg); transform:scale(.96); }
   #ph-btn { margin-top:10px; width:100%; padding:11px; font-size:17px; }
   .music { display:grid; grid-template-columns:auto 1fr; gap:16px; align-items:center; }
-  #cover { width:112px; height:112px; border-radius:14px; background:var(--bg); display:flex; align-items:center; justify-content:center; font-size:46px; }
+  #cover { position:relative; width:112px; height:112px; border-radius:16px; background:var(--bg) center/cover; display:flex; align-items:center; justify-content:center; font-size:46px; transition:transform .6s var(--ease), box-shadow .6s; }
+  body.playing #cover { transform:scale(1.04); box-shadow:0 10px 30px #0006; }
+  #meta { min-width:0; transition:opacity .35s, transform .35s var(--ease); }
+  #meta.swap { opacity:0; transform:translateX(10px); }
   #track { font-size:25px; font-weight:650; line-height:1.15; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
   #artist { font-size:18px; color:var(--dim); margin-top:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  #pstate { font-size:14px; margin-top:8px; color:var(--acc); }
+  #pstate { display:flex; align-items:center; gap:9px; font-size:14px; margin-top:8px; color:var(--acc); min-height:18px; }
+  .eq { display:inline-flex; align-items:flex-end; gap:3px; height:16px; }
+  .eq i { width:4px; border-radius:2px; background:currentColor; height:30%; animation:eq 1s ease-in-out infinite; animation-play-state:paused; }
+  .eq i:nth-child(2) { animation-delay:-.3s; } .eq i:nth-child(3) { animation-delay:-.6s; } .eq i:nth-child(4) { animation-delay:-.15s; }
+  body.playing .eq i { animation-play-state:running; }
+  @keyframes eq { 0%,100% { height:25% } 50% { height:100% } }
 
-  /* barra inferior */
   nav { grid-column:1 / span 2; display:flex; gap:12px; }
-  nav button { flex:1; font-size:20px; }
+  nav button { flex:1; font-size:20px; box-shadow:var(--shadow); opacity:0; animation:rise .7s var(--ease) both; animation-delay:calc(var(--i) * 90ms + 450ms); display:flex; align-items:center; justify-content:center; gap:10px; }
+  nav button svg { width:22px; height:22px; }
 
-  /* voz */
-  #voice { position:fixed; left:50%; bottom:92px; transform:translate(-50%,20px); opacity:0; pointer-events:none; transition:all .25s;
+  /* ---------------- voz ---------------- */
+  #voice { position:fixed; left:50%; bottom:92px; transform:translate(-50%,24px) scale(.96); opacity:0; pointer-events:none; transition:all .4s var(--ease);
            background:var(--acc); color:var(--acc-fg); padding:12px 26px; border-radius:999px; font-size:21px; max-width:88vw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; box-shadow:0 8px 30px #0006; z-index:5; }
   #voice.on { opacity:1; transform:translate(-50%,0); }
   #voice.pulse::before { content:""; display:inline-block; width:12px; height:12px; border-radius:50%; background:currentColor; margin-right:12px; animation:pulse 1s infinite; }
   @keyframes pulse { 0%,100% { transform:scale(.7); opacity:.6 } 50% { transform:scale(1.2); opacity:1 } }
 
-  /* camara */
+  /* ---------------- camara ---------------- */
   #cam { position:fixed; inset:0; background:#000; display:none; z-index:10; }
+  #cam.show { animation:camin .45s var(--ease) both; }
+  @keyframes camin { from { opacity:0; transform:scale(1.04); } to { opacity:1; transform:none; } }
   #cam img { width:100%; height:100%; object-fit:contain; }
   #cam button { position:absolute; top:16px; right:16px; padding:14px 24px; background:rgba(26,29,36,.88); color:#fff; border-color:#fff3; }
   #cam .msg { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#8b93a3; font-size:24px; z-index:-1; }
+
+  /* ---------------- panel de Wi-Fi (hoja desde abajo) ---------------- */
+  #scrim { position:fixed; inset:0; background:#000; opacity:0; pointer-events:none; z-index:20; transition:opacity .35s; }
+  #scrim.on { opacity:.5; pointer-events:auto; }
+  #sheet { position:fixed; left:50%; bottom:0; z-index:21; width:min(760px,100vw); max-height:92vh; display:flex; flex-direction:column; background:var(--card); border:1px solid var(--line); border-bottom:0;
+           border-radius:26px 26px 0 0; box-shadow:0 -20px 60px #0008; transform:translate(-50%,105%); transition:transform .5s var(--ease), padding-bottom .3s; }
+  #sheet.on { transform:translate(-50%,0); }
+  body.osk-open #sheet { padding-bottom:268px; }
+  .sh-head { display:flex; align-items:center; justify-content:space-between; padding:16px 20px 8px; }
+  .sh-head h3 { font-size:22px; }
+  .sh-head button { width:44px; height:44px; font-size:20px; border-radius:50%; }
+  .sh-body { overflow:auto; padding:4px 16px 18px; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; touch-action:pan-y; }
+  .cur { background:var(--card2); border:1px solid var(--line); border-radius:18px; padding:14px 16px; margin:6px 4px 12px; }
+  .cur .t { font-size:20px; font-weight:650; } .cur .s { color:var(--dim); font-size:15px; margin-top:3px; }
+  .cur .s.ok { color:var(--ok); } .cur .s.warn { color:var(--warn); } .cur .s.bad { color:var(--bad); }
+  .tg { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:12px; font-size:16px; }
+  .tg small { display:block; color:var(--dim); font-size:13px; margin-top:2px; }
+  .sw { position:relative; flex:none; width:56px; height:32px; border-radius:999px; background:var(--line); padding:0; border:0; }
+  .sw::after { content:""; position:absolute; top:3px; left:3px; width:26px; height:26px; border-radius:50%; background:#fff; transition:transform .3s var(--ease); box-shadow:0 2px 6px #0004; }
+  .sw.on { background:var(--ok); } .sw.on::after { transform:translateX(24px); }
+  .sw:active { transform:none; }
+  .act { display:flex; gap:10px; margin-top:12px; }
+  .act button { flex:1; padding:12px; font-size:16px; }
+  .net { display:flex; align-items:center; gap:14px; width:100%; text-align:left; padding:13px 14px; margin:0 0 8px; border-radius:16px; font-size:18px;
+         opacity:0; animation:rise .5s var(--ease) both; animation-delay:calc(var(--k) * 45ms); }
+  .net .nm { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .net .tag { font-size:12px; color:var(--dim); border:1px solid var(--line); border-radius:999px; padding:2px 9px; }
+  .net.active { border-color:var(--ok); }
+  .net .bars { display:inline-flex; align-items:flex-end; gap:2px; height:18px; flex:none; }
+  .net .bars i { width:4px; border-radius:1px; background:var(--line); } .net .bars i.on { background:var(--fg); }
+  .net .lock { width:15px; height:15px; color:var(--dim); flex:none; }
+  .pw { margin:6px 4px 12px; padding:14px; background:var(--card2); border:1px solid var(--acc); border-radius:18px; animation:rise .4s var(--ease) both; }
+  .pw .l { font-size:16px; margin-bottom:8px; }
+  .pw .f { display:flex; gap:8px; }
+  .pw input { flex:1; min-width:0; font:inherit; font-size:20px; padding:12px 14px; border-radius:12px; border:1px solid var(--line); background:var(--bg); color:var(--fg); cursor:text; user-select:text; -webkit-user-select:text; }
+  .pw input:focus { outline:2px solid var(--acc); }
+  .pw .f button { padding:0 16px; font-size:18px; }
+  .err { color:var(--bad); font-size:15px; margin-top:8px; min-height:20px; }
+  .spin { display:inline-block; width:18px; height:18px; border:3px solid var(--line); border-top-color:var(--acc); border-radius:50%; animation:spin .8s linear infinite; vertical-align:-3px; margin-right:8px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* ---------------- cambio de modo ---------------- */
+  #switching { position:fixed; inset:0; z-index:40; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; background:var(--bg);
+               opacity:0; pointer-events:none; transition:opacity .45s ease; font-size:26px; }
+  #switching.on { opacity:1; pointer-events:auto; }
+  #switching .spin { width:44px; height:44px; border-width:5px; margin:0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+    .orb { animation:none !important; }
+  }
 </style>
 </head>
 <body>
+<div class="orb a"></div><div class="orb b"></div>
 <main>
   <section class="card clock" id="clock">
     <div id="greet"></div>
-    <div id="chips"><span id="chip-cpu" hidden></span><span id="chip-ip" hidden></span></div>
-    <div id="time">--:--</div>
+    <div id="chips">
+      <span class="chip" id="chip-cpu" hidden></span>
+      <button class="chip" id="chip-wifi" hidden aria-label="Wi-Fi">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 9a14 14 0 0 1 19 0"/><path d="M5.5 12.5a9.5 9.5 0 0 1 13 0"/><path d="M8.7 16a5 5 0 0 1 6.6 0"/><circle cx="12" cy="19.4" r="1.2" fill="currentColor" stroke="none"/></svg>
+        <span id="wifi-name">Wi-Fi</span>
+      </button>
+    </div>
+    <div id="time" aria-label="hora">--:--</div>
     <div id="date"></div>
     <div id="weather"></div>
     <div id="wsub"></div>
@@ -80,8 +182,11 @@
     <div class="card">
       <h2>Pi-hole</h2>
       <div class="ph" style="margin-top:8px">
-        <div class="ring">
-          <svg width="116" height="116" viewBox="0 0 116 116"><circle class="bg" cx="58" cy="58" r="50"/><circle class="fg" id="ring" cx="58" cy="58" r="50" stroke-dasharray="314.16" stroke-dashoffset="314.16"/></svg>
+        <div class="ring" id="ringbox">
+          <svg width="116" height="116" viewBox="0 0 116 116">
+            <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--ok)"/><stop offset="1" stop-color="var(--acc)"/></linearGradient></defs>
+            <circle class="bg" cx="58" cy="58" r="50"/><circle class="fg" id="ring" cx="58" cy="58" r="50" stroke-dasharray="314.16" stroke-dashoffset="314.16"/>
+          </svg>
           <b id="ph-pct">--</b>
         </div>
         <div>
@@ -96,7 +201,7 @@
       <h2>Spotify</h2>
       <div class="music" style="margin-top:10px">
         <div id="cover">🎵</div>
-        <div style="min-width:0">
+        <div id="meta">
           <div id="track">Nada sonando</div>
           <div id="artist">Elige «PCPi» en Spotify Connect</div>
           <div id="pstate"></div>
@@ -106,9 +211,9 @@
   </section>
 
   <nav>
-    <button id="open-cam">📷 Cámara</button>
-    <button data-mode="iker">📝 Modo Iker</button>
-    <button data-mode="desktop">🖥 Escritorio</button>
+    <button id="open-cam" style="--i:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h3l2-3h8l2 3h3v11H3z"/><circle cx="12" cy="13" r="3.5"/></svg>Cámara</button>
+    <button data-mode="iker" style="--i:1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h10l4 4v14H5z"/><path d="M9 12h6M9 16h6"/></svg>Modo Iker</button>
+    <button data-mode="desktop" style="--i:2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>Escritorio</button>
   </nav>
 </main>
 
@@ -120,6 +225,15 @@
   <button id="close-cam">✕ Cerrar</button>
 </div>
 
+<div id="scrim"></div>
+<section id="sheet" aria-label="Wi-Fi">
+  <div class="sh-head"><h3>Wi-Fi</h3><button id="sh-close" aria-label="Cerrar">✕</button></div>
+  <div class="sh-body" id="sh-body"></div>
+</section>
+
+<div id="switching"><div class="spin"></div><div id="sw-text">Cambiando de modo…</div></div>
+
+<script src="/static/osk.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 const post = (url, body) => fetch(url, {method:"POST", headers:{"X-PCPI":"1"}, body:JSON.stringify(body)});
@@ -129,6 +243,8 @@ const fmt = n => (n ?? "--").toLocaleString("es-ES");
 const WMO = {0:["☀️","Despejado"],1:["🌤","Poco nuboso"],2:["⛅","Nuboso"],3:["☁️","Cubierto"],45:["🌫","Niebla"],48:["🌫","Niebla"],
   51:["🌦","Llovizna"],53:["🌦","Llovizna"],55:["🌦","Llovizna"],61:["🌧","Lluvia"],63:["🌧","Lluvia"],65:["🌧","Lluvia fuerte"],
   71:["❄️","Nieve"],73:["❄️","Nieve"],75:["❄️","Nieve"],80:["🌦","Chubascos"],81:["🌧","Chubascos"],82:["🌧","Chubascos"],95:["⛈","Tormenta"]};
+/* escapa texto que viene de fuera (nombres de Wi-Fi) antes de meterlo en HTML */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
 /* ---- tema: claro de dia (papel), oscuro de noche; toca la hora para cambiarlo, el saludo para volver a auto ---- */
 let themeOverride = null;
@@ -146,18 +262,45 @@ $("time").onclick = () => {
 };
 $("greet").onclick = () => { themeOverride = null; try { localStorage.removeItem("pcpi-theme"); } catch (e) {} applyTheme(); };
 
-/* el reloj solo toca el DOM cuando cambia el minuto (no cada segundo) */
-let lastMin = -1;
+/* ---- reloj: cada cifra se anima SOLO cuando cambia; el DOM se toca una vez por minuto ---- */
+let lastMin = -1, digits = [];
+function setTime(txt) {
+  if (digits.length !== txt.length) {
+    $("time").textContent = "";
+    digits = [...txt].map(ch => { const s = document.createElement("span"); s.className = ch === ":" ? "d colon" : "d"; s.textContent = ch; $("time").appendChild(s); return s; });
+    return;
+  }
+  [...txt].forEach((ch, i) => {
+    if (digits[i].textContent !== ch) { digits[i].textContent = ch; digits[i].classList.remove("roll"); void digits[i].offsetWidth; digits[i].classList.add("roll"); }
+  });
+}
 function tick() {
   const d = new Date(), key = d.getHours() * 60 + d.getMinutes();
   if (key === lastMin) return;
   lastMin = key;
   const h = d.getHours();
-  $("time").textContent = d.toLocaleTimeString("es-ES", {hour:"2-digit", minute:"2-digit"});
+  setTime(d.toLocaleTimeString("es-ES", {hour:"2-digit", minute:"2-digit"}));
   const ds = d.toLocaleDateString("es-ES", {weekday:"long", day:"numeric", month:"long"});
   $("date").textContent = ds.charAt(0).toUpperCase() + ds.slice(1);
   $("greet").textContent = h < 6 ? "Buenas noches" : h < 13 ? "Buenos días" : h < 20 ? "Buenas tardes" : "Buenas noches";
   applyTheme();
+}
+
+/* ---- numeros que cuentan hasta su valor en vez de saltar ---- */
+const counters = new WeakMap();
+function countTo(el, to, fmtFn = fmt) {
+  if (to == null) { el.textContent = "--"; counters.delete(el); return; }
+  const st = counters.get(el) || {v: null, raf: 0};
+  counters.set(el, st);
+  if (st.v === to) return;
+  cancelAnimationFrame(st.raf);
+  const from = st.v == null ? to : st.v, t0 = performance.now(), dur = Math.min(900, 250 + Math.abs(to - from));
+  const step = now => {
+    const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+    el.textContent = fmtFn(Math.round(from + (to - from) * e));
+    if (p < 1) st.raf = requestAnimationFrame(step);
+  };
+  st.v = to; st.raf = requestAnimationFrame(step);
 }
 
 /* ---- Pi-hole ---- */
@@ -173,21 +316,134 @@ const camMsg = () => document.querySelector("#cam .msg");
 function openCam() {
   if (camShown()) return;
   camMsg().textContent = "Conectando con la cámara…";
-  $("cam").style.display = "block";
+  $("cam").style.display = "block"; $("cam").classList.add("show");
   $("cam-img").src = "/api/camera/stream?" + Date.now();
 }
 $("cam-img").onerror = () => { if (camShown()) camMsg().textContent = "No se pudo abrir la cámara (¿está conectada? ¿falta ffmpeg?)"; };
-function closeCam() { if (camShown()) { $("cam-img").removeAttribute("src"); $("cam").style.display = "none"; } }
+function closeCam() { if (camShown()) { $("cam-img").removeAttribute("src"); $("cam").style.display = "none"; $("cam").classList.remove("show"); } }
 $("open-cam").onclick = () => { openCam(); post("/api/camera", {show:true}); };
 $("close-cam").onclick = () => { closeCam(); post("/api/camera", {show:false}); };
-document.querySelectorAll("button[data-mode]").forEach(b => b.onclick = () => post("/api/mode", {mode:b.dataset.mode}));
+
+/* ---- cambio de modo: la pantalla se funde y entra la pantalla de Carga del vigilante ---- */
+const MODE_NAMES = {iker:"modo Iker", desktop:"el Escritorio", home:"modo Casa"};
+document.querySelectorAll("button[data-mode]").forEach(b => b.onclick = async () => {
+  $("sw-text").textContent = "Cambiando a " + MODE_NAMES[b.dataset.mode] + "…";
+  $("switching").classList.add("on");
+  try { const r = await post("/api/mode", {mode:b.dataset.mode}); if (!r.ok) throw 0; }
+  catch (e) { $("switching").classList.remove("on"); return; }
+  setTimeout(() => $("switching").classList.remove("on"), 20000);     // por si el cambio no llega a ocurrir
+});
 
 /* ---- voz ---- */
-let hideVoice = 0;
+let hideVoice = 0, firstMusic = true;
 function showVoice(text, pulse, ms) {
   const v = $("voice"); v.textContent = text; v.classList.add("on"); v.classList.toggle("pulse", pulse);
   clearTimeout(hideVoice); if (ms) hideVoice = setTimeout(() => v.classList.remove("on"), ms);
 }
+
+/* ---- chip de Wi-Fi ---- */
+let netState = null;
+function paintNet(n) {
+  netState = n;
+  const chip = $("chip-wifi");
+  if (!n || !n.available) { chip.hidden = true; return; }
+  chip.hidden = false;
+  const cls = !n.name ? "off" : (n.portal || n.connectivity === "portal") ? "warn" : n.connectivity === "none" ? "off" : "ok";
+  chip.className = "chip " + cls;
+  $("wifi-name").textContent = !n.name ? "Sin red" : cls === "warn" ? n.name + " · iniciar sesión" : n.type === "ethernet" ? "Cable" : n.name;
+}
+
+/* ---- panel de Wi-Fi ---- */
+let sheetOpen = false, wifi = null, pending = null, busy = false, sheetTimer = 0, formFor = null;
+const bars = s => { const n = s >= 75 ? 4 : s >= 50 ? 3 : s >= 25 ? 2 : 1; return `<span class="bars">${[1,2,3,4].map(i => `<i style="height:${i * 25}%" class="${i <= n ? "on" : ""}"></i>`).join("")}</span>`; };
+const LOCK = '<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+
+async function loadWifi(scan) {
+  try { wifi = await (await fetch("/api/wifi" + (scan ? "?scan=1" : ""))).json(); } catch (e) { return; }
+  if (sheetOpen && !busy && !formFor) renderSheet();
+}
+function curStatus(w) {
+  const a = w.active;
+  if (!a) return ["Sin conexión", "bad", "Elige una red de la lista."];
+  const c = w.connectivity;
+  if (c === "portal") return ["Conectado, pero la red pide iniciar sesión", "warn", "Es una wifi pública (hotel, aeropuerto…): pulsa «Iniciar sesión»."];
+  if (c === "none") return ["Conectado, sin internet", "bad", "La red no deja salir a internet."];
+  return ["Conectado · internet OK", "ok", w.dns === "pihole" ? "Pi-hole filtra los anuncios en esta red." : "Esta red usa su propio DNS (sin Pi-hole)."];
+}
+function renderSheet() {
+  const body = $("sh-body"), w = wifi;
+  if (!w) { body.innerHTML = '<div class="cur"><span class="spin"></span>Buscando redes…</div>'; return; }
+  if (!w.available) { body.innerHTML = '<div class="cur"><div class="t">Wi-Fi no disponible</div><div class="s">Este equipo no tiene NetworkManager (o está desactivado en pcpi.conf).</div></div>'; return; }
+  const a = w.active, [t, cls, sub] = curStatus(w);
+  let h = `<div class="cur"><div class="t">${a ? esc(a.name) : "Sin red"}${a && a.type === "ethernet" ? " (cable)" : ""}</div><div class="s ${cls}">${t}</div><div class="s">${sub}</div>`;
+  if (a) {
+    h += `<div class="tg"><div>Usar Pi-hole en esta red<small>Bloquea anuncios y rastreadores en esta Wi-Fi</small></div><button class="sw ${w.wants_pihole ? "on" : ""}" id="sw-pi" aria-label="Pi-hole"></button></div>`;
+  }
+  h += `<div class="act">`;
+  if (w.portal || w.connectivity === "portal") h += `<button id="b-portal" style="background:var(--warn);color:#000;border-color:var(--warn)">🔑 Iniciar sesión</button>`;
+  h += `<button id="b-scan">↻ Buscar redes</button>`;
+  if (a && a.type === "wifi") h += `<button id="b-forget">Olvidar</button>`;
+  h += `</div><div class="err" id="sh-err"></div></div>`;
+  h += `<div id="pwbox"></div>`;
+  const saved = new Set(w.saved || []);
+  (w.networks || []).forEach((n, i) => {
+    h += `<button class="net${n.active ? " active" : ""}" style="--k:${i}" data-ssid="${esc(n.ssid)}" data-secure="${n.secure ? 1 : 0}">${bars(n.signal)}<span class="nm">${esc(n.ssid)}</span>${n.active ? '<span class="tag">conectada</span>' : saved.has(n.ssid) ? '<span class="tag">guardada</span>' : ""}${n.secure ? LOCK : ""}</button>`;
+  });
+  if (!(w.networks || []).length) h += '<div class="cur"><div class="s">No veo ninguna red. Pulsa «Buscar redes».</div></div>';
+  body.innerHTML = h;
+  const sw = $("sw-pi"); if (sw) sw.onclick = async () => {
+    const on = !sw.classList.contains("on"); sw.classList.toggle("on", on);
+    await post("/api/wifi/pihole", {ssid: a.name, on}).catch(() => {}); setTimeout(() => loadWifi(), 1500);
+  };
+  $("b-scan").onclick = async () => { $("b-scan").innerHTML = '<span class="spin"></span>Buscando…'; await loadWifi(true); };
+  const bp = $("b-portal"); if (bp) bp.onclick = async () => { await post("/api/wifi/portal", {open:true}); setErr("Abriendo la ventana de inicio de sesión…", true); };
+  const bf = $("b-forget"); if (bf) bf.onclick = async () => {
+    if (bf.dataset.sure !== "1") { bf.dataset.sure = "1"; bf.textContent = "¿Seguro? Tócalo otra vez"; setTimeout(() => { bf.dataset.sure = ""; bf.textContent = "Olvidar"; }, 3500); return; }
+    await post("/api/wifi/forget", {ssid: a.name}); setTimeout(() => loadWifi(true), 800);
+  };
+  body.querySelectorAll(".net").forEach(b => b.onclick = () => pick(b.dataset.ssid, b.dataset.secure === "1", saved.has(b.dataset.ssid), b.classList.contains("active")));
+}
+function setErr(msg, ok) { const e = $("sh-err"); if (e) { e.textContent = msg; e.style.color = ok ? "var(--ok)" : "var(--bad)"; } }
+function pick(ssid, secure, isSaved, isActive) {
+  if (isActive) return;
+  if (!secure || isSaved) return doConnect(ssid, null);
+  formFor = ssid;
+  const box = $("pwbox");
+  box.innerHTML = `<div class="pw"><div class="l">Contraseña de <b>${esc(ssid)}</b></div><div class="f"><input id="pw-in" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Toca para escribir"><button id="pw-eye" aria-label="Mostrar">👁</button><button id="pw-go" style="background:var(--acc);color:var(--acc-fg)">Conectar</button></div><div class="err" id="pw-err"></div></div>`;
+  const inp = $("pw-in");
+  const go = () => { const v = inp.value; if (v.length < 8) { $("pw-err").textContent = "Mínimo 8 caracteres"; return; } PCPIKeyboard.close(); doConnect(ssid, v); };
+  inp.onfocus = () => PCPIKeyboard.open(inp, {onEnter: go});
+  inp.onkeydown = e => { if (e.key === "Enter") go(); };
+  $("pw-eye").onclick = () => { inp.type = inp.type === "password" ? "text" : "password"; };
+  $("pw-go").onclick = go;
+  inp.focus(); box.scrollIntoView({block:"start", behavior:"smooth"});
+}
+async function doConnect(ssid, pw) {
+  busy = true; formFor = null; PCPIKeyboard.close();
+  $("pwbox").innerHTML = `<div class="pw"><span class="spin"></span>Conectando a <b>${esc(ssid)}</b>…</div>`;
+  let ok = false, msg = "";
+  try {
+    const r = await post("/api/wifi/connect", {ssid, password: pw});
+    ok = r.ok; if (!ok) msg = (await r.json()).error || "No se pudo conectar";
+  } catch (e) { msg = "El servidor no responde"; }
+  busy = false;
+  await loadWifi(false);
+  if (!ok) { setErr(msg, false); }
+  else setErr("Conectado a «" + ssid + "»", true);
+}
+function openSheet() {
+  if (sheetOpen) return;
+  sheetOpen = true; wifi = null; renderSheet(); loadWifi(false);
+  $("scrim").classList.add("on"); $("sheet").classList.add("on");
+  sheetTimer = setInterval(() => { if (!busy && !formFor) loadWifi(false); }, 5000);
+}
+function closeSheet() {
+  sheetOpen = false; formFor = null; PCPIKeyboard.close(); clearInterval(sheetTimer);
+  $("scrim").classList.remove("on"); $("sheet").classList.remove("on");
+}
+$("chip-wifi").onclick = openSheet;
+$("sh-close").onclick = closeSheet;
+$("scrim").onclick = closeSheet;
 
 async function refresh() {
   let s;
@@ -195,24 +451,23 @@ async function refresh() {
   const p = s.pihole;
   if (p.ok) {
     phEnabled = p.blocking === "enabled";
-    $("ph-pct").textContent = Math.round(p.percent) + "%";
+    countTo($("ph-pct"), Math.round(p.percent), n => n + "%");
     $("ring").style.strokeDashoffset = 314.16 * (1 - Math.min(p.percent, 100) / 100);
-    $("ring").style.stroke = phEnabled ? "var(--ok)" : "var(--bad)";
-    $("ph-blocked").textContent = fmt(p.blocked);
-    $("ph-total").textContent = fmt(p.total);
+    $("ringbox").classList.toggle("off", !phEnabled);
+    countTo($("ph-blocked"), p.blocked); countTo($("ph-total"), p.total);
     $("ph-state").textContent = phEnabled ? "Activo" : "En pausa";
     $("ph-state").style.color = phEnabled ? "var(--ok)" : "var(--bad)";
     $("ph-btn").hidden = false;
     $("ph-btn").textContent = phEnabled ? "⏸ Pausar 5 min" : "▶ Activar ya";
   } else {
     $("ph-pct").textContent = "--"; $("ring").style.strokeDashoffset = 314.16;
-    $("ph-blocked").textContent = $("ph-total").textContent = "--";
+    countTo($("ph-blocked"), null); countTo($("ph-total"), null);
     $("ph-state").textContent = "Sin conexión"; $("ph-state").style.color = "var(--dim)"; $("ph-btn").hidden = true;
   }
   const w = s.weather;
   if (w.ok) {
     const [ic, tx] = WMO[w.code] || ["🌡", ""];
-    $("weather").innerHTML = `<span style="font-size:44px">${ic}</span><span><b>${Math.round(w.temp)}°C</b> <span class="dim">${tx}</span></span>`;
+    $("weather").innerHTML = `<span class="wi">${ic}</span><span><b>${Math.round(w.temp)}°C</b> <span class="dim">${tx}</span></span>`;
     const bits = [];
     if (w.tmax != null) bits.push(`Máx ${Math.round(w.tmax)}° · Mín ${Math.round(w.tmin)}°`);
     if (w.rain != null) bits.push(`💧 ${w.rain}%`);
@@ -221,16 +476,25 @@ async function refresh() {
 
   const n = s.nowplaying || {};
   const on = n.state === "playing" || n.state === "paused";
-  $("track").textContent = on ? (n.title || "") : "Nada sonando";
-  $("artist").textContent = on ? (n.artist || "") : "Elige «PCPi» en Spotify Connect";
-  $("pstate").textContent = on ? (n.state === "playing" ? "▶ Reproduciendo" : "⏸ En pausa") : "";
+  document.body.classList.toggle("playing", n.state === "playing");
+  const title = on ? (n.title || "") : "Nada sonando";
+  if ($("track").textContent !== title && !firstMusic) {            // cancion nueva: el texto se desliza
+    const m = $("meta"); m.classList.add("swap");
+    setTimeout(() => {
+      $("track").textContent = title;
+      $("artist").textContent = on ? (n.artist || "") : "Elige «PCPi» en Spotify Connect";
+      m.classList.remove("swap");
+    }, 220);
+  } else { $("track").textContent = title; $("artist").textContent = on ? (n.artist || "") : "Elige «PCPi» en Spotify Connect"; }
+  firstMusic = false;
+  $("pstate").innerHTML = on ? (n.state === "playing" ? '<span class="eq"><i></i><i></i><i></i><i></i></span>Reproduciendo' : "⏸ En pausa") : "";
   const cv = $("cover");
   const cu = on ? safeUrl(n.cover) : null;
-  if (cu) { cv.textContent = ""; cv.style.backgroundImage = "url(" + JSON.stringify(cu) + ")"; cv.style.backgroundSize = "cover"; }
+  if (cu) { cv.textContent = ""; cv.style.backgroundImage = "url(" + JSON.stringify(cu) + ")"; }
   else { cv.style.backgroundImage = ""; cv.textContent = "🎵"; }
 
   if (s.cpu_temp != null) { $("chip-cpu").hidden = false; $("chip-cpu").textContent = "🌡 " + s.cpu_temp + "°"; }
-  if (s.ip) { $("chip-ip").hidden = false; $("chip-ip").textContent = s.ip; }
+  paintNet(s.net);
 
   const c = s.camera || {};
   $("open-cam").style.display = c.available ? "" : "none";
@@ -242,7 +506,7 @@ async function refresh() {
   else if (v.state === "speaking") showVoice(v.reply || "", true, 0);
   else if (v.heard && fresh) showVoice("«" + v.heard + "» → " + (v.reply || ""), false, 5000);
   else if (!fresh) $("voice").classList.remove("on");
-  $("hint").textContent = (v.state && v.state !== "off") ? "🎤 Di «" + (v.wake || "oye pi") + "»" : "";
+  $("hint").textContent = (v.state && v.state !== "off") ? "🎤 Di «" + (v.wake || "oye pi") + "»" : (s.ip ? s.ip : "");
 }
 
 /* mantener la pantalla encendida */

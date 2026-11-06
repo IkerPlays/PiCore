@@ -11,7 +11,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const page = await ctx.newPage();
   const problems = [];
   page.on('pageerror', e => problems.push('pageerror: ' + e.message));
-  page.on('console', m => { if (m.type() === 'error' && !/scdn|ERR_NAME|ERR_INTERNET|net::/.test(m.text())) problems.push('console: ' + m.text()); });
+  page.on('console', m => { if (m.type() === 'error' && !/scdn|ERR_NAME|ERR_INTERNET|net::|status of 400/.test(m.text())) problems.push('console: ' + m.text()); });
 
   // ------------------------------------------------------------------ modo Casa
   await page.goto(base + '/');
@@ -54,6 +54,44 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await sleep(300);
   check('el boton «Modo Iker» cambia el modo', (await (await page.request.get(base + '/api/mode')).json()).mode === 'iker');
   await page.request.post(base + '/api/mode', { headers: { 'X-PCPI': '1' }, data: { mode: 'home' } });
+
+  // ------------------------------------------------------------------ Wi-Fi (panel + teclado en pantalla)
+  await page.goto(base + '/');
+  await page.waitForFunction(() => !document.getElementById('chip-wifi').hidden, null, { timeout: 8000 }).catch(() => {});
+  check('el icono de Wi-Fi muestra la red actual', (await page.textContent('#wifi-name')) === 'CasaIker', await page.textContent('#wifi-name'));
+  await page.click('#chip-wifi');
+  await page.waitForSelector('#sheet.on .net', { timeout: 6000 }).catch(() => {});
+  check('el panel lista las redes', (await page.locator('#sheet .net').count()) === 3);
+  check('la red actual sale marcada como conectada', (await page.textContent('#sheet .net.active')).includes('conectada'));
+  check('el nombre con «:» se ve entero', (await page.textContent('#sh-body')).includes('Hotel:Canarias'));
+  check('indica que el Pi-hole filtra esta red', (await page.textContent('#sh-body')).includes('Pi-hole filtra'));
+  await page.click('.net[data-ssid="Vecino"]');
+  await page.waitForSelector('#pw-in');
+  await sleep(200);
+  check('al tocar la contraseña sale el teclado en pantalla', await page.evaluate(() => document.getElementById('osk') && document.getElementById('osk').classList.contains('on')));
+  await page.click('#osk button:text-is("q")');
+  await page.click('#osk button:text-is("w")');
+  await page.click('#osk button:text-is("⌫")');
+  check('el teclado escribe y borra', (await page.inputValue('#pw-in')) === 'q', await page.inputValue('#pw-in'));
+  await page.click('#osk button:text-is("⇧")');
+  await page.click('#osk button:text-is("A")');
+  check('mayusculas y minusculas', (await page.inputValue('#pw-in')) === 'qA');
+  await page.fill('#pw-in', 'equivocada1');
+  await page.click('#pw-go');
+  await page.waitForFunction(() => document.getElementById('sh-err') && document.getElementById('sh-err').textContent.length > 0, null, { timeout: 15000 }).catch(() => {});
+  check('contraseña mala: mensaje claro', (await page.textContent('#sh-err')) === 'Contraseña incorrecta', await page.textContent('#sh-err'));
+  await page.click('.net[data-ssid="Vecino"]');
+  await page.fill('#pw-in', 'otraclave1');
+  await page.click('#pw-go');
+  await page.waitForFunction(() => document.querySelector('.net.active') && document.querySelector('.net.active').dataset.ssid === 'Vecino', null, { timeout: 15000 }).catch(() => {});
+  check('contraseña buena: se conecta', (await page.getAttribute('#sheet .net.active', 'data-ssid')) === 'Vecino');
+  await page.click('#sw-pi');
+  await sleep(300);
+  check('el interruptor de Pi-hole se apaga', !(await page.evaluate(() => document.getElementById('sw-pi').classList.contains('on'))));
+  await page.click('#sh-close');
+  await sleep(600);
+  check('el panel se cierra', !(await page.evaluate(() => document.getElementById('sheet').classList.contains('on'))));
+  await page.request.post(base + '/api/wifi/connect', { headers: { 'X-PCPI': '1' }, data: { ssid: 'CasaIker' } });
 
   // ------------------------------------------------------------------ modo Iker (notas)
   await page.goto(base + '/iker');

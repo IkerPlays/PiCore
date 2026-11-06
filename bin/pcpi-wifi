@@ -1,0 +1,91 @@
+#!/usr/bin/env python3
+"""Wi-Fi desde la terminal (usa NetworkManager; lo mismo que el panel de la pantalla táctil).
+
+  pcpi-wifi status                    red actual, internet, DNS y si usa Pi-hole
+  pcpi-wifi list [--scan]             redes visibles (--scan fuerza una busqueda nueva)
+  pcpi-wifi connect "NOMBRE"          conecta (te pide la contraseña sin mostrarla; si ya esta guardada, no la pide)
+  pcpi-wifi forget "NOMBRE"           olvida una red guardada
+  pcpi-wifi pihole "NOMBRE" on|off    usar (o no) el Pi-hole como DNS cuando estes en esa red
+  pcpi-wifi portal [close]            abre (o cierra) la ventana para iniciar sesion en una wifi publica
+"""
+import getpass
+import os
+import sys
+from pathlib import Path
+
+HERE = Path(os.path.realpath(__file__)).parent
+for cand in (HERE.parent / "home", Path("/opt/pcpi/home")):
+    if (cand / "netmgr.py").exists():
+        sys.path.insert(0, str(cand))
+        break
+import netmgr  # noqa: E402
+
+
+def say(msg):
+    print(msg)
+
+
+def status():
+    act = netmgr.active()
+    if not act:
+        say("Sin conexion.")
+        return 1
+    conn, dns = act["name"], netmgr.get_dns_mode(act["name"])
+    st, url = netmgr.probe()
+    say("Red:         %s (%s)" % (conn, "Wi-Fi" if act["type"] == "wifi" else "cable"))
+    say("Internet:    %s" % {"full": "sí", "portal": "NO: la red pide iniciar sesión (pcpi-wifi portal)", "none": "no"}[st])
+    say("DNS:         %s" % ("Pi-hole (127.0.0.1)" if dns == "pihole" else "el de la red"))
+    say("Pi-hole aquí: %s" % ("sí" if netmgr.wants_pihole(conn) else "no (desactivado para esta red)"))
+    return 0
+
+
+def main(argv):
+    if not argv or argv[0] in ("-h", "--help", "help"):
+        print(__doc__)
+        return 0
+    cmd, rest = argv[0], argv[1:]
+    if not netmgr.available():
+        print("No encuentro NetworkManager (nmcli). En Raspberry Pi OS Bookworm/Trixie viene de serie.", file=sys.stderr)
+        return 1
+    try:
+        if cmd == "status":
+            return status()
+        if cmd == "list":
+            for n in netmgr.scan("--scan" in rest):
+                say("%s %-32s %3d%%  %s" % ("*" if n["active"] else " ", n["ssid"], n["signal"], "🔒" if n["secure"] else "abierta"))
+            return 0
+        if cmd == "connect" and rest:
+            ssid = rest[0]
+            known = ssid in netmgr.saved()
+            pw = None if known or not any(n["ssid"] == ssid and n["secure"] for n in netmgr.scan()) else getpass.getpass("Contraseña de «%s»: " % ssid)
+            netmgr.connect(ssid, pw)
+            say("Conectado a «%s». (El Pi-hole se aplica solo en unos segundos.)" % ssid)
+            return 0
+        if cmd == "forget" and rest:
+            netmgr.forget(rest[0])
+            say("Olvidada «%s»." % rest[0])
+            return 0
+        if cmd == "pihole" and len(rest) == 2 and rest[1] in ("on", "off"):
+            netmgr.check_ssid(rest[0])
+            netmgr.set_wants_pihole(rest[0], rest[1] == "on")
+            say("Listo: en «%s» el Pi-hole queda %s (se aplica en unos segundos)." % (rest[0], "ACTIVADO" if rest[1] == "on" else "DESACTIVADO"))
+            return 0
+        if cmd == "portal":
+            run = Path(os.environ.get("PCPI_RUN_DIR", "/run/pcpi"))
+            f = run / "portal"
+            if rest[:1] == ["close"]:
+                f.unlink(missing_ok=True)
+                say("Ventana de inicio de sesion cerrada.")
+            else:
+                f.write_text(netmgr.DEFAULT_PORTAL_URL + "\n")
+                say("Abriendo la ventana de inicio de sesion de la wifi... (se cierra sola cuando haya internet)")
+            return 0
+    except netmgr.NMError as e:
+        print("Error: %s" % e, file=sys.stderr)
+        return 1
+    print(__doc__, file=sys.stderr)
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

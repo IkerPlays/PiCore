@@ -19,6 +19,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import assets
+import netmgr
 import pcpiconf
 
 ROOT = Path(__file__).resolve().parent
@@ -379,9 +380,53 @@ def status():
         "nowplaying": nowplaying(),
         "voice": voice_state(),
         "camera": camera_status(cp),
+        "net": net_summary(),
         "ip": cached("ip", 60, local_ip),
         "host": socket.gethostname(),
     }
+
+
+NETWATCH = None
+
+
+def net_summary():
+    """Resumen barato (sin llamar a nmcli) para el icono de Wi-Fi de la UI."""
+    w = NETWATCH
+    if w is None:
+        return {"available": False}
+    st = w.state
+    act = st.get("active") or {}
+    return {"available": True, "name": act.get("name"), "type": act.get("type"), "connectivity": st.get("connectivity"),
+            "portal": bool(st.get("portal")), "dns": st.get("dns")}
+
+
+def wifi_info(rescan=False):
+    if NETWATCH is None or not netmgr.available():
+        return {"available": False}
+    st = NETWATCH.state
+    return {"available": True, "active": st.get("active"), "connectivity": st.get("connectivity"), "dns": st.get("dns"),
+            "portal": bool(st.get("portal")), "wants_pihole": st.get("wants_pihole"),
+            "saved": netmgr.saved(), "networks": netmgr.scan(rescan), "nets": netmgr.load_nets()}
+
+
+def wifi_post(path, body):
+    """Acciones de Wi-Fi. Lanza netmgr.NMError con un mensaje ya en español."""
+    if NETWATCH is None or not netmgr.available():
+        raise netmgr.NMError("No hay NetworkManager en este equipo")
+    if path == "/api/wifi/connect":
+        netmgr.connect(body.get("ssid"), body.get("password"))
+    elif path == "/api/wifi/forget":
+        netmgr.forget(body.get("ssid"))
+    elif path == "/api/wifi/pihole":
+        netmgr.check_ssid(body.get("ssid"))
+        netmgr.set_wants_pihole(body["ssid"], bool(body["on"]))
+    elif path == "/api/wifi/portal":
+        if body.get("open", True):
+            NETWATCH.open_portal()
+        else:
+            NETWATCH.close_portal()
+        return
+    threading.Thread(target=NETWATCH.tick, daemon=True).start()      # aplica la politica de DNS enseguida
 
 
 def mark_loaded(mode):
@@ -446,6 +491,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._notes_get(path)
         if path in ("/api/camera/stream", "/api/camera/snapshot.jpg"):
             return self._camera(path.endswith(".jpg"))
+        if path == "/api/wifi":
+            if not self._local():
+                return
+            return self._send(200, wifi_info("scan=1" in self.path))
         if path == "/api/boot":
             return self._send(200, boot_info(read_conf(), self.path))
         if path.startswith("/assets/"):
@@ -588,7 +637,8 @@ class Handler(BaseHTTPRequestHandler):
             return
         if not self._host_ok():
             return self._send(403, {"error": "host no permitido"})
-        paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/loaded")
+        paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/loaded",
+                 "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal")
         if self.path not in paths or self.headers.get("X-PCPI") != "1":
             return self._send(403, {"error": "prohibido"})
         try:
@@ -600,6 +650,9 @@ class Handler(BaseHTTPRequestHandler):
             if self.path == "/api/mode":
                 set_mode(body["mode"])
                 return self._send(200, {"mode": body["mode"]})
+            if self.path.startswith("/api/wifi/"):
+                wifi_post(self.path, body)
+                return self._send(200, {"ok": True})
             if self.path == "/api/loaded":
                 mark_loaded(body.get("mode"))
                 return self._send(200, {"ok": True})
@@ -615,6 +668,8 @@ class Handler(BaseHTTPRequestHandler):
             if action not in ("enable", "disable"):
                 raise ValueError("accion invalida")
             minutes = max(1, min(int(body.get("minutes", 5)), 24 * 60))
+        except netmgr.NMError as e:
+            return self._send(400, {"error": str(e)})
         except (ValueError, KeyError, TypeError, OSError):
             return self._send(400, {"error": "peticion invalida"})
         ok = pihole_set_blocking(read_conf(), action == "enable", minutes)
@@ -625,10 +680,21 @@ def make_server(host, port):
     return ThreadingHTTPServer((host, port), Handler)
 
 
+def start_netwatch(cp):
+    """Hilo que vigila la red (DNS de Pi-hole por Wi-Fi y portales cautivos). Solo si hay NetworkManager y [wifi] manage = true."""
+    global NETWATCH
+    if not cp.getboolean("wifi", "manage", fallback=True) or not netmgr.available():
+        return
+    NETWATCH = netmgr.NetWatch(run_dir(), pihole_default=cp.getboolean("wifi", "pihole_default", fallback=True),
+                               auto_portal=cp.getboolean("wifi", "auto_portal", fallback=True))
+    threading.Thread(target=NETWATCH.loop, daemon=True).start()
+
+
 def main():
     cp = read_conf()
     host = cp.get("server", "host", fallback="127.0.0.1")
     port = cp.getint("server", "port", fallback=8080)
+    start_netwatch(cp)
     print("PCPi escuchando en http://%s:%d" % (host, port), flush=True)
     make_server(host, port).serve_forever()
 

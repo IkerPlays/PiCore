@@ -140,6 +140,52 @@ class DoctorTest(Base):
         self.assertEqual(r.returncode, 1)
 
 
+class WifiCliTest(Base):
+    def setUp(self):
+        super().setUp()
+        fake = ROOT / "tools" / "fake_nmcli.py"
+        self.env = {**self.env, "PCPI_NMCLI": "%s %s" % (sys.executable, fake), "PCPI_FAKE_NM": str(self.t / "nm.json"),
+                    "PCPI_NETS": str(self.t / "nets.json"), "PCPI_RUN_DIR": str(self.t / "run")}
+        (self.t / "run").mkdir()
+
+    def wifi(self, *args, stdin=None):
+        return subprocess.run([sys.executable, str(BIN / "pcpi-wifi"), *args], capture_output=True, text=True, env=self.env,
+                              input=stdin, timeout=60)
+
+    def test_list_and_status(self):
+        r = self.wifi("list")
+        self.assertIn("CasaIker", r.stdout)
+        self.assertIn("Hotel:Canarias", r.stdout)
+        self.assertIn("abierta", r.stdout)
+
+    def test_connect_known_open_and_forget(self):
+        r = self.wifi("connect", "Hotel:Canarias")                      # abierta: no pide contraseña
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("Conectado", r.stdout)
+        r = self.wifi("forget", "Hotel:Canarias")
+        self.assertEqual(r.returncode, 0)
+        self.assertEqual(self.wifi("forget", "Hotel:Canarias").returncode, 1)
+
+    def test_pihole_switch_and_errors(self):
+        r = self.wifi("pihole", "CasaIker", "off")
+        self.assertIn("DESACTIVADO", r.stdout)
+        self.assertEqual(self.wifi("pihole", "CasaIker", "quiza").returncode, 2)
+        self.assertEqual(self.wifi("connect", "NoExiste", stdin="x\n").returncode, 1)
+        self.assertEqual(self.wifi().returncode, 0)                      # sin argumentos: ayuda
+
+    def test_portal_files(self):
+        self.wifi("portal")
+        self.assertTrue((self.t / "run/portal").read_text().startswith("http"))
+        self.wifi("portal", "close")
+        self.assertFalse((self.t / "run/portal").exists())
+
+    def test_without_networkmanager(self):
+        r = subprocess.run([sys.executable, str(BIN / "pcpi-wifi"), "list"], capture_output=True, text=True,
+                           env={**self.env, "PCPI_NMCLI": "/no/existe"})
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("NetworkManager", r.stderr)
+
+
 class SessionLoopTest(Base):
     """El vigilante de modos con un Chromium de mentira: encendido -> carga -> modo, cambios de modo, portal cautivo."""
 
