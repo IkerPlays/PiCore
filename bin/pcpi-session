@@ -15,12 +15,18 @@
 # Wi-Fi de pago / portal cautivo: el servidor escribe la direccion en /run/pcpi/portal; mientras exista, este script
 # mantiene abierta una ventana normal de Chromium (perfil aparte) para iniciar sesion en la wifi; al desaparecer la cierra.
 #
+# Robustez: si Chromium se cae, o se queda en blanco/colgado (las paginas envian un latido a /api/alive cada 5 s y
+# aqui se vigila /run/pcpi/alive), se mata y se relanza pasando por la pantalla de Carga. Si se repite demasiado
+# (mas de 3 veces en 2 minutos) se espera 60 s entre intentos para no entrar en un bucle.
+#
 # Consumo: el bucle solo usa builtins de bash (sin procesos nuevos) salvo un pgrep cada ~10 s.
 set -u
 MODE_FILE="${PCPI_MODE_FILE:-/etc/pcpi/mode}"
 PORT="${PCPI_PORT:-8080}"
 RUN="${PCPI_RUN_DIR:-/run/pcpi}"
 TICK="${PCPI_TICK:-1}"                   # segundos entre vueltas (las pruebas lo acortan)
+ALIVE_TIMEOUT="${PCPI_ALIVE_TIMEOUT:-45}" # sin latido de la pagina durante tanto tiempo = navegador colgado o en blanco (segundos)
+CHECK_EVERY="${PCPI_CHECK_EVERY:-10}"    # cada cuantas vueltas se comprueba el navegador
 LOAD_TIMEOUT="${PCPI_LOAD_TIMEOUT:-180}" # si la pantalla de carga se cuelga, se sigue igualmente (segundos)
 PROFILE="$HOME/.cache/pcpi-kiosk"        # el perfil de Iker cuelga de este nombre (para poder matar ambos)
 PORTAL_PROFILE="$HOME/.cache/pcpi-portal"
@@ -62,6 +68,7 @@ start_loader() {
 # El modo ya cargado
 start_mode() {
   local mode="$1"
+  launched_at="$(now_s)"
   common_flags
   wait_server
   if [ "$mode" = home ]; then
@@ -89,7 +96,40 @@ sync_portal() {
   fi
 }
 
+# Segundos desde el ultimo latido de la pagina (o desde que se lanzo el navegador, lo que sea mas reciente)
+now_s() { printf '%(%s)T' -1; }
+heartbeat_age() {
+  local ts=0 t
+  if [ -r "$RUN/alive" ]; then
+    # fichero a medio escribir o ilegible: no es prueba de que el navegador este colgado
+    read -r ts < "$RUN/alive" 2>/dev/null || { echo 0; return; }
+    case "$ts" in ''|*[!0-9]*) echo 0; return ;; esac
+  fi
+  [ "$ts" -lt "$launched_at" ] && ts=$launched_at
+  t="$(now_s)"
+  echo $((t - ts))
+}
+
+# Relanza el navegador pasando por la carga. Con limite de reintentos.
+relaunch() {
+  local mode="$1" t
+  t="$(now_s)"
+  # olvida los reinicios de hace mas de 2 minutos
+  local keep=() r
+  for r in "${restarts[@]:-}"; do [ -n "$r" ] && [ $((t - r)) -lt 120 ] && keep+=("$r"); done
+  restarts=(); [ "${#keep[@]}" -gt 0 ] && restarts=("${keep[@]}")
+  if [ "${#restarts[@]}" -ge 3 ] && [ "$t" -lt "$cooldown_until" ]; then return 0; fi
+  if [ "${#restarts[@]}" -ge 3 ]; then cooldown_until=$((t + 60)); fi
+  restarts+=("$t")
+  echo "pcpi-session: el navegador no responde, se relanza ($mode)" >&2
+  stop_browser; sleep 0.5
+  rm -f "$RUN/loaded" 2>/dev/null || true
+  start_loader "$mode" 0
+  launched_at="$(now_s)"; phase=loading; loading_since=$SECONDS
+}
+
 mkdir -p "$RUN" 2>/dev/null || true
+launched_at="$(now_s)"; restarts=(); cooldown_until=0
 boot=1; [ -e "$RUN/booted" ] && boot=0          # /run es RAM: tras cada encendido no existe
 
 applied="" ; tick=0 ; phase=running ; loading_since=0
@@ -105,6 +145,7 @@ while true; do
       # encendido o cambio de modo -> pantalla de carga (desktop tambien: se ve la transicion)
       phase=loading; loading_since=$SECONDS
       start_loader "$mode" "$boot"
+      launched_at="$(now_s)"
       : > "$RUN/booted" 2>/dev/null || true
       boot=0
     else
@@ -118,16 +159,20 @@ while true; do
   if [ "$phase" = loading ]; then
     if [ -e "$RUN/loaded" ] || [ $((SECONDS - loading_since)) -ge "$LOAD_TIMEOUT" ]; then
       rm -f "$RUN/loaded" 2>/dev/null || true
-      phase=running; tick=0
+      phase=running; tick=0; launched_at="$(now_s)"
       case "$mode" in
         desktop) stop_browser ;;
         iker)    stop_browser; sleep 0.3; start_mode iker ;;
         home)    browser_alive || start_mode home ;;     # la pagina de carga ya navego sola a la UI de Casa
       esac
     fi
-  elif [ "$mode" != desktop ] && [ "$tick" -ge 10 ]; then  # ¿sigue vivo? cada ~10 vueltas
-    browser_alive || start_mode "$mode"
+  fi
+
+  # ¿Sigue vivo y respondiendo? (en carga y en marcha; no en escritorio)
+  if [ "$mode" != desktop ] && [ "$tick" -ge "$CHECK_EVERY" ]; then
     tick=0
+    if ! browser_alive; then relaunch "$mode"
+    elif [ "$(heartbeat_age)" -gt "$ALIVE_TIMEOUT" ]; then relaunch "$mode"; fi
   fi
 
   sync_portal

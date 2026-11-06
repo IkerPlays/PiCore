@@ -157,6 +157,14 @@ class HttpTest(unittest.TestCase):
         self.assertEqual((tmp / "run/loaded").read_text(), "iker")
         self.assertEqual(self.req("/api/loaded", json.dumps({"mode": "../x"}).encode(), {"X-PCPI": "1"})[0], 400)
 
+    def test_heartbeat_file(self):
+        import time
+        server._alive_last[0] = 0
+        self.assertEqual(self.req("/api/alive")[0], 200)
+        ts = int((tmp / "run/alive").read_text())
+        self.assertLessEqual(abs(ts - int(time.time())), 2)
+        self.assertEqual(list((tmp / "run").glob("alive.tmp")), [])      # escritura atomica
+
     def test_static_files(self):
         static = server.WEB / "static"
         static.mkdir(exist_ok=True)

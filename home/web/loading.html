@@ -281,6 +281,8 @@ async function handoff() {
   await loadingPhase();
   await handoff();
 })();
+/* latido: si el navegador se cuelga o se queda en blanco, esto se para y el vigilante lo relanza */
+setInterval(() => fetch("/api/alive").catch(() => {}), 5000); fetch("/api/alive").catch(() => {});
 </script>
 </body>
 </html>

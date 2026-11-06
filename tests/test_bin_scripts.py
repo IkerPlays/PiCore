@@ -306,6 +306,49 @@ class SessionLoopTest(Base):
         (self.run_dir / "portal").unlink()
         self.assertTrue(self.wait(lambda: not self.alive("pcpi-portal")), "no cerro la ventana al tener internet")
 
+    def test_crashed_browser_is_relaunched_through_loading_screen(self):
+        self.run_dir.mkdir()
+        (self.run_dir / "booted").write_text("")
+        self.mode.write_text("home\n")
+        self.start(PCPI_CHECK_EVERY="2")
+        self.assertTrue(self.wait(lambda: len(self.lines()) >= 1))
+        self.assertNotIn("/loading", self.lines()[0])                  # estaba ya en marcha: UI directa
+        subprocess.run(["pkill", "-f", str(self.t / "home/.cache/pcpi-kiosk")])   # Chromium se cae
+        self.assertTrue(self.wait(lambda: len(self.lines()) >= 2), "no relanzo el navegador caido")
+        self.assertIn("/loading?to=home&boot=0", self.lines()[1])      # y vuelve por la pantalla de carga, sin video de inicio
+
+    def test_blank_or_hung_browser_is_relaunched(self):
+        self.run_dir.mkdir()
+        (self.run_dir / "booted").write_text("")
+        self.mode.write_text("home\n")
+        self.start(PCPI_CHECK_EVERY="2", PCPI_ALIVE_TIMEOUT="2")
+        self.assertTrue(self.wait(lambda: len(self.lines()) >= 1))
+        # el navegador sigue vivo pero nadie envia latidos (pagina en blanco / colgada)
+        self.assertTrue(self.wait(lambda: len(self.lines()) >= 2, 15), "no detecto el navegador colgado")
+        self.assertIn("/loading?to=home", self.lines()[1])
+
+    def test_healthy_browser_with_heartbeats_is_left_alone(self):
+        self.run_dir.mkdir()
+        (self.run_dir / "booted").write_text("")
+        self.mode.write_text("home\n")
+        self.start(PCPI_CHECK_EVERY="2", PCPI_ALIVE_TIMEOUT="4")
+        self.assertTrue(self.wait(lambda: len(self.lines()) >= 1))
+        end = time.time() + 8
+        while time.time() < end:                                        # la pagina late cada medio segundo
+            (self.run_dir / "alive").write_text(str(int(time.time())))
+            time.sleep(0.5)
+        self.assertEqual(len(self.lines()), 1)
+
+    def test_restart_loop_is_limited(self):
+        self.run_dir.mkdir()
+        (self.run_dir / "booted").write_text("")
+        self.mode.write_text("home\n")
+        shim(self.shims, "chromium", 'echo "$@" >> %s\nexit 1\n' % self.launched)        # Chromium muere al instante
+        self.start(PCPI_CHECK_EVERY="1")
+        time.sleep(8)
+        # sin limite serian ~30 lanzamientos; con el limite (3 por 2 min y luego pausa de 60 s) muy pocos
+        self.assertLessEqual(len(self.lines()), 6, self.lines())
+
     def test_second_instance_exits_immediately(self):
         shim(self.shims, "chromium", "sleep 600\n")
         self.mode.write_text("desktop\n")

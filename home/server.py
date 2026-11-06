@@ -429,6 +429,26 @@ def wifi_post(path, body):
     threading.Thread(target=NETWATCH.tick, daemon=True).start()      # aplica la politica de DNS enseguida
 
 
+_alive_last = [0]
+
+
+def mark_alive():
+    """Latido de las paginas del navegador: pcpi-session lo lee para detectar un Chromium colgado o en blanco.
+    Se escribe como mucho cada 2 s (las paginas lo piden cada pocos segundos)."""
+    now = int(time.time())
+    if now - _alive_last[0] < 2:
+        return
+    _alive_last[0] = now
+    try:
+        d = run_dir()
+        d.mkdir(parents=True, exist_ok=True)
+        tmp = d / "alive.tmp"
+        tmp.write_text(str(now))
+        os.replace(tmp, d / "alive")
+    except OSError:
+        pass
+
+
 def mark_loaded(mode):
     """La pantalla de carga avisa de que ha terminado (lo usa pcpi-session para cerrar el navegador al ir a Escritorio)."""
     if mode not in MODES:
@@ -491,6 +511,9 @@ class Handler(BaseHTTPRequestHandler):
             return self._notes_get(path)
         if path in ("/api/camera/stream", "/api/camera/snapshot.jpg"):
             return self._camera(path.endswith(".jpg"))
+        if path == "/api/alive":
+            mark_alive()
+            return self._send(200, {"ok": True})
         if path == "/api/wifi":
             if not self._local():
                 return

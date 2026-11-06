@@ -516,6 +516,8 @@ keepAwake();
 
 tick(); refresh();
 setInterval(tick, 5000); setInterval(refresh, 4000);
+/* latido: si el navegador se cuelga o se queda en blanco, esto se para y el vigilante lo relanza */
+setInterval(() => fetch("/api/alive").catch(() => {}), 5000); fetch("/api/alive").catch(() => {});
 </script>
 </body>
 </html>
