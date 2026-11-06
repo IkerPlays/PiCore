@@ -45,6 +45,8 @@ pcpi-mode status
 pcpi-wifi list      # Wi-Fi desde la terminal (connect, status, forget, pihole, portal)
 pcpi-setup          # asistente: ciudad, contraseña de Pi-hole, micrófono (con prueba), mini pantalla
 pcpi-doctor         # diagnóstico
+pcpi-update         # actualizar PCPi (copia previa + git pull + reinstalar con tus opciones)
+pcpi-backup create  # copia de seguridad de tu configuración, notas y extra-assets
 ```
 
 También hay un icono **"PCPi · Elegir modo"** en el menú de aplicaciones, y botones táctiles dentro de la UI de Casa y de Iker. El modo se recuerda entre reinicios.
@@ -58,6 +60,15 @@ Al **encender**, una pantalla en blanco reproduce `extra-assets/start/Inicio.mp4
 ## Wi-Fi
 
 La wifi de casa va en la microSD (Imager). Para otra red, toca el icono de Wi-Fi del modo Casa (hay teclado en pantalla) o usa `pcpi-wifi`. **Pi-hole se aplica en cada red** (con un interruptor por red) y **no se fuerza si está caído**. En wifis públicas con portal (hotel, aeropuerto) se abre sola la ventana de inicio de sesión. Detalles y límites: [Paso 9](docs/TUTORIAL.md#paso-9-wi-fi-en-casa-de-viaje-y-wifis-públicas).
+
+## Más funciones
+
+- **Brillo** (☀ en Casa): deslizante y modo noche automático con rampa suave. Si la pantalla no tiene control por software, se oscurece con una capa.
+- **Vigilancia** (👁): detección de movimiento con la cámara y aviso en pantalla; no guarda ni envía imágenes. Apagada por defecto.
+- **Batería** (🔋): solo si tienes un UPS/HAT con medidor o un comando propio (la Pi 5 no mide la batería).
+- **Modo Iker**: buscar en las notas, copias automáticas y exportar a USB (📤).
+- **`pcpi-backup`** (copia de todo lo tuyo en un archivo) y **`pcpi-update`** (actualiza y reinstala con tus mismas opciones).
+- **Autorreparación**: si Chromium se cae o se queda en blanco, se relanza solo por la pantalla de Carga.
 
 ## Cámara
 
@@ -73,7 +84,7 @@ La palabra, el umbral y el micro se cambian en `[voice]` de `/etc/pcpi/pcpi.conf
 
 ## Estado
 
-**207 tests** (`make test`, ~1 min):
+**323 tests** (`make test`, ~2 min):
 
 - **Instalador y desinstalador ejecutados de verdad** en un árbol alternativo, con `apt`, `systemctl`, `sudo`… de mentira que anotan lo que se les pide: rutas, permisos, idempotencia (no pisa tu configuración ni tu modo), orden de las llamadas (el servidor se reinicia **después** de añadir los grupos), y que desinstalar deja el panel del escritorio intacto.
 - **Todos los scripts de `bin/`** (modos, selector, hook de Spotify, grabación de muestras, `pcpi-doctor`, y el vigilante de modos con un Chromium de mentira).

@@ -104,7 +104,7 @@ def main():
     (tmp / "mode").write_text(a.mode + "\n")
     os.environ.update(PCPI_CONF=str(tmp / "pcpi.conf"), PCPI_MODE_FILE=str(tmp / "mode"),
                       PCPI_NOWPLAYING=str(tmp / "np.json"), PCPI_VOICE_STATE=str(tmp / "voice.json"), PCPI_NOTES_DIR=str(tmp / "notes"),
-                      PCPI_RUN_DIR=str(tmp / "run"), PCPI_DISPLAY_STATE=str(tmp / "display.json"), PCPI_MOUNTS=str(tmp / "mounts"), PCPI_BACKUP_DIR=str(tmp / "backups"), PCPI_BACKLIGHT=str(tmp / "backlight"), PCPI_NETS=str(tmp / "nets.json"), PCPI_FAKE_NM=str(tmp / "nm.json"),
+                      PCPI_RUN_DIR=str(tmp / "run"), PCPI_DISPLAY_STATE=str(tmp / "display.json"), PCPI_POWER_SUPPLY=str(tmp / "power"), PCPI_MOUNTS=str(tmp / "mounts"), PCPI_BACKUP_DIR=str(tmp / "backups"), PCPI_BACKLIGHT=str(tmp / "backlight"), PCPI_NETS=str(tmp / "nets.json"), PCPI_FAKE_NM=str(tmp / "nm.json"),
                       PCPI_NMCLI="%s %s" % (sys.executable, ROOT / "tools" / "fake_nmcli.py"))
     os.environ.setdefault("PCPI_ASSETS", str(ROOT / "extra-assets"))        # tus videos/imagenes de Inicio y Carga
     sys.path[:0] = [str(ROOT / "home"), str(ROOT / "voice")]

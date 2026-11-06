@@ -161,7 +161,9 @@ def set_dns_mode(conn, mode, device=None):
 
 # ---------------------------------------------------------------- acciones
 def check_ssid(ssid):
-    if not isinstance(ssid, str) or not ssid or "\n" in ssid or "\x00" in ssid or len(ssid.encode()) > MAX_SSID_BYTES:
+    # Un nombre que empieza por «-» podria interpretarse como una opcion de nmcli (--help, --ask...)
+    if (not isinstance(ssid, str) or not ssid or "\n" in ssid or "\x00" in ssid or ssid.startswith("-")
+            or len(ssid.encode()) > MAX_SSID_BYTES):
         raise NMError("Nombre de red no valido")
     return ssid
 
@@ -267,6 +269,29 @@ def dns_answers(server=PIHOLE_DNS, name="example.com", timeout=2.0, port=53):
     return len(data) >= 12 and data[:2] == b"\x12\x34"
 
 
+def safe_portal_url(url):
+    """La direccion del portal la dicta la red (hotel, aeropuerto...), o sea, alguien ajeno. Solo se acepta http(s) a un
+    servidor de internet: nunca nuestro propio servidor (localhost), un archivo, ni nada con caracteres de control."""
+    import ipaddress
+    import urllib.parse
+    if not isinstance(url, str) or not url or len(url) > 2000 or any(ord(c) < 32 or ord(c) == 127 for c in url) or " " in url:
+        return None
+    try:
+        u = urllib.parse.urlsplit(url)
+        host = (u.hostname or "").lower()
+    except ValueError:
+        return None
+    if u.scheme not in ("http", "https") or not host or host == "localhost" or host.endswith(".localhost"):
+        return None
+    try:
+        ip = ipaddress.ip_address(host)
+        if ip.is_loopback or ip.is_unspecified:
+            return None
+    except ValueError:
+        pass
+    return url
+
+
 class _NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, *a, **k):
         return None
@@ -319,9 +344,7 @@ class NetWatch:
         return self.run_dir / "portal"
 
     def open_portal(self, url=None):
-        url = url or self.portal_url or DEFAULT_PORTAL_URL
-        if not url.startswith(("http://", "https://")):
-            url = DEFAULT_PORTAL_URL
+        url = safe_portal_url(url or self.portal_url) or DEFAULT_PORTAL_URL
         try:
             self.run_dir.mkdir(parents=True, exist_ok=True)
             self._portal_file().write_text(url + "\n")

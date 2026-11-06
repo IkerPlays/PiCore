@@ -175,6 +175,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.fill('#text', 'Nota de prueba editada');
   await page.keyboard.press('Control+s');
   await page.waitForFunction(() => document.getElementById('status').textContent.includes('Guardado'), null, { timeout: 6000 }).catch(() => {});
+  await sleep(500);
   check('Ctrl+S guarda y no duplica la nota', (await page.locator('#list .item b', { hasText: 'Nota de prueba editada' }).count()) === 1
         && (await page.locator('#list .item').count()) === before + 1);
 

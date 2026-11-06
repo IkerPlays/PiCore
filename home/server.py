@@ -34,6 +34,7 @@ PAGES = {"/": "index.html", "/iker": "iker.html", "/loading": "loading.html"}
 LOCAL_HOSTS = ("localhost", "127.0.0.1", "[::1]")
 CSP = ("default-src 'self'; img-src 'self' https: data:; media-src 'self'; style-src 'self' 'unsafe-inline'; "
        "script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; form-action 'none'; base-uri 'none'")
+HOST_RE = re.compile(r"^(\[[0-9a-f:.]+\]|[a-z0-9._-]+)(?::[0-9]{1,5})?$")
 NOTE_ID = re.compile(r"^[0-9a-f]{16}$")
 MAX_NOTE = 1_000_000
 
@@ -575,6 +576,7 @@ def boot_info(cp, query=""):
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "PCPi"
+    timeout = 30        # un cliente que abre la conexion y no manda nada (o manda a gotas) no retiene un hilo para siempre
 
     def log_message(self, fmt, *args):  # silencioso
         pass
@@ -599,6 +601,8 @@ class Handler(BaseHTTPRequestHandler):
         if not self._host_ok():
             return self._send(403, {"error": "host no permitido"})
         path = self.path.split("?", 1)[0]
+        if path.startswith("/api/") and not self._fetch_ok():
+            return self._send(403, {"error": "origen no permitido"})
         if path == "/api/status":
             return self._send(200, status())
         if path == "/api/mode":
@@ -608,6 +612,8 @@ class Handler(BaseHTTPRequestHandler):
         if path in ("/api/camera/stream", "/api/camera/snapshot.jpg"):
             return self._camera(path.endswith(".jpg"))
         if path == "/api/alive":
+            if not self._local():
+                return
             mark_alive()
             return self._send(200, {"ok": True})
         if path == "/api/wifi":
@@ -626,10 +632,10 @@ class Handler(BaseHTTPRequestHandler):
         self._send(200, page_bytes(name), "text/html; charset=utf-8")
 
     def _static(self, rel):
-        f = (WEB / "static" / rel).resolve()
         try:
+            f = (WEB / "static" / rel).resolve()
             f.relative_to((WEB / "static").resolve())
-        except ValueError:
+        except ValueError:                  # `..`, o un byte nulo en la ruta
             return self._send(404, {"error": "no encontrado"})
         types = {".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8"}
         if not f.is_file() or f.suffix not in types:
@@ -678,9 +684,19 @@ class Handler(BaseHTTPRequestHandler):
         hacer que su dominio apunte a 127.0.0.1 para leer tus notas o la camara. Su peticion llevaria
         `Host: dominio-hostil`, asi que solo se aceptan los nombres propios."""
         h = (self.headers.get("Host") or "").strip().lower()
-        name = h.split("]")[0] + "]" if h.startswith("[") else h.rsplit(":", 1)[0]
+        m = HOST_RE.match(h)
+        if not m:                      # forma rara («[::1]x», con arroba, barras...): fuera
+            return False
+        name = m.group(1)
         extra = [x.strip().lower() for x in read_conf().get("server", "allowed_hosts", fallback="").split(",") if x.strip()]
         return name in LOCAL_HOSTS or name in extra
+
+    def _fetch_ok(self):
+        """Defensa extra contra paginas ajenas: en modo Iker se navega por internet EN ESTA MISMA MAQUINA, y una web
+        hostil podria cargar `<img src="http://localhost:8080/api/camera/stream">` (el Host seria legitimo) y encender
+        la camara. Chromium marca esas peticiones con `Sec-Fetch-Site: cross-site`; las nuestras llevan same-origin y
+        las que escribes a mano en la barra, none. Los clientes que no son navegadores (curl, pcpi-doctor) no lo envian."""
+        return self.headers.get("Sec-Fetch-Site", "same-origin") in ("same-origin", "none")
 
     def _local(self):
         if self.client_address[0] not in ("127.0.0.1", "::1"):
@@ -772,7 +788,11 @@ class Handler(BaseHTTPRequestHandler):
             limit = MAX_NOTE + 4096 if self.path == "/api/notes" else 1024
             if n > limit:
                 return self._send(413, {"error": "demasiado grande"})
+            if n < 0:          # read(-1) leeria hasta que el cliente cierre: un hilo colgado
+                raise ValueError("longitud negativa")
             body = json.loads(self.rfile.read(n))
+            if not isinstance(body, dict):
+                raise ValueError("se esperaba un objeto JSON")
             if self.path == "/api/mode":
                 set_mode(body["mode"])
                 return self._send(200, {"mode": body["mode"]})
@@ -816,7 +836,7 @@ class Handler(BaseHTTPRequestHandler):
             minutes = max(1, min(int(body.get("minutes", 5)), 24 * 60))
         except netmgr.NMError as e:
             return self._send(400, {"error": str(e)})
-        except (ValueError, KeyError, TypeError, OSError):
+        except (ValueError, KeyError, TypeError, OSError, AttributeError, RecursionError):
             return self._send(400, {"error": "peticion invalida"})
         ok = pihole_set_blocking(read_conf(), action == "enable", minutes)
         self._send(200 if ok else 502, {"ok": ok})

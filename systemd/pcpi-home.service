@@ -12,6 +12,18 @@ NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
 PrivateTmp=true
+# Endurecimiento (no hace falta ningun privilegio: el servidor escucha en un puerto alto y llama a nmcli/ffmpeg como usuario)
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectClock=true
+ProtectHostname=true
+SystemCallArchitectures=native
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
 ReadWritePaths=/etc/pcpi /var/lib/pcpi -/run/pcpi -/media -/run/media -/mnt
 
 [Install]

@@ -350,7 +350,7 @@ pcpi-doctor
 
 | Quiero… | Hago… |
 |---|---|
-| **Actualizar PCPi** a la última versión | `cd ~/PCRaspberryPI5 && git pull && ./install.sh --camera --voice --spotify` (repite las opciones que usaste) |
+| **Actualizar PCPi** a la última versión | **`pcpi-update`** (hace una copia de seguridad, descarga lo nuevo y reinstala con **las mismas opciones** que usaste). `pcpi-update --check` solo mira si hay novedades. A mano: `cd ~/PCRaspberryPI5 && git pull && ./install.sh …` |
 | **Ver qué cambié yo** en la carpeta | `cd ~/PCRaspberryPI5 && git status` |
 | `git pull` se queja de *«local changes»* | Tocaste algún archivo del repositorio. Si no te importa: `git checkout -- .` y repite `git pull`. (Tu configuración está en `/etc/pcpi/pcpi.conf`, **fuera** del repositorio: no se pierde) |
 | **Editar un archivo** | `nano /etc/pcpi/pcpi.conf`. Guardar: `Ctrl+O`, `Enter`. Salir: `Ctrl+X` |
@@ -654,7 +654,7 @@ También con el icono **«PCPi · Elegir modo»** del menú de aplicaciones, con
 | Modo | Qué es |
 |---|---|
 | 🖥 **Escritorio** | Raspberry Pi OS normal, sin cambios. |
-| 📝 **Iker** | Solo **dos cosas**: un **bloc de notas** (nueva, guardar, borrar; se guarda solo poco más de 1 s después de dejar de escribir) e **Internet** (el botón abre una pestaña nueva de Chromium con barra de direcciones). Las notas se guardan en `/var/lib/pcpi/notes`, **solo accesibles para tu usuario**. Para escribir usa el teclado USB. |
+| 📝 **Iker** | Solo **dos cosas**: un **bloc de notas** (nueva, guardar, borrar; se guarda solo poco más de 1 s después de dejar de escribir) e **Internet** (el botón abre una pestaña nueva de Chromium con barra de direcciones). Las notas se guardan en `/var/lib/pcpi/notes`, **solo accesibles para tu usuario**. Para escribir usa el teclado USB. **Buscar:** la casilla 🔍 de la izquierda filtra las notas sin distinguir mayúsculas ni tildes («cafe» encuentra «Café») y resalta lo que encuentra. **Copias:** se hacen solas cada hora (últimas 7). **📤 USB:** copia todas las notas, como archivos `.txt`, a un USB que tengas conectado (si no hay ninguno, te lo dice). |
 | 🏠 **Casa** | Pantalla estilo Alexa con animaciones suaves: **hora y fecha** (las cifras cambian con una transición), **tiempo**, **Pi-hole** (porcentaje bloqueado y botón de pausa), **Spotify** con portada y ecualizador, **cámara**, **Wi-Fi** (el icono de arriba a la derecha abre el panel de redes con teclado en pantalla) y **control por voz**. Es **clara de día y oscura de noche**, y por la noche se atenúa sola. Toca la **hora** para cambiar de tema a mano y el **saludo** para volver a automático. |
 
 ---
@@ -977,9 +977,9 @@ sudo systemctl restart pcpi-stats
 | Qué | Cómo |
 |---|---|
 | **Comprobar todo** | `pcpi-doctor` te dice qué va y qué no, y cómo arreglarlo |
-| **Actualizar PCPi** | `cd ~/PCRaspberryPI5 && git pull && ./install.sh --camera --voice --spotify` (repite las opciones que usaste). Más detalle en el [5.8](#58-cambiar-o-actualizar-el-código-más-adelante) |
+| **Actualizar PCPi** | **`pcpi-update`**: copia de seguridad previa + `git pull` + reinstalar con tus opciones. `pcpi-update --check` solo comprueba. Si dice que has modificado archivos, mira el [5.8](#58-cambiar-o-actualizar-el-código-más-adelante) |
 | **Actualizar el sistema** | `sudo apt update && sudo apt full-upgrade -y` |
-| **Copia de seguridad** | Copia `/etc/pcpi/pcpi.conf` y la carpeta `/var/lib/pcpi/notes` |
+| **Copia de seguridad** | **`pcpi-backup create`** guarda en **un solo archivo** tu configuración, notas, preferencias de Wi-Fi y brillo, y tus `extra-assets` (puedes darle una carpeta o un USB: `pcpi-backup create /media/iker/MIUSB`). Restaurar: `pcpi-backup restore ARCHIVO`. ⚠️ La copia lleva la contraseña de Pi-hole: no la compartas. Además, **las notas se copian solas** cada hora si cambian (las 7 últimas, en `/var/lib/pcpi/backups`) |
 | **Apagar bien** | `sudo shutdown now` (o botón de la placa). No desenchufes con la Pi encendida |
 | **Desinstalar** | `./uninstall.sh` |
 
@@ -1016,8 +1016,20 @@ Empieza **siempre** por `pcpi-doctor`: marca con `✘` lo que está mal y con `!
 
 No son necesarios. Puedes añadirlos cuando quieras:
 
-- **Batería** (para llevarlo de un sitio a otro): una power bank de **20.000 mAh con USB-C PD de 45 W o más**, comprada en una tienda de tu isla (desde Amazon a ti no te llegaban las baterías). Conéctala con un cable USB-C a USB-C y ejecuta `./install.sh --battery`. Dura unas 5–7 horas.
+- **Batería** (para llevarlo de un sitio a otro): una power bank de **20.000 mAh con USB-C PD de 45 W o más**, comprada en una tienda de tu isla (desde Amazon a ti no te llegaban las baterías). Conéctala con un cable USB-C a USB-C y ejecuta `./install.sh --battery`. Dura unas 5–7 horas. **Ojo:** una power bank normal **no deja leer cuánta carga le queda**, así que el icono 🔋 de la pantalla no aparecerá (mira el [8.3](#83-brillo-vigilancia-y-batería-iconos-de-arriba-a-la-derecha-en-casa)); para verlo necesitas un UPS/HAT con medidor.
 - **SSD** (arranque y apps más rápidos): un SSD USB 3 en un puerto azul. La microSD basta para este proyecto.
+
+### 8.3 Brillo, vigilancia y batería (iconos de arriba a la derecha en Casa)
+
+| Icono | Qué hace |
+|---|---|
+| **☀ Brillo** | Un **deslizante** (10–100 %) y un interruptor **Automático**: de noche (por defecto de 22:00 a 07:00) el brillo **baja poco a poco** hasta el 40 % durante una hora antes, y vuelve a subir despacio por la mañana. Se ajusta en `[display]` de `pcpi.conf`. ⚠️ Si tu pantalla **no tiene control de brillo por software** (la mayoría de pantallas HDMI baratas no lo tienen), PCPi la oscurece con una capa por encima: ayuda a la vista, pero el brillo real de la luz de fondo solo lo cambian los botones de la propia pantalla |
+| **👁 Vigilancia** | Detecta **movimiento con la cámara** y muestra un aviso naranja «Movimiento detectado» con la hora (toca el aviso para ver la cámara). **Privacidad:** compara imágenes diminutas en memoria; **no guarda ni envía ninguna foto ni vídeo**. Está **apagada** por defecto: tócalo para activarla. Gasta algo de CPU (mantiene la cámara abierta) y se pausa sola mientras tú miras la cámara. Sensibilidad en `[motion]` (`low`, `medium`, `high`) |
+| **🔋 Batería** | **Solo aparece si hay forma de medirla.** ⚠️ La Raspberry Pi 5 **no mide** la batería, y una power bank normal tampoco dice cuánto le queda: hace falta un **UPS / HAT con batería** que aparezca en `/sys/class/power_supply`, o un comando tuyo en `[battery] command` que escriba el porcentaje. Con eso sale el indicador (naranja por debajo del 20 %, rojo y parpadeando por debajo del 10 %) y también la fila `BAT` de la mini pantalla |
+
+### 8.4 Si la pantalla se queda en blanco o Chromium se cae
+
+El vigilante `pcpi-session` lo detecta solo: Chromium cerrado, o abierto pero **sin dar señales de vida durante 45 s** (la página «late» cada 5 s). Entonces lo mata y lo **relanza pasando por la pantalla de Carga**. Si se repite más de 3 veces en 2 minutos, espera 60 s entre intentos para no entrar en bucle. En el modo Iker solo se vigila que Chromium siga abierto (puedes cerrar la pestaña de notas y seguir navegando sin que te lo reinicie).
 
 ---
 
@@ -1028,6 +1040,9 @@ pcpi-doctor                              # diagnóstico: qué va y qué no
 pcpi-setup                               # asistente: ciudad, Pi-hole, micro, mini pantalla
 pcpi-config get|set SECCION CLAVE [VALOR] # leer/cambiar un ajuste sin abrir el editor
 pcpi-mode home | iker | desktop          # cambiar de modo (muestra la pantalla de Carga)
+pcpi-update                              # actualizar PCPi (copia previa + git pull + reinstalar)
+pcpi-backup create [USB o carpeta]       # copia de seguridad de todo lo tuyo en un archivo
+pcpi-backup restore ARCHIVO              # restaurarla
 pcpi-wifi list | connect "RED" | status   # Wi-Fi desde la terminal (más en el Paso 9)
 pcpi-wifi portal                         # abrir el inicio de sesión de una wifi pública
 pcpi-config set boot intro false         # quitar el vídeo de inicio
