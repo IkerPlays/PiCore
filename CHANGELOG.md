@@ -5,6 +5,10 @@
 
 
 
+## Simulador: «Copiar enlace» y arreglos en el móvil
+
+- Botón «Copiar enlace» (abre el simulador en el modo actual). En el móvil la barra de voz ya no se solapa con el aviso de abajo, la cabecera se desplaza en vez de cortarse y se esconden los atajos de teclado. Comprobado en navegador sin pantalla a 390 px (capturas revisadas).
+
 ## Tests de seguridad ampliados
 
 - Las rutas nuevas (`/api/settings`, `/api/timers`, `/api/music`, `/api/audio`, `/api/dev`, `/api/system`) exigen la cabecera `X-PCPI`, y una web ajena (sin la cabecera o con otro `Host`) no puede cambiar ajustes ni la contraseña de Pi-hole.
