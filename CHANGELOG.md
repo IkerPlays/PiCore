@@ -2,6 +2,7 @@
 
 > Todo está probado con tests automáticos y un «Pi virtual» (servidor y `pcpi-session` reales con un Chromium sin pantalla).
 > **Nada se ha probado todavía en una Raspberry Pi real**: pantalla, audio, Wayland, cámara, micrófono e instalación con `apt`.
+> ¿Prefieres un resumen corto por temas? Mira [docs/NOVEDADES.md](docs/NOVEDADES.md). Aquí lo más reciente está arriba.
 
 
 
