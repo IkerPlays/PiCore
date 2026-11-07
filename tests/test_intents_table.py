@@ -23,7 +23,7 @@ CASOS = [
     ("activa el salvapantallas", "screensaver"), ("desactiva el salvapantallas", "screensaver"),
     ("toma nota comprar leche", "note_add"), ("lee mi última nota", "note_read"), ("añade pan a la lista de la compra", "list_add"),
     ("cuánto espacio libre queda", "sys_info"), ("cómo está la pi", "sys_info"), ("a qué wifi estoy conectado", "net_info"),
-    ("qué puedes hacer", "help"), ("repite", "repeat"), ("cuántos anuncios has bloqueado", "pihole_stats"), ("pospón cinco minutos", "snooze"), ("cinco minutos más", "snooze"), ("tira un dado", "random"), ("cuánto falta para Navidad", "days_until"), ("qué hora es en Tokio", "time_in"), ("cuántas notas tengo", "count"), ("cuántos temporizadores hay", "count"), ("qué has dicho", "repeat"), ("gracias", "chat"), ("cuánto llevas encendida", "uptime"),
+    ("qué puedes hacer", "help"), ("repite", "repeat"), ("cómo va el Pi-hole", "pihole_stats"), ("ponle un minuto más", "timer_extend"), ("cuántos anuncios has bloqueado", "pihole_stats"), ("pospón cinco minutos", "snooze"), ("cinco minutos más", "snooze"), ("tira un dado", "random"), ("cuánto falta para Navidad", "days_until"), ("qué hora es en Tokio", "time_in"), ("cuántas notas tengo", "count"), ("cuántos temporizadores hay", "count"), ("qué has dicho", "repeat"), ("gracias", "chat"), ("cuánto llevas encendida", "uptime"),
 ]
 
 
@@ -39,6 +39,25 @@ class TablaDeOrdenes(unittest.TestCase):
         fuente = (Path(__file__).resolve().parent.parent / "voice" / "assistant.py").read_text(encoding="utf-8")
         for frase, nombre in CASOS:
             self.assertIn('"%s"' % nombre, fuente, "%r -> %s no esta en assistant.py" % (frase, nombre))
+
+    def test_toda_frase_de_la_tabla_del_tutorial_se_entiende(self):
+        """Lo que el tutorial dice que puedes pedir tiene que funcionar de verdad (si se cambia una frase, se detecta aqui)."""
+        import re
+        t = (Path(__file__).resolve().parent.parent / "docs" / "TUTORIAL.md").read_text(encoding="utf-8")
+        a = t.index("#### Qué puedes pedir")
+        seccion = t[a:t.index("####", a + 10)]
+        # trozos que no son frases completas (la tabla los junta con «·» o los resume)
+        fragmentos = {"en Nueva York", "en Londres", "de treinta segundos"}
+        vistas = 0
+        for linea in seccion.splitlines():
+            if not linea.startswith("|") or linea.startswith("|---"):
+                continue
+            for frase in re.findall(r"«([^»]+)»", linea.split("|")[1]):
+                if any(c in frase for c in "…/") or frase in fragmentos:
+                    continue
+                vistas += 1
+                self.assertIsNotNone(intents.parse(frase), "el tutorial dice «%s» pero el asistente no lo entiende" % frase)
+        self.assertGreater(vistas, 60)                      # que el test no pase en vacio si cambia el formato de la tabla
 
     def test_frases_sin_orden_no_hacen_nada(self):
         for frase in ("", "blablabla", "repite esta canción", "me gusta el queso", "hoy fui al mercado"):

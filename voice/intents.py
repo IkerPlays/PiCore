@@ -190,6 +190,8 @@ def parse(text):
         return Intent("random", "moneda")
     if has("pospon", "posponer", "pospone", "cinco minutos mas", "5 minutos mas", "dame cinco minutos", "dame 5 minutos") and not has("temporizador de", "alarma a las"):
         return Intent("snooze", None)
+    if has("ponle", "ponme") and has("mas") and not has("temporizador de", "volumen", "brillo", "musica") and (secs_p := parse_duration(words)):
+        return Intent("timer_extend", secs_p)
     if has("calendario", "agenda", "que tengo", "tengo algo", "mis eventos", "proximo evento", "siguiente evento", "proxima cita", "tengo hoy", "tengo manana"):
         return Intent("calendar", "next" if has("proximo evento", "siguiente evento", "proxima cita") else "tomorrow" if has("manana") else "today")
     if has("temporizador", "cuenta atras", "cuentaatras"):
@@ -234,7 +236,7 @@ def parse(text):
             return Intent("music", "pause")
         if has("reanuda", "continua", "sigue", "pon ", "reproduce", "activa", "play"):
             return Intent("music", "play")
-    if has("cuantos anuncios", "cuanto has bloqueado", "cuantas consultas", "como va el pihole", "como va pihole", "estado del pihole", "estadisticas del pihole"):
+    if has("cuantos anuncios", "cuanto has bloqueado", "cuantas consultas", "como va el pihole", "como va pihole", "estado del pihole", "estadisticas del pihole", "como va el pi hole", "como va pi hole", "estado del pi hole", "estadisticas del pi hole"):
         return Intent("pihole_stats", None)
     if has("pihole", "pi hole", "pi jol", "anuncios", "bloqueador"):
         if has("desactiva", "pausa", "apaga", "para ", "quita", "deshabilita"):

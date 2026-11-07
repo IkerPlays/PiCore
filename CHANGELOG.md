@@ -6,6 +6,10 @@
 
 
 
+## Voz: lo que dice el tutorial se entiende (y un test lo vigila)
+
+- Un test comprueba que las ~70 frases de la tabla «Qué puedes pedir» del tutorial las entiende el asistente. Encontró dos que no: «cómo va el Pi-hole» y «ponle un minuto más» (sin decir «temporizador»); ya funcionan.
+
 ## Visita guiada: el foco va al botón «Siguiente»
 
 - Al abrir la visita (o cambiar de paso) el foco queda en «Siguiente», así se puede avanzar con Intro. Comprobado en navegador sin pantalla.
