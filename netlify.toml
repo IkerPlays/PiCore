@@ -1,4 +1,4 @@
-# Despliegue de la DEMO WEB de PiCore en Netlify (la interfaz con una API simulada en JavaScript; no necesita servidor).
+# Despliegue de la DEMO WEB de PiCore en Netlify (en vivo: https://picoreweb.netlify.app/) (la interfaz con una API simulada en JavaScript; no necesita servidor).
 # Conectar el repositorio en Netlify: Add new site -> Import an existing project -> GitHub -> este repositorio.
 # Netlify lee este archivo y no hay nada mas que configurar. Para probarlo en local:  make demo
 [build]

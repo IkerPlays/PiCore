@@ -82,6 +82,9 @@ def build(out):
         if f.is_file() and f.suffix in (".css", ".js", ".svg"):
             shutil.copy2(f, out / "static" / f.name)
     shutil.copy2(DEMO_JS, out / "static" / "demo.js")
+    social = ROOT / "docs" / "img" / "social.png"
+    if social.exists():
+        shutil.copy2(social, out / "static" / "social.png")          # tarjeta que sale al compartir el enlace
     sprite = (WEB / "static" / "icons.svg").read_text(encoding="utf-8")
     commit = (os.environ.get("COMMIT_REF") or os.environ.get("GITHUB_SHA") or "")[:7]
     shutil.copy2(SHELL, out / "index.html")

@@ -1,5 +1,7 @@
 # Demo web de PiCore (Netlify)
 
+**En vivo: <https://picoreweb.netlify.app/>**
+
 Una versión de la interfaz que corre **solo en el navegador**, sin Raspberry Pi y sin servidor Python. Sirve para enseñar el proyecto, probar cambios de diseño o dejar que otra persona lo pruebe con un enlace.
 
 ## Cómo funciona
@@ -19,6 +21,10 @@ Si prefieres desplegar a mano: `make demo` para ver el resultado en local y sube
 ## El marco de dispositivo
 
 Al abrir la demo en un ordenador o un móvil, la portada (`index.html`) la enseña dentro de una pantalla de **1024×600** (la de la Raspberry Pi) escalada para caber en la ventana, con botones **Casa / Iker / Dev** para cambiar de modo. Casa vive en `/app`; `/iker`, `/dev` y `/loading` abiertas sueltas se redirigen al marco. En el móvil, gíralo en horizontal. Con `?bare=1` se ve la página sola, sin marco (la usan los tests).
+
+## Qué incluye de verdad
+
+La demo usa los **vídeos de inicio, GIFs e imágenes reales** de `extra-assets/` (los copia `tools/build_web_demo.py`): la primera vez que entras ves un vídeo de inicio al azar y la pantalla de carga con tu carrusel, como al encender la Pi. Los vídeos de inicio se publican en **H.264** (`web-demo/assets/start/`): los móviles suelen grabar H.265, que muchos navegadores no reproducen. Si cambias o añades vídeos en `extra-assets/start/`, regenera su copia con `ffmpeg -i Inicio1.mp4 -c:v libx264 -crf 27 -pix_fmt yuv420p -c:a aac -movflags +faststart web-demo/assets/start/Inicio1.mp4` (o, si el servidor de construcción tiene `ffmpeg`, se convierten solos). Sin archivos en `extra-assets/`, la demo usa dibujos generados.
 
 ## Qué funciona y qué no
 

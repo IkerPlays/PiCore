@@ -52,7 +52,7 @@ Marca cada cosa antes de seguir; te ahorrará vueltas.
 
 ## Paso 0: probar sin hardware (opcional)
 
-**Lo más fácil: la demo web.** Si el repositorio está conectado a Netlify (en [docs/DEMO_WEB.md](DEMO_WEB.md) tienes los 3 pasos), abre su dirección y ya está: es la misma interfaz funcionando en el navegador, sin instalar nada y también desde el móvil. Con `make demo` la ves en tu ordenador en <http://127.0.0.1:8081>. No ejecuta nada real. Para probar el **servidor de verdad** (voz simulada, Pi-hole falso, cámara de prueba), usa el emulador completo:
+**Lo más fácil: la demo web.** Abre <https://picoreweb.netlify.app/> y ya está (si quieres ponerla tú en Netlify, en [docs/DEMO_WEB.md](DEMO_WEB.md) tienes los 3 pasos): es la misma interfaz funcionando en el navegador, sin instalar nada y también desde el móvil. Con `make demo` la ves en tu ordenador en <http://127.0.0.1:8081>. No ejecuta nada real. Para probar el **servidor de verdad** (voz simulada, Pi-hole falso, cámara de prueba), usa el emulador completo:
 
 Antes de comprar nada puedes ver cómo se verá todo **en tu ordenador** (Linux, macOS, o Windows con WSL), con Python 3 instalado:
 
