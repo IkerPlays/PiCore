@@ -30,3 +30,7 @@
   from = "/loading"
   to = "/loading.html"
   status = 200
+[[redirects]]
+  from = "/escritorio"
+  to = "/escritorio.html"
+  status = 200

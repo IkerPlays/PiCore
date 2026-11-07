@@ -44,7 +44,7 @@
 <body>
 <header><a href="/" style="color:inherit;text-decoration:none;display:flex;align-items:center;gap:8px"><img src="/favicon.svg" alt="" width="24" height="24"><b>PiCore</b></a><small>simulador en el navegador: nada de esto es real</small>
   <a class="b" href="/" title="Volver a la página de inicio">Inicio</a>
-  <button data-m="home">Casa</button><button data-m="iker">Iker</button><button data-m="dev">Dev</button>
+  <button data-m="home">Casa</button><button data-m="iker">Iker</button><button data-m="dev">Dev</button><button data-m="desktop">Escritorio</button>
   <button id="tourbtn" title="Un paseo por las funciones, paso a paso">Visita guiada</button><a class="b" href="https://github.com/IkerPlays/PiCore" target="_blank" rel="noopener">GitHub</a><button id="share" title="Copia un enlace que abre el simulador en este modo">Copiar enlace</button><button id="reset">Restablecer</button></header>
 <div id="stage"><div id="dev"><iframe id="f" title="PiCore" allow="autoplay; encrypted-media"></iframe></div></div>
 <div id="tour" role="dialog" aria-label="Visita guiada"><small id="t-n"></small><h4 id="t-h"></h4><p id="t-p"></p><div class="dots" id="t-d"></div>
@@ -55,11 +55,11 @@
   <div id="chips"></div>
 </div>
 <noscript><p style="position:absolute;inset:80px 20px auto;text-align:center;color:#e9eef7">El simulador necesita JavaScript. Actívalo en tu navegador o <a href="/" style="color:#7cabff">vuelve al inicio</a>.</p></noscript>
-<div id="hint" class="hint"><span id="rot">Gira el móvil en horizontal para verlo mejor. </span>Pantalla de 1024×600, como la de la Raspberry Pi. <span class="keys">Atajos: <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> modos, <kbd>T</kbd> visita, <kbd>V</kbd> voz.</span></div>
+<div id="hint" class="hint"><span id="rot">Gira el móvil en horizontal para verlo mejor. </span>Pantalla de 1024×600, como la de la Raspberry Pi. <span class="keys">Atajos: <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> modos, <kbd>T</kbd> visita, <kbd>V</kbd> voz.</span></div>
 <script>
 "use strict";
 const f = document.getElementById("f"), dev = document.getElementById("dev");
-const ALLOWED = ["/app", "/iker", "/dev", "/loading"];
+const ALLOWED = ["/app", "/iker", "/dev", "/escritorio", "/loading"];
 let start = "/app";
 try {
   const p = new URLSearchParams(location.search).get("p") || "";
@@ -71,7 +71,7 @@ try {
 } catch (e) {}
 f.src = start;
 function fit() {
-  const w = innerWidth - 40, h = innerHeight - 56 - 34 - 24, k = Math.max(0.3, Math.min(w / 1024, h / 600, 1.6));
+  const st = document.getElementById("stage"), w = st.clientWidth - 40, h = st.clientHeight - 24, k = Math.max(0.3, Math.min(w / 1024, h / 600, 1.6));
   dev.style.transform = "translate(-50%, -50%) scale(" + k + ")";
 }
 addEventListener("resize", fit); fit();
@@ -81,7 +81,7 @@ for (const b of document.querySelectorAll("button[data-m]")) b.onclick = () => {
 };
 document.getElementById("share").onclick = async () => {
   let m = "home"; try { m = JSON.parse(localStorage.getItem("pcpi-demo-mode") || '"home"'); } catch (e) {}
-  const url = location.origin + "/simulador?p=" + ({home: "/app", iker: "/iker", dev: "/dev"}[m] || "/app"), btn = document.getElementById("share");
+  const url = location.origin + "/simulador?p=" + ({home: "/app", iker: "/iker", dev: "/dev", desktop: "/escritorio"}[m] || "/app"), btn = document.getElementById("share");
   try { await navigator.clipboard.writeText(url); btn.textContent = "Enlace copiado"; } catch (e) { btn.textContent = url; }
   setTimeout(() => { btn.textContent = "Copiar enlace"; }, 2500);
 };
@@ -151,7 +151,7 @@ addEventListener("keydown", e => {
   const el = document.activeElement; if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
   if (e.key === "Escape" && tour.classList.contains("on")) { tour.classList.remove("on"); step = -1; return; }
   if (tour.classList.contains("on") && (e.key === "ArrowRight" || e.key === "ArrowLeft")) { e.preventDefault(); show(step + (e.key === "ArrowRight" ? 1 : -1)); return; }
-  const m = {"1": "home", "2": "iker", "3": "dev"}[e.key];
+  const m = {"1": "home", "2": "iker", "3": "dev", "4": "desktop"}[e.key];
   if (m) { const b = document.querySelector('button[data-m="' + m + '"]'); if (b) b.click(); }
   else if (e.key === "t" || e.key === "T") document.getElementById("tourbtn").click();
   else if (e.key === "v" || e.key === "V") { e.preventDefault(); document.getElementById("sayin").focus(); }
@@ -159,7 +159,7 @@ addEventListener("keydown", e => {
 setInterval(() => {
   let m = "home"; try { m = JSON.parse(localStorage.getItem("pcpi-demo-mode") || '"home"'); } catch (e) {}
   for (const b of document.querySelectorAll("button[data-m]")) b.classList.toggle("on", b.dataset.m === m);
-  document.title = "Simulador de PiCore · " + ({home: "Casa", iker: "Iker", dev: "Dev"}[m] || "Casa");
+  document.title = "Simulador de PiCore · " + ({home: "Casa", iker: "Iker", dev: "Dev", desktop: "Escritorio"}[m] || "Casa");
 }, 400);
 </script>
 </body>

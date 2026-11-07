@@ -32,7 +32,7 @@ EXTRA = ROOT / "extra-assets"                    # tus videos, GIFs e imagenes (
 H264 = ROOT / "web-demo" / "assets" / "start"     # copias H.264 de los videos de inicio: los navegadores no siempre reproducen H.265
 # pagina de la Pi -> (archivo publicado, titulo). La portada "/" es la pagina de inicio, el simulador (la carcasa del dispositivo)
 # esta en /simulador y Casa pasa a /app.
-PAGES = {"index.html": ("app.html", "PiCore (demo)"), "iker.html": ("iker.html", "Modo Iker (demo)"), "dev.html": ("dev.html", "Modo Dev (demo)"), "loading.html": ("loading.html", "PiCore (demo)")}
+PAGES = {"index.html": ("app.html", "PiCore (demo)"), "iker.html": ("iker.html", "Modo Iker (demo)"), "dev.html": ("dev.html", "Modo Dev (demo)"), "loading.html": ("loading.html", "PiCore (demo)"), "escritorio.html": ("escritorio.html", "Escritorio (demo)")}
 
 # Misma idea que la CSP del servidor (home/server.py), con lo que necesita la demo: audio generado (blob:) e imagenes data:
 CSP = ("default-src 'self'; img-src 'self' https: data: blob:; media-src 'self' blob:; style-src 'self' 'unsafe-inline'; "
@@ -103,10 +103,10 @@ def build(out):
         for f in sorted(LANDING_IMG.iterdir()):
             if f.suffix in (".webp", ".png", ".jpg", ".svg"):
                 shutil.copy2(f, out / "img" / f.name)
-    (out / "robots.txt").write_text("User-agent: *\nAllow: /\nDisallow: /app\nDisallow: /iker\nDisallow: /dev\nDisallow: /loading\nSitemap: %s/sitemap.xml\n" % SITE, encoding="utf-8")
+    (out / "robots.txt").write_text("User-agent: *\nAllow: /\nDisallow: /app\nDisallow: /iker\nDisallow: /dev\nDisallow: /escritorio\nDisallow: /loading\nSitemap: %s/sitemap.xml\n" % SITE, encoding="utf-8")
     (out / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>%s/</loc></url>\n  <url><loc>%s/simulador</loc></url>\n</urlset>\n' % (SITE, SITE), encoding="utf-8")
     for name, (dest, title) in PAGES.items():
-        html = (WEB / name).read_text(encoding="utf-8")
+        html = ((WEB / name) if (WEB / name).exists() else (ROOT / "web-demo" / name)).read_text(encoding="utf-8")
         html = html.replace("<!--ICONS-->", sprite)
         html = html.replace("<head>", '<head>\n<script src="/static/demo.js"></script>\n<meta name="robots" content="noindex">\n<link rel="icon" href="/favicon.svg" type="image/svg+xml">', 1)
         html = re.sub(r"<title>.*?</title>", "<title>%s</title>" % title, html, count=1, flags=re.S)

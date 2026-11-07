@@ -6,6 +6,11 @@
 
 
 
+## Simulador: maqueta del modo Escritorio y marco sin recortar
+
+- El botón «Escritorio» (y la tecla `4`) lleva a una maqueta del escritorio con terminal, navegador y archivos de mentira y un «Volver a Casa» (antes te devolvía a Casa con un aviso). Ruta nueva `/escritorio` (Netlify, servidor local y `robots.txt`).
+- Arreglo: el marco del dispositivo se recortaba unos píxeles por arriba y por abajo desde que se añadió la barra de voz; ahora se escala según el tamaño real del escenario y un test lo vigila.
+
 ## `make lint` también pasa pyflakes
 
 - Detecta variables sin usar, imports que sobran y nombres sin definir en el código y los tests (el CI lo instala; en local se omite si no lo tienes). El código está limpio hoy.

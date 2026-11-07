@@ -277,7 +277,7 @@
     if (p === "/api/loaded") {                                  // en la Pi, pcpi-session abre la ventana del modo; aqui navegamos
       const m = body.mode;
       if (m === "iker") navigateAfter("/iker", 100); else if (m === "dev") navigateAfter("/dev", 100);
-      else if (m === "desktop") { toast("El Escritorio no existe en la demo: vuelves a Casa.", 2600); LS.set("mode", "home"); navigateAfter("/app", 2600); }
+      else if (m === "desktop") navigateAfter("/escritorio", 100);
       return J({ ok: true });
     }
     if (p === "/api/boot") {

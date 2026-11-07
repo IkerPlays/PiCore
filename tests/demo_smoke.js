@@ -106,6 +106,8 @@ const check = (name, ok, extra) => results.push({ name, ok: !!ok, extra });
   check('en pantalla grande la demo sale dentro de un marco de dispositivo', await p2.isVisible('#dev') && /\d\d:\d\d/.test(await fr.locator('#time').textContent()));
   const box = await p2.locator('#dev').boundingBox();
   check('el marco cabe en la ventana y mantiene 1024x600', box && box.width <= 1600 && box.height <= 900 && Math.abs(box.width / box.height - 1024 / 600) < 0.02, JSON.stringify(box));
+  const stage = await p2.locator('#stage').boundingBox();
+  check('el marco no se recorta: cabe dentro del escenario (no queda bajo la cabecera ni la barra de voz)', box && stage && box.y >= stage.y - 1 && box.y + box.height <= stage.y + stage.height + 1 && box.x >= -1 && box.x + box.width <= stage.width + 1, JSON.stringify({ box, stage }));
   await p2.click('button[data-m="iker"]');
   await p2.waitForFunction(() => document.getElementById('f').contentWindow.location.pathname === '/iker', null, { timeout: 20000 }).catch(() => {});
   check('los botones del marco cambian de modo (con su carga)', await p2.evaluate(() => document.getElementById('f').contentWindow.location.pathname) === '/iker');

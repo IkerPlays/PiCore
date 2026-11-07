@@ -36,14 +36,14 @@ La demo usa los **vídeos de inicio, GIFs e imágenes reales** de `extra-assets/
 | Musix: **MP3 Player** con 3 canciones sintetizadas en el navegador (suenan de verdad), **YT Music** con el reproductor incrustado de YouTube, historial | Importar de USB, la web de descarga de DYMusic, la búsqueda por título (necesita clave) |
 | Iker: notas con búsqueda, etiquetas y marcadores guardados en tu navegador | Exportar a USB y a PDF |
 | Dev: consola de mentira (`help` lista lo que entiende), explorador de la API, experimentos | Ejecutar órdenes de verdad (en la demo nada se ejecuta) |
-| Cambio de modo con su pantalla de carga (Casa, Iker, Dev) | Escritorio (te devuelve a Casa) |
+| Cambio de modo con su pantalla de carga (Casa, Iker, Dev y una **maqueta** del Escritorio con terminal, navegador y archivos de mentira) | El Raspberry Pi OS de verdad |
 
 ## Voz, visita guiada y atajos del simulador
 
 - **Voz simulada:** la barra de abajo entiende frases escritas (hora, fecha, tiempo, temporizadores con nombre, alarmas, música, volumen, brillo, notas, «qué puedes hacer», estado de la Pi...) y responde en voz alta con la síntesis de tu navegador. La Pi real usa Whisper para entenderte; aquí no hay micrófono ni IA local, y lo que no entiende recibe una respuesta fija. Está en `understand()` de `web-demo/demo.js`.
 - **Visita guiada:** el botón «Visita guiada» (o `/simulador?tour`) recorre 13 pasos y toca de verdad la interfaz.
-- **Atajos:** `1` `2` `3` cambian de modo, `T` abre la visita y `V` enfoca la barra de voz (no actúan si estás escribiendo en un cuadro). Con la visita abierta, las flechas ← → cambian de paso y `Esc` la cierra.
-- **Enlaces directos:** `/simulador?p=/iker` abre el simulador en ese modo (solo `/app`, `/iker`, `/dev` y `/loading`).
+- **Atajos:** `1` `2` `3` `4` cambian de modo, `T` abre la visita y `V` enfoca la barra de voz (no actúan si estás escribiendo en un cuadro). Con la visita abierta, las flechas ← → cambian de paso y `Esc` la cierra.
+- **Enlaces directos:** `/simulador?p=/iker` abre el simulador en ese modo (solo `/app`, `/iker`, `/dev`, `/escritorio` y `/loading`).
 
 ## Seguridad
 
