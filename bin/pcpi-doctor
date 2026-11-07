@@ -6,6 +6,7 @@ warn() { printf '  \033[33m!\033[0m %s\n' "$*"; WARN=1; }
 bad()  { printf '  \033[31m✘\033[0m %s\n' "$*"; BAD=1; }
 WARN=0; BAD=0
 
+[ -r /opt/pcpi/VERSION ] && echo "PiCore $(cat /opt/pcpi/VERSION)"
 echo "Modo y servidor"
 if [ -f /etc/pcpi/pcpi.conf ]; then
   inline="$(grep -nE '^[^#;[:space:]][^#]*=.*[[:space:]]#' /etc/pcpi/pcpi.conf | head -3)"
