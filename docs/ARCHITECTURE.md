@@ -58,6 +58,19 @@ home/web/index.html  (reloj, tiempo,           └─ iker    → Chromium (vent
 7. ✅ Web pública con portada, simulador (voz escrita y visita guiada) y pruebas automáticas.
 8. ⏳ **Probarlo todo en una Raspberry Pi real** (hoy solo hay pruebas automáticas, un «Pi virtual» y el simulador). ⏳ Voz más natural (Piper) y un «Oye Pi» fiable.
 
+## Pruebas de consistencia (que la documentación y la interfaz no mientan)
+
+Además de probar el código, hay tests que cruzan cosas que se desincronizan fácilmente:
+
+- `tests/test_intents_table.py`: una tabla de frases → orden (detecta solapes entre órdenes de voz), que **toda orden reconocida tenga ejecutor** en `voice/assistant.py` y que **todas las frases de ejemplo** del tutorial, el README, la hoja Sistema y la portada las entienda el asistente.
+- `tests/demo_smoke.js` (dentro de `test_web_demo`): el simulador entiende también todas las frases del tutorial, y el marco del dispositivo no se recorta.
+- `tests/test_docs_links.py`: los enlaces internos (archivos y anclas) y las imágenes de la documentación existen.
+- `tests/test_icons.py`: todos los iconos pedidos por nombre existen en el sprite.
+- `tests/test_web_demo.py` (`SintaxisJs`): el JavaScript de todas las páginas y scripts es válido (`node --check`).
+- `tests/test_city.py`: cada ajuste de la pantalla existe en `pcpi.conf.example` y cada acción de `/api/settings` está documentada aquí.
+
+Si añades una orden de voz o un ajuste y falla alguno, el mensaje dice qué falta.
+
 ## Pruebas «Pi virtual»
 
 `tests/test_pi_virtual.py` lanza `bin/pcpi-session` sin tocarlo, con un `chromium` falso en el `PATH` (`tests/fake_chromium.js`) que abre la dirección recibida en un Chromium real sin pantalla (Playwright) y apunta cada navegación en un registro. El servidor corre en el propio proceso de la prueba con rutas temporales propias (`PCPI_*`). Así se comprueba de verdad que la pantalla de carga avisa con `/api/loaded`, que el vigilante cambia de ventana, que `boot=1/0` decide el vídeo de inicio y que las páginas dan latidos. Limitaciones: sin Wayland/labwc, sin GPU ni audio, sin systemd.
