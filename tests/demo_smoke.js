@@ -88,7 +88,7 @@ const check = (name, ok, extra) => results.push({ name, ok: !!ok, extra });
   // marco de dispositivo (en una pantalla grande): la interfaz va dentro de un iframe de 1024x600 escalado
   const big = await browser.newContext({ viewport: { width: 1600, height: 900 }, locale: 'es-ES' });
   const p2 = patchWaitForFunction(await big.newPage());
-  await p2.goto(base + '/?p=%2Fapp');
+  await p2.goto(base + '/simulador?p=%2Fapp');
   await p2.waitForSelector('#f', { timeout: 8000 }).catch(() => {});
   const fr = p2.frameLocator('#f');
   await fr.locator('#time').waitFor({ timeout: 8000 }).catch(() => {});
@@ -102,7 +102,7 @@ const check = (name, ok, extra) => results.push({ name, ok: !!ok, extra });
   // primera visita: «encender la Pi» (video de inicio REAL de extra-assets y carrusel con imagenes y GIFs reales)
   const first = await browser.newContext({ viewport: { width: 1280, height: 760 }, locale: 'es-ES' });
   const p4 = patchWaitForFunction(await first.newPage());
-  await p4.goto(base + '/');
+  await p4.goto(base + '/simulador');
   await p4.waitForSelector('#f', { timeout: 8000 }).catch(() => {});
   const f4 = p4.frameLocator('#f');
   await f4.locator('#intro-video').waitFor({ state: 'attached', timeout: 8000 }).catch(() => {});
@@ -118,7 +118,7 @@ const check = (name, ok, extra) => results.push({ name, ok: !!ok, extra });
   check('un GIF real se sirve bien', gif.ok() && (gif.headers()['content-type'] || '').includes('gif'));
   const phone = await browser.newContext({ viewport: { width: 390, height: 780 }, isMobile: true, hasTouch: true });
   const p3 = await phone.newPage();
-  await p3.goto(base + '/'); await p3.waitForSelector('#dev', { timeout: 8000 }).catch(() => {});
+  await p3.goto(base + '/simulador'); await p3.waitForSelector('#dev', { timeout: 8000 }).catch(() => {});
   const pb = await p3.locator('#dev').boundingBox();
   check('en un movil la interfaz se escala para caber', pb && pb.width <= 390, JSON.stringify(pb));
   await phone.close();

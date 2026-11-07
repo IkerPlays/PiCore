@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>PiCore (demo)</title>
+<title>Simulador · PiCore</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta name="description" content="PiCore: un PC portátil con Raspberry Pi 5 y pantalla táctil (Casa, Iker y Dev). Demo en el navegador: nada de esto es real.">
 <meta property="og:title" content="PiCore · demo en el navegador">
 <meta property="og:description" content="La interfaz de PiCore (Raspberry Pi 5) funcionando en una web, sin instalar nada.">
@@ -27,7 +28,8 @@
 </style>
 </head>
 <body>
-<header><b>PiCore</b><small>demo en el navegador: nada de esto es real</small>
+<header><a href="/" style="color:inherit;text-decoration:none;display:flex;align-items:center;gap:8px"><img src="/favicon.svg" alt="" width="24" height="24"><b>PiCore</b></a><small>simulador en el navegador: nada de esto es real</small>
+  <a class="b" href="/" title="Volver a la página de inicio">Inicio</a>
   <button data-m="home">Casa</button><button data-m="iker">Iker</button><button data-m="dev">Dev</button>
   <a class="b" href="https://github.com/IkerPlays/PiCore" target="_blank" rel="noopener">GitHub</a><button id="reset">Restablecer</button></header>
 <div id="stage"><div id="dev"><iframe id="f" title="PiCore" allow="autoplay; encrypted-media"></iframe></div></div>
@@ -57,7 +59,7 @@ for (const b of document.querySelectorAll("button[data-m]")) b.onclick = () => {
 };
 document.getElementById("reset").onclick = () => {
   try { Object.keys(localStorage).filter(k => k.startsWith("pcpi-demo-")).forEach(k => localStorage.removeItem(k)); sessionStorage.clear(); } catch (e) {}
-  location.href = "/";
+  location.href = "/simulador";
 };
 setInterval(() => {
   let m = "home"; try { m = JSON.parse(localStorage.getItem("pcpi-demo-mode") || '"home"'); } catch (e) {}

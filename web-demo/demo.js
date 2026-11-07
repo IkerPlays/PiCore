@@ -22,7 +22,7 @@
   const framed = window.top !== window;
   let bare = /[?&]bare\b/.test(location.search);
   try { if (bare) sessionStorage.setItem("pcpi-demo-bare", "1"); else bare = sessionStorage.getItem("pcpi-demo-bare") === "1"; } catch (e) {}
-  if (!framed && !bare) { location.replace("/?p=" + encodeURIComponent(location.pathname + location.search)); return; }
+  if (!framed && !bare) { location.replace("/simulador?p=" + encodeURIComponent(location.pathname + location.search)); return; }
 
   /* ---------------- estado ---------------- */
   const here = location.pathname.replace(/\/+$/, "");

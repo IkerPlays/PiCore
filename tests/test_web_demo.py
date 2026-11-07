@@ -16,6 +16,63 @@ import serve_web_demo  # noqa: E402
 from test_ui_smoke import free_port, node_env  # noqa: E402
 
 
+class LandingTest(unittest.TestCase):
+    """La pagina de inicio (portada de la web): que explique que es, como funciona y para que sirve, y que no tenga enlaces rotos."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.out = Path(tempfile.mkdtemp()) / "dist"
+        build_web_demo.build(cls.out)
+        cls.html = (cls.out / "index.html").read_text()
+
+    def test_explains_what_it_is_how_it_works_and_what_for(self):
+        for anchor in ('id="que-es"', 'id="sirve"', 'id="funciona"', 'id="modos"', 'id="instalar"', 'id="faq"'):
+            self.assertIn(anchor, self.html)
+        for text in ("Qué es PiCore", "Para qué sirve", "Cómo funciona", "Instalar", "Preguntas frecuentes", "todavía no en una Raspberry Pi real"):
+            self.assertIn(text, self.html)
+
+    def test_points_to_the_simulator_and_github(self):
+        self.assertGreaterEqual(self.html.count('href="/simulador"'), 3)
+        self.assertIn("https://github.com/IkerPlays/PiCore", self.html)
+
+    def test_seo_basics(self):
+        for tag in ('<title>', 'name="description"', 'property="og:title"', 'property="og:image"', 'rel="icon"', '<html lang="es">'):
+            self.assertIn(tag, self.html)
+        self.assertNotIn("noindex", self.html)
+        self.assertIn("Sitemap:", (self.out / "robots.txt").read_text())
+        self.assertIn("/simulador", (self.out / "sitemap.xml").read_text())
+
+    def test_no_emojis_and_no_external_scripts(self):
+        import re
+        self.assertFalse(re.search("[\U0001F300-\U0001FAFF\u2600-\u27BF]", self.html))
+        self.assertEqual(re.findall(r'<script[^>]+src=', self.html), [])             # solo el script en linea: nada de terceros
+        self.assertNotIn("http://", self.html.replace("http://www.w3.org/2000/svg", ""))          # (el espacio de nombres del SVG no es un enlace)
+
+    def test_every_local_link_image_and_anchor_exists(self):
+        import re
+        ids = set(re.findall(r'id="([^"]+)"', self.html))
+        routes = {"/": "index.html", "/simulador": "simulador.html"}
+        for ref in re.findall(r'(?:href|src)="([^"#][^"]*)"', self.html):
+            if ref.startswith(("http", "mailto:")):
+                continue
+            path = routes.get(ref.split("#")[0]) or ref.lstrip("/")
+            self.assertTrue((self.out / path).is_file(), "enlace roto: " + ref)
+        for frag in re.findall(r'href="#([^"]+)"', self.html):
+            self.assertIn(frag, ids, "ancla sin destino: #" + frag)
+        for ref in re.findall(r'<use href="#(i-[^"]+)"', self.html):
+            self.assertIn('id="%s"' % ref, self.html, "icono que no existe en el sprite: " + ref)
+
+    def test_images_have_alt_text_and_size(self):
+        import re
+        for tag in re.findall(r"<img [^>]+>", self.html):
+            self.assertIn("alt=", tag)
+            self.assertIn("width=", tag)
+
+    def test_images_are_light(self):
+        for f in (self.out / "img").glob("*.webp"):
+            self.assertLess(f.stat().st_size, 120_000, f.name)
+
+
 class BuildTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -23,7 +80,7 @@ class BuildTest(unittest.TestCase):
         build_web_demo.build(cls.out)
 
     def test_expected_files(self):
-        for n in ("index.html", "app.html", "iker.html", "dev.html", "loading.html", "404.html", "_headers", "static/demo.js", "static/ui.css", "static/icons.svg", "static/osk.js"):
+        for n in ("index.html", "app.html", "iker.html", "dev.html", "loading.html", "404.html", "_headers", "simulador.html", "favicon.svg", "robots.txt", "sitemap.xml", "img/casa.webp", "static/landing.css", "static/demo.js", "static/ui.css", "static/icons.svg", "static/osk.js"):
             self.assertTrue((self.out / n).is_file(), n)
 
     def test_pages_have_the_sprite_and_the_demo_script_first(self):
@@ -63,8 +120,8 @@ class BuildTest(unittest.TestCase):
         finally:
             b.EXTRA, b.H264 = old
 
-    def test_portada_is_the_device_shell_and_loading_goes_to_app(self):
-        shell = (self.out / "index.html").read_text()
+    def test_simulador_is_the_device_shell_and_loading_goes_to_app(self):
+        shell = (self.out / "simulador.html").read_text()
         self.assertIn('id="f"', shell)
         self.assertIn('ALLOWED = ["/app", "/iker", "/dev", "/loading"]', shell)          # solo rutas conocidas dentro del marco
         self.assertNotIn("demo.js", shell)
@@ -106,7 +163,7 @@ class BuildTest(unittest.TestCase):
         self.assertIn('publish = "dist-demo"', toml)
         self.assertIn("python3 tools/build_web_demo.py", toml)
         self.assertEqual(build_web_demo.ROOT / "dist-demo", ROOT / "dist-demo")
-        for route in ("/app", "/iker", "/dev", "/loading"):
+        for route in ("/simulador", "/app", "/iker", "/dev", "/loading"):
             self.assertIn('from = "%s"' % route, toml)
             self.assertEqual(serve_web_demo.ROUTES[route], route + ".html")             # el servidor local imita a Netlify
         self.assertIn("dist-demo/", (ROOT / ".gitignore").read_text())

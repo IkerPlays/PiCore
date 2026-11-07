@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PiCore · Un PC portátil con Raspberry Pi 5, pantalla táctil y todo en español</title>
+<meta name="description" content="PiCore convierte una Raspberry Pi 5 con pantalla táctil en una pantalla de casa tipo Alexa que funciona sin nube, un bloc de notas con internet y un modo para trastear. Código abierto, en español. Pruébalo en el simulador.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="PiCore · Raspberry Pi 5 con pantalla táctil, en español">
+<meta property="og:description" content="Pantalla de casa sin nube (hora, tiempo, Pi-hole, música, voz), bloc de notas y modo Dev. Pruébalo ya en el simulador.">
+<meta property="og:image" content="/static/social.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/landing.css">
+</head>
+<body>
+<!--ICONS-->
+<header class="nav"><div class="wrap">
+  <a class="brand" href="/"><img src="/favicon.svg" alt="" width="30" height="30">PiCore</a>
+  <nav aria-label="Principal"><a href="#que-es">Qué es</a><a href="#sirve">Para qué sirve</a><a href="#funciona">Cómo funciona</a><a href="#modos">Modos</a><a href="#instalar">Instalar</a><a href="#faq">Preguntas</a></nav>
+  <a class="btn sm ghost" href="https://github.com/IkerPlays/PiCore" rel="noopener">GitHub</a>
+  <a class="btn sm primary" href="/simulador">Probar el simulador</a>
+</div></header>
+
+<main>
+<section class="hero"><div class="wrap">
+  <div>
+    <span class="eyebrow">Raspberry Pi 5 · código abierto · en español</span>
+    <h1>Un PC portátil con pantalla táctil que es <em>casa inteligente, bloc de notas y laboratorio</em>.</h1>
+    <p class="lead">PiCore convierte una Raspberry Pi 5 con una pantalla de 7 pulgadas en tres aparatos en uno: una pantalla tipo Alexa que funciona <b>sin nube ni cuentas</b>, un bloc de notas con internet y un modo para trastear. Todo en español y con el código a la vista.</p>
+    <div class="cta"><a class="btn primary" href="/simulador"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg> Probar el simulador</a><a class="btn" href="#instalar"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> Cómo instalarlo</a><a class="btn" href="https://github.com/IkerPlays/PiCore" rel="noopener">Ver el código</a></div>
+    <div class="pills"><span>Voz sin nube</span><span>Pi-hole integrado</span><span>Música con Musix</span><span>Todo local</span></div>
+  </div>
+  <div class="device"><img src="/img/casa.webp" alt="Pantalla de Casa de PiCore: reloj, tiempo, Pi-hole y reproductor de música" width="1024" height="600" fetchpriority="high"></div>
+</div></section>
+
+<section id="que-es"><div class="wrap">
+  <span class="eyebrow">Qué es PiCore</span>
+  <h2>Un sistema para que tu Raspberry Pi sea un aparato de verdad</h2>
+  <p class="lead">Una Raspberry Pi suele acabar en un cajón. PiCore la convierte en algo que enciendes y usas: arranca sola con su pantalla de inicio, recuerda en qué modo estabas, se repara si algo se cuelga y se maneja con el dedo, con la voz o con el teclado.</p>
+  <div class="grid g3">
+    <div class="card"><div class="ico"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg></div><h3>Una pantalla para casa</h3><p>Hora, tiempo con aviso de lluvia, temporizadores, calendario, música, cámara y control del Pi-hole, en una interfaz táctil pensada para verse de lejos.</p></div>
+    <div class="card"><div class="ico v"><svg class="ic" aria-hidden="true"><use href="#i-notes"/></svg></div><h3>Un bloc de notas portátil</h3><p>Notas con etiquetas, búsqueda y copias automáticas, e internet en otra pestaña. Nada se sube a ningún sitio: viven en tu Pi.</p></div>
+    <div class="card"><div class="ico g"><svg class="ic" aria-hidden="true"><use href="#i-terminal"/></svg></div><h3>Un laboratorio</h3><p>El modo Dev trae una consola, un terminal real, un explorador de la API y experimentos que se encienden y apagan. Ideal para aprender.</p></div>
+  </div>
+</div></section>
+
+<section id="sirve" class="alt"><div class="wrap">
+  <span class="eyebrow">Para qué sirve</span>
+  <h2>Cosas que haces todos los días, sin depender de nadie</h2>
+  <p class="lead">PiCore no intenta ser todo: hace pocas cosas y las hace en tu casa, con tus datos.</p>
+  <div class="grid g3">
+    <div class="card"><div class="ico"><svg class="ic" aria-hidden="true"><use href="#i-mic"/></svg></div><h3>Hablarle a la pantalla</h3><p>«Oye Pi, pon un temporizador de diez minutos», «¿qué tiempo hace?», «pausa la música». El reconocimiento de voz (Whisper) corre <b>dentro de la Pi</b>: tu voz no sale de casa.</p></div>
+    <div class="card"><div class="ico v"><svg class="ic" aria-hidden="true"><use href="#i-music"/></svg></div><h3>Música a tu manera</h3><p>Musix reproduce YouTube, tus MP3 sin conexión y te ayuda a guardar canciones en la Pi. Sin Premium y sin crear aplicaciones.</p></div>
+    <div class="card"><div class="ico g"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg></div><h3>Menos anuncios en toda la casa</h3><p>Se integra con Pi-hole: ves cuántas peticiones bloquea, lo pausas con un toque y puedes decidir en qué redes Wi-Fi se aplica.</p></div>
+    <div class="card"><div class="ico o"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg></div><h3>Temporizadores y alarmas</h3><p>Suenan aunque estés en otro modo, sobreviven a un reinicio y se crean con la voz o con un toque.</p></div>
+    <div class="card"><div class="ico"><svg class="ic" aria-hidden="true"><use href="#i-wifi"/></svg></div><h3>Cambiar de Wi-Fi sin teclado</h3><p>Redes ocultas, teclado en pantalla, wifis públicas con portal de inicio de sesión y DNS distinto por red.</p></div>
+    <div class="card"><div class="ico v"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg></div><h3>Una Pi que se cuida sola</h3><p>Si el servidor se cuelga, systemd lo reinicia; si Chromium falla, se relanza; hay avisos de poco disco, calor o fuente floja.</p></div>
+  </div>
+</div></section>
+
+<section id="funciona"><div class="wrap">
+  <span class="eyebrow">Cómo funciona</span>
+  <h2>Tres piezas sencillas, sin nube en medio</h2>
+  <p class="lead">Todo corre en la propia Raspberry Pi. El servidor usa solo la biblioteca estándar de Python: sin base de datos, sin contenedores, sin cuentas.</p>
+  <div class="flow">
+    <div class="node"><h3><svg class="ic" aria-hidden="true"><use href="#i-desktop"/></svg> La pantalla</h3><ul><li>Chromium en modo kiosco</li><li>Una web táctil (HTML, CSS y JavaScript, sin librerías)</li><li>Teclado en pantalla y animaciones suaves</li></ul></div>
+    <div class="arrow"><svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg><span>API en 127.0.0.1</span></div>
+    <div class="node"><h3><svg class="ic" aria-hidden="true"><use href="#i-cpu"/></svg> El servidor PiCore</h3><ul><li>Python, sin dependencias</li><li>Estado, notas, música, temporizadores</li><li>Protegido por systemd (sandbox y watchdog)</li></ul></div>
+    <div class="arrow"><svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg><span>peticiones</span></div>
+    <div class="node"><h3><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg> Tu Raspberry Pi</h3><ul><li>Pi-hole, Wi-Fi (NetworkManager)</li><li>Audio, cámara y micrófono</li><li>Voz local: openWakeWord y Whisper</li></ul></div>
+  </div>
+  <p class="lead" style="margin-top:28px">Una pieza más, <code>pcpi-session</code>, vive en tu sesión gráfica y hace lo que el servidor no puede (abrir ventanas, cambiar el volumen, apagar la Pi, instalar actualizaciones). Así el servidor puede correr muy cerrado, sin permisos de más.</p>
+  <ol class="steps">
+    <li><b>Enciendes la Pi.</b> Se reproduce un vídeo de inicio (uno al azar entre varios) y una pantalla de carga con tus imágenes.</li>
+    <li><b>Entra en el último modo.</b> Casa, Iker, Dev o Escritorio: se recuerda entre reinicios y se cambia con un toque.</li>
+    <li><b>El vigilante te cuida.</b> Si la pantalla se queda en blanco o el servidor se cuelga, se reinician solos y avisan.</li>
+    <li><b>Tú mandas.</b> Con el dedo, la voz o la terminal: `pcpi-mode`, `pcpi-wifi`, `pcpi-doctor`, `pcpi-update`...</li>
+  </ol>
+</div></section>
+
+<section id="modos" class="alt"><div class="wrap">
+  <div class="center"><span class="eyebrow">Los modos</span><h2>Un aparato, cuatro formas de usarlo</h2><p class="lead">Cambias de uno a otro con un toque (o con la voz) y se recuerda al reiniciar.</p></div>
+  <div class="tabs" role="tablist" aria-label="Modos">
+    <button role="tab" aria-selected="true" data-m="casa">Casa</button><button role="tab" aria-selected="false" data-m="iker">Iker</button><button role="tab" aria-selected="false" data-m="dev">Dev</button><button role="tab" aria-selected="false" data-m="esc">Escritorio</button>
+  </div>
+  <div class="mode on" data-m="casa"><div><h3>Casa</h3><p class="lead">La pantalla estilo Alexa, con animaciones suaves y tema claro de día y oscuro de noche.</p><ul><li>Reloj grande, fecha y tiempo (por horas y próximos días)</li><li>Pi-hole: porcentaje bloqueado y botón de pausa</li><li>Musix, temporizadores, calendario y cámara</li><li>Voz sin nube, brillo y volumen, Wi-Fi y hoja «Sistema»</li></ul></div><div class="shot"><img src="/img/casa-claro.webp" alt="Modo Casa con tema claro" loading="lazy" width="1024" height="600"></div></div>
+  <div class="mode" data-m="iker"><div><h3>Iker</h3><p class="lead">Un bloc de notas y un navegador, sin distracciones.</p><ul><li>Notas con etiquetas (#compra), búsqueda y copias automáticas</li><li>Exportar una nota a PDF o todas a un USB</li><li>Marcadores de webs y una pestaña de internet</li></ul></div><div class="shot"><img src="/img/iker.webp" alt="Modo Iker, el bloc de notas" loading="lazy" width="1024" height="600"></div></div>
+  <div class="mode" data-m="dev"><div><h3>Dev</h3><p class="lead">Para aprender y trastear sin miedo.</p><ul><li>Consola de comandos que ejecuta tu sesión (con límite de tiempo)</li><li>Terminal real, explorador de la API y estado en vivo</li><li>Experimentos que se encienden y apagan sin tocar el resto</li></ul></div><div class="shot"><img src="/img/dev.webp" alt="Modo Dev con la consola" loading="lazy" width="1024" height="600"></div></div>
+  <div class="mode" data-m="esc"><div><h3>Escritorio</h3><p class="lead">El Raspberry Pi OS de siempre, para cuando quieras usar la Pi como un ordenador normal.</p><ul><li>Sin nada extra encima</li><li>Vuelves a Casa o a Iker con un toque o con la voz</li></ul></div><div class="shot"><img src="/img/sistema.webp" alt="Hoja Sistema de PiCore" loading="lazy" width="1024" height="600"></div></div>
+</div></section>
+
+<section id="funciones"><div class="wrap">
+  <div class="center"><span class="eyebrow">Funciones</span><h2>Mucho más que un reloj</h2></div>
+  <div class="grid g4">
+    <div class="card mini"><h3><svg class="ic" aria-hidden="true"><use href="#i-music"/></svg> Musix</h3><p>YouTube, MP3 sin conexión y DYMusic. Volumen, aleatorio y temporizador para dormir.</p></div>
+    <div class="card mini"><h3><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg> Tiempo</h3><p>Por horas, próximos 5 días y aviso de lluvia. Eliges tu ciudad desde la pantalla.</p></div>
+    <div class="card mini"><h3><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg> Calendario</h3><p>Lee tus .ics de Google o Apple, solo lectura. Próximos eventos también por voz.</p></div>
+    <div class="card mini"><h3><svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg> Cámara</h3><p>Visor en directo y detección de movimiento que no guarda ni envía imágenes.</p></div>
+    <div class="card mini"><h3><svg class="ic" aria-hidden="true"><use href="#i-volume"/></svg> Sonido y brillo</h3><p>Volumen del sistema, prueba de sonido y brillo con modo noche automático.</p></div>
+    <div class="card mini"><h3><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg> Actualizar</h3><p>Desde la pantalla, con registro; o automático en una franja horaria (opcional).</p></div>
+    <div class="card mini"><h3><svg class="ic" aria-hidden="true"><use href="#i-battery"/></svg> Batería</h3><p>Indicador si tienes un UPS o HAT que la mida, con avisos de nivel bajo.</p></div>
+    <div class="card mini"><h3><svg class="ic" aria-hidden="true"><use href="#i-cpu"/></svg> IA local</h3><p>Opcional: un modelo Qwen con Ollama que contesta con datos reales de tu Pi, sin internet.</p></div>
+  </div>
+</div></section>
+
+<section class="alt"><div class="wrap">
+  <div class="center"><span class="eyebrow">Capturas</span><h2>Así se ve</h2><p class="lead">Capturas reales de la interfaz a 1024×600, la resolución de la pantalla.</p></div>
+  <div class="gallery">
+    <figure><div class="shot"><img src="/img/musix.webp" alt="Musix: YT Music, MP3 Player y DYMusic" loading="lazy" width="1024" height="600"></div><figcaption>Musix: YT Music, MP3 Player y DYMusic</figcaption></figure>
+    <figure><div class="shot"><img src="/img/tiempo.webp" alt="Tiempo por horas y próximos días" loading="lazy" width="1024" height="600"></div><figcaption>El tiempo, por horas y por días</figcaption></figure>
+    <figure><div class="shot"><img src="/img/wifi.webp" alt="Panel de Wi-Fi" loading="lazy" width="1024" height="600"></div><figcaption>Wi-Fi con Pi-hole por red</figcaption></figure>
+    <figure><div class="shot"><img src="/img/sistema.webp" alt="Hoja Sistema" loading="lazy" width="1024" height="600"></div><figcaption>Sistema: salud, actualizar, apagar</figcaption></figure>
+    <figure><div class="shot"><img src="/img/musix-mp3.webp" alt="MP3 Player" loading="lazy" width="1024" height="600"></div><figcaption>El reproductor de MP3, sin conexión</figcaption></figure>
+  </div>
+  <div class="cta" style="justify-content:center;margin-top:10px"><a class="btn primary" href="/simulador">Probarlo tú mismo en el simulador</a></div>
+</div></section>
+
+<section id="instalar"><div class="wrap">
+  <span class="eyebrow">Instalar</span>
+  <h2>Tres pasos en tu Raspberry Pi</h2>
+  <p class="lead">Con Raspberry Pi OS con escritorio (64 bits) y un usuario normal. El <a href="https://github.com/IkerPlays/PiCore/blob/main/docs/TUTORIAL.md" rel="noopener">tutorial</a> explica cada paso desde cero, incluso el montaje.</p>
+  <div class="grid g2" style="align-items:start">
+    <div>
+      <h3>1 · Descarga PiCore</h3>
+      <div class="code"><pre><span class="c"># en la terminal de la Pi</span>
+git clone https://github.com/IkerPlays/PiCore.git
+cd PiCore</pre><button type="button" data-copy="git clone https://github.com/IkerPlays/PiCore.git&#10;cd PiCore">Copiar</button></div>
+      <h3 style="margin-top:22px">2 · Instálalo</h3>
+      <div class="code"><pre>./install.sh --camera --voice</pre><button type="button" data-copy="./install.sh --camera --voice">Copiar</button></div>
+      <h3 style="margin-top:22px">3 · Comprueba que todo va</h3>
+      <div class="code"><pre>pcpi-doctor</pre><button type="button" data-copy="pcpi-doctor">Copiar</button></div>
+    </div>
+    <div>
+      <h3>Qué necesitas (unos 250 euros)</h3>
+      <ul class="hw"><li>Raspberry Pi 5 de 8 GB</li><li>Pantalla táctil HDMI de 7 pulgadas</li><li>Fuente oficial de 27 W</li><li>Tarjeta microSD de 64 GB</li><li>Carcasa con ventilador</li><li>Opcional: webcam, micrófono USB y altavoz</li></ul>
+      <p style="margin-top:14px;color:var(--dim)">La <a href="https://github.com/IkerPlays/PiCore/blob/main/docs/SHOPPING_LIST.md" rel="noopener">lista de la compra</a> trae modelos concretos. Si aún no tienes la Pi, <b>empieza por el <a href="/simulador">simulador</a></b>.</p>
+      <div class="notice"><svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg><p><b>Sé sincero con lo que lees:</b> PiCore está probado con más de 600 tests automáticos, un navegador real y un «Pi virtual» (servidor y vigilante reales), pero <b>todavía no en una Raspberry Pi real</b>. Si lo pruebas, cuéntame qué tal en GitHub.</p></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="alt"><div class="wrap">
+  <span class="eyebrow">Privacidad y seguridad</span>
+  <h2>Tus datos se quedan en tu casa</h2>
+  <div class="grid g3">
+    <div class="card"><div class="ico g"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg></div><h3>Sin nube ni cuentas</h3><p>No hay servidor de PiCore al que llamar. La voz, las notas y los temporizadores se procesan y se guardan en tu Pi.</p></div>
+    <div class="card"><div class="ico"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg></div><h3>Servidor cerrado</h3><p>Escucha solo en 127.0.0.1, con sandbox de systemd, comprobaciones contra ataques desde otras webs y rutas que exigen una cabecera propia.</p></div>
+    <div class="card"><div class="ico v"><svg class="ic" aria-hidden="true"><use href="#i-code"/></svg></div><h3>Código abierto (MIT)</h3><p>Puedes leer, cambiar y compartir todo. Las pruebas de seguridad están en el repositorio.</p></div>
+  </div>
+</div></section>
+
+<section id="faq"><div class="wrap">
+  <span class="eyebrow">Preguntas frecuentes</span>
+  <h2>Lo que suelen preguntar</h2>
+  <details><summary>¿Necesito Spotify Premium o alguna cuenta?</summary><p>No. Musix reproduce los enlaces de YouTube que pegas (con el reproductor incrustado de YouTube) y los MP3 que tengas en la Pi. No hace falta ninguna cuenta para usar PiCore.</p></details>
+  <details><summary>¿Funciona sin internet?</summary><p>Sí, casi todo: la hora, los temporizadores, las notas, la voz y el MP3 Player son locales. El tiempo, YouTube y las actualizaciones sí necesitan internet.</p></details>
+  <details><summary>¿Puedo usar otra pantalla o una Raspberry Pi 4?</summary><p>La interfaz está pensada para 1024×600, pero se adapta. Está diseñada y probada para la Pi 5 de 8 GB; en una Pi 4 debería funcionar, con la voz y la IA más lentas.</p></details>
+  <details><summary>¿Es legal bajar música con DYMusic?</summary><p>DYMusic abre una web de terceros para que guardes un MP3 y <b>tú</b> haces la descarga. Bajar de YouTube va contra sus condiciones de uso y la música tiene derechos de autor: úsalo solo con música que tengas derecho a copiar (tuya, de licencia libre o con permiso).</p></details>
+  <details><summary>¿Qué es el simulador y qué no hace?</summary><p>Es la misma interfaz funcionando en tu navegador, con datos de ejemplo. Sirve para ver y tocar todo antes de comprar nada. No ejecuta nada real: no apaga, no descarga y no hay voz ni cámara de verdad.</p></details>
+  <details><summary>¿Cuánto cuesta y qué licencia tiene?</summary><p>PiCore es gratis y de código abierto con licencia MIT. Lo único que pagas es el hardware. Los vídeos y GIFs de ejemplo del repositorio no están cubiertos por la licencia: cámbialos por los tuyos.</p></details>
+  <details><summary>¿Por qué «PiCore»?</summary><p>Era «PCPi»: un PC con una Pi como núcleo (core). Los nombres técnicos (<code>pcpi-*</code>) se mantienen por compatibilidad.</p></details>
+</div></section>
+
+<section><div class="wrap"><div class="final">
+  <h2>Pruébalo ahora, sin instalar nada</h2>
+  <p class="lead">El simulador funciona en tu navegador (también en el móvil) con vídeos de inicio, música y notas de ejemplo.</p>
+  <div class="cta"><a class="btn primary" href="/simulador"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg> Abrir el simulador</a><a class="btn" href="https://github.com/IkerPlays/PiCore" rel="noopener">Ver en GitHub</a></div>
+</div></div></section>
+</main>
+
+<footer><div class="wrap">
+  <div><b style="color:var(--fg)">PiCore</b> · un PC portátil con Raspberry Pi 5 · licencia MIT</div>
+  <nav aria-label="Enlaces"><a href="/simulador">Simulador</a><a href="https://github.com/IkerPlays/PiCore" rel="noopener">GitHub</a><a href="https://github.com/IkerPlays/PiCore/blob/main/docs/TUTORIAL.md" rel="noopener">Tutorial</a><a href="https://github.com/IkerPlays/PiCore/blob/main/CHANGELOG.md" rel="noopener">Registro de cambios</a><a href="https://github.com/IkerPlays/PiCore/blob/main/SECURITY.md" rel="noopener">Seguridad</a></nav>
+</div></footer>
+
+<script>
+"use strict";
+/* pestañas de los modos */
+const tabs = document.querySelectorAll(".tabs button"), modes = document.querySelectorAll(".mode");
+for (const b of tabs) b.addEventListener("click", () => {
+  for (const x of tabs) x.setAttribute("aria-selected", String(x === b));
+  for (const m of modes) m.classList.toggle("on", m.dataset.m === b.dataset.m);
+});
+/* botones «Copiar» */
+for (const b of document.querySelectorAll("button[data-copy]")) b.addEventListener("click", async () => {
+  const old = b.textContent;
+  try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = "Copiado"; } catch (e) { b.textContent = "Selecciona y copia"; }
+  setTimeout(() => { b.textContent = old; }, 1600);
+});
+</script>
+</body>
+</html>

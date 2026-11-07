@@ -7,9 +7,9 @@
 ![Raspberry Pi 5](https://img.shields.io/badge/Raspberry%20Pi-5%20(8%20GB)-c51a4a?logo=raspberrypi&logoColor=white)
 ![Idioma](https://img.shields.io/badge/idioma-espa%C3%B1ol-blue)
 
-### [Prueba la demo en tu navegador: picoreweb.netlify.app](https://picoreweb.netlify.app/)
+### [Web de PiCore: picoreweb.netlify.app](https://picoreweb.netlify.app/) · [Probar el simulador](https://picoreweb.netlify.app/simulador)
 
-La misma interfaz que corre en la Pi, sin instalar nada (también desde el móvil). Es una demo: no ejecuta nada real.
+La web explica qué es PiCore, cómo funciona y para qué sirve, y el **simulador** es la misma interfaz que corre en la Pi, sin instalar nada (también desde el móvil). Es una simulación: no ejecuta nada real.
 
 | Casa (claro) | Casa (oscuro) |
 |---|---|

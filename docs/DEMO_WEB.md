@@ -1,6 +1,8 @@
 # Demo web de PiCore (Netlify)
 
-**En vivo: <https://picoreweb.netlify.app/>**
+**En vivo: <https://picoreweb.netlify.app/>** (página de inicio) y **<https://picoreweb.netlify.app/simulador>** (el simulador).
+
+La portada (`web-demo/landing.html`, con su CSS y capturas en `web-demo/`) explica qué es PiCore, para qué sirve y cómo funciona, y lleva al simulador. `/demo` redirige a `/simulador`. Incluye `robots.txt`, `sitemap.xml` y etiquetas para compartir el enlace.
 
 Una versión de la interfaz que corre **solo en el navegador**, sin Raspberry Pi y sin servidor Python. Sirve para enseñar el proyecto, probar cambios de diseño o dejar que otra persona lo pruebe con un enlace.
 
@@ -20,7 +22,7 @@ Si prefieres desplegar a mano: `make demo` para ver el resultado en local y sube
 
 ## El marco de dispositivo
 
-Al abrir la demo en un ordenador o un móvil, la portada (`index.html`) la enseña dentro de una pantalla de **1024×600** (la de la Raspberry Pi) escalada para caber en la ventana, con botones **Casa / Iker / Dev** para cambiar de modo. Casa vive en `/app`; `/iker`, `/dev` y `/loading` abiertas sueltas se redirigen al marco. En el móvil, gíralo en horizontal. Con `?bare=1` se ve la página sola, sin marco (la usan los tests).
+Al abrir el simulador (`/simulador`) en un ordenador o un móvil, la carcasa (`simulador.html`) lo enseña dentro de una pantalla de **1024×600** (la de la Raspberry Pi) escalada para caber en la ventana, con botones **Casa / Iker / Dev** para cambiar de modo. Casa vive en `/app`; `/iker`, `/dev` y `/loading` abiertas sueltas se redirigen al marco (`/simulador?p=...`). En el móvil, gíralo en horizontal. Con `?bare=1` se ve la página sola, sin marco (la usan los tests).
 
 ## Qué incluye de verdad
 

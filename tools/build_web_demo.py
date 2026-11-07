@@ -22,10 +22,16 @@ import assets  # noqa: E402  (mismos criterios que el servidor real para listar 
 import intro  # noqa: E402
 WEB = ROOT / "home" / "web"
 DEMO_JS = ROOT / "web-demo" / "demo.js"
-SHELL = ROOT / "web-demo" / "shell.html"
+SHELL = ROOT / "web-demo" / "shell.html"          # el simulador (marco de dispositivo) -> /simulador
+LANDING = ROOT / "web-demo" / "landing.html"      # la pagina de inicio -> /
+LANDING_CSS = ROOT / "web-demo" / "landing.css"
+LANDING_IMG = ROOT / "web-demo" / "img"
+FAVICON = ROOT / "web-demo" / "favicon.svg"
+SITE = os.environ.get("PCPI_SITE_URL", "https://picoreweb.netlify.app")
 EXTRA = ROOT / "extra-assets"                    # tus videos, GIFs e imagenes (los mismos que usa la Pi)
 H264 = ROOT / "web-demo" / "assets" / "start"     # copias H.264 de los videos de inicio: los navegadores no siempre reproducen H.265
-# pagina de la Pi -> (archivo publicado, titulo). La portada "/" es la carcasa del dispositivo; Casa pasa a /app.
+# pagina de la Pi -> (archivo publicado, titulo). La portada "/" es la pagina de inicio, el simulador (la carcasa del dispositivo)
+# esta en /simulador y Casa pasa a /app.
 PAGES = {"index.html": ("app.html", "PiCore (demo)"), "iker.html": ("iker.html", "Modo Iker (demo)"), "dev.html": ("dev.html", "Modo Dev (demo)"), "loading.html": ("loading.html", "PiCore (demo)")}
 
 # Misma idea que la CSP del servidor (home/server.py), con lo que necesita la demo: audio generado (blob:) e imagenes data:
@@ -87,11 +93,22 @@ def build(out):
         shutil.copy2(social, out / "static" / "social.png")          # tarjeta que sale al compartir el enlace
     sprite = (WEB / "static" / "icons.svg").read_text(encoding="utf-8")
     commit = (os.environ.get("COMMIT_REF") or os.environ.get("GITHUB_SHA") or "")[:7]
-    shutil.copy2(SHELL, out / "index.html")
+    shutil.copy2(SHELL, out / "simulador.html")
+    shutil.copy2(FAVICON, out / "favicon.svg")
+    shutil.copy2(LANDING_CSS, out / "static" / "landing.css")
+    html = LANDING.read_text(encoding="utf-8").replace("<!--ICONS-->", sprite)
+    (out / "index.html").write_text(html, encoding="utf-8")
+    if LANDING_IMG.is_dir():
+        (out / "img").mkdir()
+        for f in sorted(LANDING_IMG.iterdir()):
+            if f.suffix in (".webp", ".png", ".jpg", ".svg"):
+                shutil.copy2(f, out / "img" / f.name)
+    (out / "robots.txt").write_text("User-agent: *\nAllow: /\nDisallow: /app\nDisallow: /iker\nDisallow: /dev\nDisallow: /loading\nSitemap: %s/sitemap.xml\n" % SITE, encoding="utf-8")
+    (out / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>%s/</loc></url>\n  <url><loc>%s/simulador</loc></url>\n</urlset>\n' % (SITE, SITE), encoding="utf-8")
     for name, (dest, title) in PAGES.items():
         html = (WEB / name).read_text(encoding="utf-8")
         html = html.replace("<!--ICONS-->", sprite)
-        html = html.replace("<head>", '<head>\n<script src="/static/demo.js"></script>\n<meta name="robots" content="noindex">', 1)
+        html = html.replace("<head>", '<head>\n<script src="/static/demo.js"></script>\n<meta name="robots" content="noindex">\n<link rel="icon" href="/favicon.svg" type="image/svg+xml">', 1)
         html = re.sub(r"<title>.*?</title>", "<title>%s</title>" % title, html, count=1, flags=re.S)
         if name == "loading.html":                         # al acabar la carga, Casa vive en /app (la portada es la carcasa)
             assert '{home: "/", iker:' in html
@@ -101,7 +118,7 @@ def build(out):
     (out / "404.html").write_text('<!doctype html><meta charset="utf-8"><title>No encontrado</title><body style="font-family:system-ui;padding:40px">'
                                   '<h1>No encontrado</h1><p><a href="/">Volver a la demo de PiCore</a></p>', encoding="utf-8")
     (out / "_headers").write_text("/*\n  Content-Security-Policy: %s\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: no-referrer\n"
-                                  "  X-Frame-Options: SAMEORIGIN\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n/static/*\n  Cache-Control: public, max-age=300\n/assets/*\n  Cache-Control: public, max-age=86400\n" % CSP,
+                                  "  X-Frame-Options: SAMEORIGIN\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n/static/*\n  Cache-Control: public, max-age=300\n/assets/*\n  Cache-Control: public, max-age=86400\n/img/*\n  Cache-Control: public, max-age=86400\n" % CSP,
                                   encoding="utf-8")
     (out / "version.txt").write_text(commit + "\n", encoding="utf-8")
     return out
