@@ -44,6 +44,14 @@ class EnlacesDeLaDocumentacion(unittest.TestCase):
                     malos.append("%s -> %s (no hay un titulo con esa ancla)" % (doc.name, destino))
         self.assertEqual(malos, [], "\n" + "\n".join(malos))
 
+    def test_las_imagenes_de_la_documentacion_existen(self):
+        malas = []
+        for doc in DOCS:
+            for destino in re.findall(r"!\[[^\]]*\]\(([^)\s]+)\)", doc.read_text(encoding="utf-8")):
+                if not destino.startswith(("http://", "https://")) and not (doc.parent / destino).exists():
+                    malas.append("%s -> %s" % (doc.name, destino))
+        self.assertEqual(malas, [], "\n" + "\n".join(malas))
+
 
 if __name__ == "__main__":
     unittest.main()
