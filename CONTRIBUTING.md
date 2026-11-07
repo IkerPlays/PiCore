@@ -27,6 +27,14 @@ make lint        # shell y Python
 6. **Seguridad primero:** las rutas que cambian cosas exigen la cabecera `X-PCPI` y cliente local; los nombres de archivo y los enlaces se validan; nada de `eval`. Mira `tests/test_security.py`.
 7. Los textos de las pruebas y los commits, en español y concretos («Musix: temporizador para dormir», no «arreglos»).
 
+## Receta: añadir una orden de voz
+
+1. **Entender la frase:** en `voice/intents.py`, dentro de `parse()`, devuelve un `Intent("nombre", argumento)`. Pon la orden *antes* de otras que puedan solaparse y añade casos en `tests/test_intents.py` (incluye una frase parecida que NO debe activarla).
+2. **Ejecutarla:** en `voice/assistant.py`, `execute()`: llama a la API local con `api(cfg, "/api/...", {...})` y devuelve la frase que dirá la Pi. Si hace falta un dato, léelo de `/api/status`. Prueba con `tests/test_assistant.py` (hay un servidor de mentira).
+3. **Si la API no existe,** añádela en `home/server.py` con las mismas reglas de siempre (cabecera `X-PCPI`, cliente local, valores validados y una lista cerrada de lo que se puede tocar) y sus tests.
+4. **Simulador:** copia la orden a `understand()` en `web-demo/demo.js` para que se pueda probar en la web.
+5. **Docs:** una línea en la tabla de órdenes de `docs/TUTORIAL.md`, una entrada en `CHANGELOG.md` y, si quieres que Whisper la acierte mejor, la frase en `PROMPT` de `voice/stt.py`.
+
 ## Cómo proponer un cambio
 
 1. Abre un *issue* si es grande (para ponernos de acuerdo antes de que trabajes).
