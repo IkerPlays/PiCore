@@ -76,6 +76,18 @@ class TablaDeOrdenes(unittest.TestCase):
                 self.assertIsNotNone(intents.parse(frase), "la pantalla o la web dicen «%s» pero el asistente no lo entiende" % frase)
         self.assertGreater(total, 25)
 
+    def test_las_frases_del_readme_se_entienden(self):
+        import re
+        t = (Path(__file__).resolve().parent.parent / "README.md").read_text(encoding="utf-8")
+        a = t.index("Di **«Hey Jarvis»**")
+        total = 0
+        for frase in re.findall(r"«([^»]+)»", t[a:t.index("La palabra, el umbral", a)]):
+            if frase == "Hey Jarvis" or any(c in frase for c in "…/"):
+                continue
+            total += 1
+            self.assertIsNotNone(intents.parse(frase), "el README dice «%s» pero el asistente no lo entiende" % frase)
+        self.assertGreater(total, 15)
+
     def test_frases_sin_orden_no_hacen_nada(self):
         for frase in ("", "blablabla", "repite esta canción", "me gusta el queso", "hoy fui al mercado"):
             self.assertIsNone(intents.parse(frase), frase)
