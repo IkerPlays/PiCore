@@ -299,6 +299,7 @@ class InstallerTest(unittest.TestCase):
         self.env = {**self.env, "PCPI_NMCLI": "%s %s" % (sys.executable, ROOT / "tools" / "fake_nmcli.py"), "PCPI_FAKE_NM": str(nm)}
         (self.home / ".cache").mkdir(exist_ok=True)
         (self.home / ".cache/pcpi-portal").mkdir()
+        (self.home / ".cache/pcpi-web").mkdir()
         self.assertTrue((self.r / "etc/udev/rules.d/90-pcpi-backlight.rules").exists())
         self.uninstall("n")
         conns = json.loads(nm.read_text())["connections"]
@@ -306,6 +307,7 @@ class InstallerTest(unittest.TestCase):
             self.assertEqual((conns[name]["dns"], conns[name]["ignore"]), ("", "no"), name)
         self.assertFalse((self.r / "etc/udev/rules.d/90-pcpi-backlight.rules").exists())
         self.assertFalse((self.home / ".cache/pcpi-portal").exists())
+        self.assertFalse((self.home / ".cache/pcpi-web").exists())         # el perfil de la ventana de descargas de DYMusic
         self.assertTrue((self.r / "etc/pcpi/pcpi.conf").exists())          # la configuracion sigue (dijo que no)
 
     def test_uninstall_refuses_dangerous_root(self):

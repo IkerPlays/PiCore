@@ -1129,6 +1129,8 @@ pcpi-backup restore ARCHIVO              # restaurarla
 pcpi-wifi list | connect "RED" | status   # Wi-Fi desde la terminal (más en el Paso 9)
 pcpi-wifi portal                         # abrir el inicio de sesión de una wifi pública
 pcpi-config set boot intro false         # quitar el vídeo de inicio
+pcpi-config set musix youtube_api_key CLAVE   # activar la búsqueda por título de DYMusic (clave gratuita de YouTube)
+ls /var/lib/pcpi/music                   # canciones del MP3 Player (copia aquí tus mp3 con scp o desde un USB)
 nano /etc/pcpi/pcpi.conf                 # configuración
 sudo systemctl restart pcpi-home         # aplicar cambios de servidor/Pi-hole/tiempo/cámara
 systemctl --user restart pcpi-voice      # aplicar cambios de voz

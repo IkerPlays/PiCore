@@ -18,6 +18,7 @@ XDG_RUNTIME_DIR="/run/user/$(id -u)" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/us
 pkill -f pcpi-session 2>/dev/null
 pkill -f -- "--user-data-dir=$HOME_DIR/.cache/pcpi-kiosk" 2>/dev/null
 pkill -f -- "--user-data-dir=$HOME_DIR/.cache/pcpi-portal" 2>/dev/null
+pkill -f -- "--user-data-dir=$HOME_DIR/.cache/pcpi-web" 2>/dev/null
 sudo systemctl disable --now pcpi-home.service pcpi-stats.service 2>/dev/null
 sudo rm -f "$R/etc/systemd/system/pcpi-home.service" "$R/etc/systemd/system/pcpi-stats.service" \
            "$R/etc/tmpfiles.d/pcpi.conf" \
@@ -29,10 +30,10 @@ echo "==> Borrando archivos"
 sudo rm -rf "$R/opt/pcpi" "$R/run/pcpi"
 sudo rm -f "$R"/usr/local/bin/pcpi-*
 rm -f "$HOME_DIR/.config/systemd/user/pcpi-voice.service" "$HOME_DIR/.local/share/applications/pcpi-mode-menu.desktop"
-rm -rf "$HOME_DIR"/.cache/pcpi-kiosk* "$HOME_DIR"/.cache/pcpi-portal
+rm -rf "$HOME_DIR"/.cache/pcpi-kiosk* "$HOME_DIR"/.cache/pcpi-portal "$HOME_DIR"/.cache/pcpi-web
 
 echo "Tus copias de seguridad de ~/pcpi-backups no se tocan."
-read -r -p "¿Borrar tambien la configuracion /etc/pcpi y tus NOTAS (/var/lib/pcpi)? [s/N] " r
+read -r -p "¿Borrar tambien la configuracion /etc/pcpi, tus NOTAS y tu MUSICA (/var/lib/pcpi)? [s/N] " r
 if [ "${r:-}" = "s" ]; then
   sudo rm -rf "$R/etc/pcpi" "$R/var/lib/pcpi"
 fi
