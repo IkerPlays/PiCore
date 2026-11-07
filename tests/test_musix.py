@@ -234,6 +234,13 @@ class ApiTest(unittest.TestCase):
         for bad in ("../../etc/passwd", "..%2f..%2fetc%2fpasswd", "Prueba%20uno.mp3", "0" * 12):
             self.assertEqual(self.req("/music/" + bad)[0], 404, bad)
 
+    def test_foreign_host_cross_site_and_bad_ranges_are_refused(self):
+        tid = json.loads(self.req("/api/music")[2])["tracks"][0]["id"]
+        self.assertEqual(self.req("/music/" + tid, extra={"Host": "evil.com"})[0], 403)             # DNS rebinding
+        self.assertEqual(self.req("/api/music", extra={"Sec-Fetch-Site": "cross-site"})[0], 403)    # una web ajena no lista tu musica
+        self.assertEqual(self.req("/music/" + tid, extra={"Range": "bytes=99999-"})[0], 416)
+        self.assertEqual(self.req("/music/%00")[0], 404)
+
     def test_post_needs_header_and_valid_actions(self):
         self.assertEqual(self.req("/api/music", {"action": "cmd", "cmd": "pause"}, hdr=False)[0], 403)
         self.assertEqual(self.req("/api/music", {"action": "cmd", "cmd": "format"})[0], 400)

@@ -7,6 +7,7 @@
 
 - **09:51** Este registro de cambios. CI de GitHub en verde (run 69).
 - **09:53** Musix: YT Music recuerda los últimos 8 enlaces (botones para volver a ellos; se revalidan al leerlos) y el MP3 Player tiene volumen propio que se recuerda.
+- **09:54** Revisión adversa de las rutas de Musix (otro `Host`, petición de otra web, rangos rotos, id nulo): todas se rechazan; ahora hay tests que lo fijan.
 
 ## Antes de esta sesión (resumen)
 
