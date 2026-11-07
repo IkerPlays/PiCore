@@ -6,6 +6,10 @@
 
 
 
+## Test de interfaz: diagnóstico de los 403
+
+- Una ejecución del CI falló una vez con «Failed to load resource: 403» sin decir qué petición era (las demás pasaron, y en local tampoco se reproduce). El test ahora añade a ese mensaje las peticiones que dieron 403, para localizarla si vuelve a pasar. Aún no sé la causa.
+
 ## Modo Dev: botón rápido `pcpi-config show`
 
 - Botón rápido para ver la configuración sin contraseñas (y la consola del simulador la reconoce con datos de ejemplo). Comprobado en navegador sin pantalla.

@@ -13,7 +13,9 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   patchWaitForFunction(page);
   const problems = [];
   page.on('pageerror', e => problems.push('pageerror: ' + e.message));
-  page.on('console', m => { if (m.type() === 'error' && !/scdn|ERR_NAME|ERR_INTERNET|net::|status of (400|502)|Permissions policy|compute-pressure/.test(m.text())) problems.push('console: ' + m.text()); });
+  const forbidden = [];                                                                             // para saber QUE peticion dio un 403 si alguna vez falla
+  page.on('response', r => { if (r.status() === 403) forbidden.push(r.request().method() + ' ' + r.url().replace(base, '')); });
+  page.on('console', m => { if (m.type() === 'error' && !/scdn|ERR_NAME|ERR_INTERNET|net::|status of (400|502)|Permissions policy|compute-pressure/.test(m.text())) problems.push('console: ' + m.text() + (/403/.test(m.text()) ? ' [403: ' + forbidden.join(', ') + ']' : '')); });
 
   // ------------------------------------------------------------------ modo Casa
   await page.goto(base + '/');
