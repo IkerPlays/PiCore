@@ -190,6 +190,14 @@ def execute(cfg, intent):
         if n == "music_now":
             with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
                 return intents.say_now_playing(json.load(r).get("nowplaying"))
+        if n == "count":
+            with urllib.request.urlopen(cfg["api"] + ("/api/notes" if a == "notes" else "/api/status"), timeout=5) as r:
+                data = json.load(r)
+            k = len(data) if a == "notes" else len([t for t in (data.get("timers") or []) if t.get("kind") == "timer"])
+            noun = ("nota", "notas") if a == "notes" else ("temporizador", "temporizadores")
+            if k == 0:
+                return "No tienes ninguna nota" if a == "notes" else "No tienes ningún temporizador"
+            return "Tienes %s %s" % (("una" if a == "notes" else "un") if k == 1 else k, noun[0] if k == 1 else noun[1])
         if n == "help":
             return intents.HELP_TEXT
         if n == "sys_info":

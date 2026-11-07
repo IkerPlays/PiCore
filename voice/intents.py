@@ -178,6 +178,8 @@ def parse(text):
         return Intent("timer_set", (secs_r, label) if label else secs_r)
     if has("repite", "repitelo", "que has dicho", "como has dicho", "no te he entendido") and not has("cancion", "musica", "tema"):
         return Intent("repeat", None)
+    if has("cuantas notas", "cuantos temporizadores"):
+        return Intent("count", "notes" if has("notas") else "timers")
     if has("calendario", "agenda", "que tengo", "tengo algo", "mis eventos", "proximo evento", "siguiente evento", "proxima cita", "tengo hoy", "tengo manana"):
         return Intent("calendar", "next" if has("proximo evento", "siguiente evento", "proxima cita") else "tomorrow" if has("manana") else "today")
     if has("temporizador", "cuenta atras", "cuentaatras"):

@@ -5,6 +5,10 @@
 
 
 
+## Voz: cuántas notas y temporizadores
+
+- «Cuántas notas tengo» y «cuántos temporizadores hay». Probado con tests; no en una Pi real.
+
 ## Voz: «repite»
 
 - «Repite» / «qué has dicho» hace que la Pi repita su última respuesta. Probado el reconocimiento de la frase con tests; el cableado del asistente real no tiene test automático ni se ha probado en una Pi.

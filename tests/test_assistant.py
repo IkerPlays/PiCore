@@ -241,6 +241,17 @@ class ExecuteApiIntentsTest(unittest.TestCase):
         self.assertEqual(assistant.execute(self.cfg, ("alarm_set", (7, 30, True))), "Alarma a las 7 y 30, todos los días")
         self.assertEqual(self.posts[-1][1], {"action": "alarm", "hour": 7, "minute": 30, "daily": True})
 
+    def test_count_notes_and_timers_by_voice(self):
+        self.assertEqual(assistant.execute(self.cfg, ("count", "notes")), "No tienes ninguna nota")
+        self.notes = [{"id": "a", "updated": 1}]
+        self.assertEqual(assistant.execute(self.cfg, ("count", "notes")), "Tienes una nota")
+        self.notes = [{"id": "a", "updated": 1}, {"id": "b", "updated": 2}, {"id": "c", "updated": 3}]
+        self.assertEqual(assistant.execute(self.cfg, ("count", "notes")), "Tienes 3 notas")
+        self.status["timers"] = [{"kind": "timer"}, {"kind": "alarm"}]
+        self.assertEqual(assistant.execute(self.cfg, ("count", "timers")), "Tienes un temporizador")
+        self.status["timers"] = []
+        self.assertEqual(assistant.execute(self.cfg, ("count", "timers")), "No tienes ningún temporizador")
+
     def test_note_by_voice_goes_to_notes_api(self):
         self.assertEqual(assistant.execute(self.cfg, ("note_add", "comprar leche")), "Anotado")
         self.assertEqual(self.posts[-1], ("/api/notes", {"id": None, "text": "comprar leche"}, "1"))

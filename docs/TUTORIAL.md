@@ -591,6 +591,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «brillo al cincuenta» · «brillo al máximo» · «brillo automático» | Pone el brillo a ese número, o vuelve al modo automático |
 | «toma nota comprar leche» · «apunta que mañana llamo al dentista» · «anota: revisar el router» | Guarda una nota nueva (la verás en el modo Iker) |
 | «añade leche a la lista de la compra» · «añade llamar al dentista a la lista de tareas» | Añade una línea a la nota «Lista de la compra» (o «Tareas»); si no existe, la crea |
+| «cuántas notas tengo» · «cuántos temporizadores hay» | Te dice cuántas notas o temporizadores hay |
 | «lee mi última nota» · «qué pone en la nota más reciente» | Te lee en voz alta la nota más reciente (hasta 300 caracteres) |
 | «qué tiempo hará mañana» · «va a llover pasado mañana» | Máxima, mínima, cielo y probabilidad de lluvia de ese día |
 | «cuál es mi próximo evento» | Te dice el siguiente evento del calendario, aunque no sea hoy |

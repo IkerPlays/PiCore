@@ -23,7 +23,7 @@ CASOS = [
     ("activa el salvapantallas", "screensaver"), ("desactiva el salvapantallas", "screensaver"),
     ("toma nota comprar leche", "note_add"), ("lee mi última nota", "note_read"), ("añade pan a la lista de la compra", "list_add"),
     ("cuánto espacio libre queda", "sys_info"), ("cómo está la pi", "sys_info"), ("a qué wifi estoy conectado", "net_info"),
-    ("qué puedes hacer", "help"), ("repite", "repeat"), ("qué has dicho", "repeat"), ("gracias", "chat"), ("cuánto llevas encendida", "uptime"),
+    ("qué puedes hacer", "help"), ("repite", "repeat"), ("cuántas notas tengo", "count"), ("cuántos temporizadores hay", "count"), ("qué has dicho", "repeat"), ("gracias", "chat"), ("cuánto llevas encendida", "uptime"),
 ]
 
 
