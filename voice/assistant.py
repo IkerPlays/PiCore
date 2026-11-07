@@ -204,6 +204,15 @@ def execute(cfg, intent):
             return intents.say_days_until(a, datetime.date.today())
         if n == "random":
             return intents.say_random(a)
+        if n == "snooze":
+            with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
+                ring = next((t for t in (json.load(r).get("timers") or []) if t.get("ringing")), None)
+            if not ring:
+                return "No hay nada sonando"
+            label = ring.get("label") or ("Alarma" if ring.get("kind") == "alarm" else "")
+            api(cfg, "/api/timers", {"action": "dismiss"})
+            api(cfg, "/api/timers", dict({"action": "timer", "seconds": 300}, **({"label": label} if label else {})))
+            return "Pospuesto cinco minutos"
         if n == "help":
             return intents.HELP_TEXT
         if n == "sys_info":

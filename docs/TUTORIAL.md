@@ -609,6 +609,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «avísame en veinte minutos» · «recuérdame en diez minutos sacar la pizza» | Crea un temporizador (con nombre si dices qué) |
 | «añade cinco minutos al temporizador» · «ponle un minuto más» | Suma tiempo al temporizador que antes vence |
 | «despiértame todos los días a las siete y media» | Crea una alarma que se repite cada día (se reprograma sola al pararla) |
+| «pospón» · «cinco minutos más» (mientras suena) | Para lo que suena y lo repite dentro de 5 minutos |
 | «cuánto queda del temporizador» · «cancela el temporizador» · «para la alarma» | Consultar, cancelar o parar lo que suena |
 
 Si no entiende, dice *«No te he entendido»*. Si no dices nada en 8 segundos, vuelve a esperar la palabra.

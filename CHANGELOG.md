@@ -5,6 +5,10 @@
 
 
 
+## Voz: posponer
+
+- «Pospón» / «cinco minutos más» mientras suena un temporizador o alarma. Probado con tests; no en una Pi real (y no se ha comprobado que la palabra de activación se oiga con el aviso sonando).
+
 ## Posponer 5 minutos
 
 - La pantalla de aviso de un temporizador o alarma tiene «Posponer 5 min»: para lo que suena y crea un temporizador de 5 minutos con el mismo nombre (las alarmas pasan a llamarse «Alarma»). Probado en el test de interfaz contra el servidor real.

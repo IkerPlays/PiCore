@@ -252,6 +252,14 @@ class ExecuteApiIntentsTest(unittest.TestCase):
         self.status["timers"] = []
         self.assertEqual(assistant.execute(self.cfg, ("count", "timers")), "No tienes ningún temporizador")
 
+    def test_snooze_by_voice(self):
+        self.status["timers"] = []
+        self.assertEqual(assistant.execute(self.cfg, ("snooze", None)), "No hay nada sonando")
+        self.status["timers"] = [{"kind": "alarm", "label": "", "ringing": True}]
+        self.assertEqual(assistant.execute(self.cfg, ("snooze", None)), "Pospuesto cinco minutos")
+        self.assertEqual(self.posts[-2][1], {"action": "dismiss"})
+        self.assertEqual(self.posts[-1][1], {"action": "timer", "seconds": 300, "label": "Alarma"})
+
     def test_note_by_voice_goes_to_notes_api(self):
         self.assertEqual(assistant.execute(self.cfg, ("note_add", "comprar leche")), "Anotado")
         self.assertEqual(self.posts[-1], ("/api/notes", {"id": None, "text": "comprar leche"}, "1"))

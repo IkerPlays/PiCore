@@ -188,6 +188,8 @@ def parse(text):
         return Intent("random", "dado")
     if has("cara o cruz", "cara o cruces", "tira una moneda", "lanza una moneda"):
         return Intent("random", "moneda")
+    if has("pospon", "posponer", "pospone", "cinco minutos mas", "5 minutos mas", "dame cinco minutos", "dame 5 minutos") and not has("temporizador de", "alarma a las"):
+        return Intent("snooze", None)
     if has("calendario", "agenda", "que tengo", "tengo algo", "mis eventos", "proximo evento", "siguiente evento", "proxima cita", "tengo hoy", "tengo manana"):
         return Intent("calendar", "next" if has("proximo evento", "siguiente evento", "proxima cita") else "tomorrow" if has("manana") else "today")
     if has("temporizador", "cuenta atras", "cuentaatras"):
