@@ -45,7 +45,7 @@
 <header><a href="/" style="color:inherit;text-decoration:none;display:flex;align-items:center;gap:8px"><img src="/favicon.svg" alt="" width="24" height="24"><b>PiCore</b></a><small>simulador en el navegador: nada de esto es real</small>
   <a class="b" href="/" title="Volver a la página de inicio">Inicio</a>
   <button data-m="home">Casa</button><button data-m="iker">Iker</button><button data-m="dev">Dev</button><button data-m="desktop">Escritorio</button>
-  <button id="tourbtn" title="Un paseo por las funciones, paso a paso">Visita guiada</button><a class="b" href="https://github.com/IkerPlays/PiCore" target="_blank" rel="noopener">GitHub</a><button id="share" title="Copia un enlace que abre el simulador en este modo">Copiar enlace</button><button id="reset">Restablecer</button></header>
+  <button id="themebtn" title="Cambia entre tema claro y oscuro en Casa (en la Pi, toca la hora)">Tema</button><button id="tourbtn" title="Un paseo por las funciones, paso a paso">Visita guiada</button><a class="b" href="https://github.com/IkerPlays/PiCore" target="_blank" rel="noopener">GitHub</a><button id="share" title="Copia un enlace que abre el simulador en este modo">Copiar enlace</button><button id="reset">Restablecer</button></header>
 <div id="stage"><div id="dev"><iframe id="f" title="PiCore" allow="autoplay; encrypted-media"></iframe></div></div>
 <div id="tour" role="dialog" aria-label="Visita guiada"><small id="t-n"></small><h4 id="t-h"></h4><p id="t-p"></p><div class="dots" id="t-d"></div>
   <div class="row"><button id="t-prev" type="button">Atrás</button><button id="t-next" type="button" class="on">Siguiente</button><button id="t-x" type="button" aria-label="Cerrar la visita">Salir</button></div></div>
@@ -79,6 +79,7 @@ for (const b of document.querySelectorAll("button[data-m]")) b.onclick = () => {
   try { f.contentWindow.fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: b.dataset.m }) }); }
   catch (e) { f.src = b.dataset.m === "home" ? "/app" : "/" + b.dataset.m; }
 };
+document.getElementById("themebtn").onclick = () => { const t = $f("#time"); if (t) t.click(); };
 document.getElementById("share").onclick = async () => {
   let m = "home"; try { m = JSON.parse(localStorage.getItem("pcpi-demo-mode") || '"home"'); } catch (e) {}
   const url = location.origin + "/simulador?p=" + ({home: "/app", iker: "/iker", dev: "/dev", desktop: "/escritorio"}[m] || "/app"), btn = document.getElementById("share");

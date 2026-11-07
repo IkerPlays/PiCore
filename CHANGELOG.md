@@ -6,6 +6,10 @@
 
 
 
+## Simulador: botón «Tema»
+
+- Cambia entre tema claro y oscuro de Casa (en la Pi se toca la hora). Comprobado en navegador sin pantalla.
+
 ## Modo Dev: experimento «Lo último que oyó la voz»
 
 - Nuevo experimento que enseña en la consola el estado de la voz, la palabra de activación, lo que entendió y lo que contestó (se actualiza cada 2 s): sirve para ajustar el micrófono. Probado con tests del servidor y en el simulador; con la voz real no se ha probado.
