@@ -205,7 +205,13 @@ for (const b of document.querySelectorAll("button[data-copy]")) b.addEventListen
 document.getElementById("theme").onclick = function () {
   var d = document.documentElement, cur = d.dataset.theme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"), nx = cur === "light" ? "dark" : "light";
   d.dataset.theme = nx; try { localStorage.setItem("picore-theme", nx); } catch (e) {}
+  paintTheme();
 };
+function paintTheme() {            // el icono muestra a qué tema cambias: sol (ir a claro) o luna (ir a oscuro)
+  var d = document.documentElement, cur = d.dataset.theme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+  document.querySelector("#theme use").setAttribute("href", cur === "light" ? "#i-moon" : "#i-sun");
+}
+paintTheme();
 </script>
 </body>
 </html>
