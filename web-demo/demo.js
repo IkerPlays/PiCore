@@ -575,6 +575,7 @@
       const on = !has("desactiva", "apaga", "quita"), P = Object.assign({ screensaver: true, idle_minutes: 5, night_from: 22, night_to: 7, night_level: 40 }, LS.get("prefs", {}));
       P.screensaver = on; LS.set("prefs", P); return on ? "Salvapantallas activado" : "Salvapantallas desactivado";
     }
+    if (has("cuantos anuncios", "cuanto has bloqueado", "como va el pihole", "como va pihole", "estadisticas del pihole")) return "Pi-hole ha bloqueado 326 de 1211 consultas, un 27 por ciento (datos de ejemplo)";
     if (has("pihole", "pi hole", "anuncios")) {
       if (has("pausa", "desactiva", "apaga")) { S.pihole = { blocking: false, until: Date.now() + (duration(t) || 300) * 1000 }; return "Pi-hole en pausa"; }
       S.pihole = { blocking: true, until: 0 }; return "Pi-hole activado";
