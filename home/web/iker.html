@@ -227,6 +227,7 @@ $("exit").onclick = async () => { await save(); api("/api/mode", {mode:"home"});
 document.addEventListener("keydown", e => {
   if (e.ctrlKey && e.key === "s") { e.preventDefault(); save(); }
   if (e.ctrlKey && e.key === "n") { e.preventDefault(); openNote(null); }
+  if (e.ctrlKey && e.key === "p") { e.preventDefault(); $("pin").click(); }
 });
 window.addEventListener("beforeunload", () => { if (dirty) save(); });
 refresh(); counts(); paintMarks();
