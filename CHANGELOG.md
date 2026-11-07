@@ -5,6 +5,10 @@
 
 
 
+## Portada: probar cada modo
+
+- Las fichas Casa, Iker y Dev de la portada tienen «Probar este modo», que abre el simulador directamente en ese modo (`/simulador?p=/iker`). Comprobado en navegador sin pantalla con Iker.
+
 ## Voz: salvapantallas
 
 - «Activa / desactiva el salvapantallas» por voz (y en el simulador). Probado con tests de intenciones; no en una Pi real.
