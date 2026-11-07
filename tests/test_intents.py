@@ -112,6 +112,11 @@ class IntentTest(unittest.TestCase):
         vistos = {i.say_random("dado", _r.Random(n)) for n in range(60)}
         self.assertEqual(vistos, {"Ha salido el %d" % k for k in range(1, 7)})
         self.assertEqual({i.say_random("moneda", _r.Random(n)) for n in range(20)}, {"Ha salido cara", "Ha salido cruz"})
+        self.assertEqual(P("cuántos anuncios has bloqueado"), ("pihole_stats", None))
+        self.assertEqual(P("pausa el pihole"), ("pihole_disable", 5))              # lo de siempre sigue igual
+        self.assertEqual(i.say_pihole({"ok": True, "blocked": 326, "total": 1211, "percent": 26.9, "blocking": "enabled"}), "Pi-hole ha bloqueado 326 de 1211 consultas, un 27 por ciento")
+        self.assertTrue(i.say_pihole({"ok": True, "blocked": 1, "total": 2, "percent": 50, "blocking": "disabled"}).endswith("Ahora está en pausa"))
+        self.assertEqual(i.say_pihole({"ok": False}), "Pi-hole no responde ahora mismo")
         self.assertEqual(P("activa el salvapantallas"), ("screensaver", True))
         self.assertEqual(P("desactiva el salvapantallas"), ("screensaver", False))
         self.assertEqual(P("sube el brillo"), ("brightness", "+20"))

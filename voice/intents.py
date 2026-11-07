@@ -234,6 +234,8 @@ def parse(text):
             return Intent("music", "pause")
         if has("reanuda", "continua", "sigue", "pon ", "reproduce", "activa", "play"):
             return Intent("music", "play")
+    if has("cuantos anuncios", "cuanto has bloqueado", "cuantas consultas", "como va el pihole", "como va pihole", "estado del pihole", "estadisticas del pihole"):
+        return Intent("pihole_stats", None)
     if has("pihole", "pi hole", "pi jol", "anuncios", "bloqueador"):
         if has("desactiva", "pausa", "apaga", "para ", "quita", "deshabilita"):
             return Intent("pihole_disable", find_number(words) or 5)
@@ -416,6 +418,14 @@ def say_random(kind, rnd=None):
     if kind == "moneda":
         return "Ha salido " + r.choice(["cara", "cruz"])
     return "Ha salido el %d" % r.randint(1, 6)
+
+
+def say_pihole(p):
+    """Frase con lo que dice Pi-hole en /api/status (pihole)."""
+    if not p or not p.get("ok"):
+        return "Pi-hole no responde ahora mismo"
+    base = "Pi-hole ha bloqueado %d de %d consultas, un %d por ciento" % (p.get("blocked", 0), p.get("total", 0), round(p.get("percent", 0)))
+    return base + ("" if p.get("blocking") == "enabled" else ". Ahora está en pausa")
 
 
 def say_date(now):

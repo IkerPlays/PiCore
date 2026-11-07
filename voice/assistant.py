@@ -213,6 +213,9 @@ def execute(cfg, intent):
             api(cfg, "/api/timers", {"action": "dismiss"})
             api(cfg, "/api/timers", dict({"action": "timer", "seconds": 300}, **({"label": label} if label else {})))
             return "Pospuesto cinco minutos"
+        if n == "pihole_stats":
+            with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=8) as r:
+                return intents.say_pihole(json.load(r).get("pihole"))
         if n == "help":
             return intents.HELP_TEXT
         if n == "sys_info":

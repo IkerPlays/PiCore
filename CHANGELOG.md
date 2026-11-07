@@ -6,6 +6,10 @@
 
 
 
+## Voz: estadísticas de Pi-hole
+
+- «Cuántos anuncios has bloqueado» / «cómo va el Pi-hole» dicen lo bloqueado, el total y el porcentaje (y si está en pausa). Probado con tests; no con un Pi-hole real.
+
 ## Versión instalada en la hoja Sistema
 
 - `install.sh` escribe `VERSION` («abc1234 2026-11-07», el último commit) y la hoja Sistema muestra «PiCore abc1234 …» (útil al pedir ayuda; se actualiza con `pcpi-update`). El servidor la limpia antes de enseñarla. Probado con tests y en el simulador; el instalador no se ha ejecutado en una Pi real.
