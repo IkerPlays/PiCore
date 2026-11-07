@@ -282,6 +282,18 @@ class ApiTest(unittest.TestCase):
                      {"action": "x"}, {}, {"action": "timer"}):
             self.assertEqual(self.post(body)[0], 400, body)
 
+    def test_extend_over_the_api(self):
+        self.assertEqual(self.post({"action": "extend", "seconds": 60})[0], 400)                # sin temporizadores: error claro
+        d = self.post({"action": "timer", "seconds": 600})[1]
+        tid = d["timers"][0]["id"]
+        code, d = self.post({"action": "extend", "seconds": 60, "id": tid})
+        self.assertEqual(code, 200)
+        self.assertGreater(d["timers"][0]["remaining"], 650)
+        for bad in ({"action": "extend"}, {"action": "extend", "seconds": 0}, {"action": "extend", "seconds": "60"},
+                    {"action": "extend", "seconds": True}, {"action": "extend", "seconds": 10 ** 9}, {"action": "extend", "seconds": 60, "id": "no-existe"}):
+            self.assertEqual(self.post(bad)[0], 400, bad)
+        self.assertEqual(self.post({"action": "extend", "seconds": 60}, headers=False)[0], 403)
+
     def test_ringing_and_dismiss(self):
         self.post({"action": "timer", "seconds": 1})
         server.TIMERS.clock = lambda: time.time() + 5
