@@ -181,6 +181,20 @@ class ApiTest(unittest.TestCase):
         finally:
             server.pihole_stats = real
 
+    def test_pihole_password_roundtrip_with_awkward_characters(self):
+        """Contraseñas con = # % ; comillas, tildes y espacios por dentro se guardan y se leen igual."""
+        real = server.pihole_stats
+        try:
+            for pw in ("a=b", "x;y#z", "ñandú ✓ ok", "con 'simples' y \"dobles\"", "100%real", "[corchetes]", "dos  espacios  dentro"):
+                seen = {}
+                server.pihole_stats = lambda cp, seen=seen: seen.setdefault("pw", cp.get("pihole", "password")) and {"ok": True}
+                code, body = self.post({"action": "pihole_set", "password": pw})
+                self.assertEqual((code, body), (200, {"ok": True}), pw)
+                self.assertEqual(seen["pw"], pw, pw)                                  # lo que lee el servidor es EXACTAMENTE lo escrito
+                self.assertEqual(confedit.get((T / "pcpi.conf").read_text(encoding="utf-8"), "pihole", "password"), pw)
+        finally:
+            server.pihole_stats = real
+
     def test_every_pref_exists_in_the_example_config(self):
         """Los ajustes de la pantalla tienen que existir (y estar documentados) en config/pcpi.conf.example."""
         ejemplo = (Path(__file__).resolve().parent.parent / "config" / "pcpi.conf.example").read_text(encoding="utf-8")
