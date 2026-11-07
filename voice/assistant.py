@@ -197,6 +197,12 @@ def execute(cfg, intent):
             secs, label = a if isinstance(a, tuple) else (a, "")
             api(cfg, "/api/timers", dict({"action": "timer", "seconds": secs}, **({"label": label} if label else {})))
             return "Temporizador de " + intents.say_duration(secs) + (" para " + label if label else "")
+        if n == "timer_extend":
+            try:
+                api(cfg, "/api/timers", {"action": "extend", "seconds": a})
+            except urllib.error.HTTPError:
+                return "No hay ningún temporizador en marcha"
+            return "Añadido " + intents.say_duration(a) + " al temporizador"
         if n == "alarm_set":
             api(cfg, "/api/timers", {"action": "alarm", "hour": a[0], "minute": a[1]})
             return "Alarma a las %d y %02d" % a if a[1] else "Alarma a las %d en punto" % a[0]

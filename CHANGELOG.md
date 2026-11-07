@@ -5,6 +5,10 @@
 
 
 
+## Voz: alargar un temporizador
+
+- «Añade cinco minutos al temporizador» o «ponle un minuto más» suman tiempo al temporizador que antes vence (`POST /api/timers` con `action: extend`; no pasa de 48 h y no toca los que ya suenan). Probado con tests; no en una Pi real.
+
 ## Modo Iker: duplicar nota
 
 - Botón «Duplicar» que crea una copia de la nota abierta y la abre. Comprobado en navegador sin pantalla con el simulador.

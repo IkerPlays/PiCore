@@ -52,6 +52,23 @@ class StoreTest(unittest.TestCase):
         self.assertEqual(s.snapshot(), [])
         self.assertFalse(s.ringing())
 
+    def test_extend_adds_time_to_the_soonest_running_timer(self):
+        c = Clock()
+        s, _ = store(c)
+        self.assertIsNone(s.extend(60))                                  # sin temporizadores
+        a = s.add_timer(600)
+        s.add_timer(1200)
+        self.assertEqual(s.extend(300), a)
+        self.assertEqual(sorted(t["remaining"] for t in s.snapshot()), [900, 1200])
+        c.t += 901
+        s.tick()
+        self.assertIsNone(s.extend(60, a))                               # uno que ya suena no se alarga
+        for bad in (0, -5, True, "5", None, timers.MAX_SECONDS + 1):
+            with self.assertRaises(ValueError, msg=repr(bad)):
+                s.extend(bad)
+        with self.assertRaises(ValueError):
+            s.extend(timers.MAX_SECONDS)                                 # el total no puede pasar de 48 h
+
     def test_ringing_stops_by_itself_after_two_minutes(self):
         c = Clock()
         s, _ = store(c)
@@ -194,6 +211,8 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(P("pon un temporizador de una hora para estudiar"), ("timer_set", (3600, "estudiar")))
         self.assertEqual(P("temporizador de cinco minutos"), ("timer_set", 300))                # sin nombre: como siempre
         self.assertEqual(P("temporizador para diez minutos"), ("timer_set", 600))               # «para» aqui no es parar ni nombre
+        self.assertEqual(P("añade cinco minutos al temporizador"), ("timer_extend", 300))
+        self.assertEqual(P("ponle un minuto más al temporizador"), ("timer_extend", 60))
         self.assertEqual(P("cancela el temporizador"), ("timer_cancel", None))
         self.assertEqual(P("cuanto queda del temporizador"), ("timer_query", None))
         self.assertEqual(P("para la alarma"), ("timers_stop", None))

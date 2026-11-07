@@ -83,6 +83,22 @@ class TimerStore:
             return self._add({"kind": "alarm", "label": self._label(label), "due": next_occurrence(hour, minute, self.clock()),
                               "hour": hour, "minute": minute, "daily": bool(daily)})
 
+    def extend(self, seconds, tid=None):
+        """Suma tiempo al temporizador indicado (o al que antes vence y no esta sonando). Devuelve el id o None si no hay ninguno."""
+        if isinstance(seconds, bool) or not isinstance(seconds, (int, float)) or not 1 <= seconds <= MAX_SECONDS:
+            raise ValueError("Duracion no valida (1 s a 48 h)")
+        with self.lock:
+            cands = [t for t in self.items if t["kind"] == "timer" and not t.get("ringing_since") and (tid is None or t["id"] == tid)]
+            if not cands:
+                return None
+            t = min(cands, key=lambda x: x["due"])
+            if t["due"] + seconds - self.clock() > MAX_SECONDS:
+                raise ValueError("Duracion no valida (1 s a 48 h)")
+            t["due"] += seconds
+            t["seconds"] = int(t.get("seconds", 0) + seconds)
+            self._save()
+            return t["id"]
+
     # ---- bajas
     def cancel(self, tid=None, kind=None):
         """Borra uno (por id), todos los de un tipo, o todos. Devuelve cuantos."""

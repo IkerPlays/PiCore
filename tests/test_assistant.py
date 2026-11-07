@@ -223,6 +223,10 @@ class ExecuteApiIntentsTest(unittest.TestCase):
         self.assertTrue(out.endswith("…"))
         self.assertLessEqual(len(out), len("Tu última nota dice: ") + 301)
 
+    def test_extend_timer_by_voice(self):
+        self.assertEqual(assistant.execute(self.cfg, ("timer_extend", 300)), "Añadido 5 minutos al temporizador")
+        self.assertEqual(self.posts[-1], ("/api/timers", {"action": "extend", "seconds": 300}, "1"))
+
     def test_note_by_voice_goes_to_notes_api(self):
         self.assertEqual(assistant.execute(self.cfg, ("note_add", "comprar leche")), "Anotado")
         self.assertEqual(self.posts[-1], ("/api/notes", {"id": None, "text": "comprar leche"}, "1"))

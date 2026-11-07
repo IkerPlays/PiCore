@@ -170,6 +170,10 @@ def parse(text):
     if has("calendario", "agenda", "que tengo", "tengo algo", "mis eventos", "proximo evento", "tengo hoy", "tengo manana"):
         return Intent("calendar", "tomorrow" if has("manana") else "today")
     if has("temporizador", "cuenta atras", "cuentaatras"):
+        if has("anade", "sumale", "mas tiempo", "alarga", "amplia", "extiende") or (has("ponle") and has("mas")):
+            secs = parse_duration(words)
+            if secs:
+                return Intent("timer_extend", secs)
         if has("cancela", "quita", "borra", "elimina", "olvida"):
             return Intent("timer_cancel", None)
         if has("cuanto queda", "cuanto falta", "que queda", "que falta"):

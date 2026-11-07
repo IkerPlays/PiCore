@@ -1407,6 +1407,9 @@ def timers_post(body):
         TIMERS.add_timer(body.get("seconds"), label)
     elif act == "alarm":
         TIMERS.add_alarm(body.get("hour"), body.get("minute"), label, body.get("daily") is True)
+    elif act == "extend":
+        if TIMERS.extend(body.get("seconds"), body.get("id")) is None:
+            raise ValueError("No hay ningun temporizador en marcha")
     elif act == "dismiss":
         TIMERS.dismiss(body.get("id"))
     elif act == "cancel":
