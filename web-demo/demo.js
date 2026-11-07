@@ -238,7 +238,7 @@
       case "pcpi-wifi": return R("Wi-Fi: " + (S.wifi.active || "sin conexión") + " (demo)\n");
       case "pcpi-update": return R(a[1] === "--check" ? "Hay 3 cambios nuevos (demo)\n" : "demo: no se actualiza nada\n");
       case "pcpi-mode": return R(LS.get("mode", "home") + "\n");
-      case "pcpi-config": return R(a[1] === "get" ? (a[2] === "server" && a[3] === "port" ? "8080\n" : "\n") : "demo: sin cambios\n");
+      case "pcpi-config": if (a[1] === "show") return R("[server]\nhost = 127.0.0.1\nport = 8080\n[pihole]\nurl = http://localhost\npassword = ******\n[weather]\ncity = " + LS.get("city", "Las Palmas de Gran Canaria") + "\n"); return R(a[1] === "get" ? (a[2] === "server" && a[3] === "port" ? "8080\n" : "\n") : "demo: sin cambios\n");
       case "uname": return R("Linux picore-demo 6.6.31+rpt-rpi-2712 #1 SMP PREEMPT Debian aarch64 GNU/Linux\n");
       case "uptime": return R(" " + new Date().toTimeString().slice(0, 8) + " up 3 days, 4:12,  1 user,  load average: 0.21, 0.18, 0.15\n");
       case "df": return R("S.ficheros      Tamaño Usados  Disp Uso% Montado en\n/dev/mmcblk0p2    58G    37G   21G  63% /\n");

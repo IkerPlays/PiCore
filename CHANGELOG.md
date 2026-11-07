@@ -6,6 +6,10 @@
 
 
 
+## Modo Dev: botón rápido `pcpi-config show`
+
+- Botón rápido para ver la configuración sin contraseñas (y la consola del simulador la reconoce con datos de ejemplo). Comprobado en navegador sin pantalla.
+
 ## Voz: estadísticas de Pi-hole
 
 - «Cuántos anuncios has bloqueado» / «cómo va el Pi-hole» dicen lo bloqueado, el total y el porcentaje (y si está en pausa). Probado con tests; no con un Pi-hole real.
