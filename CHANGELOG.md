@@ -5,6 +5,10 @@
 
 
 
+## Notas fijadas
+
+- Modo Iker: botón «Fijar» para dejar una nota arriba de la lista (con estrella). Editar la nota no la desfija. También en el simulador. Probado con tests y en navegador sin pantalla; no en una Pi real.
+
 ## Portada: más funciones
 
 - La lista de funciones de la portada suma Pi-hole, temporizadores, ajustes en pantalla y privacidad (12 tarjetas).

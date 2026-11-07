@@ -199,7 +199,7 @@
   const norm = s => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
   const title = t => (t.split("\n").find(l => l.trim()) || "Nota sin título").trim().slice(0, 60);
   const tagsOf = t => { const out = []; for (const m of t.matchAll(/(?<![\w#&/])#([^\W\d_][\w-]{0,29})/g)) { const g = norm(m[1]).replace(/^-+|-+$/g, ""); if (g && !out.includes(g)) out.push(g); } return out.slice(0, 20); };
-  const listNotes = () => notes().slice().sort((a, b) => b.updated - a.updated).map(n => ({ id: n.id, title: title(n.text), updated: n.updated, tags: tagsOf(n.text) }));
+  const listNotes = () => notes().slice().sort((a, b) => (!!b.pinned - !!a.pinned) || (b.updated - a.updated)).map(n => ({ id: n.id, title: title(n.text), updated: n.updated, tags: tagsOf(n.text), pinned: n.pinned === true }));
   function searchNotes(q) {
     const words = norm(q).split(/\s+/).filter(Boolean);
     return notes().filter(n => words.every(w => norm(n.text).includes(w))).sort((a, b) => b.updated - a.updated).map(n => {
@@ -389,7 +389,8 @@
       if (typeof body.text !== "string" || body.text.length > 200000) return ERR("texto invalido o demasiado grande");
       const all = notes(); let id = body.id;
       const n = id && all.find(x => x.id === id);
-      if (n) { n.text = body.text; n.updated = Date.now() / 1000; } else { id = rid(16); all.push({ id, text: body.text, updated: Date.now() / 1000 }); }
+      const pin = typeof body.pinned === "boolean" ? body.pinned : undefined;
+      if (n) { n.text = body.text; n.updated = Date.now() / 1000; if (pin !== undefined) n.pinned = pin; } else { id = rid(16); all.push({ id, text: body.text, updated: Date.now() / 1000, pinned: pin === true }); }
       LS.set("notes", all); return J({ id });
     }
     if (p === "/api/notes/delete") { LS.set("notes", notes().filter(n => n.id !== body.id)); return J({ ok: true }); }
@@ -397,7 +398,7 @@
     if (p === "/api/notes/usb") return J({ usb: [] });
     if (p === "/api/notes/export") return ERR("No veo ningún USB conectado (en la demo no hay USB).");
     const nm = /^\/api\/notes\/([0-9a-f]{16})$/.exec(p);
-    if (nm) { const n = notes().find(x => x.id === nm[1]); return n ? J({ id: n.id, text: n.text, updated: n.updated }) : ERR("nota no encontrada", 404); }
+    if (nm) { const n = notes().find(x => x.id === nm[1]); return n ? J({ id: n.id, text: n.text, updated: n.updated, pinned: n.pinned === true }) : ERR("nota no encontrada", 404); }
 
     if (p === "/api/bookmarks") {
       if (method === "GET") return J(LS.get("bookmarks", []));

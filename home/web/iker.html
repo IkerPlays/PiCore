@@ -30,6 +30,7 @@
   aside .empty { color:var(--dim); padding:16px 8px; font-size:15px; line-height:1.4; }
   #tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
   #tags button { font-size:14px; padding:5px 10px; border-radius:999px; }
+  #pin.on { background:var(--acc); color:var(--acc-fg); border-color:var(--acc); }
   #tags button.on { background:var(--acc); color:var(--acc-fg); border-color:var(--acc); }
   #marks { grid-column:1 / span 2; display:flex; gap:8px; align-items:center; padding:6px 12px; background:var(--side); border-bottom:1px solid var(--line); overflow-x:auto; }
   #marks > span { color:var(--dim); font-size:14px; }
@@ -53,6 +54,7 @@
   <button id="save" class="primary"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg> Guardar</button>
   <button id="del" class="danger"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> Borrar</button>
   <button id="usb" title="Copiar todas las notas a un USB como archivos .txt"><svg class="ic" aria-hidden="true"><use href="#i-usb"/></svg> USB</button>
+  <button id="pin" title="Fijar esta nota arriba de la lista" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-star"/></svg> Fijar</button>
   <button id="pdf" title="Abrir esta nota como PDF para imprimirla o guardarla"><svg class="ic" aria-hidden="true"><use href="#i-pdf"/></svg> PDF</button>
   <button id="web"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg> Internet</button>
   <button id="exit"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg> Salir</button>
@@ -117,7 +119,7 @@ async function refresh() {
   for (const n of notes) {
     const d = document.createElement("div");
     d.className = "item" + (n.id === cur ? " sel" : "");
-    const b = document.createElement("b"); highlight(b, n.title, words);
+    const b = document.createElement("b"); if (n.pinned) b.insertAdjacentHTML("afterbegin", ico("star") + " "); highlight(b, n.title, words);
     const s = document.createElement("span"); s.textContent = when(n.updated);
     d.append(b, s);
     if (n.snippet) { const sn = document.createElement("span"); sn.className = "snip"; highlight(sn, n.snippet, words); d.append(sn); }
@@ -168,7 +170,7 @@ async function save() {
   const text = $("text").value;
   if (!text.trim() && !cur) { dirty = false; return; }       // no guardes notas vacias nuevas
   try {
-    const r = await api("/api/notes", {id: cur, text});
+    const r = await api("/api/notes", {id: cur, text, pinned});
     cur = r.id; dirty = false;
     setStatus("Guardado", "ok");
     refresh();
@@ -179,8 +181,8 @@ async function openNote(id) {
   await save();
   if (id) {
     const n = await api("/api/notes/" + id);
-    $("text").value = n.text; cur = id;
-  } else { $("text").value = ""; cur = null; }
+    $("text").value = n.text; cur = id; setPin(n.pinned === true);
+  } else { $("text").value = ""; cur = null; setPin(false); }
   dirty = false; setStatus(id ? "Nota abierta" : "Nota nueva"); counts(); refresh(); $("text").focus();
 }
 
@@ -188,6 +190,9 @@ $("text").addEventListener("input", () => {
   dirty = true; setStatus("Escribiendo…"); counts();
   clearTimeout(timer); timer = setTimeout(save, 1200);
 });
+let pinned = false;
+function setPin(v) { pinned = v; $("pin").setAttribute("aria-pressed", v ? "true" : "false"); $("pin").classList.toggle("on", v); }
+$("pin").onclick = () => { setPin(!pinned); dirty = true; if (cur) save(); else setStatus("Se fijará al guardar"); };
 $("new").onclick = () => openNote(null);
 $("save").onclick = save;
 $("del").onclick = async () => {

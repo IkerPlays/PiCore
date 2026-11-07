@@ -135,6 +135,22 @@ class ApiTest(unittest.TestCase):
         self.assertEqual(self.req("/api/notes/..%2f..%2fetc.pdf")[0], 404)
         self.assertEqual(self.req("/api/notes/%s.pdf" % nid, extra={"Sec-Fetch-Site": "cross-site"})[0], 403)
 
+    def test_pinned_notes_go_first_and_survive_edits(self):
+        old = json.loads(self.req("/api/notes", {"id": None, "text": "vieja"})[2])["id"]
+        new = json.loads(self.req("/api/notes", {"id": None, "text": "nueva"})[2])["id"]
+        self.req("/api/notes", {"id": old, "text": "vieja", "pinned": True})
+        lst = json.loads(self.req("/api/notes")[2])
+        self.assertEqual(lst[0]["id"], old)
+        self.assertTrue(lst[0]["pinned"])
+        self.req("/api/notes", {"id": old, "text": "vieja editada"})                 # sin "pinned": sigue fijada
+        self.assertTrue(json.loads(self.req("/api/notes/" + old)[2])["pinned"])
+        self.req("/api/notes", {"id": old, "text": "vieja editada", "pinned": "si"})     # valor raro: se ignora
+        self.assertTrue(json.loads(self.req("/api/notes/" + old)[2])["pinned"])
+        self.req("/api/notes", {"id": old, "text": "vieja editada", "pinned": False})
+        self.assertFalse(json.loads(self.req("/api/notes/" + old)[2])["pinned"])
+        self.assertEqual(json.loads(self.req("/api/notes")[2])[0]["id"], old)       # ya no fijada: ordena por fecha (la editada es la mas reciente)
+        self.assertIn(new, [n["id"] for n in json.loads(self.req("/api/notes")[2])])
+
     def test_bookmarks_api(self):
         self.assertEqual(json.loads(self.req("/api/bookmarks")[2]), [])
         self.assertEqual(self.req("/api/bookmarks", {"action": "add", "title": "x", "url": "x.com"}, hdr=False)[0], 403)

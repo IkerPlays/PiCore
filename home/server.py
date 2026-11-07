@@ -129,10 +129,10 @@ def list_notes():
     for f in notes_dir().glob("*.json"):
         try:
             d = json.loads(f.read_text())
-            out.append({"id": f.stem, "title": _note_title(d["text"]), "updated": d["updated"], "tags": notes_tools.tags_of(d["text"])})
+            out.append({"id": f.stem, "title": _note_title(d["text"]), "updated": d["updated"], "tags": notes_tools.tags_of(d["text"]), "pinned": d.get("pinned") is True})
         except (OSError, ValueError, KeyError):
             continue
-    return sorted(out, key=lambda n: n["updated"], reverse=True)
+    return sorted(out, key=lambda n: (n["pinned"], n["updated"]), reverse=True)           # las fijadas arriba
 
 
 def read_note(nid):
@@ -142,11 +142,11 @@ def read_note(nid):
         d = json.loads((notes_dir() / (nid + ".json")).read_text())
     except (OSError, ValueError):
         raise KeyError(nid)
-    return {"id": nid, "text": d["text"], "updated": d["updated"]}
+    return {"id": nid, "text": d["text"], "updated": d["updated"], "pinned": d.get("pinned") is True}
 
 
-def save_note(nid, text):
-    """Crea (nid vacio) o actualiza una nota. Devuelve su id."""
+def save_note(nid, text, pinned=None):
+    """Crea (nid vacio) o actualiza una nota. Devuelve su id. pinned=None conserva si estaba fijada."""
     if not isinstance(text, str) or len(text.encode()) > MAX_NOTE:
         raise ValueError("texto invalido o demasiado grande")
     if not nid:
@@ -154,10 +154,15 @@ def save_note(nid, text):
     if not NOTE_ID.match(nid):
         raise ValueError("id invalido")
     f = notes_dir() / (nid + ".json")
+    if pinned is None:
+        try:
+            pinned = json.loads(f.read_text()).get("pinned") is True
+        except (OSError, ValueError, AttributeError):
+            pinned = False
     tmp = f.with_suffix(".tmp")
     fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     with os.fdopen(fd, "w") as fh:
-        fh.write(json.dumps({"text": text, "updated": time.time()}))
+        fh.write(json.dumps({"text": text, "updated": time.time(), "pinned": bool(pinned)}))
     os.replace(tmp, f)
     return nid
 
@@ -1026,7 +1031,8 @@ class Handler(BaseHTTPRequestHandler):
                 CAMERA["show"] = bool(body["show"])
                 return self._send(200, {"show": CAMERA["show"]})
             if self.path == "/api/notes":
-                return self._send(200, {"id": save_note(body.get("id"), body["text"])})
+                pin = body.get("pinned")
+                return self._send(200, {"id": save_note(body.get("id"), body["text"], pin if isinstance(pin, bool) else None)})
             if self.path == "/api/notes/export":
                 try:
                     path_, n = notes_tools.export_usb(notes_dir())
