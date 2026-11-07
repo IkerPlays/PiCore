@@ -495,6 +495,15 @@
   function understand(text) {
     const t = norm(text).replace(/^(oye pi|hey jarvis|ok pi)[,\s]*/, "").trim(), has = (...k) => k.some(x => t.includes(x)), now = new Date();
     if (!t) return "Dime algo, por ejemplo: qué hora es";
+    const nm = /^(?:por favor )?(?:toma nota|apunta|anota|apuntame|anotame|guarda una nota)(?: de| que| lo siguiente)?[ :,]+(.{2,400})$/i.exec(String(text).replace(/^(oye pi|hey jarvis|ok pi)[,\s]*/i, "").trim().replace(/[\s.!?¡¿]+$/, ""));
+    if (nm) { const all = notes(); all.push({ id: rid(16), text: nm[1].trim(), updated: Date.now() / 1000, pinned: false }); LS.set("notes", all); return "Anotado"; }
+    if (has("que puedes hacer", "que sabes hacer", "ayuda", "que comandos")) return "Puedes pedirme la hora, el tiempo, temporizadores y alarmas, la música, el volumen y el brillo, cambiar de modo, tomar notas o decirte cómo está la Pi.";
+    if (has("gracias")) return "De nada";
+    if (["hola", "buenas", "buenos dias", "buenas tardes", "buenas noches", "hola pi"].includes(t)) return "Hola, dime";
+    if (has("cuanto llevas encendida", "cuanto tiempo llevas encendida")) const mn = Math.max(1, Math.round((Date.now() - T0) / 60000)); return "Llevo encendida " + mn + (mn === 1 ? " minuto" : " minutos");
+    if (has("espacio libre", "cuanto espacio")) return "Quedan 21 coma 4 gigas libres en la tarjeta, el 33 por ciento ocupado (datos de ejemplo)";
+    if (has("memoria libre", "cuanta memoria")) return "Hay 5120 megas de memoria libres (datos de ejemplo)";
+    if (has("temperatura de la pi", "temperatura tiene la pi", "como esta la pi", "estado de la pi")) return "El procesador está a 46 grados (dato de ejemplo)";
     if (has("temporizador", "cuenta atras")) {
       if (has("cancela", "quita", "borra")) { S.timers = S.timers.filter(x => x.kind !== "timer"); LS.set("timers", S.timers); return "Temporizadores cancelados"; }
       const sec = duration(t); if (!sec) return "No he entendido cuánto tiempo. Prueba: pon un temporizador de diez minutos";

@@ -5,6 +5,10 @@
 
 
 
+## Simulador: más órdenes de voz
+
+- El simulador entiende también «toma nota…» (la nota aparece en Iker), «qué puedes hacer», saludos, gracias y el estado de la Pi (con datos de ejemplo). Comprobado en navegador sin pantalla.
+
 ## Voz: estado de la Pi
 
 - «Cuánto espacio libre queda», «cuánta memoria libre hay», «qué temperatura tiene la Pi» y «cómo está la Pi» responden con datos reales de `/api/status`. Probado con tests; no en una Pi real.

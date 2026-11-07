@@ -88,7 +88,7 @@ function say(text) {
   reply.innerHTML = ""; const b = document.createElement("b"); b.textContent = "«" + text + "» "; reply.append(b, document.createTextNode("→ " + out));
 }
 document.getElementById("say").onsubmit = e => { e.preventDefault(); const i = document.getElementById("sayin"); say(i.value); i.value = ""; };
-for (const c of ["qué hora es", "qué tiempo hace", "pon un temporizador de un minuto", "pon la música", "pausa la música", "sube el volumen", "qué tengo hoy", "modo iker", "modo casa"]) {
+for (const c of ["qué hora es", "qué tiempo hace", "pon un temporizador de un minuto", "pon la música", "pausa la música", "sube el volumen", "qué tengo hoy", "toma nota comprar pan", "qué puedes hacer", "cómo está la pi", "modo iker", "modo casa"]) {
   const b = document.createElement("button"); b.type = "button"; b.textContent = c; b.onclick = () => say(c); document.getElementById("chips").append(b);
 }
 
