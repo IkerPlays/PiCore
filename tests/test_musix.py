@@ -77,6 +77,30 @@ class LibraryTest(unittest.TestCase):
         r = musix.import_from([str(usb)], dst)
         self.assertEqual((r["copied"], r["skipped"]), (0, 2))
 
+    def test_import_reports_failures_and_keeps_space_free(self):
+        usb, dst = T / ("usbf%s" % os.urandom(3).hex()), T / ("dstf%s" % os.urandom(3).hex())
+        dst.mkdir()
+        mp3(usb, "uno.mp3")
+        real = musix.shutil.disk_usage
+        try:
+            musix.shutil.disk_usage = lambda p: type("U", (), {"free": 100 * 1024 ** 2})()      # menos de los 300 MB de reserva
+            r = musix.import_from([str(usb)], dst)
+        finally:
+            musix.shutil.disk_usage = real
+        self.assertEqual((r["copied"], r["failed"]), (0, 1))
+        self.assertEqual(list(dst.iterdir()), [])
+        r = musix.import_from([str(usb)], T / "no_existe_nunca")                              # carpeta de destino rota
+        self.assertEqual(r["copied"], 0)
+
+    def test_weird_file_names(self):
+        usb, dst = T / ("usbn%s" % os.urandom(3).hex()), T / ("dstn%s" % os.urandom(3).hex())
+        dst.mkdir()
+        for n in ("Canción ñandú ¿qué?.mp3", "con\nsalto.mp3", "emoji 😀.mp3"):
+            mp3(usb, n)
+        musix.import_from([str(usb)], dst)
+        self.assertEqual(len(musix.list_tracks(dst)), 3)
+        self.assertFalse([t for t in musix.list_tracks(dst) if "\n" in t["title"]])
+
     def test_import_limits(self):
         usb, dst = T / ("usbl%s" % os.urandom(3).hex()), T / ("dstl%s" % os.urandom(3).hex())
         dst.mkdir()

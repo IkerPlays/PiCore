@@ -708,7 +708,7 @@ try { const v = parseFloat(localStorage.getItem("mxvol")); if (v >= 0 && v <= 1)
 $("mx-vol").oninput = () => { mxAudio.volume = $("mx-vol").value / 100; try { localStorage.setItem("mxvol", String(mxAudio.volume)); } catch (e) {} };
 $("mx-usb").onclick = async () => {
   mxErr("mx-merr", "Copiando del USB…");
-  try { const j = await mxApi({action: "import_usb"}); mxErr("mx-merr", j.copied + " canciones copiadas" + (j.skipped ? ", " + j.skipped + " ya estaban" : "") + (j.limit ? " (límite alcanzado)" : "")); await mxLoad(); }
+  try { const j = await mxApi({action: "import_usb"}); mxErr("mx-merr", j.copied + " canciones copiadas" + (j.skipped ? ", " + j.skipped + " ya estaban" : "") + (j.failed ? ", " + j.failed + " no se pudieron copiar (¿poco espacio?)" : "") + (j.limit ? " (límite alcanzado)" : "")); await mxLoad(); }
   catch (e) { mxErr("mx-merr", e.message); }
 };
 /* ordenes de voz: «pausa la musica», «siguiente cancion»... llegan en el estado (seq nuevo = orden nueva) */

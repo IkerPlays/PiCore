@@ -102,7 +102,11 @@ def import_from(dirs, base=None, max_files=MAX_IMPORT_FILES, max_bytes=MAX_IMPOR
     """Copia a la Pi las canciones de unas carpetas (un USB). No borra ni mueve nada del origen y no pisa lo que ya hay
     (mismo nombre y tamaño). Devuelve {"copied", "skipped"}."""
     base = Path(base) if base else music_dir()
-    copied = skipped = total = 0
+    copied = skipped = failed = total = 0
+    try:
+        free = shutil.disk_usage(base).free - 300 * 1024 ** 2          # deja 300 MB libres: llenar la tarjeta rompe la Pi
+    except OSError:
+        free = 0
     for d in dirs:
         for root, subdirs, files in os.walk(d, followlinks=False):
             subdirs[:] = [s for s in subdirs if not s.startswith(".") and s not in ("System Volume Information", "$RECYCLE.BIN")]
@@ -119,15 +123,22 @@ def import_from(dirs, base=None, max_files=MAX_IMPORT_FILES, max_bytes=MAX_IMPOR
                     if size < 1024:
                         continue
                     if copied >= max_files or total + size > max_bytes:
-                        return {"copied": copied, "skipped": skipped, "limit": True}
+                        return {"copied": copied, "skipped": skipped, "failed": failed, "limit": True}
+                    if total + size > free:
+                        failed += 1
+                        continue
                     tmp = base / (".tmp-" + dst.name)
                     shutil.copyfile(src, tmp)
                     os.replace(tmp, dst)
                     copied += 1
                     total += size
                 except OSError:
-                    continue
-    return {"copied": copied, "skipped": skipped, "limit": False}
+                    failed += 1
+                    try:
+                        (base / (".tmp-" + _safe_name(fn))).unlink()
+                    except OSError:
+                        pass
+    return {"copied": copied, "skipped": skipped, "failed": failed, "limit": False}
 
 
 # ------------------------------------------------------------------ YT Music (incrustado)
