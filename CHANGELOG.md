@@ -5,6 +5,10 @@
 
 
 
+## Modo Dev: más órdenes rápidas
+
+- Botones rápidos nuevos: `pcpi-sound status`, `pcpi-wifi status` y `pcpi-update --check`; la consola del simulador también las reconoce (con datos de ejemplo).
+
 ## Simulador: más órdenes de voz
 
 - El simulador entiende también «toma nota…» (la nota aparece en Iker), «qué puedes hacer», saludos, gracias y el estado de la Pi (con datos de ejemplo). Comprobado en navegador sin pantalla.

@@ -70,7 +70,7 @@ const ico = (n, cls) => '<svg class="ic' + (cls ? " " + cls : "") + '" aria-hidd
 const post = (url, body) => fetch(url, {method:"POST", headers:{"X-PCPI":"1"}, body:JSON.stringify(body || {})});
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const QUICK = ["pcpi-doctor", "pcpi-config get server port", "pcpi-mode status", "systemctl status pcpi-home --no-pager -n 15", "journalctl -u pcpi-home -n 30 --no-pager",
-  "vcgencmd measure_temp", "vcgencmd get_throttled", "df -h /", "free -m", "uptime", "ip -br a", "ls /var/lib/pcpi/music", "git -C ~ status --short"];
+  "pcpi-sound status", "pcpi-wifi status", "pcpi-update --check", "vcgencmd measure_temp", "vcgencmd get_throttled", "df -h /", "free -m", "uptime", "ip -br a", "ls /var/lib/pcpi/music", "git -C ~ status --short"];
 for (const c of QUICK) { const b = document.createElement("button"); b.textContent = c; b.onclick = () => { $("cmd").value = c; runCmd(); }; $("quick").append(b); }
 
 /* pestañas */
