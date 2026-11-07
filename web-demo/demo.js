@@ -509,6 +509,13 @@
     if (nm) { const all = notes(); all.push({ id: rid(16), text: nm[1].trim(), updated: Date.now() / 1000, pinned: false }); LS.set("notes", all); return "Anotado"; }
     if (has("a que wifi", "que wifi", "a que red", "tengo internet", "hay internet", "estoy conectad")) return S.wifi.active ? "Estoy conectada a la wifi " + S.wifi.active + " y hay internet" : "No estoy conectada a ninguna red";
     if (has("que suena", "que cancion es", "como se llama esta cancion", "que estoy escuchando")) { const np = S.nowplaying; return np && np.title && np.state !== "stopped" ? (np.state === "playing" ? "Suena " : "Está en pausa ") + np.title : "Ahora no suena nada"; }
+    if (has("que hora es en", "hora en ")) {
+      const CT = { "madrid": ["Europe/Madrid", "Madrid"], "canarias": ["Atlantic/Canary", "Canarias"], "las palmas": ["Atlantic/Canary", "Las Palmas"], "londres": ["Europe/London", "Londres"], "paris": ["Europe/Paris", "París"], "berlin": ["Europe/Berlin", "Berlín"], "roma": ["Europe/Rome", "Roma"], "nueva york": ["America/New_York", "Nueva York"], "los angeles": ["America/Los_Angeles", "Los Ángeles"], "mexico": ["America/Mexico_City", "México"], "buenos aires": ["America/Argentina/Buenos_Aires", "Buenos Aires"], "tokio": ["Asia/Tokyo", "Tokio"], "pekin": ["Asia/Shanghai", "Pekín"], "dubai": ["Asia/Dubai", "Dubái"], "sidney": ["Australia/Sydney", "Sídney"] };
+      for (const k in CT) if (t.includes(k)) {
+        const parts = new Intl.DateTimeFormat("es-ES", { timeZone: CT[k][0], hour: "numeric", minute: "numeric", hour12: false }).formatToParts(new Date()), h = +parts.find(p => p.type === "hour").value % 24, m = +parts.find(p => p.type === "minute").value;
+        return "En " + CT[k][1] + " " + (h === 1 ? "es la una" : "son las " + h) + (m ? " y " + m : " en punto");
+      }
+    }
     if (has("que puedes hacer", "que sabes hacer", "ayuda", "que comandos")) return "Puedes pedirme la hora, el tiempo, temporizadores y alarmas, la música, el volumen y el brillo, cambiar de modo, tomar notas o decirte cómo está la Pi.";
     if (has("gracias")) return "De nada";
     if (["hola", "buenas", "buenos dias", "buenas tardes", "buenas noches", "hola pi"].includes(t)) return "Hola, dime";
