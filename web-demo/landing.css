@@ -99,3 +99,8 @@ footer { padding:44px 0 60px; color:var(--dim); font-size:14.5px; border-top:1px
 .skip { position:absolute; left:12px; top:-60px; z-index:100; padding:10px 16px; border-radius:10px; background:var(--acc); color:#fff; font-weight:600; transition:top .15s; } .skip:focus { top:10px; }
 
 .theme { display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; padding:0; border-radius:50%; border:1px solid var(--line); background:transparent; color:var(--fg); cursor:pointer; } .theme:hover { border-color:var(--acc); }
+
+:focus-visible { outline:3px solid var(--acc); outline-offset:3px; border-radius:6px; }
+section[id], details[id] { scroll-margin-top:78px; }
+html { scroll-behavior:smooth; }
+@media print { .nav, .skip, .theme, .cta, .gallery { display:none !important; } body { background:#fff; color:#000; } }
