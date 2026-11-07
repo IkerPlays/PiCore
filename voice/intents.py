@@ -159,6 +159,8 @@ def parse(text):
         return Intent("sys_info", "mem")
     if has("temperatura de la pi", "temperatura tiene la pi", "temperatura tiene el procesador", "temperatura del procesador", "temperatura de la cpu", "calor tiene la pi", "esta caliente la pi", "como esta la pi", "estado de la pi"):
         return Intent("sys_info", "temp" if not has("como esta", "estado") else "all")
+    if has("que puedes hacer", "que sabes hacer", "ayuda", "que te puedo pedir", "que comandos"):
+        return Intent("help", None)
     if has("calendario", "agenda", "que tengo", "tengo algo", "mis eventos", "proximo evento", "tengo hoy", "tengo manana"):
         return Intent("calendar", "tomorrow" if has("manana") else "today")
     if has("temporizador", "cuenta atras", "cuentaatras"):
@@ -281,6 +283,10 @@ def say_system(kind, st):
     if kind in ("temp", "all"):
         parts.append("El procesador está a %d grados" % round(temp) if isinstance(temp, (int, float)) else "No puedo leer la temperatura")
     return ". ".join(parts)
+
+
+HELP_TEXT = ("Puedes pedirme la hora, el tiempo, que ponga temporizadores y alarmas, que controle la música, el volumen y el brillo, "
+             "que cambie de modo, que tome notas, o que te diga cómo está la Pi.")
 
 
 def say_date(now):

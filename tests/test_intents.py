@@ -54,6 +54,7 @@ class IntentTest(unittest.TestCase):
         self.assertIn("12 coma 5 gigas", i.say_system("disk", {"system": {"disk": {"free_gb": 12.5, "pct": 60}}}))
         self.assertEqual(i.say_system("temp", {}), "No puedo leer la temperatura")
         self.assertIn("48 grados", i.say_system("all", {"cpu_temp": 47.6, "system": {"mem_avail_mb": 3000}}))
+        self.assertEqual(P("qué puedes hacer"), ("help", None))
         self.assertEqual(P("activa el salvapantallas"), ("screensaver", True))
         self.assertEqual(P("desactiva el salvapantallas"), ("screensaver", False))
         self.assertEqual(P("sube el brillo"), ("brightness", "+20"))
