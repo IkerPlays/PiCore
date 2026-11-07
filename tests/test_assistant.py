@@ -209,6 +209,10 @@ class ExecuteApiIntentsTest(unittest.TestCase):
         self.assertEqual(assistant.execute(self.cfg, ("motion", True)), "No hay cámara para vigilar")
         self.assertEqual(len(self.posts), n)
 
+    def test_note_by_voice_goes_to_notes_api(self):
+        self.assertEqual(assistant.execute(self.cfg, ("note_add", "comprar leche")), "Anotado")
+        self.assertEqual(self.posts[-1], ("/api/notes", {"id": None, "text": "comprar leche"}, "1"))
+
     def test_timers_and_alarms_by_voice(self):
         self.status["timers"] = []
         self.assertEqual(assistant.execute(self.cfg, ("timer_set", 600)), "Temporizador de 10 minutos")

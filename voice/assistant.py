@@ -157,6 +157,12 @@ def execute(cfg, intent):
             level = max(10, min(100, level))
             api(cfg, "/api/display", {"level": level, "auto": False})
             return "Brillo al %d por ciento" % level
+        if n == "note_add":
+            try:
+                api(cfg, "/api/notes", {"id": None, "text": a})
+            except urllib.error.HTTPError:
+                return "No he podido guardar la nota"
+            return "Anotado"
         if n == "screensaver":
             api(cfg, "/api/settings", {"action": "pref_set", "key": "screensaver", "value": bool(a)})
             return "Salvapantallas activado" if a else "Salvapantallas desactivado"

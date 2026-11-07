@@ -5,6 +5,10 @@
 
 
 
+## Voz: tomar notas
+
+- «Toma nota: comprar leche», «apunta que mañana llamo al dentista» o «anota revisar el router» guardan una nota nueva en Modo Iker. Probado con tests de intenciones y del asistente; no en una Pi real.
+
 ## MP3 Player: repetir
 
 - Botón «Repetir todo / Repetir una / Sin repetir» (se recuerda). Con «Sin repetir» la música se para al acabar la última canción. Comprobado en navegador sin pantalla con el simulador.
