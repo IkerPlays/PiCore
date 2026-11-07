@@ -151,6 +151,15 @@ class ApiTest(unittest.TestCase):
         self.assertEqual(json.loads(self.req("/api/notes")[2])[0]["id"], old)       # ya no fijada: ordena por fecha (la editada es la mas reciente)
         self.assertIn(new, [n["id"] for n in json.loads(self.req("/api/notes")[2])])
 
+    def test_search_results_keep_pinned_first(self):
+        a = json.loads(self.req("/api/notes", {"id": None, "text": "zeta buscable uno"})[2])["id"]
+        json.loads(self.req("/api/notes", {"id": None, "text": "zeta buscable dos"})[2])
+        self.req("/api/notes", {"id": a, "text": "zeta buscable uno", "pinned": True})
+        res = json.loads(self.req("/api/notes?q=zeta+buscable")[2])
+        self.assertEqual(res[0]["id"], a)
+        self.assertTrue(res[0]["pinned"])
+        self.assertFalse(res[1]["pinned"])
+
     def test_bookmarks_api(self):
         self.assertEqual(json.loads(self.req("/api/bookmarks")[2]), [])
         self.assertEqual(self.req("/api/bookmarks", {"action": "add", "title": "x", "url": "x.com"}, hdr=False)[0], 403)

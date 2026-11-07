@@ -110,6 +110,13 @@ def _read(f):
         return None
 
 
+def _is_pinned(f):
+    try:
+        return json.loads(f.read_text()).get("pinned") is True
+    except (OSError, ValueError, AttributeError):
+        return False
+
+
 def search(notes_dir, query, limit=100):
     """Notas cuyo texto contiene TODAS las palabras de la consulta (sin mayusculas ni tildes). Mas recientes primero."""
     words = norm(query).split()
@@ -124,8 +131,8 @@ def search(notes_dir, query, limit=100):
             pos = n.find(words[0])
             a = max(0, pos - 30)
             snippet = " ".join(text[a:a + 90].split())
-            out.append({"id": f.stem, "title": title_of(text), "updated": updated, "snippet": snippet, "tags": tags_of(text)})
-    out.sort(key=lambda x: x["updated"], reverse=True)
+            out.append({"id": f.stem, "title": title_of(text), "updated": updated, "snippet": snippet, "tags": tags_of(text), "pinned": _is_pinned(f)})
+    out.sort(key=lambda x: (x["pinned"], x["updated"]), reverse=True)            # las fijadas, primero
     return out[:limit]
 
 

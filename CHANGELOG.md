@@ -5,6 +5,10 @@
 
 
 
+## Buscar notas: las fijadas salen primero
+
+- Al buscar, las notas fijadas siguen arriba y con su estrella (antes solo pasaba sin buscar). Probado con tests.
+
 ## Voz: dado y moneda
 
 - «Tira un dado» y «cara o cruz». Probado con tests; no en una Pi real.
