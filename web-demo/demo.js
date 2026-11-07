@@ -499,6 +499,12 @@
   function understand(text) {
     const t = norm(text).replace(/^(oye pi|hey jarvis|ok pi)[,\s]*/, "").trim(), has = (...k) => k.some(x => t.includes(x)), now = new Date();
     if (!t) return "Dime algo, por ejemplo: qué hora es";
+    const lm2 = /^(?:por favor )?(?:anade|añade|apunta|pon|mete|agrega)\s+(.{2,80}?)\s+(?:a|en)\s+(?:la\s+)?lista(?:\s+de\s+(?:la\s+)?(compra|compras|tareas|pendientes))?$/i.exec(String(text).replace(/^(oye pi|hey jarvis|ok pi)[,\s]*/i, "").trim().replace(/[\s.!?¡¿]+$/, ""));
+    if (lm2) {
+      const ttl = /tareas|pendientes/i.test(lm2[2] || "") ? "Tareas" : "Lista de la compra", all = notes(), f = all.find(n => norm(title(n.text)) === norm(ttl));
+      if (f) { f.text = f.text.replace(/\n+$/, "") + "\n- " + lm2[1].trim() + "\n"; f.updated = Date.now() / 1000; } else all.push({ id: rid(16), text: ttl + "\n- " + lm2[1].trim() + "\n", updated: Date.now() / 1000, pinned: false });
+      LS.set("notes", all); return "Añadido " + lm2[1].trim() + " a " + (ttl === "Tareas" ? "tus tareas" : "la lista de la compra");
+    }
     const nm = /^(?:por favor )?(?:toma nota|apunta|anota|apuntame|anotame|guarda una nota)(?: de| que| lo siguiente)?[ :,]+(.{2,400})$/i.exec(String(text).replace(/^(oye pi|hey jarvis|ok pi)[,\s]*/i, "").trim().replace(/[\s.!?¡¿]+$/, ""));
     if (nm) { const all = notes(); all.push({ id: rid(16), text: nm[1].trim(), updated: Date.now() / 1000, pinned: false }); LS.set("notes", all); return "Anotado"; }
     if (has("a que wifi", "que wifi", "a que red", "tengo internet", "hay internet", "estoy conectad")) return S.wifi.active ? "Estoy conectada a la wifi " + S.wifi.active + " y hay internet" : "No estoy conectada a ninguna red";
