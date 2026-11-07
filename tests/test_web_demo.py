@@ -204,3 +204,15 @@ class SimuladorVozYVisita(unittest.TestCase):
             self.assertIn(k, s)
         d = (ROOT / "web-demo" / "demo.js").read_text(encoding="utf-8")
         self.assertIn("window.PCPI_DEMO", d)
+
+
+class SintaxisJs(unittest.TestCase):
+    def test_los_scripts_de_la_demo_son_javascript_valido(self):
+        import shutil
+        import subprocess
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("no hay node")
+        for f in ("web-demo/demo.js", "home/web/static/osk.js", "home/web/static/online.js"):
+            r = subprocess.run([node, "--check", str(ROOT / f)], capture_output=True, text=True)
+            self.assertEqual(r.returncode, 0, f + "\n" + r.stderr)
