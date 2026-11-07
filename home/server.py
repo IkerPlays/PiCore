@@ -520,9 +520,22 @@ def uptime_s():
         return None
 
 
+def version_info():
+    """«abc1234 2026-11-07» (lo escribe install.sh en VERSION, junto a home/). Sin el archivo -> None."""
+    for cand in (Path(__file__).resolve().parent.parent / "VERSION", Path("/opt/pcpi/VERSION")):
+        try:
+            v = cand.read_text(encoding="utf-8").strip()
+        except OSError:
+            continue
+        if v and len(v) <= 40 and all(c.isalnum() or c in " .-_" for c in v):
+            return v
+    return None
+
+
 def status():
     cp = read_conf()
     return {
+        "version": version_info(),
         "mode": get_mode(),
         "cpu_temp": cpu_temp(),
         "uptime": uptime_s(),

@@ -47,6 +47,8 @@ step "Archivos en $PREFIX"
 sudo mkdir -p "$PREFIX"
 sudo rsync -a --delete --exclude __pycache__ "$SRC/home" "$SRC/bin" "$SRC/voice" "$SRC/stats" "$PREFIX/"
 # Tus videos/imagenes de las pantallas de Inicio y Carga: se COPIAN sin borrar lo que ya hubiera en la Pi
+# Version instalada (para la hoja Sistema): «abc1234 2026-11-07». Sin git, se queda como «desconocida».
+{ git -C "$SRC" log -1 --format='%h %cs' 2>/dev/null || echo desconocida; } | sudo tee "$PREFIX/VERSION" >/dev/null
 sudo mkdir -p "$PREFIX/extra-assets"
 sudo rsync -a --exclude .gitkeep --exclude README.md "$SRC/extra-assets/" "$PREFIX/extra-assets/"
 # El servidor descarga aqui el video del intro 4 la primera vez que se enciende: la carpeta debe ser tuya

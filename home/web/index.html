@@ -462,6 +462,7 @@
 <section id="spanel" aria-label="Sistema">
   <h3>Sistema <button id="s-close" aria-label="Cerrar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></h3>
   <div class="sysrow" id="s-stats"></div>
+  <div id="s-ver" class="dim" style="font-size:13px;margin:-4px 2px 10px" hidden></div>
   <div id="s-health"></div>
   <div id="upd"><div id="upd-row"><span id="upd-txt"></span><button id="upd-btn">Buscar actualizaciones</button></div><pre id="upd-log" hidden></pre></div>
   <details id="voicehelp"><summary>Qué puedo decirle a la Pi</summary>
@@ -999,6 +1000,7 @@ function renderSystem() {
   stat(sy.mem_avail_mb != null ? sy.mem_avail_mb + " MB" : "--", "memoria libre");
   stat(lastCpu != null ? lastCpu + " °C" : "--", "temperatura");
   stat(sy.update && sy.update.available ? "Sí" : "No", "actualización");
+  $("s-ver").hidden = !lastVersion; $("s-ver").textContent = lastVersion ? "PiCore " + lastVersion : "";
   const h = $("s-health"); h.textContent = "";
   for (const it of (sy.health || [])) {
     const d = document.createElement("div"); d.className = "hl " + it.level; const t = document.createElement("span"); t.textContent = it.text; d.append(t);
@@ -1007,7 +1009,7 @@ function renderSystem() {
     h.append(d);
   }
 }
-let lastCpu = null;
+let lastCpu = null, lastVersion = null;
 function pwrReset() { pwrAsk = null; clearTimeout(pwrTimer); for (const [id, t] of [["s-reboot", "Reiniciar"], ["s-off", "Apagar"]]) { $(id).textContent = t; $(id).classList.remove("sure"); } }
 async function pwrClick(action, id, label) {
   if (pwrAsk !== action) {                       // primer toque: pedir confirmacion; si no se confirma, vuelve solo
@@ -1420,7 +1422,7 @@ async function refresh() {
   paintMotion(s.motion);
   paintBattery(s.battery);
   paintAudio(s.audio);
-  lastCpu = s.cpu_temp ?? null;
+  lastCpu = s.cpu_temp ?? null; lastVersion = s.version || null;
   paintSystem(s.system);
   paintMusic(s.music);
   $("nav-dev").hidden = !!(s.dev && s.dev.enabled === false);

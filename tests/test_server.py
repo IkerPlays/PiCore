@@ -45,6 +45,24 @@ class ServerTest(unittest.TestCase):
             self.assertIn(k, d)
         self.assertFalse(d["pihole"]["ok"])  # sin configurar
 
+    def test_version_comes_from_the_version_file_and_is_sanitised(self):
+        v = Path(server.__file__).resolve().parent.parent / "VERSION"
+        existed = v.exists()
+        old = v.read_text() if existed else None
+        try:
+            v.write_text("abc1234 2026-11-07\n")
+            self.assertEqual(server.version_info(), "abc1234 2026-11-07")
+            self.assertEqual(json.loads(self.req("/api/status")[1])["version"], "abc1234 2026-11-07")
+            v.write_text("<script>alert(1)</script>")                  # nada raro llega a la pantalla
+            self.assertIsNone(server.version_info())
+            v.write_text("x" * 100)
+            self.assertIsNone(server.version_info())
+        finally:
+            if existed:
+                v.write_text(old)
+            else:
+                v.unlink()
+
     def test_pages(self):
         self.assertEqual(self.req("/")[0], 200)
         code, body = self.req("/iker")

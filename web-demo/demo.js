@@ -174,7 +174,7 @@
     return {
       mode: LS.get("mode", "home"), cpu_temp: t, uptime: Math.floor((Date.now() - T0) / 1000) + 320,
       pihole: { ok: true, blocking: ph.blocking ? "enabled" : "disabled", total: 1211 + Math.floor((Date.now() - T0) / 4000), blocked: 326 + Math.floor((Date.now() - T0) / 14000), percent: 26.9, domains: 168432 },
-      weather: weather(), nowplaying: S.nowplaying, voice: S.voice, camera: { available: true, show: S.camera },
+      version: "demo", weather: weather(), nowplaying: S.nowplaying, voice: S.voice, camera: { available: true, show: S.camera },
       net: S.wifi.active ? { available: true, name: S.wifi.active, ssid: S.wifi.active, type: "wifi", connectivity: "full", portal: false, dns: S.wifi.wantsPi[S.wifi.active] ? "pihole" : "router" }
                          : { available: true, name: null, connectivity: "none", portal: false },
       display: displayInfo(), motion: motionInfo(), battery: { available: true, percent: 76, charging: false, low: false, critical: false },

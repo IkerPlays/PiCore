@@ -6,6 +6,10 @@
 
 
 
+## Versión instalada en la hoja Sistema
+
+- `install.sh` escribe `VERSION` («abc1234 2026-11-07», el último commit) y la hoja Sistema muestra «PiCore abc1234 …» (útil al pedir ayuda; se actualiza con `pcpi-update`). El servidor la limpia antes de enseñarla. Probado con tests y en el simulador; el instalador no se ha ejecutado en una Pi real.
+
 ## Visita guiada con el teclado
 
 - Con la visita abierta, las flechas ← → cambian de paso y `Esc` la cierra. Comprobado en navegador sin pantalla.
