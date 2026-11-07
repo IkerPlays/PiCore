@@ -218,6 +218,9 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(P("avísame en veinte minutos"), ("timer_set", 1200))
         self.assertEqual(P("recuérdame en diez minutos sacar la pizza"), ("timer_set", (600, "sacar la pizza")))
         self.assertEqual(P("avísame dentro de una hora que llame a mamá"), ("timer_set", (3600, "llame a mamá")))
+        self.assertEqual(P("recuérdame a las seis de la tarde que saque la basura"), ("alarm_set", (18, 0, False, "saque la basura")))
+        self.assertEqual(P("avísame a las siete y media para llamar a mamá"), ("alarm_set", (7, 30, False, "llamar a mamá")))
+        self.assertEqual(P("recuérdame a las ocho"), ("alarm_set", (8, 0)))                      # sin nombre: como una alarma normal
         self.assertEqual(P("cancela el temporizador"), ("timer_cancel", None))
         self.assertEqual(P("cuanto queda del temporizador"), ("timer_query", None))
         self.assertEqual(P("para la alarma"), ("timers_stop", None))

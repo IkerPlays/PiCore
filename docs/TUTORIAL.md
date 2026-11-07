@@ -612,6 +612,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «despiértame a las siete y media» · «pon una alarma a las ocho menos cuarto» · «alarma a las 7 de la tarde» | Crea una alarma para la próxima vez que el reloj marque esa hora |
 | «avísame en veinte minutos» · «recuérdame en diez minutos sacar la pizza» | Crea un temporizador (con nombre si dices qué) |
 | «añade cinco minutos al temporizador» · «ponle un minuto más» | Suma tiempo al temporizador que antes vence |
+| «recuérdame a las seis de la tarde que saque la basura» · «avísame a las siete y media para llamar a mamá» | Crea una alarma con nombre (sale en el aviso) |
 | «despiértame todos los días a las siete y media» | Crea una alarma que se repite cada día (se reprograma sola al pararla) |
 | «pospón» · «cinco minutos más» (mientras suena) | Para lo que suena y lo repite dentro de 5 minutos |
 | «cuánto queda del temporizador» · «cancela el temporizador» · «para la alarma» | Consultar, cancelar o parar lo que suena |

@@ -6,6 +6,10 @@
 
 
 
+## Voz: recordatorios a una hora
+
+- «Recuérdame a las seis de la tarde que saque la basura» o «avísame a las siete y media para llamar a mamá» crean una alarma con nombre. Hace falta decir «que», «para» o «de» antes de lo que quieres recordar. Probado con tests; no en una Pi real.
+
 ## Modo Iker: Ctrl+F salta al buscador
 
 - Con teclado físico, Ctrl+F lleva el cursor al buscador de notas (el navegador no abre su propio buscador). Comprobado en navegador sin pantalla. (Mi primer intento con la tecla `/` no funcionaba porque la nota ya tiene el foco; lo descarté.)

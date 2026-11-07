@@ -172,6 +172,11 @@ def parse(text):
         return Intent("uptime", None)
     if has("a que wifi", "que wifi", "a que red", "que red", "tengo internet", "hay internet", "estoy conectad", "estamos conectad"):
         return Intent("net_info", None)
+    if has("avisame", "recuerdame", "avisa me", "recuerda me") and not parse_duration(words) and (clock_r := parse_clock(words)):
+        t2 = re.sub(r"\bde la (?:mañana|manana|tarde|noche|madrugada)\b", "", str(text).lower().strip(" .,!?¡¿"))
+        m = re.search(r"\ba las [^,]*?\b(?:que|para|de)\s+(.{2,40})$", t2)
+        label = m.group(1).strip() if m else ""
+        return Intent("alarm_set", clock_r + (False, label) if label else clock_r)
     if has("avisame", "recuerdame", "avisa me", "recuerda me") and (secs_r := parse_duration(words)):
         m = re.search(r"(?:minutos?|segundos?|horas?)\s+(?:de que |que |para |a |de )?(.{2,40})$", str(text).lower().strip(" .,!?¡¿"))
         label = m.group(1).strip() if m and not parse_duration(norm(m.group(1)).split()) else ""
