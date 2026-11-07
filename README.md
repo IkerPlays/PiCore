@@ -127,6 +127,9 @@ La palabra, el umbral y el micro se cambian en `[voice]` de `/etc/pcpi/pcpi.conf
 
 Las ideas, los fallos y las mejoras son bienvenidos: mira [CONTRIBUTING.md](CONTRIBUTING.md). Para fallos de seguridad, [SECURITY.md](SECURITY.md).
 
-**Licencia:** todavía no hay una elegida; mientras tanto, el código es del autor con todos los derechos reservados. Los vídeos, GIFs e imágenes de `extra-assets/` son ejemplos del autor: sustitúyelos por los tuyos.
+**Licencia:** el código es **MIT** ([LICENSE](LICENSE)). Dos avisos para quien lo reutilice:
+
+- Los vídeos, GIFs e imágenes de `extra-assets/` son **ejemplos del autor y no están cubiertos por la licencia MIT del código**: sustitúyelos por los tuyos (o comprueba sus derechos antes de reutilizarlos).
+- El modelo `models/wake/oye_pi_experimental.onnx` es un experimento entrenado con las herramientas de openWakeWord. Según su documentación, **los modelos preentrenados de openWakeWord tienen licencia de uso no comercial (CC BY-NC-SA 4.0)**: si piensas usar PiCore en algo comercial, revisa las licencias de openWakeWord, Vosk, Whisper, Ollama y los modelos que instales; el código de PiCore no las incluye (se descargan al instalar).
 
 **Gracias a** [openWakeWord](https://github.com/dscripka/openWakeWord), [Whisper](https://github.com/openai/whisper) / [faster-whisper](https://github.com/SYSTRAN/faster-whisper), [Vosk](https://alphacephei.com/vosk/), [Pi-hole](https://pi-hole.net/), [Ollama](https://ollama.com/) y [Qwen](https://github.com/QwenLM/Qwen2.5), [Open-Meteo](https://open-meteo.com/) y a Raspberry Pi.

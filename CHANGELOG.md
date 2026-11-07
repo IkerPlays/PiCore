@@ -24,6 +24,7 @@
 - **11:15** La demo se ve dentro de un **marco de dispositivo** (pantalla de 1024×600 escalada, con botones Casa/Iker/Dev; también en el móvil). Casa: el chip de temperatura solo aparece si la CPU pasa de 65 °C, para dejar sitio al saludo.
 - **11:22** Imágenes de la documentación (`docs/img/casa-claro.png`, `casa-oscuro.png`, `iker.png`) regeneradas con la interfaz nueva.
 - **11:40** **Preparación para hacerlo público:** README renovado (descripción, insignias, demo en vivo <https://picoreweb.netlify.app/>, capturas nuevas), `CONTRIBUTING.md`, `SECURITY.md`, plantillas de issues y de pull request, tarjeta para compartir (`docs/img/social.png`). La demo usa ahora los **vídeos de inicio, GIFs e imágenes reales** de `extra-assets/` (copias H.264) y la primera visita arranca como un encendido de la Pi.
+- **11:48** Licencia **MIT** (`LICENSE`), con avisos sobre los archivos de `extra-assets/` y las licencias de los modelos de voz de terceros.
 
 ## Antes de esta sesión (resumen)
 

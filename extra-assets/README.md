@@ -89,3 +89,5 @@ ffmpeg -i clip.mp4 -vf scale=480:-2 -an -c:v libx264 -crf 28 -movflags +faststar
 
 En `/etc/pcpi/pcpi.conf`, sección `[boot]` (se explica en `config/pcpi.conf.example`): activar/desactivar el vídeo de
 inicio, cuánto dura la «carga rápida x2», si se muestra el botón Skip, etc.
+
+> Los archivos de ejemplo de esta carpeta (vídeos de inicio, GIFs, imágenes) **no están cubiertos por la licencia MIT del código** del proyecto. Sustitúyelos por los tuyos o comprueba sus derechos antes de reutilizarlos.

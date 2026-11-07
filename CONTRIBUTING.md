@@ -33,6 +33,10 @@ make lint        # shell y Python
 2. Haz una rama, cambia lo que toque y ejecuta `make test` y `make lint`.
 3. Abre la *pull request* explicando **qué cambia, por qué y qué has probado (y qué no)**. El CI (`.github/workflows/test.yml`) debe quedar en verde.
 
+## Licencia de lo que aportes
+
+Al enviar una *pull request* aceptas que tu aportación se publique bajo la licencia MIT del proyecto ([LICENSE](LICENSE)). No subas archivos con derechos de terceros (vídeos, imágenes, música).
+
 ## Fallos de seguridad
 
 No los abras como *issue* público: mira [SECURITY.md](SECURITY.md).
