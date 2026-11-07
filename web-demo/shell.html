@@ -146,6 +146,7 @@ addEventListener("keydown", e => {
 setInterval(() => {
   let m = "home"; try { m = JSON.parse(localStorage.getItem("pcpi-demo-mode") || '"home"'); } catch (e) {}
   for (const b of document.querySelectorAll("button[data-m]")) b.classList.toggle("on", b.dataset.m === m);
+  document.title = "Simulador de PiCore · " + ({home: "Casa", iker: "Iker", dev: "Dev"}[m] || "Casa");
 }, 400);
 </script>
 </body>
