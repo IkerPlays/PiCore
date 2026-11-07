@@ -38,6 +38,13 @@ La demo usa los **vídeos de inicio, GIFs e imágenes reales** de `extra-assets/
 | Dev: consola de mentira (`help` lista lo que entiende), explorador de la API, experimentos | Ejecutar órdenes de verdad (en la demo nada se ejecuta) |
 | Cambio de modo con su pantalla de carga (Casa, Iker, Dev) | Escritorio (te devuelve a Casa) |
 
+## Voz, visita guiada y atajos del simulador
+
+- **Voz simulada:** la barra de abajo entiende frases escritas (hora, fecha, tiempo, temporizadores con nombre, alarmas, música, volumen, brillo, notas, «qué puedes hacer», estado de la Pi...) y responde en voz alta con la síntesis de tu navegador. La Pi real usa Whisper para entenderte; aquí no hay micrófono ni IA local, y lo que no entiende recibe una respuesta fija. Está en `understand()` de `web-demo/demo.js`.
+- **Visita guiada:** el botón «Visita guiada» (o `/simulador?tour`) recorre 12 pasos y toca de verdad la interfaz.
+- **Atajos:** `1` `2` `3` cambian de modo, `T` abre la visita y `V` enfoca la barra de voz (no actúan si estás escribiendo en un cuadro).
+- **Enlaces directos:** `/simulador?p=/iker` abre el simulador en ese modo (solo `/app`, `/iker`, `/dev` y `/loading`).
+
 ## Seguridad
 
 La demo es un sitio estático: no tiene servidor, ni cuentas, ni secretos, ni forma de ejecutar nada. Las cabeceras (`_headers`) son una CSP estricta (sin `eval`) que solo permite lo que la demo necesita (audio generado, el reproductor de YouTube). La consola Dev de la demo es un `switch` de JavaScript con órdenes de mentira: `rm -rf /` solo contesta «orden no encontrada».
