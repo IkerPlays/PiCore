@@ -203,6 +203,29 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.click('#chip-sys');
   await sleep(600);
   check('la hoja Sistema lista los avisos', (await page.locator('#s-health .hl').count()) === 2 && (await page.textContent('#s-stats')).includes('0.6 GB'));
+  check('con novedades el boton dice «Actualizar ahora»', (await page.textContent('#upd-btn')).includes('Actualizar ahora') && (await page.textContent('#upd-txt')).includes('2 cambios'), await page.textContent('#upd-txt'));
+  let updPosts = [];
+  await page.route('**/api/system', async route => { updPosts.push(route.request().postData()); await route.fulfill({ json: { ok: true } }); });
+  await page.click('#upd-btn');
+  await sleep(300);
+  check('pulsarlo pide la actualizacion', updPosts.length === 1 && updPosts[0].includes('"update"'), JSON.stringify(updPosts));
+  await page.unroute('**/api/system');
+  await page.route('**/api/status', async route => {
+    const resp = await route.fetch(); const j = await resp.json();
+    j.system = { disk: { free_gb: 20, total_gb: 30, pct: 30 }, mem_avail_mb: 900, update: { available: true, behind: 2 }, health: [{ level: 'ok', text: 'Todo en orden.' }],
+                 update_run: { state: 'running', tail: ['Descargando 2 cambio(s)…'] } };
+    await route.fulfill({ response: resp, json: j });
+  });
+  await page.waitForFunction(() => document.getElementById('upd-log').textContent.includes('Descargando'), null, { timeout: 12000 }).catch(() => {});
+  check('mientras actualiza: boton desactivado y registro a la vista', (await page.textContent('#upd-log')).includes('Descargando') && (await page.textContent('#upd-txt')).includes('no apagues'));
+  await page.unroute('**/api/status');
+  await page.route('**/api/status', async route => {
+    const resp = await route.fetch(); const j = await resp.json();
+    j.system = { disk: { free_gb: 0.6, total_gb: 30, pct: 98 }, mem_avail_mb: 900, update: { available: true, behind: 2 },
+                 health: [{ level: 'bad', text: 'Casi no queda espacio en la tarjeta (0.6 GB libres).' }, { level: 'info', text: 'Hay una actualización' }] };
+    await route.fulfill({ response: resp, json: j });
+  });
+  await page.waitForFunction(() => !document.getElementById('upd-btn').disabled && document.getElementById('upd-log').hidden, null, { timeout: 12000 }).catch(() => {});
   let powerPosts = [];
   await page.route('**/api/system', async route => { powerPosts.push(route.request().postData()); await route.fulfill({ json: { ok: true } }); });
   await page.click('#s-off');
