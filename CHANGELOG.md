@@ -5,6 +5,10 @@
 
 
 
+## Simulador: «Restablecer» pide confirmación
+
+- El botón borra tus notas y ajustes de la demo, así que ahora hace falta pulsarlo dos veces (comprobado en navegador sin pantalla).
+
 ## MP3 Player: buscar en tu música
 
 - Con 8 o más canciones aparece un cuadro para filtrar por título (sin distinguir mayúsculas ni tildes, con teclado en pantalla). Comprobado en navegador sin pantalla.
