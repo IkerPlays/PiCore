@@ -5,6 +5,10 @@
 
 
 
+## Voz: próximo evento del calendario
+
+- «Cuál es mi próximo evento» dice el siguiente aunque no sea hoy ni mañana. Probado con tests; no en una Pi real.
+
 ## Web: página 404 con estilo
 
 - La página de «no encontrado» de la web tiene el mismo estilo (claro/oscuro), es adaptable al móvil y enlaza al inicio y al simulador.

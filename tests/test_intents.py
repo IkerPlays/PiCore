@@ -77,6 +77,11 @@ class IntentTest(unittest.TestCase):
         self.assertIn("Mañana habrá una máxima de 21 grados y una mínima de 16", i.say_weather_day(wk, 1))
         self.assertIn("60 por ciento de probabilidad de lluvia", i.say_weather_day(wk, 1))
         self.assertEqual(i.say_weather_day(wk, 2), "No tengo la previsión de ese día")
+        self.assertEqual(P("cuál es mi próximo evento"), ("calendar", "next"))
+        ev = [{"when": "Jueves", "time": "18:30", "title": "Clase de guitarra"}, {"when": "Viernes", "time": "", "title": "Cumple"}]
+        self.assertEqual(i.say_calendar(ev, "next"), "Tu próximo evento es Clase de guitarra, el jueves a las 18 y 30")
+        self.assertEqual(i.say_calendar([{"when": "Hoy", "time": "", "title": "Dentista"}], "next"), "Tu próximo evento es Dentista, hoy")
+        self.assertEqual(i.say_calendar([], "next"), "No tienes ningún evento próximo")
         self.assertEqual(P("activa el salvapantallas"), ("screensaver", True))
         self.assertEqual(P("desactiva el salvapantallas"), ("screensaver", False))
         self.assertEqual(P("sube el brillo"), ("brightness", "+20"))

@@ -172,8 +172,8 @@ def parse(text):
         return Intent("uptime", None)
     if has("a que wifi", "que wifi", "a que red", "que red", "tengo internet", "hay internet", "estoy conectad", "estamos conectad"):
         return Intent("net_info", None)
-    if has("calendario", "agenda", "que tengo", "tengo algo", "mis eventos", "proximo evento", "tengo hoy", "tengo manana"):
-        return Intent("calendar", "tomorrow" if has("manana") else "today")
+    if has("calendario", "agenda", "que tengo", "tengo algo", "mis eventos", "proximo evento", "siguiente evento", "proxima cita", "tengo hoy", "tengo manana"):
+        return Intent("calendar", "next" if has("proximo evento", "siguiente evento", "proxima cita") else "tomorrow" if has("manana") else "today")
     if has("temporizador", "cuenta atras", "cuentaatras"):
         if has("anade", "sumale", "mas tiempo", "alarga", "amplia", "extiende") or (has("ponle") and has("mas")):
             secs = parse_duration(words)
@@ -369,6 +369,12 @@ def say_weather_day(w, offset):
 
 def say_calendar(events, which="today"):
     """Frase con los eventos de hoy o de manana (lista ya en JSON del servidor)."""
+    if which == "next":
+        if not events:
+            return "No tienes ningún evento próximo"
+        e = events[0]
+        when = e["when"].lower() if e["when"] in ("Hoy", "Mañana") else "el " + e["when"].lower()
+        return "Tu próximo evento es %s, %s%s" % (e["title"], when, (" a las " + e["time"].replace(":", " y ").replace(" y 00", " en punto")) if e.get("time") else "")
     want = "Mañana" if which == "tomorrow" else "Hoy"
     mine = [e for e in events if e["when"] == want]
     word = "mañana" if which == "tomorrow" else "hoy"
