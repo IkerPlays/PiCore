@@ -55,7 +55,8 @@ class LandingTest(unittest.TestCase):
         for ref in re.findall(r'(?:href|src)="([^"#][^"]*)"', self.html):
             if ref.startswith(("http", "mailto:")):
                 continue
-            path = routes.get(ref.split("#")[0]) or ref.lstrip("/")
+            base = ref.split("#")[0].split("?")[0]
+            path = routes.get(base) or ref.lstrip("/")
             self.assertTrue((self.out / path).is_file(), "enlace roto: " + ref)
         for frag in re.findall(r'href="#([^"]+)"', self.html):
             self.assertIn(frag, ids, "ancla sin destino: #" + frag)
