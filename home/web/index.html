@@ -1220,7 +1220,8 @@ async function refresh() {
   if (cu) { cv.textContent = ""; cv.style.backgroundImage = "url(" + JSON.stringify(cu) + ")"; }
   else { cv.style.backgroundImage = ""; cv.innerHTML = ico("music"); }
 
-  if (s.cpu_temp != null) { $("chip-cpu").hidden = false; $("chip-cpu").innerHTML = ico("thermo") + " " + s.cpu_temp + "°"; }
+  /* la temperatura solo se ve cuando importa (>= 65 °C): el resto del tiempo esta en la hoja «Sistema» y deja sitio al saludo */
+  { const hot = s.cpu_temp != null && s.cpu_temp >= 65; $("chip-cpu").hidden = !hot; if (hot) { $("chip-cpu").innerHTML = ico("thermo") + " " + s.cpu_temp + "°"; $("chip-cpu").style.color = s.cpu_temp >= 75 ? "var(--bad)" : "var(--warn)"; } }
   paintNet(s.net);
   paintDisplay(s.display);
   paintTimers(s.timers);

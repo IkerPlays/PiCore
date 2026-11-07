@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>PiCore (demo)</title>
+<style>
+  :root { color-scheme:dark; }
+  * { box-sizing:border-box; margin:0; }
+  html, body { height:100%; background:radial-gradient(1200px 700px at 50% 30%, #1a2233, #07090e); color:#e9eef7; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; overflow:hidden; }
+  header { height:56px; display:flex; align-items:center; gap:10px; padding:0 16px; }
+  header b { font-size:16px; letter-spacing:-.01em; } header small { color:#8a94a6; margin-right:auto; font-size:13px; }
+  button, a.b { font:inherit; font-size:13px; font-weight:600; color:#e9eef7; background:#ffffff10; border:1px solid #ffffff1f; border-radius:99px; padding:7px 14px; cursor:pointer; text-decoration:none; }
+  button:hover, a.b:hover { border-color:#7cabff; } button.on { background:#7cabff; color:#06101f; border-color:#7cabff; }
+  #stage { position:absolute; left:0; right:0; top:56px; bottom:34px; overflow:hidden; }
+  #dev { position:absolute; left:50%; top:50%; width:1024px; height:600px; border-radius:22px; background:#000; box-shadow:0 0 0 10px #0d1017, 0 0 0 11px #2b3342, 0 30px 90px #000c; overflow:hidden; transform-origin:center center; }
+  #dev iframe { width:1024px; height:600px; border:0; display:block; background:#000; }
+  #hint { position:absolute; left:0; right:0; bottom:10px; text-align:center; color:#8a94a6; font-size:12px; } #rot { display:none; color:#fbbf24; }
+  @media (orientation:portrait) and (max-width:700px) { #rot { display:inline; } header small { display:none; } }
+</style>
+</head>
+<body>
+<header><b>PiCore</b><small>demo en el navegador: nada de esto es real</small>
+  <button data-m="home">Casa</button><button data-m="iker">Iker</button><button data-m="dev">Dev</button>
+  <a class="b" href="https://github.com/IkerPlays/PiCore" target="_blank" rel="noopener">GitHub</a><button id="reset">Restablecer</button></header>
+<div id="stage"><div id="dev"><iframe id="f" title="PiCore" allow="autoplay; encrypted-media"></iframe></div></div>
+<div id="hint"><span id="rot">Gira el móvil en horizontal para verlo mejor. </span>Pantalla de 1024×600, como la de la Raspberry Pi.</div>
+<script>
+"use strict";
+const f = document.getElementById("f"), dev = document.getElementById("dev");
+const ALLOWED = ["/app", "/iker", "/dev", "/loading"];
+let start = "/app";
+try {
+  const p = new URLSearchParams(location.search).get("p") || "";
+  const path = p.split("?")[0].replace(/\/+$/, "") || "/";
+  if (ALLOWED.includes(path)) start = path + (p.includes("?") ? "?" + p.split("?").slice(1).join("?") : "");      // solo rutas conocidas (nada de abrir paginas ajenas)
+  else if (path === "/") start = "/app";
+} catch (e) {}
+f.src = start;
+function fit() {
+  const w = innerWidth - 40, h = innerHeight - 56 - 34 - 24, k = Math.max(0.3, Math.min(w / 1024, h / 600, 1.6));
+  dev.style.transform = "translate(-50%, -50%) scale(" + k + ")";
+}
+addEventListener("resize", fit); fit();
+for (const b of document.querySelectorAll("button[data-m]")) b.onclick = () => {
+  try { f.contentWindow.fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: b.dataset.m }) }); }
+  catch (e) { f.src = b.dataset.m === "home" ? "/app" : "/" + b.dataset.m; }
+};
+document.getElementById("reset").onclick = () => {
+  try { Object.keys(localStorage).filter(k => k.startsWith("pcpi-demo-")).forEach(k => localStorage.removeItem(k)); sessionStorage.clear(); } catch (e) {}
+  location.href = "/";
+};
+setInterval(() => {
+  let m = "home"; try { m = JSON.parse(localStorage.getItem("pcpi-demo-mode") || '"home"'); } catch (e) {}
+  for (const b of document.querySelectorAll("button[data-m]")) b.classList.toggle("on", b.dataset.m === m);
+}, 400);
+</script>
+</body>
+</html>

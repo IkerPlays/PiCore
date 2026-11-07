@@ -14,7 +14,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import build_web_demo  # noqa: E402
 
-ROUTES = {"/iker": "/iker.html", "/dev": "/dev.html", "/loading": "/loading.html"}      # las mismas que netlify.toml
+ROUTES = {"/app": "/app.html", "/iker": "/iker.html", "/dev": "/dev.html", "/loading": "/loading.html"}      # las mismas que netlify.toml
 
 
 def make_handler(directory):

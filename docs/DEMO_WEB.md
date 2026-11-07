@@ -16,6 +16,10 @@ La interfaz real habla con un servidor Python (`home/server.py`) por una API (`/
 
 Si prefieres desplegar a mano: `make demo` para ver el resultado en local y sube la carpeta `dist-demo/` arrastrándola a Netlify (*Deploys → drag and drop*).
 
+## El marco de dispositivo
+
+Al abrir la demo en un ordenador o un móvil, la portada (`index.html`) la enseña dentro de una pantalla de **1024×600** (la de la Raspberry Pi) escalada para caber en la ventana, con botones **Casa / Iker / Dev** para cambiar de modo. Casa vive en `/app`; `/iker`, `/dev` y `/loading` abiertas sueltas se redirigen al marco. En el móvil, gíralo en horizontal. Con `?bare=1` se ve la página sola, sin marco (la usan los tests).
+
 ## Qué funciona y qué no
 
 | Funciona (simulado) | No existe en la demo |

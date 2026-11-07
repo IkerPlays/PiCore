@@ -37,16 +37,17 @@ h2 { font-size:12px; letter-spacing:.16em; font-weight:650; display:flex; align-
 h2::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--acc); box-shadow:0 0 12px var(--acc); }
 
 /* ---------- chips de arriba a la derecha: solo iconos, mas pequeños, sin pisar el saludo ---------- */
-#chips { gap:6px; top:12px; right:12px; }
-.chip { min-width:38px; height:38px; padding:0 11px; display:inline-flex; align-items:center; justify-content:center; gap:6px; background:color-mix(in srgb, var(--bg) 82%, var(--card)); border:1px solid var(--hair);
+#chips { gap:5px; top:13px; right:12px; }
+.chip { min-width:34px; height:34px; padding:0 9px; display:inline-flex; align-items:center; justify-content:center; gap:6px; background:color-mix(in srgb, var(--bg) 82%, var(--card)); border:1px solid var(--hair);
         color:var(--fg); font-size:13px; font-weight:600; box-shadow:none; background-image:none; }
 .chip .ic { width:18px; height:18px; }
 #chip-timer #timer-txt { display:none; }
 #chip-timer.on #timer-txt { display:inline; }
 #chip-timer.on { border-color:var(--acc); color:var(--acc); }
-#chip-wifi { max-width:150px; } #chip-wifi span { font-weight:600; }
+#chip-wifi { max-width:122px; }
+#chip-cpu .ic { display:inline-block; } #chip-wifi span { font-weight:600; }
 #chip-cpu, #chip-bat { font-variant-numeric:tabular-nums; color:var(--dim); }
-#greet { font-weight:600; letter-spacing:-.01em; font-size:20px; }
+#greet { font-weight:600; letter-spacing:-.01em; font-size:18px; top:20px; }
 
 /* ---------- reloj y tiempo ---------- */
 #time { font-weight:760; letter-spacing:-.055em; background:linear-gradient(180deg, var(--fg) 30%, color-mix(in srgb, var(--fg) 72%, var(--acc)) 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }

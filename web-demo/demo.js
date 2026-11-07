@@ -15,6 +15,15 @@
   const pad = n => String(n).padStart(2, "0");
   const rid = n => Array.from(crypto.getRandomValues(new Uint8Array(n))).map(b => "0123456789abcdef"[b & 15]).join("");
 
+
+  /* ---------------- marco de dispositivo ---------------- */
+  /* Abierta suelta (sin ?bare), cada pagina se redirige a la carcasa (index.html), que la muestra dentro de una pantalla de
+     1024x600 escalada. Dentro de la carcasa las paginas van en un iframe y se comportan como en la pantalla de la Pi. */
+  const framed = window.top !== window;
+  let bare = /[?&]bare\b/.test(location.search);
+  try { if (bare) sessionStorage.setItem("pcpi-demo-bare", "1"); else bare = sessionStorage.getItem("pcpi-demo-bare") === "1"; } catch (e) {}
+  if (!framed && !bare) { location.replace("/?p=" + encodeURIComponent(location.pathname + location.search)); return; }
+
   /* ---------------- estado ---------------- */
   const here = location.pathname.replace(/\/+$/, "");
   const PAGE_MODE = here === "/iker" ? "iker" : here === "/dev" ? "dev" : here === "/loading" ? null : "home";
@@ -139,7 +148,7 @@
   function status() {
     const ph = S.pihole;
     if (!ph.blocking && ph.until && Date.now() > ph.until) ph.blocking = true;
-    const t = Math.round(46 + 4 * Math.sin((Date.now() - T0) / 20000) * 10) / 10;
+    const t = Math.round((46 + 4 * Math.sin((Date.now() - T0) / 20000)) * 10) / 10;
     return {
       mode: LS.get("mode", "home"), cpu_temp: t, uptime: Math.floor((Date.now() - T0) / 1000) + 320,
       pihole: { ok: true, blocking: ph.blocking ? "enabled" : "disabled", total: 1211 + Math.floor((Date.now() - T0) / 4000), blocked: 326 + Math.floor((Date.now() - T0) / 14000), percent: 26.9, domains: 168432 },
@@ -242,7 +251,7 @@
     if (p === "/api/loaded") {                                  // en la Pi, pcpi-session abre la ventana del modo; aqui navegamos
       const m = body.mode;
       if (m === "iker") navigateAfter("/iker", 100); else if (m === "dev") navigateAfter("/dev", 100);
-      else if (m === "desktop") { toast("El Escritorio no existe en la demo: vuelves a Casa.", 2600); LS.set("mode", "home"); navigateAfter("/", 2600); }
+      else if (m === "desktop") { toast("El Escritorio no existe en la demo: vuelves a Casa.", 2600); LS.set("mode", "home"); navigateAfter("/app", 2600); }
       return J({ ok: true });
     }
     if (p === "/api/boot") return J({ download: null, intro: null, intro_slot: null, intro_skip_after: 0, media: BOOT_MEDIA, fake: true, fake_seconds: 4, min_seconds: 2, skip_button: true, media_seconds: 2.5 });
@@ -396,7 +405,7 @@
 
   /* ---------------- insignia de la demo ---------------- */
   function badge() {
-    if (!document.body || document.getElementById("demo-badge")) return;
+    if (framed || !document.body || document.getElementById("demo-badge")) return;
     const b = document.createElement("div"); b.id = "demo-badge";
     b.style.cssText = "position:fixed;right:10px;bottom:6px;z-index:99999;font:600 11px/1 system-ui,sans-serif;display:flex;gap:8px;align-items:center;padding:5px 9px;border-radius:99px;background:#000b;color:#fff;border:1px solid #ffffff30;cursor:pointer;user-select:none";
     b.innerHTML = '<span style="width:7px;height:7px;border-radius:50%;background:#4ade80"></span><span>DEMO en el navegador</span><a href="https://github.com/IkerPlays/PiCore" target="_blank" rel="noopener" style="color:#9ecbff;text-decoration:none">GitHub</a><button id="demo-reset" style="all:unset;color:#fbbf24;cursor:pointer">Restablecer</button>';

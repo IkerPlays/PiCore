@@ -5,7 +5,11 @@
   command = "python3 tools/build_web_demo.py"
   publish = "dist-demo"
 
-# Las "rutas" de la Pi (/iker, /dev, /loading) son paginas estaticas aqui.
+# La portada (/) es la carcasa del dispositivo; Casa esta en /app. Las "rutas" de la Pi (/iker, /dev, /loading) son paginas estaticas.
+[[redirects]]
+  from = "/app"
+  to = "/app.html"
+  status = 200
 [[redirects]]
   from = "/iker"
   to = "/iker.html"

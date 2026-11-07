@@ -22,20 +22,28 @@ class BuildTest(unittest.TestCase):
         build_web_demo.build(cls.out)
 
     def test_expected_files(self):
-        for n in ("index.html", "iker.html", "dev.html", "loading.html", "404.html", "_headers", "static/demo.js", "static/ui.css", "static/icons.svg", "static/osk.js"):
+        for n in ("index.html", "app.html", "iker.html", "dev.html", "loading.html", "404.html", "_headers", "static/demo.js", "static/ui.css", "static/icons.svg", "static/osk.js"):
             self.assertTrue((self.out / n).is_file(), n)
 
     def test_pages_have_the_sprite_and_the_demo_script_first(self):
-        for n in ("index.html", "iker.html", "dev.html", "loading.html"):
+        for n in ("app.html", "iker.html", "dev.html", "loading.html"):
             h = (self.out / n).read_text()
             self.assertNotIn("<!--ICONS-->", h, n)
             self.assertIn('<symbol id="i-x"', h, n)
             self.assertIn("(demo)</title>", h, n)
             self.assertLess(h.index("/static/demo.js"), h.index("<style>"), "demo.js debe cargarse antes que el resto: " + n)
 
+    def test_portada_is_the_device_shell_and_loading_goes_to_app(self):
+        shell = (self.out / "index.html").read_text()
+        self.assertIn('id="f"', shell)
+        self.assertIn('ALLOWED = ["/app", "/iker", "/dev", "/loading"]', shell)          # solo rutas conocidas dentro del marco
+        self.assertNotIn("demo.js", shell)
+        self.assertIn('{home: "/app", iker:', (self.out / "loading.html").read_text())
+        self.assertNotIn('{home: "/", iker:', (self.out / "loading.html").read_text())
+
     def test_headers_csp_is_strict_and_allows_only_what_the_demo_needs(self):
         h = (self.out / "_headers").read_text()
-        self.assertIn("frame-src https://www.youtube-nocookie.com;", h)
+        self.assertIn("frame-src 'self' https://www.youtube-nocookie.com;", h)
         self.assertIn("media-src 'self' blob:", h)
         self.assertIn("connect-src 'self'", h)
         self.assertNotIn("unsafe-eval", h)
@@ -68,7 +76,7 @@ class BuildTest(unittest.TestCase):
         self.assertIn('publish = "dist-demo"', toml)
         self.assertIn("python3 tools/build_web_demo.py", toml)
         self.assertEqual(build_web_demo.ROOT / "dist-demo", ROOT / "dist-demo")
-        for route in ("/iker", "/dev", "/loading"):
+        for route in ("/app", "/iker", "/dev", "/loading"):
             self.assertIn('from = "%s"' % route, toml)
             self.assertEqual(serve_web_demo.ROUTES[route], route + ".html")             # el servidor local imita a Netlify
         self.assertIn("dist-demo/", (ROOT / ".gitignore").read_text())

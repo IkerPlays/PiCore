@@ -15,11 +15,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 WEB = ROOT / "home" / "web"
 DEMO_JS = ROOT / "web-demo" / "demo.js"
-PAGES = {"index.html": "PiCore (demo)", "iker.html": "Modo Iker (demo)", "dev.html": "Modo Dev (demo)", "loading.html": "PiCore (demo)"}
+SHELL = ROOT / "web-demo" / "shell.html"
+# pagina de la Pi -> (archivo publicado, titulo). La portada "/" es la carcasa del dispositivo; Casa pasa a /app.
+PAGES = {"index.html": ("app.html", "PiCore (demo)"), "iker.html": ("iker.html", "Modo Iker (demo)"), "dev.html": ("dev.html", "Modo Dev (demo)"), "loading.html": ("loading.html", "PiCore (demo)")}
 
 # Misma idea que la CSP del servidor (home/server.py), con lo que necesita la demo: audio generado (blob:) e imagenes data:
 CSP = ("default-src 'self'; img-src 'self' https: data: blob:; media-src 'self' blob:; style-src 'self' 'unsafe-inline'; "
-       "script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-src https://www.youtube-nocookie.com; frame-ancestors 'self'; form-action 'none'; base-uri 'none'")
+       "script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-src 'self' https://www.youtube-nocookie.com; frame-ancestors 'self'; form-action 'none'; base-uri 'none'")
 
 
 def build(out):
@@ -33,13 +35,17 @@ def build(out):
     shutil.copy2(DEMO_JS, out / "static" / "demo.js")
     sprite = (WEB / "static" / "icons.svg").read_text(encoding="utf-8")
     commit = (os.environ.get("COMMIT_REF") or os.environ.get("GITHUB_SHA") or "")[:7]
-    for name, title in PAGES.items():
+    shutil.copy2(SHELL, out / "index.html")
+    for name, (dest, title) in PAGES.items():
         html = (WEB / name).read_text(encoding="utf-8")
         html = html.replace("<!--ICONS-->", sprite)
         html = html.replace("<head>", '<head>\n<script src="/static/demo.js"></script>\n<meta name="robots" content="noindex">', 1)
         import re
         html = re.sub(r"<title>.*?</title>", "<title>%s</title>" % title, html, count=1, flags=re.S)
-        (out / name).write_text(html, encoding="utf-8")
+        if name == "loading.html":                         # al acabar la carga, Casa vive en /app (la portada es la carcasa)
+            assert '{home: "/", iker:' in html
+            html = html.replace('{home: "/", iker:', '{home: "/app", iker:', 1)
+        (out / dest).write_text(html, encoding="utf-8")
     (out / "404.html").write_text('<!doctype html><meta charset="utf-8"><title>No encontrado</title><body style="font-family:system-ui;padding:40px">'
                                   '<h1>No encontrado</h1><p><a href="/">Volver a la demo de PiCore</a></p>', encoding="utf-8")
     (out / "_headers").write_text("/*\n  Content-Security-Policy: %s\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: no-referrer\n"

@@ -15,7 +15,7 @@ const check = (name, ok, extra) => results.push({ name, ok: !!ok, extra });
   // ningun /api/ debe llegar al servidor: lo atiende la demo en el propio navegador
   await page.route('**/api/**', route => { apiLeaks.push('RED ' + route.request().url()); route.abort(); });
 
-  await page.goto(base + '/');
+  await page.goto(base + '/app?bare=1');
   await page.waitForFunction(() => /\d\d:\d\d/.test(document.getElementById('time').textContent), null, { timeout: 8000 }).catch(() => {});
   check('la demo arranca y el reloj funciona', /\d\d:\d\d/.test(await page.textContent('#time')));
   check('hay una insignia «DEMO»', await page.isVisible('#demo-badge'));
@@ -72,7 +72,7 @@ const check = (name, ok, extra) => results.push({ name, ok: !!ok, extra });
 
   // Modo Dev: consola de mentira
   await page.click('#exit'); await page.waitForURL(u => !u.pathname.endsWith('/iker'), { timeout: 20000 }).catch(() => {});
-  await page.waitForURL('**/', { timeout: 20000 }).catch(() => {});
+  await page.waitForURL('**/app', { timeout: 20000 }).catch(() => {});
   await page.waitForSelector('#nav-dev', { timeout: 8000 }).catch(() => {});
   await page.click('#nav-dev');
   await page.waitForURL('**/dev', { timeout: 20000 }).catch(() => {});
@@ -84,6 +84,26 @@ const check = (name, ok, extra) => results.push({ name, ok: !!ok, extra });
   await page.waitForFunction(() => document.getElementById('out').textContent.includes('no encontrada'), null, { timeout: 6000 }).catch(() => {});
   check('una orden peligrosa no hace nada (orden no encontrada en la demo)', (await page.textContent('#out')).includes('no encontrada'));
 
+  // marco de dispositivo (en una pantalla grande): la interfaz va dentro de un iframe de 1024x600 escalado
+  const big = await browser.newContext({ viewport: { width: 1600, height: 900 }, locale: 'es-ES' });
+  const p2 = patchWaitForFunction(await big.newPage());
+  await p2.goto(base + '/');
+  await p2.waitForSelector('#f', { timeout: 8000 }).catch(() => {});
+  const fr = p2.frameLocator('#f');
+  await fr.locator('#time').waitFor({ timeout: 8000 }).catch(() => {});
+  check('en pantalla grande la demo sale dentro de un marco de dispositivo', await p2.isVisible('#dev') && /\d\d:\d\d/.test(await fr.locator('#time').textContent()));
+  const box = await p2.locator('#dev').boundingBox();
+  check('el marco cabe en la ventana y mantiene 1024x600', box && box.width <= 1600 && box.height <= 900 && Math.abs(box.width / box.height - 1024 / 600) < 0.02, JSON.stringify(box));
+  await p2.click('button[data-m="iker"]');
+  await p2.waitForFunction(() => document.getElementById('f').contentWindow.location.pathname === '/iker', null, { timeout: 20000 }).catch(() => {});
+  check('los botones del marco cambian de modo (con su carga)', await p2.evaluate(() => document.getElementById('f').contentWindow.location.pathname) === '/iker');
+  await big.close();
+  const phone = await browser.newContext({ viewport: { width: 390, height: 780 }, isMobile: true, hasTouch: true });
+  const p3 = await phone.newPage();
+  await p3.goto(base + '/'); await p3.waitForSelector('#dev', { timeout: 8000 }).catch(() => {});
+  const pb = await p3.locator('#dev').boundingBox();
+  check('en un movil la interfaz se escala para caber', pb && pb.width <= 390, JSON.stringify(pb));
+  await phone.close();
   check('ninguna peticion /api/ llega a un servidor', apiLeaks.length === 0, apiLeaks.slice(0, 4).join(', '));
   check('sin errores de JavaScript ni de CSP en la consola', problems.length === 0, problems.join(' | '));
   await browser.close();
