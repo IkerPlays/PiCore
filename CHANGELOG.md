@@ -6,6 +6,10 @@
 
 
 
+## Test de la demo: abre cada hoja de Casa y las alertas con botón
+
+- Recorre las 6 hojas (brillo, Wi-Fi, Sistema, tiempo, calendario, Musix), comprueba que se abren sin errores de consola y que las alertas de la hoja Sistema traen sus botones y abren el panel de Pi-hole.
+
 ## Simulador: horas con letras, recordatorios y 4 frases más; test más estricto
 
 - El test de la demo daba por buenas respuestas del tipo «No he entendido la hora»; ahora las cuenta como fallo y salieron 7 frases del tutorial mal entendidas. Arreglado en el simulador: «a las siete y media» / «ocho menos cuarto» / «de la tarde», recordatorios con nombre, «el volumen a la mitad», «volumen al máximo», «cuánto queda del temporizador» y «para la alarma».

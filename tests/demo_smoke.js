@@ -58,6 +58,20 @@ const check = (name, ok, extra) => results.push({ name, ok: !!ok, extra });
   check('un temporizador cuenta atras', /\d\d:\d\d/.test(await page.textContent('#timer-txt')));
   await page.click('#t-close'); await sleep(300);
 
+  // cada hoja de Casa se abre y se cierra sin errores (hoja Sistema con alertas, ciudad, Pi-hole, alarma...)
+  for (const [abre, hoja] of [['#chip-bright', '#bpanel'], ['#chip-wifi', '#sheet'], ['#chip-sys', '#spanel'], ['#weather', '#wpanel'], ['#cal', '#cpanel'], ['#mxbtn', '#mxpanel']]) {
+    if (!(await page.locator(abre).isVisible())) continue;
+    await page.click(abre); await sleep(500);
+    check('la hoja ' + hoja + ' se abre', await page.evaluate(h => document.querySelector(h).classList.contains('on'), hoja));
+    await page.click('#scrim', { position: { x: 5, y: 5 } }).catch(() => {}); await sleep(450);
+  }
+  await page.evaluate(() => { sysInfo = Object.assign({}, sysInfo, { health: [{ level: 'info', text: 'Falta tu ciudad', action: 'city' }, { level: 'warn', text: 'Pi-hole no responde', action: 'pihole' }, { level: 'bad', text: 'Sin red', action: 'wifi' }] }); openSystem(); });
+  await sleep(500);
+  check('las alertas de la hoja Sistema traen sus 3 botones', (await page.locator('#s-health .hl button').count()) === 3);
+  await page.click('#s-health .hl button >> nth=1'); await sleep(500);
+  check('«Conectar Pi-hole» abre el panel de la contraseña', await page.evaluate(() => document.getElementById('php').classList.contains('on')));
+  await page.click('#ph-close'); await sleep(400);
+
   // cambio de modo: Casa -> carga -> Iker, sin servidor
   await page.click('button[data-mode="iker"]');
   await page.waitForURL('**/iker', { timeout: 20000 }).catch(() => {});
