@@ -58,6 +58,33 @@ def update_state(path=None):
     return {"available": bool(m), "behind": int(m.group(1)) if m else 0, "checked": ts}
 
 
+_ANSI = re.compile(r"\x1b\[[0-9;?]*[ -/]*[@-~]")
+
+
+def update_run_state(run=None):
+    """Estado de una actualizacion lanzada desde la pantalla: {state: idle|running|ok|failed, tail: [ultimas lineas]}."""
+    d = run or run_dir()
+    try:
+        with open(os.path.join(d, "update-run")) as f:
+            state = f.readline().strip()
+    except OSError:
+        return {"state": "idle", "tail": []}
+    if state not in ("running", "ok", "failed"):
+        return {"state": "idle", "tail": []}
+    tail = []
+    try:
+        with open(os.path.join(d, "update.log"), "rb") as f:
+            f.seek(0, 2)
+            f.seek(max(0, f.tell() - 4000))
+            for line in f.read().decode("utf-8", "replace").splitlines()[-8:]:
+                line = _ANSI.sub("", line).strip()
+                if line:
+                    tail.append(line[:200])
+    except OSError:
+        pass
+    return {"state": state, "tail": tail}
+
+
 def checks(status, disk=None, mem=None, thr=None):
     """Lista [{level: ok|info|warn|bad, text}] con lo que merece tu atencion."""
     out = []
@@ -111,7 +138,7 @@ def checks(status, disk=None, mem=None, thr=None):
 
 def request_power(action, run=None):
     """Pide apagar o reiniciar: deja una nota que lee pcpi-session (que vive en la sesion grafica y SI puede hacerlo)."""
-    if action not in ("shutdown", "reboot"):
+    if action not in ("shutdown", "reboot", "update", "check"):
         raise ValueError("accion invalida")
     d = run or run_dir()
     os.makedirs(d, exist_ok=True)

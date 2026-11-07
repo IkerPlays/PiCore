@@ -110,6 +110,9 @@
   .sysrow small { display:block; color:var(--dim); font-size:13px; font-weight:400; }
   .hl { padding:10px 14px; margin-bottom:6px; border-radius:12px; background:var(--card2); border:1px solid var(--line); border-left:5px solid var(--ok); font-size:16px; }
   .hl.info { border-left-color:var(--acc); } .hl.warn { border-left-color:var(--warn); } .hl.bad { border-left-color:var(--bad); }
+  #upd { margin-top:14px; padding:12px 14px; border:1px solid var(--line); border-radius:14px; background:var(--card2); }
+  #upd-row { display:flex; align-items:center; gap:12px; } #upd-txt { flex:1; font-size:16px; } #upd-btn { min-height:48px; border-radius:14px; padding:0 16px; font-size:16px; }
+  #upd-log { margin-top:10px; font:12px/1.4 ui-monospace,Menlo,monospace; white-space:pre-wrap; word-break:break-word; max-height:130px; overflow:auto; color:var(--dim); } #upd-log[hidden] { display:none; }
   .pwr { display:flex; gap:10px; margin-top:16px; }
   .pwr button { flex:1; min-height:56px; font-size:18px; border-radius:16px; }
   .pwr button.sure { background:var(--bad); color:#fff; border-color:var(--bad); }
@@ -424,6 +427,7 @@
   <h3>Sistema <button id="s-close" aria-label="Cerrar">✕</button></h3>
   <div class="sysrow" id="s-stats"></div>
   <div id="s-health"></div>
+  <div id="upd"><div id="upd-row"><span id="upd-txt"></span><button id="upd-btn">Buscar actualizaciones</button></div><pre id="upd-log" hidden></pre></div>
   <div class="pwr"><button id="s-reboot">Reiniciar</button><button id="s-off">Apagar</button></div>
   <div id="pwr-msg"></div>
 </section>
@@ -829,7 +833,26 @@ function paintSystem(sy) {
   }
   if ($("spanel").classList.contains("on")) renderSystem();
 }
+function paintUpdate(sy) {
+  const run = (sy && sy.update_run) || {state: "idle", tail: []}, up = (sy && sy.update) || {};
+  const txt = $("upd-txt"), btn = $("upd-btn"), log = $("upd-log");
+  btn.disabled = run.state === "running";
+  if (run.state === "running") { txt.textContent = "Actualizando… no apagues la Pi."; btn.textContent = "Actualizando…"; }
+  else if (run.state === "ok") { txt.textContent = "Actualizado. Para aplicarlo todo, reinicia cuando quieras."; btn.textContent = "Buscar de nuevo"; }
+  else if (run.state === "failed") { txt.textContent = "No se pudo actualizar (mira el registro)."; btn.textContent = "Reintentar"; }
+  else if (up.available) { txt.textContent = "Hay " + up.behind + " cambio" + (up.behind === 1 ? "" : "s") + " nuevo" + (up.behind === 1 ? "" : "s") + " de PiCore."; btn.textContent = "Actualizar ahora"; }
+  else { txt.textContent = up.checked ? "PiCore está al día." : "Aún no se ha comprobado."; btn.textContent = "Buscar actualizaciones"; }
+  log.hidden = run.state === "idle" || !(run.tail && run.tail.length);
+  log.textContent = (run.tail || []).join("\n");
+}
+$("upd-btn").onclick = async () => {
+  const sy = sysInfo || {}, run = sy.update_run || {};
+  const act = (sy.update && sy.update.available && run.state !== "failed") || run.state === "failed" ? "update" : "check";
+  $("upd-btn").disabled = true;
+  try { await post("/api/system", {action: act}); } catch (e) {}
+};
 function renderSystem() {
+  paintUpdate(sysInfo);
   const sy = sysInfo || {}, box = $("s-stats"); box.textContent = "";
   const stat = (v, l) => { const d = document.createElement("div"); d.textContent = v; const sm = document.createElement("small"); sm.textContent = l; d.append(sm); box.append(d); };
   stat(sy.disk ? sy.disk.free_gb + " GB" : "--", "libres en la tarjeta");

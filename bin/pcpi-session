@@ -63,7 +63,7 @@ start_loader() {
   common_flags
   wait_server
   FLAGS+=(--kiosk --user-data-dir="$PROFILE" --overscroll-history-navigation=0 --disable-pinch)
-  setsid nohup "$CHROMIUM" "${FLAGS[@]}" "http://localhost:$PORT/loading?to=$mode&boot=$boot" >/dev/null 2>&1 &
+  setsid nohup "$CHROMIUM" "${FLAGS[@]}" "http://localhost:$PORT/loading?to=$mode&boot=$boot" >/dev/null 2>&1 9>&- &
 }
 
 # El modo ya cargado
@@ -74,10 +74,10 @@ start_mode() {
   wait_server
   if [ "$mode" = home ]; then
     FLAGS+=(--kiosk --user-data-dir="$PROFILE" --overscroll-history-navigation=0 --disable-pinch)
-    setsid nohup "$CHROMIUM" "${FLAGS[@]}" "http://localhost:$PORT/" >/dev/null 2>&1 &
+    setsid nohup "$CHROMIUM" "${FLAGS[@]}" "http://localhost:$PORT/" >/dev/null 2>&1 9>&- &
   else
     FLAGS+=(--start-maximized --user-data-dir="$PROFILE-iker")
-    setsid nohup "$CHROMIUM" "${FLAGS[@]}" "http://localhost:$PORT/iker" >/dev/null 2>&1 &
+    setsid nohup "$CHROMIUM" "${FLAGS[@]}" "http://localhost:$PORT/iker" >/dev/null 2>&1 9>&- &
   fi
 }
 
@@ -90,7 +90,7 @@ sync_portal() {
     if ! portal_alive; then
       common_flags
       FLAGS+=(--start-maximized --user-data-dir="$PORTAL_PROFILE")
-      setsid nohup "$CHROMIUM" "${FLAGS[@]}" "$url" >/dev/null 2>&1 &
+      setsid nohup "$CHROMIUM" "${FLAGS[@]}" "$url" >/dev/null 2>&1 9>&- &
     fi
   elif portal_alive; then
     pkill -f -- "--user-data-dir=$PORTAL_PROFILE" 2>/dev/null || true
@@ -123,7 +123,7 @@ json.dump(d, open(p, "w"))
 PY
   common_flags
   FLAGS+=(--start-maximized --user-data-dir="$WEB_PROFILE")
-  setsid nohup "$CHROMIUM" "${FLAGS[@]}" "$url" >/dev/null 2>&1 &
+  setsid nohup "$CHROMIUM" "${FLAGS[@]}" "$url" >/dev/null 2>&1 9>&- &
 }
 
 # Segundos desde el ultimo latido de la pagina (o desde que se lanzo el navegador, lo que sea mas reciente)
@@ -158,7 +158,32 @@ relaunch() {
   launched_at="$(now_s)"; phase=loading; loading_since=$SECONDS
 }
 
-# Apagar / reiniciar desde la pantalla: el servidor deja /run/pcpi/power y SOLO esta sesion grafica puede ejecutarlo
+# Comprobar / instalar actualizaciones. Las lanza esta sesion (el servidor no tiene permisos). Estado en /run/pcpi/update-run
+# (running|ok|failed) y registro en /run/pcpi/update.log, que la pantalla enseña. Una sola a la vez.
+do_check() {
+  command -v pcpi-update >/dev/null || return 0
+  ( pcpi-update --check > "$RUN/update.tmp" 2>&1 && mv -f "$RUN/update.tmp" "$RUN/update" ) >/dev/null 2>&1 9>&- &
+}
+run_update() {
+  if [ -e "$RUN/update-run" ] && grep -q '^running' "$RUN/update-run" 2>/dev/null; then return 0; fi
+  if ! command -v pcpi-update >/dev/null; then
+    printf 'failed\n' > "$RUN/update-run"; echo "No encuentro pcpi-update: ¿está instalado PiCore?" > "$RUN/update.log"; return 0
+  fi
+  if [ "$(id -u)" -ne 0 ] && ! sudo -n true 2>/dev/null; then
+    printf 'failed\n' > "$RUN/update-run"; echo "Actualizar necesita sudo sin contraseña. En la terminal: pcpi-update" > "$RUN/update.log"; return 0
+  fi
+  printf 'running\n' > "$RUN/update-run"
+  (
+    if pcpi-update > "$RUN/update.log" 2>&1; then
+      pcpi-update --check > "$RUN/update.tmp" 2>&1 && mv -f "$RUN/update.tmp" "$RUN/update"
+      printf 'ok\n' > "$RUN/update-run"
+    else
+      printf 'failed\n' > "$RUN/update-run"
+    fi
+  ) >/dev/null 2>&1 9>&- &
+}
+
+# Apagar / reiniciar / actualizar desde la pantalla: el servidor deja /run/pcpi/power y SOLO esta sesion grafica puede ejecutarlo
 sync_power() {
   [ -e "$RUN/power" ] || return 0
   local act=""
@@ -167,7 +192,28 @@ sync_power() {
   case "$act" in
     shutdown) echo "pcpi-session: apagando" >&2; systemctl poweroff 2>/dev/null || sudo -n systemctl poweroff ;;
     reboot)   echo "pcpi-session: reiniciando" >&2; systemctl reboot 2>/dev/null || sudo -n systemctl reboot ;;
+    update)   echo "pcpi-session: actualizando" >&2; run_update ;;
+    check)    do_check ;;
   esac
+}
+
+# Actualizacion automatica (opcional, apagada por defecto): si hay novedades y estamos dentro de la franja horaria
+# [update] auto_from..auto_to (por defecto 3 a 5 de la madrugada), se instalan solas. Se mira una vez por hora.
+AUTO_EVERY="${PCPI_AUTO_EVERY:-3600}"
+last_auto=-1
+sync_auto() {
+  if [ "$last_auto" -ge 0 ] && [ $((SECONDS - last_auto)) -lt "$AUTO_EVERY" ]; then return 0; fi
+  last_auto=$SECONDS
+  [ "$(pcpi-config get update auto_install 2>/dev/null)" = "true" ] || return 0
+  grep -q '^Hay [0-9]' "$RUN/update" 2>/dev/null || return 0
+  local h from to
+  printf -v h '%(%H)T' -1; h=$((10#$h))
+  from="$(pcpi-config get update auto_from 2>/dev/null || echo 3)"; to="$(pcpi-config get update auto_to 2>/dev/null || echo 5)"
+  case "$from$to" in *[!0-9]*|"") from=3; to=5 ;; esac
+  if [ "$from" -le "$to" ]; then [ "$h" -ge "$from" ] && [ "$h" -lt "$to" ] || return 0
+  else [ "$h" -ge "$from" ] || [ "$h" -lt "$to" ] || return 0; fi
+  echo "pcpi-session: actualizacion automatica" >&2
+  run_update
 }
 
 # Comprobacion periodica de actualizaciones (git fetch, sin instalar nada): resultado en /run/pcpi/update
@@ -181,7 +227,7 @@ sync_update() {
   [ "$last_update_check" -ge 0 ] && [ $((SECONDS - last_update_check)) -lt "$due" ] && return 0
   last_update_check=$SECONDS
   if command -v pcpi-update >/dev/null && [ "$(pcpi-config get update check 2>/dev/null || echo true)" != "false" ]; then
-    ( pcpi-update --check > "$RUN/update.tmp" 2>&1 && mv -f "$RUN/update.tmp" "$RUN/update" ) >/dev/null 2>&1 &
+    ( pcpi-update --check > "$RUN/update.tmp" 2>&1 && mv -f "$RUN/update.tmp" "$RUN/update" ) >/dev/null 2>&1 9>&- &
   fi
 }
 
@@ -238,6 +284,7 @@ while true; do
   sync_web
   sync_power
   sync_update
+  sync_auto
   tick=$((tick + 1))
-  sleep "$TICK"
+  sleep "$TICK" 9>&-
 done

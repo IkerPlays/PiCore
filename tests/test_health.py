@@ -127,16 +127,18 @@ class ApiTest(unittest.TestCase):
 
 
 class SessionPowerTest(unittest.TestCase):
-    """pcpi-session ejecuta la peticion (con systemctl de mentira) y comprueba actualizaciones."""
+    """pcpi-session ejecuta la peticion (con systemctl de mentira), comprueba y instala actualizaciones."""
 
     def setUp(self):
         self.t = Path(tempfile.mkdtemp())
         self.shims = self.t / "shims"
         self.shims.mkdir()
         self.calls = self.t / "calls"
-        for name, body in {"systemctl": 'echo "$@" >> %s\n' % self.calls, "curl": "exit 0\n", "chromium": "sleep 600\n",
-                           "pcpi-update": 'echo "Hay 2 cambios nuevos"\necho upd >> %s\n' % self.calls,
-                           "pcpi-config": "exit 1\n"}.items():
+        sh = {"systemctl": 'echo "$@" >> %s\n' % self.calls, "curl": "exit 0\n", "chromium": "sleep 600\n",
+              "pcpi-update": 'if [ "$1" = "--check" ]; then echo "Hay 2 cambios nuevos"; exit 0; fi\necho "Descargando 2 cambios" ; echo upd >> %s\nexit ${FAKE_UPDATE_RC:-0}\n' % self.calls,
+              "sudo": "exit ${FAKE_SUDO_RC:-0}\n",
+              "pcpi-config": 'case "$*" in\n  "get update auto_install") echo "${FAKE_AUTO:-false}";;\n  "get update auto_from") echo "${FAKE_FROM:-0}";;\n  "get update auto_to") echo "${FAKE_TO:-24}";;\n  *) exit 1;;\nesac\n'}
+        for name, body in sh.items():
             p = self.shims / name
             p.write_text("#!/bin/sh\n" + body)
             p.chmod(0o755)
@@ -145,14 +147,18 @@ class SessionPowerTest(unittest.TestCase):
         self.run_dir.mkdir()
         self.env = {**os.environ, "PATH": "%s:%s" % (self.shims, os.environ["PATH"]), "HOME": str(self.t / "home"),
                     "XDG_RUNTIME_DIR": str(self.t), "PCPI_PORT": "1", "PCPI_RUN_DIR": str(self.run_dir), "PCPI_TICK": "0.2",
-                    "PCPI_MODE_FILE": str(self.t / "mode"), "PCPI_UPDATE_FIRST": "1"}
+                    "PCPI_MODE_FILE": str(self.t / "mode"), "PCPI_UPDATE_FIRST": "99999", "PCPI_UPDATE_EVERY": "99999", "PCPI_AUTO_EVERY": "99999"}
         self.env.pop("WAYLAND_DISPLAY", None)
         (self.t / "mode").write_text("iker\n")
-        self.proc = subprocess.Popen(["bash", str(ROOT / "bin/pcpi-session")], env=self.env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.proc = None
+
+    def start(self, **extra):
+        self.proc = subprocess.Popen(["bash", str(ROOT / "bin/pcpi-session")], env={**self.env, **extra}, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def tearDown(self):
-        self.proc.terminate()
-        self.proc.wait(5)
+        if self.proc:
+            self.proc.terminate()
+            self.proc.wait(5)
         subprocess.run(["pkill", "-f", str(self.t / "home/.cache/")])
 
     def wait(self, cond, secs=12):
@@ -163,7 +169,14 @@ class SessionPowerTest(unittest.TestCase):
             time.sleep(0.15)
         return False
 
+    def text(self, name):
+        try:
+            return (self.run_dir / name).read_text()
+        except OSError:
+            return ""
+
     def test_poweroff_and_reboot_requests_are_executed_once(self):
+        self.start()
         (self.run_dir / "power").write_text("shutdown\n")
         self.assertTrue(self.wait(lambda: self.calls.exists() and "poweroff" in self.calls.read_text()))
         self.assertFalse((self.run_dir / "power").exists())
@@ -171,13 +184,115 @@ class SessionPowerTest(unittest.TestCase):
         self.assertTrue(self.wait(lambda: "reboot" in self.calls.read_text()))
 
     def test_unknown_request_is_ignored_and_removed(self):
+        self.start()
         (self.run_dir / "power").write_text("format\n")
         self.assertTrue(self.wait(lambda: not (self.run_dir / "power").exists()))
         self.assertFalse(self.calls.exists() and "format" in self.calls.read_text())
 
-    def test_update_check_writes_result(self):
+    def test_periodic_update_check_writes_result(self):
+        self.start(PCPI_UPDATE_FIRST="1")
         self.assertTrue(self.wait(lambda: (self.run_dir / "update").exists(), 15), "no comprobo actualizaciones")
         self.assertEqual(health.update_state(str(self.run_dir / "update"))["behind"], 2)
+
+    def test_check_button_only_checks(self):
+        self.start()
+        (self.run_dir / "power").write_text("check\n")
+        self.assertTrue(self.wait(lambda: "Hay 2" in self.text("update")))
+        self.assertNotIn("upd", self.calls.read_text() if self.calls.exists() else "")            # no instalo nada
+
+    def test_update_button_installs_and_reports(self):
+        self.start()
+        (self.run_dir / "power").write_text("update\n")
+        self.assertTrue(self.wait(lambda: self.text("update-run").strip() == "ok"), self.text("update-run"))
+        self.assertIn("upd", self.calls.read_text())
+        st = health.update_run_state(str(self.run_dir))
+        self.assertEqual(st["state"], "ok")
+        self.assertIn("Descargando 2 cambios", st["tail"])
+
+    def test_failed_update_is_reported(self):
+        self.start(FAKE_UPDATE_RC="3")
+        (self.run_dir / "power").write_text("update\n")
+        self.assertTrue(self.wait(lambda: self.text("update-run").strip() == "failed"))
+
+    @unittest.skipIf(os.geteuid() == 0, "como root no hace falta sudo")
+    def test_update_without_passwordless_sudo_explains_why(self):
+        self.start(FAKE_SUDO_RC="1")
+        (self.run_dir / "power").write_text("update\n")
+        self.assertTrue(self.wait(lambda: self.text("update-run").strip() == "failed"))
+        self.assertIn("sudo", self.text("update.log"))
+        self.assertFalse(self.calls.exists() and "upd" in self.calls.read_text())
+
+    def test_two_requests_do_not_run_two_updates(self):
+        self.start()
+        (self.run_dir / "update-run").write_text("running\n")                  # ya hay una en marcha
+        (self.run_dir / "power").write_text("update\n")
+        time.sleep(1.2)
+        self.assertFalse(self.calls.exists() and "upd" in self.calls.read_text())
+
+    def test_automatic_install_only_when_enabled_found_and_in_window(self):
+        (self.run_dir / "update").write_text("Hay 2 cambios nuevos\n")
+        self.start(FAKE_AUTO="false")
+        time.sleep(1.5)
+        self.assertEqual(self.text("update-run"), "")                              # desactivada (por defecto): nada
+        self.proc.terminate(); self.proc.wait(5)
+        self.start(FAKE_AUTO="true", FAKE_FROM="0", FAKE_TO="24")
+        self.assertTrue(self.wait(lambda: self.text("update-run").strip() == "ok"), "no se instalo sola dentro de la franja")
+
+    def test_automatic_install_respects_the_hour_window(self):
+        (self.run_dir / "update").write_text("Hay 2 cambios nuevos\n")
+        h = int(time.strftime("%H"))
+        self.start(FAKE_AUTO="true", FAKE_FROM=str((h + 2) % 24), FAKE_TO=str((h + 3) % 24))          # franja que NO incluye esta hora
+        time.sleep(1.5)
+        self.assertEqual(self.text("update-run"), "")
+
+
+class SessionLockTest(unittest.TestCase):
+    def test_a_restarted_watcher_can_start_while_the_browser_is_still_alive(self):
+        """El navegador no debe heredar el cerrojo de instancia unica: si lo hereda, tras reiniciar el vigilante no vuelve a arrancar."""
+        t = Path(tempfile.mkdtemp())
+        shims = t / "shims"
+        shims.mkdir()
+        for n, b in {"chromium": "sleep 600\n", "curl": "exit 0\n"}.items():
+            (shims / n).write_text("#!/bin/sh\n" + b)
+            (shims / n).chmod(0o755)
+        (t / "home").mkdir()
+        (t / "mode").write_text("iker\n")
+        env = {**os.environ, "PATH": "%s:%s" % (shims, os.environ["PATH"]), "HOME": str(t / "home"), "XDG_RUNTIME_DIR": str(t), "PCPI_PORT": "1",
+               "PCPI_RUN_DIR": str(t / "run"), "PCPI_TICK": "0.2", "PCPI_MODE_FILE": str(t / "mode")}
+        env.pop("WAYLAND_DISPLAY", None)
+        a = subprocess.Popen(["bash", str(ROOT / "bin/pcpi-session")], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        try:
+            time.sleep(1.5)
+            a.terminate()
+            a.wait(5)
+            self.assertEqual(subprocess.run(["pgrep", "-f", str(t / "home/.cache/")], capture_output=True).returncode, 0, "el navegador deberia seguir vivo")
+            b = subprocess.Popen(["bash", str(ROOT / "bin/pcpi-session")], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            time.sleep(1.5)
+            alive = b.poll() is None
+            b.terminate()
+            b.wait(5)
+            self.assertTrue(alive, "el segundo vigilante salio porque el cerrojo seguia cogido por el navegador")
+        finally:
+            subprocess.run(["pkill", "-f", str(t / "home/.cache/")])
+
+
+class UpdateRunStateTest(unittest.TestCase):
+    def test_states_and_log_tail(self):
+        d = T / ("ur%s" % os.urandom(3).hex())
+        d.mkdir()
+        self.assertEqual(health.update_run_state(str(d)), {"state": "idle", "tail": []})
+        (d / "update-run").write_text("running\n")
+        (d / "update.log").write_text("\n".join("linea %d" % i for i in range(20)) + "\n\x1b[32mverde\x1b[0m\n")
+        st = health.update_run_state(str(d))
+        self.assertEqual((st["state"], len(st["tail"]), st["tail"][-1]), ("running", 8, "verde"))
+        (d / "update-run").write_text("basura\n")
+        self.assertEqual(health.update_run_state(str(d))["state"], "idle")
+
+    def test_power_requests_accept_update_and_check(self):
+        d = T / "pw2"
+        for a in ("update", "check"):
+            health.request_power(a, run=str(d))
+            self.assertEqual((d / "power").read_text().strip(), a)
 
 
 if __name__ == "__main__":

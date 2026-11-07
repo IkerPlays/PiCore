@@ -512,7 +512,7 @@ def status():
         "ai": ai_info(cp),
         "calendar": calendar_info(cp),
         "music": music_info(),
-        "system": system_info({"cpu_temp": cpu_temp(), "net": net_summary(), "pihole": cached("pihole", 10, lambda: pihole_stats(cp)), "ai": ai_info(cp)}),
+        "system": {**system_info({"cpu_temp": cpu_temp(), "net": net_summary(), "pihole": cached("pihole", 10, lambda: pihole_stats(cp)), "ai": ai_info(cp)}), "update_run": health.update_run_state()},
         "ip": cached("ip", 60, local_ip),
         "host": socket.gethostname(),
     }

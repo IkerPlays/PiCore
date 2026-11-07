@@ -197,4 +197,10 @@ refresh_minutes = 15
 [update]
 # Comprobar cada semana si hay una version nueva de PiCore (solo MIRA, no instala; avisa en la hoja «Sistema»).
 check = true
+# Instalar solas las novedades (APAGADO por defecto). Solo lo hace si hay una version nueva y dentro de esta franja horaria
+# (horas locales; 3 a 5 = de las 03:00 a las 05:00). Antes hace una copia de seguridad. Necesita sudo sin contrasena
+# (Raspberry Pi OS lo trae para el primer usuario). Un fallo se ve en la hoja «Sistema» y no se repite hasta la hora siguiente.
+auto_install = false
+auto_from = 3
+auto_to = 5
 
