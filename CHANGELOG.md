@@ -5,6 +5,10 @@
 
 
 
+## Portada: más funciones
+
+- La lista de funciones de la portada suma Pi-hole, temporizadores, ajustes en pantalla y privacidad (12 tarjetas).
+
 ## Conectar Pi-hole desde la pantalla
 
 - Si Pi-hole no está configurado o la contraseña falla, la tarjeta ofrece «Conectar Pi-hole»: se escribe la contraseña con el teclado en pantalla, se guarda en `pcpi.conf` y se prueba al momento. Rechaza contraseñas con saltos de línea, espacios en los bordes o más de 128 caracteres. Probado con tests y en el simulador; no con un Pi-hole real.
