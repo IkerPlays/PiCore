@@ -6,6 +6,10 @@
 
 
 
+## `pcpi-doctor --report`
+
+- Guarda en un archivo (por defecto `~/picore-informe.txt`) lo que dice el diagnóstico sin colores, la versión del sistema y tu configuración con las contraseñas como `******`, para adjuntarlo a una incidencia. Hay que revisarlo antes de compartirlo. Probado con un test.
+
 ## Contraste del tema claro de la pantalla
 
 - Calculé el contraste WCAG de los colores: en el tema claro de Casa e Iker el texto secundario (3,7), el verde (2,7), el rojo (3,6), el ámbar (2,4) y el azul de acento (4,3) no llegaban a 4,5. Los oscurecí un poco (`--dim`, `--ok`, `--bad`, `--warn`, `--acc`) y dos tests (portada y pantalla de la Pi) vigilan que se mantenga. El tema oscuro y la portada ya cumplían. Es una medida de contraste, no una prueba con personas con baja visión.

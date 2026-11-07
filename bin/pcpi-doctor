@@ -1,6 +1,23 @@
 #!/usr/bin/env bash
 # Diagnostico rapido de PiCore: que funciona y que no (y como arreglarlo).
 PORT="${PCPI_PORT:-8080}"
+
+# pcpi-doctor --report : guarda lo que sale (sin colores), la version y tu configuracion SIN contraseñas en un archivo para adjuntar a una incidencia
+if [ "${1:-}" = "--report" ]; then
+  out="${2:-$HOME/picore-informe.txt}"
+  {
+    echo "# Informe de PiCore ($(date '+%Y-%m-%d %H:%M'))"
+    uname -a
+    sed -n '1,2p' /etc/os-release 2>/dev/null
+    echo
+    "$0" 2>&1 | sed 's/\x1b\[[0-9;]*m//g'
+    echo
+    echo "## Configuracion (las contraseñas salen como ******)"
+    pcpi-config show 2>/dev/null || echo "(no hay configuracion)"
+  } > "$out"
+  echo "Informe guardado en $out. Revisalo antes de compartirlo: no debe llevar nada privado."
+  exit 0
+fi
 ok()   { printf '  \033[32m✔\033[0m %s\n' "$*"; }
 warn() { printf '  \033[33m!\033[0m %s\n' "$*"; WARN=1; }
 bad()  { printf '  \033[31m✘\033[0m %s\n' "$*"; BAD=1; }

@@ -17,7 +17,7 @@ labels: bug
 - [ ] Emulador (`make emulate`)
 - [ ] Raspberry Pi real (modelo, sistema operativo y pantalla):
 
-**Salida de `pcpi-doctor`** (si es en la Pi; **quita contraseñas y enlaces privados**)
+**Salida de `pcpi-doctor`** (si es en la Pi; lo más fácil: `pcpi-doctor --report` y pega el archivo `~/picore-informe.txt`; **revísalo y quita contraseñas y enlaces privados**)
 
 ```
 ```
