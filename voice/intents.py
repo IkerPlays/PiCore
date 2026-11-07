@@ -153,6 +153,12 @@ def parse(text):
         return Intent("note_add", m.group(1).strip())
     if has("nota") and has("lee", "leeme", "dime", "cual es", "que pone") and has("ultima", "reciente", "anterior"):
         return Intent("note_read", None)
+    if has("espacio libre", "cuanto espacio", "espacio en la tarjeta", "espacio en el disco", "espacio queda"):
+        return Intent("sys_info", "disk")
+    if has("memoria libre", "cuanta memoria", "memoria ram", "memoria queda"):
+        return Intent("sys_info", "mem")
+    if has("temperatura de la pi", "temperatura tiene la pi", "temperatura tiene el procesador", "temperatura del procesador", "temperatura de la cpu", "calor tiene la pi", "esta caliente la pi", "como esta la pi", "estado de la pi"):
+        return Intent("sys_info", "temp" if not has("como esta", "estado") else "all")
     if has("calendario", "agenda", "que tengo", "tengo algo", "mis eventos", "proximo evento", "tengo hoy", "tengo manana"):
         return Intent("calendar", "tomorrow" if has("manana") else "today")
     if has("temporizador", "cuenta atras", "cuentaatras"):
@@ -261,6 +267,20 @@ def say_time(now):
     if m == 0:
         return art + " en punto"
     return "%s y %d" % (art, m)
+
+
+def say_system(kind, st):
+    """Frase con el estado de la Pi (st = lo que devuelve /api/status). Lo que falte se dice tal cual."""
+    sysd = (st or {}).get("system") or {}
+    disk, mem, temp = sysd.get("disk"), sysd.get("mem_avail_mb"), (st or {}).get("cpu_temp")
+    parts = []
+    if kind in ("disk", "all"):
+        parts.append("Quedan %s gigas libres en la tarjeta, el %d por ciento ocupado" % (str(disk["free_gb"]).replace(".", " coma "), disk["pct"]) if disk else "No sé cuánto espacio queda")
+    if kind in ("mem", "all"):
+        parts.append("Hay %d megas de memoria libres" % mem if isinstance(mem, (int, float)) else "No sé cuánta memoria hay libre")
+    if kind in ("temp", "all"):
+        parts.append("El procesador está a %d grados" % round(temp) if isinstance(temp, (int, float)) else "No puedo leer la temperatura")
+    return ". ".join(parts)
 
 
 def say_date(now):

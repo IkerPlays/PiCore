@@ -5,6 +5,10 @@
 
 
 
+## Voz: estado de la Pi
+
+- «Cuánto espacio libre queda», «cuánta memoria libre hay», «qué temperatura tiene la Pi» y «cómo está la Pi» responden con datos reales de `/api/status`. Probado con tests; no en una Pi real.
+
 ## Voz: leer la última nota
 
 - «Lee mi última nota» la dice en voz alta (hasta 300 caracteres). Probado con tests; no con una voz real.

@@ -163,6 +163,9 @@ def execute(cfg, intent):
             except urllib.error.HTTPError:
                 return "No he podido guardar la nota"
             return "Anotado"
+        if n == "sys_info":
+            with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=8) as r:
+                return intents.say_system(a, json.load(r))
         if n == "note_read":
             with urllib.request.urlopen(cfg["api"] + "/api/notes", timeout=5) as r:
                 notes = json.load(r)
