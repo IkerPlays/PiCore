@@ -3,6 +3,7 @@
 Recorre el encendido completo: pantalla de carga con su video de inicio, paso a Casa, latidos, cambio de modo (con carga
 pero sin video de inicio) y la ventana de Iker. Es lo mas parecido a una Pi que se puede hacer sin una Pi: NO prueba
 el hardware (pantalla, audio, Wayland, GPU), solo que las piezas encajan entre si."""
+import json
 import os
 import shutil
 import subprocess
@@ -42,11 +43,11 @@ class PiVirtualTest(unittest.TestCase):
         base = {k: v for k, v in os.environ.items() if not k.startswith("PCPI_")}
         self.srv_env = {"PCPI_CONF": str(self.t / "pcpi.conf"), "PCPI_MODE_FILE": str(self.mode), "PCPI_RUN_DIR": str(self.run_dir),
                         "PCPI_NOTES_DIR": str(self.t / "notes"), "PCPI_NOWPLAYING": str(self.t / "np.json"), "PCPI_VOICE_STATE": str(self.t / "v.json"),
-                        "PCPI_TIMERS": str(self.t / "timers.json"), "PCPI_BOOKMARKS": str(self.t / "bm.json"), "PCPI_ASSETS": str(self.assets),
+                        "PCPI_TIMERS": str(self.t / "timers.json"), "PCPI_BOOKMARKS": str(self.t / "bm.json"), "PCPI_MUSIC_DIR": str(self.t / "musica"), "PCPI_MUSIC_EMBED": str(self.t / "emb.json"), "PCPI_MUSIC_HISTORY": str(self.t / "hist.json"), "PCPI_ASSETS": str(self.assets),
                         "PCPI_INTRO_STATE": str(self.t / "intro.json"), "PCPI_NETS": str(self.t / "nets.json"), "PCPI_DISPLAY_STATE": str(self.t / "display.json")}
         self.env = {**base, **node_env(), "PATH": "%s:%s" % (shims, os.environ["PATH"]), "HOME": str(self.home), "XDG_RUNTIME_DIR": str(self.t),
                     "PCPI_PORT": str(self.port), "PCPI_RUN_DIR": str(self.run_dir), "PCPI_MODE_FILE": str(self.mode), "PCPI_TICK": "0.3",
-                    "FAKE_CHROMIUM_LOG": str(self.log), "PCPI_UPDATE_EVERY": "99999", "PCPI_UPDATE_FIRST": "99999"}
+                    "FAKE_CHROMIUM_LOG": str(self.log), "PCPI_MUSIC_DIR": str(self.t / "musica"), "PCPI_UPDATE_EVERY": "99999", "PCPI_UPDATE_FIRST": "99999"}
         self.env.pop("WAYLAND_DISPLAY", None)
         # el HOME de la prueba es temporal: Playwright buscaria sus navegadores ahi y no los encontraria (en el CI estan en el HOME real)
         self.env.setdefault("PLAYWRIGHT_BROWSERS_PATH", os.environ.get("PLAYWRIGHT_BROWSERS_PATH") or os.path.join(os.path.expanduser("~"), ".cache", "ms-playwright"))
@@ -77,11 +78,20 @@ class PiVirtualTest(unittest.TestCase):
                 os.environ[k] = v
         shutil.rmtree(self.t, ignore_errors=True)
 
+    def lines_(self):
+        """Lineas del registro del navegador de mentira como (pid, tipo, resto); ignora una linea a medio escribir."""
+        out = []
+        for l in (self.log.read_text().splitlines() if self.log.exists() else []):
+            p = l.split(" ", 2)
+            if len(p) == 3:
+                out.append(tuple(p))
+        return out
+
     def navs(self):
-        return [l.split(" ", 2)[2] for l in self.log.read_text().splitlines() if " nav " in " " + l.split(" ", 1)[1]] if self.log.exists() else []
+        return [r for _, k, r in self.lines_() if k == "nav"]
 
     def starts(self):
-        return [l for l in self.log.read_text().splitlines() if l.split(" ", 2)[1] == "start"] if self.log.exists() else []
+        return [r for _, k, r in self.lines_() if k == "start"]
 
     def wait(self, cond, secs=40):
         end = time.time() + secs
@@ -113,6 +123,18 @@ class PiVirtualTest(unittest.TestCase):
         r = urllib.request.Request("http://127.0.0.1:%d/api/notes" % self.port, data=b'{"id":null,"text":"nota desde la Pi virtual #prueba"}', headers={"X-PCPI": "1"})
         urllib.request.urlopen(r, timeout=5).read()
         self.assertIn(b"prueba", self.get("/api/notes/tags"))
+        # 3b) DYMusic: la peticion de la ventana de descarga llega a pcpi-session, que abre el navegador con la carpeta de musica
+        music = self.t / "musica"
+        before = len(self.starts())
+        r = urllib.request.Request("http://127.0.0.1:%d/api/music" % self.port, data=b'{"action":"web","target":"downloader"}', headers={"X-PCPI": "1"})
+        urllib.request.urlopen(r, timeout=5).read()
+        self.assertTrue(self.wait(lambda: len(self.starts()) > before and "freemake.com" in self.starts()[-1]), "no abrio la web de descarga: %s" % self.starts()[-1:])
+        self.assertIn("pcpi-web", self.starts()[-1])
+        prefs = json.loads((self.home / ".cache/pcpi-web/Default/Preferences").read_text())
+        self.assertEqual(prefs["download"]["default_directory"], str(music))
+        mp3 = music / "Cancion descargada.mp3"                    # el navegador deja ahi el MP3: el reproductor lo ve solo
+        mp3.write_bytes(b"ID3" + b"\0" * 4000)
+        self.assertIn(b"Cancion descargada", self.get("/api/music"))
         # 4) vuelta a Casa
         r = urllib.request.Request("http://127.0.0.1:%d/api/mode" % self.port, data=b'{"mode":"home"}', headers={"X-PCPI": "1"})
         urllib.request.urlopen(r, timeout=5).read()
