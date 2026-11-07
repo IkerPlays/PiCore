@@ -516,6 +516,8 @@
         return "En " + CT[k][1] + " " + (h === 1 ? "es la una" : "son las " + h) + (m ? " y " + m : " en punto");
       }
     }
+    if (has("tira un dado", "lanza un dado")) return "Ha salido el " + (1 + Math.floor(Math.random() * 6));
+    if (has("cara o cruz", "tira una moneda", "lanza una moneda")) return "Ha salido " + (Math.random() < 0.5 ? "cara" : "cruz");
     if (has("que puedes hacer", "que sabes hacer", "ayuda", "que comandos")) return "Puedes pedirme la hora, el tiempo, temporizadores y alarmas, la música, el volumen y el brillo, cambiar de modo, tomar notas o decirte cómo está la Pi.";
     if (has("gracias")) return "De nada";
     if (["hola", "buenas", "buenos dias", "buenas tardes", "buenas noches", "hola pi"].includes(t)) return "Hola, dime";
