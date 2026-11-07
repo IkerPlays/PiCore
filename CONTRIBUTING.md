@@ -13,8 +13,9 @@ Solo hace falta Python 3 (sin dependencias para el servidor). Para las pruebas d
 
 ```bash
 npm install -g playwright && playwright install chromium    # opcional: sin esto, esas pruebas se omiten
-make test        # todas las pruebas (unos 7 minutos con las de navegador)
-make lint        # shell y Python
+make test        # todas las pruebas (unos 8 minutos con las de navegador)
+make rapido      # las que no abren navegador (unos 3 minutos)
+make lint        # shell y Python (con pyflakes si lo tienes: pip install pyflakes)
 ```
 
 ## Reglas del proyecto
