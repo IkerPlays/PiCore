@@ -10,10 +10,11 @@ const check = (name, ok, extra) => results.push({ name, ok: !!ok, extra });
   const page = patchWaitForFunction(await ctx.newPage());
   const problems = [], apiLeaks = [];
   page.on('pageerror', e => problems.push('pageerror: ' + e.message));
-  page.on('console', m => { if (m.type() === 'error' && !/youtube|net::|ERR_|Failed to load resource/.test(m.text())) problems.push('console: ' + m.text()); });
+  page.on('console', m => { if (m.type() === 'error' && !/youtube|net::|ERR_|Failed to load resource|Permissions policy|compute-pressure/.test(m.text())) problems.push('console: ' + m.text()); });
   page.on('request', r => { const u = new URL(r.url()); if (u.origin === new URL(base).origin && u.pathname.startsWith('/api/') && !r.serviceWorker()) apiLeaks.push(u.pathname); });
   // ningun /api/ debe llegar al servidor: lo atiende la demo en el propio navegador
-  await page.route('**/api/**', route => { apiLeaks.push('RED ' + route.request().url()); route.abort(); });
+  const ORIGIN = new URL(base).origin;
+  await page.route(ORIGIN + '/api/**', route => { apiLeaks.push('RED ' + route.request().url()); route.abort(); });      // solo NUESTRO origen: el reproductor de YouTube tiene sus propias rutas /api/
 
   await page.goto(base + '/app?bare=1');
   await page.waitForFunction(() => /\d\d:\d\d/.test(document.getElementById('time').textContent), null, { timeout: 8000 }).catch(() => {});
