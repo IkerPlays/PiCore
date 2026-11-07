@@ -577,6 +577,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | Di (después del pitido) | Qué hace |
 |---|---|
 | «qué hora es» | Dice la hora |
+| «qué hora es en Tokio» · «en Nueva York» · «en Londres» | La hora de otra ciudad (Madrid, Canarias, Londres, París, Berlín, Roma, Nueva York, Los Ángeles, México, Buenos Aires, Bogotá, Caracas, Tokio, Pekín, Dubái, Sídney) |
 | «qué día es hoy» | Dice la fecha |
 | «qué tiempo hace» | Dice la temperatura y el estado del cielo |
 | «modo casa» · «modo escritorio» · «modo iker» (o «modo notas») | Cambia de modo |

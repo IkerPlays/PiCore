@@ -5,6 +5,10 @@
 
 
 
+## Voz: la hora en otras ciudades
+
+- «Qué hora es en Tokio» (y 15 ciudades más, con su zona horaria y el cambio de horario). Probado con tests; no en una Pi real.
+
 ## Voz: cuántas notas y temporizadores
 
 - «Cuántas notas tengo» y «cuántos temporizadores hay». Probado con tests; no en una Pi real.

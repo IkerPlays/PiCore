@@ -287,11 +287,35 @@ def parse(text):
         return Intent("weather", 2 if has("pasado manana") else 1)
     if has("tiempo", "temperatura", "llover", "llueve", "hace frio", "hace calor"):
         return Intent("weather", None)
+    if has("que hora es en", "que hora son en", "hora en "):
+        for k, (tz, nombre) in CITY_TZ.items():
+            if k in t:
+                return Intent("time_in", (tz, nombre))
     if has("que hora", "la hora", "hora es"):
         return Intent("time", None)
     if has("que dia", "fecha", "a cuanto estamos"):
         return Intent("date", None)
     return None
+
+
+# Ciudades para «qué hora es en…»: nombre sin tildes -> (zona horaria, como se dice)
+CITY_TZ = {
+    "madrid": ("Europe/Madrid", "Madrid"), "canarias": ("Atlantic/Canary", "Canarias"), "las palmas": ("Atlantic/Canary", "Las Palmas"),
+    "londres": ("Europe/London", "Londres"), "paris": ("Europe/Paris", "París"), "berlin": ("Europe/Berlin", "Berlín"), "roma": ("Europe/Rome", "Roma"),
+    "nueva york": ("America/New_York", "Nueva York"), "los angeles": ("America/Los_Angeles", "Los Ángeles"), "mexico": ("America/Mexico_City", "México"),
+    "buenos aires": ("America/Argentina/Buenos_Aires", "Buenos Aires"), "bogota": ("America/Bogota", "Bogotá"), "caracas": ("America/Caracas", "Caracas"),
+    "tokio": ("Asia/Tokyo", "Tokio"), "pekin": ("Asia/Shanghai", "Pekín"), "dubai": ("Asia/Dubai", "Dubái"), "sidney": ("Australia/Sydney", "Sídney"),
+}
+
+
+def say_time_in(tz, nombre, now_utc):
+    """«En Tokio son las 8 y 30». now_utc: datetime con zona (UTC)."""
+    try:
+        from zoneinfo import ZoneInfo
+        local = now_utc.astimezone(ZoneInfo(tz))
+    except Exception:       # noqa: BLE001 - sin tzdata o zona rara: se dice tal cual
+        return "No sé la hora de " + nombre
+    return "En %s %s" % (nombre, say_time(local).replace("Es la una", "es la una").replace("Son las", "son las"))
 
 
 def say_time(now):
