@@ -5,6 +5,10 @@
 
 
 
+## Whisper conoce las órdenes nuevas
+
+- La pista que se le da a Whisper incluye ahora tomar notas, la lista de la compra, el tiempo de mañana, el espacio libre y el salvapantallas, para acertar más con esas frases. No medido: no hay una Pi con micrófono para comparar.
+
 ## Corrección: la palabra de activación por defecto es «Hey Jarvis»
 
 - Había textos nuevos (hoja Sistema, portada, simulador) que decían «Oye Pi». La palabra por defecto es «Hey Jarvis»; «Oye Pi» es experimental y aún no es fiable (ver `docs/VOICE.md`). Corregidos esos textos y la palabra que muestra el simulador.

@@ -19,7 +19,8 @@ JUNK = ("subtitulos", "subtítulos", "amara.org", "gracias por ver", "suscribete
 
 PROMPT = ("Órdenes para un asistente de casa: modo casa, modo iker, modo escritorio, qué hora es, qué tiempo hace, "
           "sube el brillo, baja el volumen, pon un temporizador de diez minutos, despiértame a las siete, "
-          "activa la vigilancia, muestra la cámara, pausa el Pi-hole, pon la música, pausa la música, siguiente canción, canción anterior.")
+          "activa la vigilancia, muestra la cámara, pausa el Pi-hole, pon la música, pausa la música, siguiente canción, canción anterior, toma nota, lee mi última nota, "
+          "añade leche a la lista de la compra, añade un minuto al temporizador, qué tiempo hará mañana, cuánto espacio libre queda, activa el salvapantallas.")
 
 
 def rms(pcm):
