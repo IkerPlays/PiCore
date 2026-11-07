@@ -30,9 +30,11 @@ class MusixError(Exception):
     pass
 
 
-def music_dir():
+def music_dir(create=True):
+    """Carpeta de la musica. Solo se CREA cuando hace falta escribir en ella: leer (listar/estado) no deja carpetas por ahi."""
     d = Path(os.environ.get("PCPI_MUSIC_DIR", "/var/lib/pcpi/music"))
-    d.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if create:
+        d.mkdir(parents=True, exist_ok=True, mode=0o700)
     return d
 
 
@@ -49,7 +51,7 @@ def _title(stem):
 
 def list_tracks(base=None):
     """Canciones de la carpeta (sin entrar en subcarpetas), ordenadas por titulo. Ignora descargas a medias y ocultos."""
-    base = Path(base) if base else music_dir()
+    base = Path(base) if base else music_dir(create=False)
     out = []
     try:
         entries = list(base.iterdir())
@@ -72,7 +74,7 @@ def list_tracks(base=None):
 def track_path(tid, base=None):
     if not re.fullmatch(r"[0-9a-f]{12}", str(tid)):
         return None
-    base = Path(base) if base else music_dir()
+    base = Path(base) if base else music_dir(create=False)
     try:
         for f in base.iterdir():
             if _id(f.name) == tid and f.suffix.lower() in AUDIO and f.is_file() and not f.is_symlink() and not f.name.startswith("."):

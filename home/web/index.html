@@ -177,6 +177,7 @@
   #sheet { position:fixed; left:50%; bottom:0; z-index:21; width:min(760px,100vw); max-height:92vh; display:flex; flex-direction:column; background:var(--card); border:1px solid var(--line); border-bottom:0;
            border-radius:26px 26px 0 0; box-shadow:0 -20px 60px #0008; transform:translate(-50%,105%); transition:transform .5s var(--ease), padding-bottom .3s; }
   #sheet.on { transform:translate(-50%,0); }
+  body.osk-open #mxpanel:not(.full) { height:min(560px,94vh); }
   body.osk-open #sheet { padding-bottom:268px; }
   .sh-head { display:flex; align-items:center; justify-content:space-between; padding:16px 20px 8px; }
   .sh-head h3 { font-size:22px; }
@@ -750,7 +751,7 @@ function setYt(url) {
   if (!url) { f.removeAttribute("src"); f.dataset.src = ""; }
 }
 function openMusix(v) { mxShow(v || mxView); $("scrim").classList.add("on"); $("mxpanel").classList.add("on"); }
-function closeMusix() { clearInterval(mxPoll); $("mxpanel").classList.remove("full", "on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on")) $("scrim").classList.remove("on"); }
+function closeMusix() { clearInterval(mxPoll); PCPIKeyboard.close(); $("mxpanel").classList.remove("full", "on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on")) $("scrim").classList.remove("on"); }
 $("mxbtn").onclick = () => openMusix("home");
 $("mx-close").onclick = closeMusix; $("mx-back").onclick = () => mxShow("home");
 $("mx-full").onclick = () => { const f = $("mxpanel").classList.toggle("full"); $("mx-full").textContent = f ? "Salir de pantalla completa" : "Pantalla completa"; };
@@ -759,6 +760,8 @@ async function ytGo() {
   mxErr("mxerr", "");
   try { const j = await mxApi({action: "embed", link: $("mxin").value}); setYt(j.url); paintHistory(j.history); $("mxin").value = ""; } catch (e) { mxErr("mxerr", e.message); }
 }
+/* sin teclado fisico: los cuadros de Musix abren el teclado en pantalla (Enter hace la accion del cuadro) */
+function oskFor(id, act) { const el = $(id); el.addEventListener("focus", () => PCPIKeyboard.open(el, {onEnter: () => { PCPIKeyboard.close(); el.blur(); act(); }})); el.addEventListener("blur", () => setTimeout(() => { if (document.activeElement !== el && !(document.activeElement && document.activeElement.closest && document.activeElement.closest("#osk"))) PCPIKeyboard.close(); }, 200)); }
 $("mxgo").onclick = ytGo; $("mxin").addEventListener("keydown", e => { if (e.key === "Enter") ytGo(); });
 
 /* DYMusic: buscar -> elegir -> el enlace se copia y se abre la web de conversion; el MP3 caera en la carpeta de Musix */
@@ -792,7 +795,9 @@ async function dySearch() {
   mxErr("dyerr", "Buscando…"); $("mxres").textContent = "";
   try { const j = await mxApi({action: "search", q: $("dyq").value}); mxErr("dyerr", ""); dyRenderResults(j.results); } catch (e) { mxErr("dyerr", e.message); }
 }
+oskFor("mxin", ytGo); oskFor("dyq", dySearch);
 $("dygo").onclick = dySearch; $("dyq").addEventListener("keydown", e => { if (e.key === "Enter") dySearch(); });
+oskFor("dylink", () => $("dylinkgo").click());
 $("dylinkgo").onclick = async () => {
   mxErr("dyerr", "");
   try { const j = await mxApi({action: "embed", link: $("dylink").value}); const m = /embed\/([A-Za-z0-9_-]{11})/.exec(j.url); if (!m) throw new Error("Pega el enlace de un video, no de una lista"); dyDownload("https://www.youtube.com/watch?v=" + m[1], m[1]); }
