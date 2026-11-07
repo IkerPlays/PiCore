@@ -6,6 +6,10 @@
 
 
 
+## Test: sin desplazamiento horizontal de 320 a 1920 px
+
+- La portada y el simulador no se desbordan a 320, 390, 768 y 1920 px de ancho (comprobado y ahora vigilado por el test de accesibilidad básica).
+
 ## Test de la demo: 300 frases al azar
 
 - La voz simulada se prueba con 300 mezclas raras de palabras (semilla fija): siempre contesta un texto y nunca lanza una excepción. Pasó a la primera.

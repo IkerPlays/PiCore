@@ -21,6 +21,17 @@ const base = process.argv[2];
     console.log((sinNombre.length ? 'FALLO ' : 'OK    ') + 'controles con nombre en ' + ruta + (sinNombre.length ? ' -> ' + sinNombre.join(', ') : ''));
     fallos += sinNombre.length;
   }
+  // sin desplazamiento horizontal en la portada y el simulador, de movil pequeño a pantalla grande
+  for (const [w, h] of [[320, 568], [390, 844], [768, 1024], [1920, 1080]]) {
+    await page.setViewportSize({ width: w, height: h });
+    for (const ruta of ['/', '/simulador']) {
+      await page.goto(base + ruta); await page.waitForTimeout(1000);
+      const [ancho, ventana] = await page.evaluate(() => [document.documentElement.scrollWidth, innerWidth]);
+      const mal = ancho > ventana + 1;
+      console.log((mal ? 'FALLO ' : 'OK    ') + 'sin desplazamiento horizontal en ' + ruta + ' a ' + w + 'x' + h + (mal ? ' (' + ancho + ' > ' + ventana + ')' : ''));
+      fallos += mal ? 1 : 0;
+    }
+  }
   await browser.close();
   process.exit(fallos ? 1 : 0);
 })().catch(e => { console.error('ERROR', e); process.exit(2); });
