@@ -356,6 +356,13 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.waitForFunction(() => document.getElementById('tring').classList.contains('on'), null, { timeout: 12000 }).catch(() => {});
   check('al vencer sale el aviso a pantalla completa', await page.evaluate(() => document.getElementById('tring').classList.contains('on')));
   check('con su nombre', (await page.textContent('#tring-big')).includes('pasta'));
+  await page.click('#tring-snooze');                                                                    // Posponer: 5 min con el mismo nombre
+  await sleep(1500);
+  const post = (await (await page.request.get(base + '/api/status')).json()).timers || [];
+  check('Posponer deja un temporizador de 5 min con el mismo nombre', post.length === 1 && post[0].label === 'pasta' && post[0].remaining > 280 && !post[0].ringing, JSON.stringify(post));
+  await page.request.post(base + '/api/timers', { headers: { 'X-PCPI': '1' }, data: { action: 'cancel' } });
+  await page.request.post(base + '/api/timers', { headers: { 'X-PCPI': '1' }, data: { action: 'timer', seconds: 1, label: 'pasta' } });
+  await page.waitForFunction(() => document.getElementById('tring').classList.contains('on'), null, { timeout: 12000 }).catch(() => {});
   await page.click('#tring-stop');
   await sleep(1500);
   check('Parar lo silencia y lo borra', !(await page.evaluate(() => document.getElementById('tring').classList.contains('on'))));

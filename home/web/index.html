@@ -252,6 +252,7 @@
   @keyframes ringpulse { 50% { filter:brightness(1.18); } }
   #tring .big { font-size:clamp(44px,9vw,92px); font-weight:750; letter-spacing:-.02em; padding:0 20px; }
   #tring .sub { font-size:26px; opacity:.85; }
+  #tring button.soft { background:transparent; color:var(--acc-fg); border:2px solid currentColor; padding:12px 36px; font-size:20px; }
   #tring button { padding:18px 60px; font-size:26px; border-radius:999px; background:var(--acc-fg); color:var(--acc); border:0; font-weight:700; }
 
   /* ---------------- bateria ---------------- */
@@ -414,7 +415,7 @@
     <button id="al-go" class="primary">Crear</button>
   </div>
 </section>
-<div id="tring"><div class="sub" id="tring-sub">Temporizador</div><div class="big" id="tring-big"></div><button id="tring-stop">Parar</button></div>
+<div id="tring"><div class="sub" id="tring-sub">Temporizador</div><div class="big" id="tring-big"></div><button id="tring-stop">Parar</button><button id="tring-snooze" class="soft">Posponer 5 min</button></div>
 <button id="motion" hidden>Movimiento detectado!<small id="motion-t"></small></button>
 <div id="cam">
   <div class="msg">Conectando con la cámara del dispositivo…</div>
@@ -1191,6 +1192,11 @@ $("al-daily").onclick = () => $("al-daily").setAttribute("aria-checked", $("al-d
 $("al-go").onclick = async () => { await post("/api/timers", {action:"alarm", hour:alH, minute:alM, daily:$("al-daily").getAttribute("aria-checked") === "true"}); refresh(); };
 paintAl();
 document.querySelectorAll("#tpanel .presets button").forEach(b => b.onclick = async () => { await post("/api/timers", {action:"timer", seconds:+b.dataset.s}); refresh(); });
+$("tring-snooze").onclick = async () => {                       // «Posponer»: para lo que suena y crea un temporizador de 5 min con el mismo nombre
+  const r = tList.find(t => t.ringing); const label = r ? (r.label || (r.kind === "alarm" ? "Alarma" : "")) : "";
+  await post("/api/timers", {action:"dismiss"}); await post("/api/timers", Object.assign({action:"timer", seconds:300}, label ? {label} : {}));
+  $("tring").classList.remove("on"); clearInterval(beepTimer); refresh();
+};
 $("tring-stop").onclick = async () => { await post("/api/timers", {action:"dismiss"}); $("tring").classList.remove("on"); clearInterval(beepTimer); refresh(); };
 
 /* ---- vigilancia de movimiento ---- */

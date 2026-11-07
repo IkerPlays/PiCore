@@ -5,6 +5,10 @@
 
 
 
+## Posponer 5 minutos
+
+- La pantalla de aviso de un temporizador o alarma tiene «Posponer 5 min»: para lo que suena y crea un temporizador de 5 minutos con el mismo nombre (las alarmas pasan a llamarse «Alarma»). Probado en el test de interfaz contra el servidor real.
+
 ## Crear alarmas desde la pantalla
 
 - El panel de temporizadores tiene «Nueva alarma»: hora y minutos (de 5 en 5) con botones, interruptor «cada día» y «Crear». Antes solo se podían crear por voz. Probado en el test de interfaz (contra el servidor real) y en el simulador.
