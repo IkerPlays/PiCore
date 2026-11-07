@@ -194,8 +194,19 @@ class BrowserTest(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
 
-if __name__ == "__main__":
-    unittest.main()
+class AccesibilidadTest(unittest.TestCase):
+    @unittest.skipUnless(node_env(), "hace falta node y playwright")
+    def test_todo_control_visible_tiene_nombre(self):
+        out = Path(tempfile.mkdtemp()) / "dist"
+        build_web_demo.build(out)
+        port = free_port()
+        srv = serve_web_demo.serve(out, port)
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        try:
+            r = subprocess.run(["node", str(ROOT / "tests" / "a11y_smoke.js"), "http://127.0.0.1:%d" % port], capture_output=True, text=True, env=node_env(), timeout=120)
+        finally:
+            srv.shutdown()
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
 
 class SimuladorVozYVisita(unittest.TestCase):
@@ -239,3 +250,7 @@ class SintaxisJs(unittest.TestCase):
                 r = subprocess.run([node, "--check", t.name], capture_output=True, text=True)
                 os.unlink(t.name)
                 self.assertEqual(r.returncode, 0, "%s (script %d)\n%s" % (f.name, n, r.stderr))
+
+
+if __name__ == "__main__":
+    unittest.main()

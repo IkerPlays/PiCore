@@ -6,6 +6,10 @@
 
 
 
+## Test de accesibilidad básica
+
+- Un test de navegador comprueba que todo botón, enlace, cuadro o interruptor visible de Casa, Iker, Dev, Escritorio y la portada tiene nombre. Comprobado a mano que falla si se quita un nombre. También: el `if __name__ == "__main__"` de `test_web_demo.py` estaba a mitad del archivo; ahora está al final.
+
 ## Accesibilidad: el interruptor del salvapantallas tiene nombre
 
 - Un lector de pantalla no sabía qué era el interruptor del salvapantallas. Revisé con el navegador todos los botones, enlaces y cuadros de la interfaz (Casa, Iker, Dev, Escritorio, simulador y portada): el resto ya tenía nombre.
