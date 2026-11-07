@@ -5,6 +5,10 @@
 
 
 
+## Voz: qué suena
+
+- «Qué suena» / «cómo se llama esta canción» dicen el título (y el artista si lo hay) de lo que reproduce Musix. Probado con tests; no en una Pi real.
+
 ## Whisper conoce las órdenes nuevas
 
 - La pista que se le da a Whisper incluye ahora tomar notas, la lista de la compra, el tiempo de mañana, el espacio libre y el salvapantallas, para acertar más con esas frases. No medido: no hay una Pi con micrófono para comparar.

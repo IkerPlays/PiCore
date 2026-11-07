@@ -199,6 +199,8 @@ def parse(text):
         clock = parse_clock(words)
         if clock:
             return Intent("alarm_set", clock + (True,) if has("todos los dias", "cada dia", "diaria", "a diario", "diariamente") else clock)
+    if has("que suena", "que cancion es", "que cancion esta sonando", "que estoy escuchando", "como se llama esta cancion"):
+        return Intent("music_now", None)
     if has("musica", "cancion", "musix", "tema "):
         if has(" en ", "dentro de", "durante") and has("para", "apaga", "pausa", "deten"):
             secs = parse_duration(words)
@@ -333,6 +335,14 @@ def say_net(net):
     if c == "none":
         return "Estoy conectada %s, pero no hay internet" % kind
     return "Estoy conectada %s y hay internet" % kind
+
+
+def say_now_playing(np):
+    """«Ahora suena...» a partir del estado de reproduccion de /api/status (nowplaying)."""
+    if not np or np.get("state") not in ("playing", "paused") or not np.get("title"):
+        return "Ahora no suena nada"
+    who = (" de " + np["artist"]) if np.get("artist") and np["artist"] != "MP3 Player" else ""
+    return ("Suena " if np["state"] == "playing" else "Está en pausa ") + np["title"] + who
 
 
 def say_date(now):
