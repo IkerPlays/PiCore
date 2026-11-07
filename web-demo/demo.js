@@ -231,7 +231,7 @@
     const cmd = raw.trim(), a = cmd.split(/\s+/);
     const R = (out, code) => ({ out, code: code || 0 });
     switch (a[0]) {
-      case "help": case "ayuda": return R("Esto es una DEMO: la consola no ejecuta nada real, solo reconoce unas pocas órdenes:\n  pcpi-doctor  pcpi-mode status  pcpi-sound status  pcpi-wifi status  pcpi-update --check  pcpi-config get SECCION CLAVE  uname -a  uptime  df -h /  free -m\n  vcgencmd measure_temp  date  whoami  hostname  ls  echo TEXTO  cat /etc/os-release\nEn una Pi real, aquí va cualquier orden.\n");
+      case "help": case "ayuda": return R("Esto es una DEMO: la consola no ejecuta nada real, solo reconoce unas pocas órdenes:\n  pcpi-doctor  pcpi-mode status  pcpi-sound status  pcpi-wifi status  pcpi-update --check  pcpi-config get SECCION CLAVE  pcpi-config show  uname -a  uptime  df -h /  free -m\n  vcgencmd measure_temp  date  whoami  hostname  ls  echo TEXTO  cat /etc/os-release\nEn una Pi real, aquí va cualquier orden.\n");
       case "echo": return R(cmd.slice(4).trim().replace(/^(["'])(.*)\1$/, "$2") + "\n");
       case "pcpi-doctor": return R(DOCTOR);
       case "pcpi-sound": return R(a[1] === "status" ? '{"available": true, "volume": ' + S.audio.volume + ', "muted": ' + !!S.audio.muted + ', "backend": "demo"}\n' : "demo: sin cambios\n");
