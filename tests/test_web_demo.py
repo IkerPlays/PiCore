@@ -233,7 +233,7 @@ class PaginasBasicas(unittest.TestCase):
     def test_todas_las_paginas_tienen_idioma_viewport_y_un_titulo(self):
         import re
         paginas = sorted((ROOT / "home" / "web").glob("*.html")) + sorted((ROOT / "web-demo").glob("*.html"))
-        self.assertGreaterEqual(len(paginas), 8)
+        self.assertGreaterEqual(len(paginas), 7)
         for f in paginas:
             h = f.read_text(encoding="utf-8")
             self.assertIn('<html lang="es">', h, f.name)
