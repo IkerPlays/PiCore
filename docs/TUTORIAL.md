@@ -501,7 +501,7 @@ systemctl --user restart pcpi-voice       # solo para cambios de la sección [vo
 
 ### 7.1 Pi-hole
 
-Ya lo hiciste en el [Paso 6](#paso-6-instalar-y-configurar-pi-hole) (instalación, contraseña y conexión con el modo Casa). Si saltaste el `pcpi-setup pihole`, hazlo ahora: la tarjeta Pi-hole del modo Casa necesita esa contraseña. Para proteger **otros dispositivos** de tu casa, mira la opción B del [6.2](#62-para-quién-va-a-filtrar-decide-ahora).
+Ya lo hiciste en el [Paso 6](#paso-6-instalar-y-configurar-pi-hole) (instalación, contraseña y conexión con el modo Casa). Si saltaste el `pcpi-setup pihole`, hazlo ahora: la tarjeta Pi-hole del modo Casa necesita esa contraseña. **También desde la pantalla:** si la tarjeta de Pi-hole sale con «Sin conexión», toca **Conectar Pi-hole**, escribe la contraseña del panel web con el teclado en pantalla y pulsa **Probar y guardar** (se guarda en `pcpi.conf` y se prueba al momento; si Pi-hole no responde con ella, te lo dice). Para proteger **otros dispositivos** de tu casa, mira la opción B del [6.2](#62-para-quién-va-a-filtrar-decide-ahora).
 
 ### 7.2 Musix (música)
 
