@@ -180,6 +180,10 @@ def parse(text):
         return Intent("repeat", None)
     if has("cuantas notas", "cuantos temporizadores"):
         return Intent("count", "notes" if has("notas") else "timers")
+    if has("cuanto falta para", "cuantos dias faltan para", "dias para"):
+        m = re.search(r"(navidad|ano nuevo|nochevieja|reyes|verano)", t)
+        if m:
+            return Intent("days_until", m.group(1))
     if has("calendario", "agenda", "que tengo", "tengo algo", "mis eventos", "proximo evento", "siguiente evento", "proxima cita", "tengo hoy", "tengo manana"):
         return Intent("calendar", "next" if has("proximo evento", "siguiente evento", "proxima cita") else "tomorrow" if has("manana") else "today")
     if has("temporizador", "cuenta atras", "cuentaatras"):
@@ -381,6 +385,22 @@ def say_now_playing(np):
         return "Ahora no suena nada"
     who = (" de " + np["artist"]) if np.get("artist") and np["artist"] != "MP3 Player" else ""
     return ("Suena " if np["state"] == "playing" else "Está en pausa ") + np["title"] + who
+
+
+def say_days_until(which, today):
+    """Dias que faltan para una fecha fija (navidad, nochevieja, reyes...). today: datetime.date."""
+    import datetime
+    mm = {"navidad": (12, 25, "la Navidad"), "nochevieja": (12, 31, "Nochevieja"), "ano nuevo": (1, 1, "Año Nuevo"), "reyes": (1, 6, "los Reyes"), "verano": (6, 21, "el verano")}
+    if which not in mm:
+        return "No sé esa fecha"
+    mes, dia, nombre = mm[which]
+    d = datetime.date(today.year, mes, dia)
+    if d < today:
+        d = datetime.date(today.year + 1, mes, dia)
+    n = (d - today).days
+    if n == 0:
+        return "Hoy es %s" % nombre
+    return "Falta 1 día para %s" % nombre if n == 1 else "Faltan %d días para %s" % (n, nombre)
 
 
 def say_date(now):

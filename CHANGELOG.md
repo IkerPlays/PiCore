@@ -5,6 +5,10 @@
 
 
 
+## Voz: cuántos días faltan
+
+- «Cuánto falta para Navidad» (también Nochevieja, Reyes, Año Nuevo y el verano). Probado con tests; no en una Pi real.
+
 ## Modo Dev: el historial de la consola se recuerda
 
 - Las últimas 30 órdenes (flecha arriba) sobreviven a recargar la página, solo en ese navegador. Comprobado en navegador sin pantalla.

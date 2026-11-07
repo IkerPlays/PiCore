@@ -200,6 +200,8 @@ def execute(cfg, intent):
             return "Tienes %s %s" % (("una" if a == "notes" else "un") if k == 1 else k, noun[0] if k == 1 else noun[1])
         if n == "time_in":
             return intents.say_time_in(a[0], a[1], datetime.datetime.now(datetime.timezone.utc))
+        if n == "days_until":
+            return intents.say_days_until(a, datetime.date.today())
         if n == "help":
             return intents.HELP_TEXT
         if n == "sys_info":

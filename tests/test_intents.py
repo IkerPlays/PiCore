@@ -99,6 +99,13 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.say_time_in("Asia/Tokyo", "Tokio", u), "En Tokio son las 21 y 30")
         self.assertEqual(i.say_time_in("Europe/London", "Londres", datetime.datetime(2026, 1, 15, 13, 0, tzinfo=datetime.timezone.utc)), "En Londres son las 13 en punto")
         self.assertEqual(i.say_time_in("No/Existe", "Nada", u), "No sé la hora de Nada")
+        self.assertEqual(P("cuánto falta para Navidad"), ("days_until", "navidad"))
+        import datetime as _dt
+        self.assertEqual(i.say_days_until("navidad", _dt.date(2026, 12, 20)), "Faltan 5 días para la Navidad")
+        self.assertEqual(i.say_days_until("navidad", _dt.date(2026, 12, 24)), "Falta 1 día para la Navidad")
+        self.assertEqual(i.say_days_until("navidad", _dt.date(2026, 12, 25)), "Hoy es la Navidad")
+        self.assertEqual(i.say_days_until("navidad", _dt.date(2026, 12, 26)), "Faltan 364 días para la Navidad")
+        self.assertEqual(i.say_days_until("reyes", _dt.date(2026, 12, 31)), "Faltan 6 días para los Reyes")
         self.assertEqual(P("activa el salvapantallas"), ("screensaver", True))
         self.assertEqual(P("desactiva el salvapantallas"), ("screensaver", False))
         self.assertEqual(P("sube el brillo"), ("brightness", "+20"))

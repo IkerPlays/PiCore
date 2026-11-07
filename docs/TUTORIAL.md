@@ -596,6 +596,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «lee mi última nota» · «qué pone en la nota más reciente» | Te lee en voz alta la nota más reciente (hasta 300 caracteres) |
 | «qué tiempo hará mañana» · «va a llover pasado mañana» | Máxima, mínima, cielo y probabilidad de lluvia de ese día |
 | «cuál es mi próximo evento» | Te dice el siguiente evento del calendario, aunque no sea hoy |
+| «cuánto falta para Navidad» · «…para Nochevieja / Reyes / Año Nuevo / el verano» | Los días que faltan para esa fecha |
 | «a qué wifi estoy conectado» · «tengo internet» | Te dice la red a la que estás conectada y si hay internet |
 | «qué suena» · «cómo se llama esta canción» | Te dice la canción que suena en Musix (o que no suena nada) |
 | «repite» · «qué has dicho» | La Pi repite lo último que dijo |
