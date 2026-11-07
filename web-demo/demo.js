@@ -41,7 +41,7 @@
     wifi: LS.get("wifi", { active: "CasaIker", wantsPi: { CasaIker: true } }),
     update: { state: "idle", tail: [], available: true, behind: 3 },
     audio: LS.get("audio", { volume: 60, muted: false }),
-    voice: { state: "listening", wake: "oye pi" },
+    voice: { state: "listening", wake: "hey jarvis" },
     cmds: {},
   };
 
@@ -569,7 +569,7 @@
   }
   function say(text) {
     const heard = String(text || "").trim().slice(0, 140), reply = understand(heard);
-    S.voice = { state: "listening", wake: "oye pi", heard, reply, ts: Date.now() / 1000 };
+    S.voice = { state: "listening", wake: "hey jarvis", heard, reply, ts: Date.now() / 1000 };
     try { if (typeof window.refresh === "function") window.refresh(); } catch (e) {}
     try {                                                           // la «Pi» habla (con la voz de tu navegador, si hay una en español)
       if (window.speechSynthesis && !S.audio.muted && S.audio.volume > 0) {

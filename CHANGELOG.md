@@ -5,6 +5,10 @@
 
 
 
+## Corrección: la palabra de activación por defecto es «Hey Jarvis»
+
+- Había textos nuevos (hoja Sistema, portada, simulador) que decían «Oye Pi». La palabra por defecto es «Hey Jarvis»; «Oye Pi» es experimental y aún no es fiable (ver `docs/VOICE.md`). Corregidos esos textos y la palabra que muestra el simulador.
+
 ## Portada: dos capturas nuevas
 
 - La galería suma «Temporizadores con nombre» y «Ajustes» (salvapantallas y modo noche), capturadas del simulador.

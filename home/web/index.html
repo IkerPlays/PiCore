@@ -450,7 +450,7 @@
   <div id="s-health"></div>
   <div id="upd"><div id="upd-row"><span id="upd-txt"></span><button id="upd-btn">Buscar actualizaciones</button></div><pre id="upd-log" hidden></pre></div>
   <details id="voicehelp"><summary>Qué puedo decirle a la Pi</summary>
-    <p>Empieza con «Oye Pi». Por ejemplo:</p>
+    <p>Di «Hey Jarvis» (la palabra de activación), espera el pitido y pide, por ejemplo:</p>
     <ul>
       <li>«qué hora es» · «qué tiempo hace» · «qué tengo hoy»</li>
       <li>«pon un temporizador de diez minutos para la pasta» · «añade un minuto al temporizador»</li>
@@ -1406,7 +1406,7 @@ async function refresh() {
   else if (v.state === "speaking") showVoice(v.reply || "", true, 0);
   else if (v.heard && fresh) showVoice("«" + v.heard + "»: " + (v.reply || ""), false, 5000);
   else if (!fresh) $("voice").classList.remove("on");
-  $("hint").innerHTML = (v.state && v.state !== "off") ? ico("mic") + " Di «" + esc(v.wake || "oye pi") + "»" : esc(s.ip ? s.ip : "");
+  $("hint").innerHTML = (v.state && v.state !== "off") ? ico("mic") + " Di «" + esc(v.wake || "hey jarvis") + "»" : esc(s.ip ? s.ip : "");
 }
 
 /* mantener la pantalla encendida */
