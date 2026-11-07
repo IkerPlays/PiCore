@@ -518,6 +518,12 @@
     }
     if (has("tira un dado", "lanza un dado")) return "Ha salido el " + (1 + Math.floor(Math.random() * 6));
     if (has("cara o cruz", "tira una moneda", "lanza una moneda")) return "Ha salido " + (Math.random() < 0.5 ? "cara" : "cruz");
+    if (has("pospon", "posponer", "cinco minutos mas", "5 minutos mas") && !has("temporizador de")) {
+      const r = S.timers.find(x => Date.now() >= x.due);
+      if (!r) return "No hay nada sonando";
+      const label = r.label || (r.kind === "alarm" ? "Alarma" : "");
+      S.timers = S.timers.filter(x => x !== r); S.timers.push({ id: rid(8), kind: "timer", label, due: Date.now() + 300000 }); LS.set("timers", S.timers); return "Pospuesto cinco minutos";
+    }
     if (has("que puedes hacer", "que sabes hacer", "ayuda", "que comandos")) return "Puedes pedirme la hora, el tiempo, temporizadores y alarmas, la música, el volumen y el brillo, cambiar de modo, tomar notas o decirte cómo está la Pi.";
     if (has("gracias")) return "De nada";
     if (["hola", "buenas", "buenos dias", "buenas tardes", "buenas noches", "hola pi"].includes(t)) return "Hola, dime";
