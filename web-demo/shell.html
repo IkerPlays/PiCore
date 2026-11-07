@@ -34,7 +34,9 @@ let start = "/app";
 try {
   const p = new URLSearchParams(location.search).get("p") || "";
   const path = p.split("?")[0].replace(/\/+$/, "") || "/";
-  if (ALLOWED.includes(path)) start = path + (p.includes("?") ? "?" + p.split("?").slice(1).join("?") : "");      // solo rutas conocidas (nada de abrir paginas ajenas)
+  const booted = sessionStorage.getItem("pcpi-demo-booted") === "1";
+  if (!p && !booted) { start = "/loading?to=home&boot=1"; sessionStorage.setItem("pcpi-demo-booted", "1"); }      // la primera vez: como al encender la Pi (video de inicio y carga)
+  else if (ALLOWED.includes(path)) start = path + (p.includes("?") ? "?" + p.split("?").slice(1).join("?") : "");      // solo rutas conocidas (nada de abrir paginas ajenas)
   else if (path === "/") start = "/app";
 } catch (e) {}
 f.src = start;

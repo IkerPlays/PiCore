@@ -254,7 +254,17 @@
       else if (m === "desktop") { toast("El Escritorio no existe en la demo: vuelves a Casa.", 2600); LS.set("mode", "home"); navigateAfter("/app", 2600); }
       return J({ ok: true });
     }
-    if (p === "/api/boot") return J({ download: null, intro: null, intro_slot: null, intro_skip_after: 0, media: BOOT_MEDIA, fake: true, fake_seconds: 4, min_seconds: 2, skip_button: true, media_seconds: 2.5 });
+    if (p === "/api/boot") {
+      const man = await manifest();
+      let intro = null, slot = null;
+      if (u.searchParams.get("boot") === "1" && man && man.start && man.start.length) {          // como al encender la Pi: un video de inicio al azar (90 / 85 / 55 de probabilidad)
+        const w = man.start.map(v => [90, 85, 55, 1][v.slot - 1] || 1), tot = w.reduce((a, b) => a + b, 0);
+        let r = Math.random() * tot, i = 0; while (i < w.length - 1 && (r -= w[i]) > 0) i++;
+        intro = man.start[i].url; slot = man.start[i].slot;
+      }
+      const media = man && man.loading && man.loading.length ? man.loading : BOOT_MEDIA;
+      return J({ download: null, intro, intro_slot: slot, intro_skip_after: 0, media, fake: true, fake_seconds: 5, min_seconds: 3, skip_button: true, media_seconds: 2.5 });
+    }
     if (p === "/api/download") return J({ state: "done", bytes: 0, total: 0, percent: 100, error: null });
 
     if (p === "/api/pihole") {
@@ -271,7 +281,7 @@
       LS.set("display", S.display); return J(displayInfo());
     }
     if (p === "/api/motion") { if (typeof body.enabled !== "boolean") return ERR("enabled invalido"); S.motion = body.enabled; LS.set("motion", S.motion); return J(motionInfo()); }
-    if (p === "/api/screensaver") return J({ enabled: true, idle_seconds: 300, seconds_per_photo: 8, clock: true, shuffle: true, photos: SAVER });
+    if (p === "/api/screensaver") { const man = await manifest(); return J({ enabled: true, idle_seconds: 300, seconds_per_photo: 8, clock: true, shuffle: true, photos: man && man.photos && man.photos.length ? man.photos : SAVER }); }
 
     if (p === "/api/timers") {
       const now = Date.now();
@@ -392,6 +402,9 @@
   const SAVER = [svgData("#1b2a4a", "#3a1f5a", "Marco de fotos"), svgData("#0f3d3e", "#2a4a1b", "Tus fotos aqui"), svgData("#4a2a1b", "#1f3a5a", "Salvapantallas")];
 
   const realFetch = window.fetch.bind(window);
+  /* videos, GIFs e imagenes REALES de extra-assets (los copia tools/build_web_demo.py); si faltan, se usan dibujos generados */
+  let manifestP = null;
+  const manifest = () => manifestP || (manifestP = realFetch("/assets/manifest.json").then(r => (r.ok ? r.json() : null)).catch(() => null));
   window.fetch = function (input, init) {
     try {
       const url = new URL(typeof input === "string" ? input : input.url, location.href);

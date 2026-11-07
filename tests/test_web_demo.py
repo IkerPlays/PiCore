@@ -1,5 +1,6 @@
 """Demo web (Netlify): la interfaz con una API simulada en JavaScript, sin servidor Python."""
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -33,6 +34,35 @@ class BuildTest(unittest.TestCase):
             self.assertIn("(demo)</title>", h, n)
             self.assertLess(h.index("/static/demo.js"), h.index("<style>"), "demo.js debe cargarse antes que el resto: " + n)
 
+    def test_real_media_is_copied_and_listed(self):
+        man = __import__("json").loads((self.out / "assets" / "manifest.json").read_text())
+        self.assertGreaterEqual(len(man["loading"]), 3)
+        for it in man["loading"]:
+            self.assertTrue((self.out / it["url"].lstrip("/").replace("%20", " ")).is_file(), it)
+        self.assertEqual({v["slot"] for v in man["start"]}, {1, 2, 3})
+        for v in man["start"]:
+            self.assertTrue((self.out / v["url"].lstrip("/")).stat().st_size > 10_000, v)
+
+    @unittest.skipUnless(shutil.which("ffprobe"), "sin ffprobe")
+    def test_start_videos_are_h264_so_every_browser_plays_them(self):
+        for f in sorted((self.out / "assets" / "start").glob("*.mp4")) + sorted((ROOT / "web-demo" / "assets" / "start").glob("*.mp4")):
+            c = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=codec_name,pix_fmt", "-of", "csv=p=0", str(f)],
+                               capture_output=True, text=True).stdout.strip()
+            self.assertEqual(c, "h264,yuv420p", f.name)
+
+    def test_demo_without_media_still_builds(self):
+        """Si extra-assets esta vacio (o no hay ffmpeg ni copias H.264), la demo se construye igual y usa los dibujos generados."""
+        import build_web_demo as b
+        old = (b.EXTRA, b.H264)
+        try:
+            b.EXTRA, b.H264 = Path(tempfile.mkdtemp()), Path(tempfile.mkdtemp())
+            out = Path(tempfile.mkdtemp()) / "d"
+            b.build(out)
+            man = __import__("json").loads((out / "assets" / "manifest.json").read_text())
+            self.assertEqual((man["loading"], man["start"], man["photos"]), ([], [], []))
+        finally:
+            b.EXTRA, b.H264 = old
+
     def test_portada_is_the_device_shell_and_loading_goes_to_app(self):
         shell = (self.out / "index.html").read_text()
         self.assertIn('id="f"', shell)
@@ -51,7 +81,7 @@ class BuildTest(unittest.TestCase):
 
     def test_no_python_server_files_are_published(self):
         names = {p.name for p in self.out.rglob("*") if p.is_file()}
-        self.assertFalse([n for n in names if n.endswith((".py", ".sh", ".conf", ".json"))], names)
+        self.assertFalse([n for n in names if n.endswith((".py", ".sh", ".conf")) or (n.endswith(".json") and n != "manifest.json")], names)
 
     def test_every_api_route_used_by_the_pages_is_simulated(self):
         """Si una pagina llama a una ruta nueva y la demo no la conoce, la demo se rompe en silencio: esto lo detecta."""
