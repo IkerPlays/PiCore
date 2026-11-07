@@ -315,7 +315,7 @@ class VoiceFallbackTest(unittest.TestCase):
             a.on_audio(b"x")
             a.on_audio(b"x")
             self.assertEqual(log, expected)
-            states = json.loads(Path(os.environ["PCPI_VOICE_STATE"]).read_text())
+            states = json.loads(Path(self.assistant.STATE).read_text())
             self.assertIn(states["state"], ("listening", "speaking"))
 
 
