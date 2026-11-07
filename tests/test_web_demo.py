@@ -229,6 +229,18 @@ class SimuladorVozYVisita(unittest.TestCase):
         self.assertIn("window.PCPI_DEMO", d)
 
 
+class PaginasBasicas(unittest.TestCase):
+    def test_todas_las_paginas_tienen_idioma_viewport_y_un_titulo(self):
+        import re
+        paginas = sorted((ROOT / "home" / "web").glob("*.html")) + sorted((ROOT / "web-demo").glob("*.html"))
+        self.assertGreaterEqual(len(paginas), 8)
+        for f in paginas:
+            h = f.read_text(encoding="utf-8")
+            self.assertIn('<html lang="es">', h, f.name)
+            self.assertIn('name="viewport"', h, f.name)
+            self.assertEqual(len(re.findall(r"<title>", h)), 1, f.name)
+
+
 class SintaxisJs(unittest.TestCase):
     def test_los_scripts_de_la_demo_son_javascript_valido(self):
         import shutil
