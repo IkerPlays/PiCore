@@ -11,6 +11,7 @@ PiCore corre en una Raspberry Pi en tu casa, con acceso a cosas privadas. Lo má
 - **El Modo Dev:** su consola ejecuta órdenes reales con tu usuario. Solo funciona dentro del modo Dev, desde la propia Pi y con una cabecera que ninguna web externa puede enviar; se puede apagar con `[dev] enabled = false`.
 - **Las notas, la cámara y los temporizadores:** la API solo responde a la propia máquina para estas rutas.
 - **Las acciones que cambian cosas** (modo, Wi-Fi, Pi-hole, apagar...): exigen la cabecera `X-PCPI` y cliente local.
+- **Los ajustes desde la pantalla** (`/api/settings`): la pantalla solo puede escribir una **lista cerrada** de claves de `pcpi.conf` (ciudad, contraseña de Pi-hole, salvapantallas y modo noche); cada valor se valida (tipo, rango, sin saltos de línea ni caracteres de control) y se escribe de forma atómica. No hay forma de escribir otras claves. Hay tests de seguridad para esto (`tests/test_security.py`, `tests/test_city.py`).
 - **Los secretos:** la contraseña de Pi-hole y las claves viven en `/etc/pcpi/pcpi.conf` de tu Pi. **Nunca los subas al repositorio** (ni el enlace secreto de tu calendario `.ics`).
 
 Las defensas están descritas en [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) y probadas en `tests/test_security.py`.
