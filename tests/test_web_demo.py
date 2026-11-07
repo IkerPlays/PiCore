@@ -43,6 +43,17 @@ class LandingTest(unittest.TestCase):
         self.assertIn("Sitemap:", (self.out / "robots.txt").read_text())
         self.assertIn("/simulador", (self.out / "sitemap.xml").read_text())
 
+    def test_estructura_basica_de_la_portada(self):
+        """Un solo h1, los titulos no se saltan niveles, ids unicos y el idioma esta puesto (lectores de pantalla y buscadores)."""
+        import re
+        self.assertEqual(len(re.findall(r"<h1\b", self.html)), 1)
+        niveles = [int(n) for n in re.findall(r"<h([1-6])\b", self.html)]
+        for anterior, actual in zip(niveles, niveles[1:]):
+            self.assertLessEqual(actual, anterior + 1, "se salta un nivel de titulo: h%d -> h%d" % (anterior, actual))
+        ids = re.findall(r'\bid="([^"]+)"', self.html)
+        self.assertEqual(len(ids), len(set(ids)), "hay ids repetidos")
+        self.assertIn('<html lang="es">', self.html)
+
     def test_no_emojis_and_no_external_scripts(self):
         import re
         self.assertFalse(re.search("[\U0001F300-\U0001FAFF\u2600-\u27BF]", self.html))
