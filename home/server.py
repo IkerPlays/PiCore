@@ -1274,7 +1274,52 @@ def settings_post(body):
             confedit.set_file(path, "weather", "city", name)
         _cache.pop("weather", None)                          # que el tiempo de la ciudad nueva salga ya, no a los 10 minutos
         return {"ok": True, "lat": lat, "lon": lon, "city": name}
+    if act == "prefs_get":
+        return {"prefs": prefs_values(read_conf())}
+    if act == "pref_set":
+        key = body.get("key")
+        if key not in PREFS:
+            raise ValueError("ajuste no permitido")
+        sec, name, kind, lo, hi = PREFS[key]
+        v = body.get("value")
+        if kind == "bool":
+            if not isinstance(v, bool):
+                raise ValueError("valor invalido")
+            text = "true" if v else "false"
+        else:
+            if isinstance(v, bool) or not isinstance(v, (int, float)) or v != v:
+                raise ValueError("valor invalido")
+            v = max(lo, min(hi, v))
+            text = str(int(v)) if kind == "int" else repr(float(v))
+        with _conf_lock:
+            confedit.set_file(str(conf_path()), sec, name, text)
+        return {"ok": True, "prefs": prefs_values(read_conf())}
     raise ValueError("accion invalida")
+
+
+# Ajustes que la pantalla puede cambiar: clave -> (seccion, nombre, tipo, minimo, maximo). Nada fuera de esta lista se escribe.
+PREFS = {
+    "screensaver": ("screensaver", "enabled", "bool", 0, 1),
+    "idle_minutes": ("screensaver", "idle_minutes", "float", 1, 120),
+    "night_from": ("display", "night_from", "int", 0, 23),
+    "night_to": ("display", "night_to", "int", 0, 23),
+    "night_level": ("display", "night_level", "int", display.MIN_LEVEL, 100),
+}
+
+
+def prefs_values(cp):
+    out = {}
+    for key, (sec, name, kind, lo, hi) in PREFS.items():
+        if kind == "bool":
+            out[key] = cp.getboolean(sec, name, fallback=True)
+            continue
+        try:
+            raw = cp.getfloat(sec, name, fallback={"idle_minutes": 5, "night_from": 22, "night_to": 7, "night_level": 40}[key])
+        except ValueError:
+            raw = {"idle_minutes": 5, "night_from": 22, "night_to": 7, "night_level": 40}[key]
+        raw = max(lo, min(hi, raw))
+        out[key] = int(raw) if kind == "int" else raw
+    return out
 
 
 class SettingsError(Exception):

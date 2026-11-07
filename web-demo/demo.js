@@ -340,6 +340,7 @@
       else return ERR("accion invalida");
       LS.set("audio", S.audio); return J({ ok: true });
     }
+    const prefs = () => Object.assign({ screensaver: true, idle_minutes: 5, night_from: 22, night_to: 7, night_level: 40 }, LS.get("prefs", {}));
     if (p === "/api/settings") {                                // ciudad del tiempo: lista de ejemplo (la demo no usa internet)
       if (body.action === "city_search") {
         const q = norm(String(body.q || "").trim());
@@ -350,6 +351,15 @@
         const lat = body.lat, lon = body.lon;
         if (typeof lat !== "number" || typeof lon !== "number" || !(lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180)) return ERR("peticion invalida");
         LS.set("city", String(body.name || "").replace(/[\x00-\x1f#;=\[\]]/g, " ").trim().slice(0, 60)); return J({ ok: true, lat, lon, city: LS.get("city", "") });
+      }
+      if (body.action === "prefs_get") return J({ prefs: prefs() });
+      if (body.action === "pref_set") {
+        const lim = { idle_minutes: [1, 120], night_from: [0, 23], night_to: [0, 23], night_level: [10, 100] }, k = body.key, v = body.value;
+        if (k === "screensaver") { if (typeof v !== "boolean") return ERR("valor invalido"); }
+        else if (lim[k]) { if (typeof v !== "number" || v !== v) return ERR("valor invalido"); }
+        else return ERR("ajuste no permitido");
+        const P = prefs(); P[k] = lim[k] ? Math.max(lim[k][0], Math.min(lim[k][1], k === "idle_minutes" ? v : Math.round(v))) : v;
+        LS.set("prefs", P); return J({ ok: true, prefs: P });
       }
       return ERR("accion invalida");
     }

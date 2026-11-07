@@ -4,6 +4,11 @@
 > **Nada se ha probado todavía en una Raspberry Pi real**: pantalla, audio, Wayland, cámara, micrófono e instalación con `apt`.
 
 
+
+## Preferencias desde la pantalla
+
+- La hoja Sistema deja activar el salvapantallas, elegir tras cuántos minutos salta y la hora y el brillo de la noche, sin editar `pcpi.conf`. El servidor solo escribe 5 claves de una lista cerrada y recorta los valores. Probado con tests y en el simulador; no en una Pi real.
+
 ## Simulador: voz y visita guiada
 
 - El simulador entiende frases escritas (hora, tiempo, temporizadores, música, volumen, modos...) y las responde en voz alta, como la Pi real. Probado en navegador sin pantalla; sin la IA local, lo desconocido recibe una respuesta fija.

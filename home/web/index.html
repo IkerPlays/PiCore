@@ -115,6 +115,12 @@
   #upd { margin-top:14px; padding:12px 14px; border:1px solid var(--line); border-radius:14px; background:var(--card2); }
   #upd-row { display:flex; align-items:center; gap:12px; } #upd-txt { flex:1; font-size:16px; } #upd-btn { min-height:48px; border-radius:14px; padding:0 16px; font-size:16px; }
   #upd-log { margin-top:10px; font:12px/1.4 ui-monospace,Menlo,monospace; white-space:pre-wrap; word-break:break-word; max-height:130px; overflow:auto; color:var(--dim); } #upd-log[hidden] { display:none; }
+  #prefs { margin-top:14px; padding:6px 14px; border:1px solid var(--line); border-radius:14px; background:var(--card2); }
+  .pf { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:7px 0; font-size:16px; } .pf + .pf { border-top:1px solid var(--line); }
+  .pf .st { display:flex; align-items:center; gap:4px; } .pf .st b { min-width:64px; text-align:center; font-variant-numeric:tabular-nums; }
+  .pf .st button { width:44px; height:40px; padding:0; font-size:22px; line-height:1; border-radius:12px; }
+  .pf .tg { width:58px; height:34px; padding:0; border-radius:99px; position:relative; } .pf .tg::after { content:""; position:absolute; top:3px; left:3px; width:26px; height:26px; border-radius:50%; background:var(--fg); opacity:.55; transition:transform .25s var(--ease), opacity .25s; }
+  .pf .tg[aria-checked="true"] { background:var(--acc); border-color:var(--acc); } .pf .tg[aria-checked="true"]::after { transform:translateX(24px); opacity:1; background:#fff; }
   .pwr { display:flex; gap:10px; margin-top:16px; }
   .pwr button { flex:1; min-height:56px; font-size:18px; border-radius:16px; }
   .pwr button.sure { background:var(--bad); color:#fff; border-color:var(--bad); }
@@ -440,6 +446,13 @@
   <div class="sysrow" id="s-stats"></div>
   <div id="s-health"></div>
   <div id="upd"><div id="upd-row"><span id="upd-txt"></span><button id="upd-btn">Buscar actualizaciones</button></div><pre id="upd-log" hidden></pre></div>
+  <div id="prefs" aria-label="Preferencias">
+    <div class="pf"><span>Salvapantallas</span><button id="pf-screensaver" role="switch" aria-checked="true" class="tg"></button></div>
+    <div class="pf"><span>Salta tras</span><div class="st"><button data-k="idle_minutes" data-d="-1" aria-label="Menos">-</button><b id="pf-idle_minutes"></b><button data-k="idle_minutes" data-d="1" aria-label="Más">+</button></div></div>
+    <div class="pf"><span>Noche desde las</span><div class="st"><button data-k="night_from" data-d="-1" aria-label="Menos">-</button><b id="pf-night_from"></b><button data-k="night_from" data-d="1" aria-label="Más">+</button></div></div>
+    <div class="pf"><span>Hasta las</span><div class="st"><button data-k="night_to" data-d="-1" aria-label="Menos">-</button><b id="pf-night_to"></b><button data-k="night_to" data-d="1" aria-label="Más">+</button></div></div>
+    <div class="pf"><span>Brillo de noche</span><div class="st"><button data-k="night_level" data-d="-10" aria-label="Menos">-</button><b id="pf-night_level"></b><button data-k="night_level" data-d="10" aria-label="Más">+</button></div></div>
+  </div>
   <div class="pwr"><button id="s-reboot">Reiniciar</button><button id="s-off">Apagar</button></div>
   <div id="pwr-msg"></div>
 </section>
@@ -933,7 +946,26 @@ async function pwrClick(action, id, label) {
   try { const r = await post("/api/system", {action}); $("pwr-msg").textContent = r.ok ? (action === "reboot" ? "Reiniciando…" : "Apagando… ya puedes soltar el cable en unos segundos.") : "No se pudo."; }
   catch (e) { $("pwr-msg").textContent = "No se pudo."; }
 }
-function openSystem() { renderSystem(); $("pwr-msg").textContent = ""; pwrReset(); $("scrim").classList.add("on"); $("spanel").classList.add("on"); }
+/* ---- preferencias: solo las de una lista cerrada del servidor (salvapantallas y noche) ---- */
+let prefs = {};
+const PF_FMT = {idle_minutes: v => v + " min", night_from: v => pad2(v) + ":00", night_to: v => pad2(v) + ":00", night_level: v => v + " %"};
+const PF_LIM = {idle_minutes: [1, 120], night_from: [0, 23], night_to: [0, 23], night_level: [10, 100]};
+function drawPrefs() {
+  $("pf-screensaver").setAttribute("aria-checked", prefs.screensaver === false ? "false" : "true");
+  for (const k in PF_FMT) if (prefs[k] != null) $("pf-" + k).textContent = PF_FMT[k](prefs[k]);
+}
+async function prefSet(key, value) {
+  try { const r = await post("/api/settings", {action: "pref_set", key, value}); if (r.ok) prefs = (await r.json()).prefs; } catch (e) {}
+  drawPrefs();
+}
+async function loadPrefs() { try { const r = await post("/api/settings", {action: "prefs_get"}); if (r.ok) prefs = (await r.json()).prefs; } catch (e) {} drawPrefs(); }
+$("pf-screensaver").onclick = () => prefSet("screensaver", prefs.screensaver === false);
+document.querySelectorAll("#prefs .st button").forEach(b => b.onclick = () => {
+  const k = b.dataset.k, [lo, hi] = PF_LIM[k], cur = prefs[k] == null ? lo : prefs[k];
+  let v = cur + Number(b.dataset.d); if (k.startsWith("night_") && k !== "night_level") v = (v + 24) % 24;
+  prefSet(k, Math.max(lo, Math.min(hi, v)));
+});
+function openSystem() { loadPrefs(); renderSystem(); $("pwr-msg").textContent = ""; pwrReset(); $("scrim").classList.add("on"); $("spanel").classList.add("on"); }
 function closeSystem() { pwrReset(); $("spanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on")) $("scrim").classList.remove("on"); }
 $("chip-sys").onclick = openSystem; $("s-close").onclick = closeSystem;
 $("s-reboot").onclick = () => pwrClick("reboot", "s-reboot", "reiniciar");

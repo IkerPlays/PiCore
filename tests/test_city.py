@@ -148,6 +148,24 @@ class ApiTest(unittest.TestCase):
         self.assertIn("# Mi configuracion (no borres esto)", text)
         self.assertEqual(confedit.get(text, "pihole", "password"), "secreta")
 
+    def test_prefs_get_and_set_only_the_closed_list(self):
+        code, body = self.post({"action": "prefs_get"})
+        self.assertEqual(code, 200)
+        self.assertEqual(body["prefs"]["night_from"], 22)
+        code, body = self.post({"action": "pref_set", "key": "idle_minutes", "value": 15})
+        self.assertEqual((code, body["prefs"]["idle_minutes"]), (200, 15.0))
+        self.post({"action": "pref_set", "key": "screensaver", "value": False})
+        self.post({"action": "pref_set", "key": "night_to", "value": 99})            # se recorta al maximo
+        text = (T / "pcpi.conf").read_text()
+        self.assertEqual(confedit.get(text, "screensaver", "enabled"), "false")
+        self.assertEqual(confedit.get(text, "display", "night_to"), "23")
+        self.assertEqual(confedit.get(text, "pihole", "password"), "secreta")
+        for bad in ({"key": "password", "value": "x"}, {"key": "screensaver", "value": "si"}, {"key": "night_from", "value": True},
+                    {"key": "night_from", "value": "3"}, {"key": "pihole.password", "value": 1}, {"key": "night_level"}):
+            code, _ = self.post(dict(bad, action="pref_set"))
+            self.assertEqual(code, 400, bad)
+        self.assertEqual(confedit.get((T / "pcpi.conf").read_text(), "pihole", "password"), "secreta")
+
     def test_a_dangerous_name_cannot_inject_settings(self):
         self.post({"action": "city_set", "lat": 1, "lon": 2, "name": "X\n[pihole]\npassword = hackeado"})
         text = (T / "pcpi.conf").read_text()
