@@ -3,6 +3,7 @@
 
   pcpi-config get SECCION CLAVE
   pcpi-config set SECCION CLAVE VALOR
+  pcpi-config show [SECCION]      lista lo que tienes puesto (sin comentarios; las contraseñas salen como ******)
 Ejemplo:  pcpi-config set weather lat 28.1235
 """
 import os
@@ -18,12 +19,45 @@ for cand in (HERE.parent / "home", Path("/opt/pcpi/home")):
 import confedit  # noqa: E402
 from confedit import get, section_range, set_value, split  # noqa: E402  (se reexportan: las pruebas los usan desde aqui)
 
-__all__ = ["get", "section_range", "set_value", "split", "main"]
+__all__ = ["get", "section_range", "set_value", "split", "show", "main"]
 
 PATH = os.environ.get("PCPI_CONF", "/etc/pcpi/pcpi.conf")
 
 
+SECRET_WORDS = ("password", "passwd", "secret", "token", "apikey", "api_key", "key")
+
+
+def show(text, only=None):
+    """Lo que hay puesto (secciones y valores), sin comentarios y con las contraseñas tapadas. Devuelve el texto."""
+    out, sec = [], None
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line[0] in "#;":
+            continue
+        if line.startswith("[") and line.endswith("]"):
+            sec = line[1:-1].strip()
+            if only is None or sec == only:
+                out.append("[%s]" % sec)
+            continue
+        if "=" in line and (only is None or sec == only):
+            k, _, v = line.partition("=")
+            k, v = k.strip(), v.strip()
+            if not any(w in k.lower() for w in SECRET_WORDS) and " #" in v:
+                v = v.split(" #", 1)[0].rstrip()                      # comentario al final de la linea
+            out.append("%s = %s" % (k, "******" if v and any(w in k.lower() for w in SECRET_WORDS) else v))
+    return "\n".join(out)
+
+
 def main(argv):
+    if len(argv) >= 2 and argv[1] == "show" and len(argv) <= 3:
+        try:
+            text = open(PATH, encoding="utf-8").read()
+        except FileNotFoundError:
+            text = ""
+        out = show(text, argv[2] if len(argv) == 3 else None)
+        if out:
+            print(out)
+        return 0 if out else 1
     if len(argv) < 4 or argv[1] not in ("get", "set") or (argv[1] == "set" and len(argv) != 5):
         print(__doc__, file=sys.stderr)
         return 2

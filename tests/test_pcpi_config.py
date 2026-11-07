@@ -33,6 +33,20 @@ class ConfigToolTest(unittest.TestCase):
         return subprocess.run([sys.executable, SCRIPT, *args], capture_output=True, text=True,
                               env={**os.environ, "PCPI_CONF": str(self.f)})
 
+    def test_show_lists_values_without_comments_and_hides_secrets(self):
+        self.f.write_text(SAMPLE + "\n[pihole]\nurl = http://localhost\npassword = SECRETISIMA\n")
+        r = self.run_tool("show")
+        self.assertEqual(r.returncode, 0)
+        self.assertIn("[weather]\nlat = 40.4168\nlon = -3.7038", r.stdout)
+        self.assertIn("password = ******", r.stdout)
+        self.assertNotIn("SECRETISIMA", r.stdout)
+        self.assertNotIn("cabecera", r.stdout)
+        self.assertNotIn("allowed_hosts", r.stdout)                  # estaba comentado
+        solo = self.run_tool("show", "voice")
+        self.assertEqual(solo.stdout.strip(), "[voice]\ndevice = default")
+        self.assertEqual(self.run_tool("show", "noexiste").returncode, 1)
+        self.assertEqual(self.run_tool("show", "a", "b").returncode, 2)
+
     def test_get(self):
         self.assertEqual(self.run_tool("get", "weather", "lat").stdout.strip(), "40.4168")   # sin el comentario final
         self.assertEqual(self.run_tool("get", "server", "port").stdout.strip(), "8080")

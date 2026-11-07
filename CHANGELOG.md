@@ -5,6 +5,10 @@
 
 
 
+## pcpi-config show
+
+- `pcpi-config show [SECCION]` lista lo que tienes puesto en `pcpi.conf` sin comentarios y con las contraseñas tapadas (`******`): sirve para pegarlo en una incidencia sin filtrar secretos. Probado con tests.
+
 ## Buscar notas: las fijadas salen primero
 
 - Al buscar, las notas fijadas siguen arriba y con su estrella (antes solo pasaba sin buscar). Probado con tests.
