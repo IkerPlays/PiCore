@@ -417,14 +417,23 @@ def main():
         except (OSError, subprocess.TimeoutExpired) as e:   # sin aplay o sin salida de audio: seguimos
             print("no se pudo reproducir el pitido: %r" % e, file=sys.stderr, flush=True)
 
+    last = {"t": ""}                    # lo ultimo que dijo la Pi (para «repite»)
+
+    def run_intent(i):
+        if i.name == "repeat":
+            return last["t"] or "Todavía no he dicho nada"
+        return execute(cfg, i)
+
     def speak(text):
+        if text:
+            last["t"] = text
         try:
             subprocess.run(["espeak-ng", "-v", cfg["voice"], "-s", "160", text], capture_output=True, timeout=30)
         except (OSError, subprocess.TimeoutExpired) as e:
             print("no se pudo hablar (¿falta espeak-ng?): %r" % e, file=sys.stderr, flush=True)
 
     asst = Assistant(
-        detector, recognizer, lambda i: execute(cfg, i), speak, beep,
+        detector, recognizer, run_intent, speak, beep,
         restart_capture, detector.name, cfg["followup"], ai=cfg["ai"],
     )
     print("Escuchando. Palabra de activacion: %r (%s)" % (detector.name, type(detector).__name__), flush=True)

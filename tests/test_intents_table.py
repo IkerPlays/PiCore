@@ -23,7 +23,7 @@ CASOS = [
     ("activa el salvapantallas", "screensaver"), ("desactiva el salvapantallas", "screensaver"),
     ("toma nota comprar leche", "note_add"), ("lee mi última nota", "note_read"), ("añade pan a la lista de la compra", "list_add"),
     ("cuánto espacio libre queda", "sys_info"), ("cómo está la pi", "sys_info"), ("a qué wifi estoy conectado", "net_info"),
-    ("qué puedes hacer", "help"), ("gracias", "chat"), ("cuánto llevas encendida", "uptime"),
+    ("qué puedes hacer", "help"), ("repite", "repeat"), ("qué has dicho", "repeat"), ("gracias", "chat"), ("cuánto llevas encendida", "uptime"),
 ]
 
 
@@ -35,7 +35,7 @@ class TablaDeOrdenes(unittest.TestCase):
             self.assertEqual(r.name, esperada, "%r -> %r" % (frase, r))
 
     def test_frases_sin_orden_no_hacen_nada(self):
-        for frase in ("", "blablabla", "me gusta el queso", "hoy fui al mercado"):
+        for frase in ("", "blablabla", "repite esta canción", "me gusta el queso", "hoy fui al mercado"):
             self.assertIsNone(intents.parse(frase), frase)
 
 

@@ -596,6 +596,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «cuál es mi próximo evento» | Te dice el siguiente evento del calendario, aunque no sea hoy |
 | «a qué wifi estoy conectado» · «tengo internet» | Te dice la red a la que estás conectada y si hay internet |
 | «qué suena» · «cómo se llama esta canción» | Te dice la canción que suena en Musix (o que no suena nada) |
+| «repite» · «qué has dicho» | La Pi repite lo último que dijo |
 | «cuánto espacio libre queda» · «cuánta memoria libre hay» · «qué temperatura tiene la Pi» · «cómo está la Pi» | Te dice el espacio de la tarjeta, la memoria libre y/o la temperatura del procesador |
 | «activa el salvapantallas» · «desactiva el salvapantallas» | Enciende o apaga el salvapantallas / marco de fotos |
 | «activa la vigilancia» · «desactiva la vigilancia» | Enciende o apaga la detección de movimiento (si hay cámara) |

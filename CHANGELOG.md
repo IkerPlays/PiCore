@@ -5,6 +5,10 @@
 
 
 
+## Voz: «repite»
+
+- «Repite» / «qué has dicho» hace que la Pi repita su última respuesta. Probado el reconocimiento de la frase con tests; el cableado del asistente real no tiene test automático ni se ha probado en una Pi.
+
 ## Voz: «avísame en…» y «recuérdame en…»
 
 - «Avísame en veinte minutos» y «recuérdame en diez minutos sacar la pizza» crean un temporizador (con nombre si lo dices). Probado con tests; no en una Pi real.
