@@ -61,6 +61,20 @@
             box-shadow:0 -20px 60px #0008; padding:20px 22px 24px; transform:translate(-50%,105%); transition:transform .5s var(--ease); max-height:86vh; overflow:auto; }
   #wpanel.on { transform:translate(-50%,0); }
   #wpanel h3 { font-size:22px; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  #xbtn { margin-top:12px; width:100%; min-height:50px; font-size:17px; border-radius:14px; display:flex; align-items:center; justify-content:center; gap:8px; }
+  #xbtn svg { width:20px; height:20px; }
+  #xpanel { position:fixed; left:50%; bottom:0; z-index:21; width:min(760px,100vw); background:var(--card); border:1px solid var(--line); border-bottom:0; border-radius:26px 26px 0 0;
+            box-shadow:0 -20px 60px #0008; padding:18px 22px 22px; transform:translate(-50%,105%); transition:transform .5s var(--ease); max-height:92vh; overflow:auto; }
+  #xpanel.on { transform:translate(-50%,0); }
+  #xpanel h3 { font-size:22px; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:8px; }
+  #xpanel h3 span { display:flex; gap:8px; } #xpanel h3 button { height:44px; min-width:44px; font-size:16px; border-radius:22px; padding:0 14px; }
+  #xlink { display:flex; gap:8px; margin-bottom:10px; } #xlink input { flex:1; min-width:0; font:inherit; font-size:16px; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--card2); color:var(--fg); }
+  #xlink button { border-radius:12px; padding:0 16px; }
+  #xframe { width:100%; height:352px; border:0; border-radius:14px; background:var(--card2); display:block; }
+  #xnote { color:var(--dim); font-size:13px; margin-top:10px; line-height:1.4; } #xerr { color:var(--warn); font-size:14px; min-height:18px; margin-bottom:6px; }
+  #xpanel.full { left:0; top:0; width:100vw; max-height:none; height:100vh; border-radius:0; transform:none; display:flex; flex-direction:column; padding:10px 12px; z-index:40; }
+  #xpanel.full:not(.on) { transform:translate(0,105%); }
+  #xpanel.full #xframe { flex:1; height:auto; } #xpanel.full #xnote, #xpanel.full #xlink { display:none; }
   #mctl { display:flex; align-items:center; gap:10px; margin-top:12px; } #mctl[hidden] { display:none; }
   #mctl button { width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; padding:0; }
   #mctl svg { width:24px; height:24px; }
@@ -319,6 +333,7 @@
           <div id="pstate"></div>
         </div>
       </div>
+      <button id="xbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l5.5-3.5z" fill="currentColor"/></svg> Reproductor de Spotify</button>
       <div id="mctl" hidden>
         <button id="m-prev" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.5v14H6zM20 5v14L9.5 12z"/></svg></button>
         <button id="m-play" aria-label="Pausa o seguir"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg></button>
@@ -355,6 +370,13 @@
   <h3>Tiempo <button id="w-close" aria-label="Cerrar">✕</button></h3>
   <div class="dim" style="font-size:14px;margin-bottom:6px">Próximas horas</div><div class="hours" id="w-hours"></div>
   <div class="dim" style="font-size:14px;margin-bottom:6px">Próximos días</div><div class="days" id="w-days"></div>
+</section>
+<section id="xpanel" aria-label="Reproductor de Spotify">
+  <h3>Spotify <span><button id="x-full" aria-label="Pantalla completa">Pantalla completa</button><button id="x-close" aria-label="Cerrar">✕</button></span></h3>
+  <div id="xlink"><input id="xin" placeholder="Pega un enlace de open.spotify.com (lista, álbum, canción…)" autocomplete="off" spellcheck="false"><button id="xgo" class="primary">Cargar</button></div>
+  <div id="xerr"></div>
+  <iframe id="xframe" title="Reproductor de Spotify" allow="encrypted-media; autoplay; fullscreen; clipboard-write" referrerpolicy="no-referrer"></iframe>
+  <div id="xnote">Es el reproductor incrustado de Spotify: sin iniciar sesión suena una muestra de 30 s por canción. Cerrar esta hoja no corta la música.</div>
 </section>
 <section id="spanel" aria-label="Sistema">
   <h3>Sistema <button id="s-close" aria-label="Cerrar">✕</button></h3>
@@ -566,7 +588,7 @@ function openCalendar() {
   }
   $("scrim").classList.add("on"); $("cpanel").classList.add("on");
 }
-function closeCalendar() { $("cpanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on")) $("scrim").classList.remove("on"); }
+function closeCalendar() { $("cpanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#xpanel.on")) $("scrim").classList.remove("on"); }
 /* ---- sistema: salud de la Pi y apagar/reiniciar (con confirmacion de dos toques) ---- */
 /* ---- mandos de Spotify (solo si hay Client ID y sesion iniciada) ---- */
 async function music(action) {
@@ -578,7 +600,29 @@ async function music(action) {
 }
 $("m-prev").onclick = () => music("previous"); $("m-next").onclick = () => music("next");
 $("m-play").onclick = () => music(document.body.classList.contains("playing") ? "pause" : "play");
-function paintSpotify(sp) { $("mctl").hidden = !(sp && sp.connected); }
+function paintSpotify(sp) { $("mctl").hidden = !(sp && sp.connected); if (sp && sp.embed !== undefined && sp.embed !== xUrl && !$("xpanel").classList.contains("on")) setEmbed(sp.embed); }
+/* ---- reproductor incrustado de Spotify (el reproductor web completo no se deja meter en un iframe) ---- */
+let xUrl = null;
+function setEmbed(url) {
+  xUrl = url || null;
+  const f = $("xframe");
+  if (xUrl && f.dataset.src !== xUrl) { f.dataset.src = xUrl; f.src = xUrl; }
+  if (!xUrl) { f.removeAttribute("src"); f.dataset.src = ""; }
+}
+function openEmbed() { $("scrim").classList.add("on"); $("xpanel").classList.add("on"); }
+function closeEmbed() { $("xpanel").classList.remove("full", "on"); $("x-full").textContent = "Pantalla completa"; if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#xpanel.on")) $("scrim").classList.remove("on"); }
+async function loadEmbed() {
+  $("xerr").textContent = "";
+  try {
+    const r = await post("/api/spotify", {action: "embed", link: $("xin").value});
+    const j = await r.json();
+    if (!r.ok) { $("xerr").textContent = j.error || "No se pudo"; return; }
+    setEmbed(j.url); $("xin").value = "";
+  } catch (e) { $("xerr").textContent = "No se pudo"; }
+}
+$("xbtn").onclick = openEmbed; $("x-close").onclick = closeEmbed; $("xgo").onclick = loadEmbed;
+$("xin").addEventListener("keydown", e => { if (e.key === "Enter") loadEmbed(); });
+$("x-full").onclick = () => { const f = $("xpanel").classList.toggle("full"); $("x-full").textContent = f ? "Salir de pantalla completa" : "Pantalla completa"; };
 let sysInfo = null, pwrAsk = null, pwrTimer = 0;
 function paintSystem(sy) {
   sysInfo = sy || null;
@@ -645,7 +689,7 @@ function showSaver() {
   svClock(); box.classList.add("on"); svShowPhoto();
 }
 function hideSaver() { svLast = Date.now(); if (!svOn) return; svOn = false; clearTimeout(svTimer); $("saver").classList.remove("on"); setTimeout(() => { if (!svOn) $("saver").querySelectorAll(".ph").forEach(o => o.remove()); }, 1300); }
-function busyForSaver() { return camShown() || $("tring").classList.contains("on") || document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on") || $("switching").classList.contains("on"); }
+function busyForSaver() { return camShown() || $("tring").classList.contains("on") || document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#xpanel.on") || $("switching").classList.contains("on"); }
 ["pointerdown", "keydown", "touchstart"].forEach(ev => document.addEventListener(ev, e => { if (svOn) { e.preventDefault(); e.stopPropagation(); } hideSaver(); }, true));
 setInterval(() => {
   if (svOn) { svClock(); if (busyForSaver()) hideSaver(); return; }
@@ -879,7 +923,7 @@ function closeSheet() {
 }
 $("chip-wifi").onclick = openSheet;
 $("sh-close").onclick = closeSheet;
-$("scrim").onclick = () => { closeSheet(); closeBright(); closeTimers(); closeWeather(); closeCalendar(); closeSystem(); };
+$("scrim").onclick = () => { closeSheet(); closeBright(); closeTimers(); closeWeather(); closeCalendar(); closeSystem(); if (!$("xpanel").classList.contains("full")) closeEmbed(); };
 
 async function refresh() {
   let s;

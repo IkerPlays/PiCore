@@ -169,3 +169,53 @@ def command(action, client_id, device_name="PiCore", path=None, http=real_http, 
     if code not in (200, 202, 204):
         raise SpotifyError("Spotify respondió HTTP %s" % code)
     return {"ok": True, "action": action}
+
+
+# ------------------------------------------------------------------ reproductor web incrustado (sin cuenta de desarrollador)
+# El reproductor completo de open.spotify.com NO se puede meter en un iframe (Spotify lo prohibe con frame-ancestors);
+# solo el reproductor «embed» (open.spotify.com/embed/...), que reproduce una lista, album, cancion, artista o podcast.
+import re  # noqa: E402
+
+EMBED_KINDS = ("playlist", "album", "track", "artist", "show", "episode")
+_EMBED_RE = re.compile(r"^(?:intl-[a-z]{2}(?:-[a-z]{2})?/)?(?:embed/)?(playlist|album|track|artist|show|episode)/([A-Za-z0-9]{10,30})/?$")
+
+
+def embed_url(link):
+    """Enlace de Spotify (web, /embed/ o spotify:tipo:id) -> direccion del reproductor incrustable, o ValueError."""
+    link = str(link or "").strip()
+    m = re.match(r"^spotify:(playlist|album|track|artist|show|episode):([A-Za-z0-9]{10,30})$", link)
+    if m:
+        kind, ident = m.groups()
+    else:
+        u = urllib.parse.urlsplit(link)
+        if u.scheme != "https" or u.hostname != "open.spotify.com" or u.port not in (None, 443):
+            raise ValueError("Pega un enlace de open.spotify.com (lista, álbum, canción, artista o podcast)")
+        m = _EMBED_RE.match(u.path.lstrip("/"))
+        if not m:
+            raise ValueError("Ese enlace de Spotify no es de una lista, álbum, canción, artista o podcast")
+        kind, ident = m.groups()
+    return "https://open.spotify.com/embed/%s/%s" % (kind, ident)
+
+
+def embed_file():
+    return Path(os.environ.get("PCPI_SPOTIFY_EMBED", "/var/lib/pcpi/spotify_embed.json"))
+
+
+def load_embed(path=None):
+    try:
+        return embed_url(json.loads(Path(path or embed_file()).read_text()).get("url", ""))
+    except (OSError, ValueError, AttributeError):
+        return None
+
+
+def save_embed(link, path=None):
+    url = embed_url(link) if link else None
+    f = Path(path or embed_file())
+    if url is None:
+        try:
+            f.unlink()
+        except FileNotFoundError:
+            pass
+        return None
+    _save({"url": url}, f)
+    return url

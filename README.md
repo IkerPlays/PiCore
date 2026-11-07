@@ -67,6 +67,7 @@ La wifi de casa va en la microSD (Imager). Para otra red, toca el icono de Wi-Fi
 
 - **Brillo** (☀ en Casa): deslizante y modo noche automático con rampa suave. Si la pantalla no tiene control por software, se oscurece con una capa.
 - **Vigilancia** (👁): detección de movimiento con la cámara y aviso en pantalla; no guarda ni envía imágenes. Apagada por defecto.
+- **Reproductor de Spotify incrustado** en la pantalla (pegas un enlace de lista/álbum/canción, pantalla completa; sin Premium ni app propia, con límites: muestras de 30 s sin sesión y posible falta de DRM en Chromium, sin probar en una Pi real).
 - **Botones de Spotify** (pausa/siguiente/anterior, también por voz) con la API web de Spotify: opcional, exige Premium y una app propia gratuita (`pcpi-spotify login`).
 - **Hoja «Sistema»** en la pantalla: disco, memoria, temperatura, avisos de salud, apagar/reiniciar con doble toque y aviso de actualizaciones (comprobación semanal opcional, nunca instala sola).
 - **Calendario** de solo lectura (`.ics` de Google/Apple): próximos eventos en la pantalla y por voz.

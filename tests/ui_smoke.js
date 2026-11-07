@@ -120,6 +120,30 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('cargando muestra el rayo y quita el aviso', (await page.textContent('#chip-bat')).includes('⚡80%') && !(await page.getAttribute('#chip-bat', 'class')).includes('low'));
   await page.unroute('**/api/status');
 
+  // ------------------------------------------------------------------ reproductor incrustado de Spotify
+  await page.goto(base + '/');
+  await sleep(1000);
+  await page.click('#xbtn');
+  await sleep(600);
+  await page.fill('#xin', 'https://evil.com/playlist/37i9dQZF1DXcBWIGoYBM5M');
+  await page.click('#xgo');
+  await page.waitForFunction(() => document.getElementById('xerr').textContent.length > 0, null, { timeout: 5000 }).catch(() => {});
+  check('un enlace que no es de Spotify se rechaza con un mensaje', (await page.textContent('#xerr')).includes('open.spotify.com'), await page.textContent('#xerr'));
+  check('sin enlace valido el reproductor esta vacio', !(await page.getAttribute('#xframe', 'src')));
+  await page.fill('#xin', 'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M?si=zzz');
+  await page.click('#xgo');
+  await page.waitForFunction(() => (document.getElementById('xframe').getAttribute('src') || '').includes('/embed/playlist/'), null, { timeout: 5000 }).catch(() => {});
+  check('un enlace valido carga el reproductor embed', (await page.getAttribute('#xframe', 'src')) === 'https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M');
+  await page.click('#x-full');
+  await sleep(500);
+  const fb = await page.evaluate(() => { const r = document.getElementById('xpanel').getBoundingClientRect(); return [r.width, r.height]; });
+  check('pantalla completa ocupa toda la pantalla', fb[0] >= 1020 && fb[1] >= 595, JSON.stringify(fb));
+  await page.click('#x-full');
+  await page.click('#x-close');
+  await sleep(500);
+  check('cerrar la hoja no quita el reproductor (la musica sigue)', !!(await page.getAttribute('#xframe', 'src')));
+  await page.request.post(base + '/api/spotify', { headers: { 'X-PCPI': '1' }, data: { action: 'embed', link: '' } });
+
   // ------------------------------------------------------------------ mandos de Spotify
   await page.goto(base + '/');
   await sleep(1200);

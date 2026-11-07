@@ -175,7 +175,7 @@ class ApiTest(unittest.TestCase):
 
     def test_status_says_not_configured(self):
         s = json.load(urllib.request.urlopen(self.base + "/api/status"))
-        self.assertEqual(s["spotify"], {"configured": False, "connected": False})
+        self.assertEqual(s["spotify"], {"configured": False, "connected": False, "embed": None})
 
     def test_needs_header_and_reports_missing_setup(self):
         self.assertEqual(self.post({"action": "pause"}, hdr=False)[0], 403)
@@ -189,6 +189,77 @@ class ApiTest(unittest.TestCase):
             self.assertEqual(self.post({"action": "format"})[0], 400)
         finally:
             (T / "pcpi.conf").unlink()
+
+
+ID = "37i9dQZF1DXcBWIGoYBM5M"
+
+
+class EmbedTest(unittest.TestCase):
+    def test_links_become_embed_urls(self):
+        want = "https://open.spotify.com/embed/playlist/" + ID
+        for link in ("https://open.spotify.com/playlist/%s" % ID, "https://open.spotify.com/playlist/%s?si=abc123&utm_source=copy-link" % ID,
+                     "https://open.spotify.com/intl-es/playlist/%s" % ID, "https://open.spotify.com/embed/playlist/%s" % ID, "  spotify:playlist:%s " % ID,
+                     "https://open.spotify.com/playlist/%s/" % ID):
+            self.assertEqual(sp.embed_url(link), want, link)
+        self.assertEqual(sp.embed_url("https://open.spotify.com/track/" + ID), "https://open.spotify.com/embed/track/" + ID)
+
+    def test_anything_else_is_rejected(self):
+        for bad in ("", None, "hola", "http://open.spotify.com/playlist/" + ID, "https://evil.com/playlist/" + ID, "https://open.spotify.com.evil.com/playlist/" + ID,
+                    "https://open.spotify.com@evil.com/playlist/" + ID, "https://open.spotify.com:8443/playlist/" + ID, "https://open.spotify.com/user/pepe",
+                    "https://open.spotify.com/playlist/short", "https://open.spotify.com/playlist/" + ID + "/../x", "javascript:alert(1)",
+                    "https://open.spotify.com/playlist/%s\"onload=\"x" % ID, "spotify:user:pepe"):
+            with self.assertRaises(ValueError, msg=str(bad)):
+                sp.embed_url(bad)
+
+    def test_save_load_and_clear(self):
+        f = T / "emb.json"
+        self.assertIsNone(sp.load_embed(f))
+        self.assertEqual(sp.save_embed("https://open.spotify.com/album/" + ID, f), "https://open.spotify.com/embed/album/" + ID)
+        self.assertEqual(sp.load_embed(f), "https://open.spotify.com/embed/album/" + ID)
+        self.assertIsNone(sp.save_embed("", f))
+        self.assertIsNone(sp.load_embed(f))
+        f.write_text(json.dumps({"url": "https://evil.com/x"}))          # un fichero manipulado no se carga
+        self.assertIsNone(sp.load_embed(f))
+
+    def test_csp_allows_only_the_spotify_frame(self):
+        self.assertIn("frame-src https://open.spotify.com;", server.CSP)
+        self.assertIn("frame-ancestors 'none'", server.CSP)
+
+
+class EmbedApiTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        os.environ.update(ENV)
+        os.environ["PCPI_SPOTIFY_EMBED"] = str(T / "api_embed.json")
+        cls.srv = server.make_server("127.0.0.1", 0)
+        cls.base = "http://127.0.0.1:%d" % cls.srv.server_address[1]
+        threading.Thread(target=cls.srv.serve_forever, daemon=True).start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.srv.shutdown()
+        os.environ.pop("PCPI_SPOTIFY_EMBED", None)
+
+    def post(self, body):
+        r = urllib.request.Request(self.base + "/api/spotify", data=json.dumps(body).encode(), headers={"X-PCPI": "1"})
+        try:
+            with urllib.request.urlopen(r) as resp:
+                return resp.status, json.load(resp)
+        except urllib.error.HTTPError as e:
+            return e.code, json.loads(e.read() or b"{}")
+
+    def test_set_show_in_status_and_clear(self):
+        code, body = self.post({"action": "embed", "link": "https://open.spotify.com/playlist/" + ID})
+        self.assertEqual((code, body["url"]), (200, "https://open.spotify.com/embed/playlist/" + ID))
+        s = json.load(urllib.request.urlopen(self.base + "/api/status"))
+        self.assertEqual(s["spotify"]["embed"], body["url"])
+        self.assertEqual(self.post({"action": "embed", "link": "https://evil.com/x"})[0], 502)
+        self.assertEqual(self.post({"action": "embed", "link": ""})[1]["url"], None)
+        self.assertIsNone(json.load(urllib.request.urlopen(self.base + "/api/status"))["spotify"]["embed"])
+
+    def test_page_serves_the_csp_with_frame_src(self):
+        r = urllib.request.urlopen(self.base + "/")
+        self.assertIn("frame-src https://open.spotify.com", r.headers["Content-Security-Policy"])
 
 
 class CliTest(unittest.TestCase):

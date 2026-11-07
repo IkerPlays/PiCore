@@ -42,7 +42,7 @@ MODES = ("desktop", "iker", "home")
 PAGES = {"/": "index.html", "/iker": "iker.html", "/loading": "loading.html"}
 LOCAL_HOSTS = ("localhost", "127.0.0.1", "[::1]")
 CSP = ("default-src 'self'; img-src 'self' https: data:; media-src 'self'; style-src 'self' 'unsafe-inline'; "
-       "script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; form-action 'none'; base-uri 'none'")
+       "script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-src https://open.spotify.com; frame-ancestors 'none'; form-action 'none'; base-uri 'none'")
 HOST_RE = re.compile(r"^(\[[0-9a-f:.]+\]|[a-z0-9._-]+)(?::[0-9]{1,5})?$")
 NOTE_ID = re.compile(r"^[0-9a-f]{16}$")
 MAX_NOTE = 1_000_000
@@ -711,7 +711,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Referrer-Policy", "no-referrer")
         self.send_header("X-Frame-Options", "DENY")
         if ctype.startswith("text/html"):
-            # solo recursos propios (+ portadas de Spotify por https); nada de iframes ni formularios externos
+            # solo recursos propios (+ portadas y el reproductor incrustado de Spotify); ni otros iframes ni formularios externos
             self.send_header("Content-Security-Policy", CSP)
         self.end_headers()
         self.wfile.write(body)
@@ -1105,10 +1105,15 @@ def ai_answer(question):
 
 def spotify_info(cp):
     cid = cp.get("spotify", "client_id", fallback="").strip()
-    return {"configured": bool(cid), "connected": bool(cid) and spotify_ctl.logged_in()}
+    return {"configured": bool(cid), "connected": bool(cid) and spotify_ctl.logged_in(), "embed": spotify_ctl.load_embed()}
 
 
 def spotify_post(body):
+    if body.get("action") == "embed":
+        try:
+            return {"ok": True, "url": spotify_ctl.save_embed(body.get("link"))}
+        except ValueError as e:
+            raise spotify_ctl.SpotifyError(str(e))
     cp = read_conf()
     return spotify_ctl.command(body.get("action"), cp.get("spotify", "client_id", fallback="").strip(),
                                cp.get("spotify", "device_name", fallback="PiCore").strip() or "PiCore")
