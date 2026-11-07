@@ -86,10 +86,10 @@ También hay un icono **«PiCore · Elegir modo»** en el menú de aplicaciones,
 - **Musix**, el reproductor propio: **YT Music** (YouTube incrustado: pegas un enlace), **MP3 Player** (música offline en la Pi, importable desde un USB, con aleatorio y temporizador para dormir) y **DYMusic** (buscas una canción en YouTube y la web de conversión guarda el MP3 en el MP3 Player). Por voz: «pausa la música», «siguiente canción». Sin Premium ni cuentas.
 - **Hoja «Sistema»**: disco, memoria, temperatura, avisos de salud, apagar/reiniciar con doble toque, y **actualizar desde la pantalla** (con registro; automático opcional por franja horaria, apagado por defecto).
 - **Brillo** con modo noche automático (si la pantalla no tiene control por software, se oscurece con una capa), **vigilancia** por movimiento con la cámara (no guarda ni envía imágenes; apagada por defecto) y **batería** (solo con un UPS/HAT que la mida).
-- **Tu ciudad desde la pantalla**: eliges la ciudad del tiempo escribiendo su nombre con el teclado en pantalla (sin editar coordenadas), y si el servidor se reinicia la interfaz muestra «Reconectando…» y se recupera sola.
+- **Ajustes desde la pantalla, sin editar archivos**: la **ciudad** del tiempo (con el teclado en pantalla), la **contraseña de Pi-hole** («Conectar Pi-hole», que se prueba al momento), el **salvapantallas** y el **modo noche** (hoja Sistema). El servidor solo escribe una lista cerrada de ajustes. Si se reinicia, la interfaz muestra «Reconectando…» y se recupera sola.
 - **Calendario** de solo lectura (`.ics` de Google/Apple), **tiempo** por horas y próximos días con aviso de lluvia, **salvapantallas** con tus fotos, **temporizadores y alarmas** por voz que persisten tras reiniciar.
 - **Voz sin nube**: Whisper (modelo descargado al instalar) y palabra de activación dedicada. **IA local opcional** (`./install.sh --ai`: Ollama + Qwen, con datos reales de la Pi; ver el [tutorial 7.6](docs/TUTORIAL.md#76-ia-local-con-ollama--qwen-opcional) para lo que cabe de verdad).
-- **Modo Iker**: buscar en las notas, **etiquetas** (`#compra`), **exportar a PDF**, **marcadores** de webs, copias automáticas y exportar a USB.
+- **Modo Iker**: buscar en las notas, **etiquetas** (`#compra`), **fijar** y **duplicar** notas, **exportar a PDF**, **marcadores** de webs, copias automáticas y exportar a USB. Por voz: «toma nota…», «lee mi última nota» y «añade leche a la lista de la compra».
 - **Autorreparación**: si Chromium se cae o se queda en blanco, se relanza solo por la pantalla de Carga.
 
 ## Pantallas de Inicio y de Carga
