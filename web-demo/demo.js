@@ -617,6 +617,7 @@
       else { const m = /(\d+|[a-z]+)\s*(?:por ciento)?$/.exec(t); const n = m ? (/^\d+$/.test(m[1]) ? +m[1] : WORDS[m[1]]) : null; if (n == null) return "No he entendido el volumen"; S.audio.volume = Math.min(100, n); }
       S.audio.muted = false; LS.set("audio", S.audio); return "Volumen al " + S.audio.volume + " por ciento";
     }
+    if (has("apaga la pantalla", "oscurece la pantalla", "pon la pantalla en negro")) { S.display.auto = false; S.display.level = 10; LS.set("display", S.display); return "Brillo al 10 por ciento"; }
     if (has("brillo")) { if (has("auto")) S.display.auto = true; else { S.display.auto = false; S.display.level = Math.max(10, Math.min(100, S.display.level + (has("sube", "mas") ? 20 : -20))); } LS.set("display", S.display); return has("auto") ? "Brillo automático" : "Brillo al " + S.display.level + " por ciento"; }
     if (has("salvapantalla", "marco de fotos")) {
       const on = !has("desactiva", "apaga", "quita"), P = Object.assign({ screensaver: true, idle_minutes: 5, night_from: 22, night_to: 7, night_level: 40 }, LS.get("prefs", {}));
