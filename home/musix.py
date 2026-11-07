@@ -17,6 +17,7 @@ import urllib.request
 from pathlib import Path
 
 AUDIO = {".mp3": "audio/mpeg", ".m4a": "audio/mp4", ".aac": "audio/aac", ".ogg": "audio/ogg", ".opus": "audio/ogg", ".wav": "audio/wav", ".flac": "audio/flac"}
+HISTORY_MAX = 8
 MAX_TRACKS = 3000
 MAX_IMPORT_FILES = 500
 MAX_IMPORT_BYTES = 8 * 1024 ** 3
@@ -160,6 +161,40 @@ def embed_url(link):
     if lst and LIST_ID.match(lst):
         return "https://www.youtube-nocookie.com/embed/videoseries?list=" + lst
     raise ValueError("No encuentro un video ni una lista de YouTube en ese enlace")
+
+
+def history_file():
+    return Path(os.environ.get("PCPI_MUSIC_HISTORY", "/var/lib/pcpi/musix_history.json"))
+
+
+def load_history(path=None):
+    """Ultimos enlaces de YT Music: [{url, title}]. Se revalidan al leer (un fichero manipulado no cuela nada)."""
+    try:
+        raw = json.loads(Path(path or history_file()).read_text())
+    except (OSError, ValueError):
+        return []
+    out = []
+    for it in raw if isinstance(raw, list) else []:
+        try:
+            out.append({"url": embed_url(it["url"]), "title": " ".join(str(it.get("title") or "").split())[:80]})
+        except (ValueError, KeyError, TypeError, AttributeError):
+            continue
+    return out[:HISTORY_MAX]
+
+
+def add_history(url, title="", path=None):
+    f = Path(path or history_file())
+    url = embed_url(url)
+    items = [h for h in load_history(f) if h["url"] != url]
+    items.insert(0, {"url": url, "title": " ".join(str(title or "").split())[:80]})
+    items = items[:HISTORY_MAX]
+    tmp = f.with_suffix(".tmp")
+    f.parent.mkdir(parents=True, exist_ok=True)
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w") as fh:
+        fh.write(json.dumps(items))
+    os.replace(tmp, f)
+    return items
 
 
 def embed_file():

@@ -81,6 +81,9 @@
   .mxrow { display:flex; gap:8px; margin-bottom:10px; } .mxrow input { flex:1; min-width:0; font:inherit; font-size:16px; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--card2); color:var(--fg); }
   .mxrow[hidden] { display:none; }
   .mxrow button { border-radius:12px; padding:0 16px; }
+  #mxhist { display:flex; gap:8px; overflow-x:auto; padding-bottom:8px; } #mxhist:empty { display:none; }
+  #mxhist button { flex:0 0 auto; max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border-radius:999px; padding:8px 14px; font-size:14px; }
+  #mxpanel.full #mxhist { display:none; }
   #mxframe { width:100%; flex:1; min-height:300px; border:0; border-radius:14px; background:var(--card2); }
   #mxnote, .mxnote { color:var(--dim); font-size:13px; margin-top:8px; line-height:1.4; } .mxerr { color:var(--warn); font-size:14px; min-height:18px; margin-bottom:6px; }
   #mxpanel.full .mxrow, #mxpanel.full #mxnote { display:none; }
@@ -397,6 +400,7 @@
   <div class="mxview" id="mx-yt">
     <div class="mxrow"><input id="mxin" placeholder="Pega un enlace de YouTube / YouTube Music (video o lista)" autocomplete="off" spellcheck="false"><button id="mxgo" class="primary">Cargar</button></div>
     <div class="mxerr" id="mxerr"></div>
+    <div id="mxhist"></div>
     <iframe id="mxframe" title="YT Music" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>
     <div id="mxnote">Es el reproductor incrustado de YouTube: solo reproduce lo que enlazas (no hay buscador aquí, para buscar usa DYMusic) y algunos videos no permiten verse fuera de YouTube. Cerrar esta hoja no corta la música.</div>
   </div>
@@ -404,7 +408,7 @@
     <div class="mxrow"><button id="mx-usb" title="Copiar las canciones de un USB a la Pi">Importar de un USB</button><button id="mx-refresh">Actualizar</button><span id="mx-count" class="mxnote" style="margin:0;align-self:center"></span></div>
     <div class="mxerr" id="mx-merr"></div>
     <div id="mxlist"></div>
-    <div class="mxbar"><button id="mx-shuf" aria-label="Aleatorio" title="Aleatorio">Aleatorio</button><button id="mx-p" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.5v14H6zM20 5v14L9.5 12z"/></svg></button><button id="mx-pp" aria-label="Reproducir o pausar"><svg id="mx-pp-ic" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button><button id="mx-n" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 5H18v14h-2.5zM4 5v14l10.5-7z"/></svg></button><input type="range" id="mx-seek" min="0" max="1000" value="0" aria-label="Posición"><output id="mx-time">0:00 / 0:00</output></div>
+    <div class="mxbar"><button id="mx-shuf" aria-label="Aleatorio" title="Aleatorio">Aleatorio</button><button id="mx-p" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.5v14H6zM20 5v14L9.5 12z"/></svg></button><button id="mx-pp" aria-label="Reproducir o pausar"><svg id="mx-pp-ic" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button><button id="mx-n" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 5H18v14h-2.5zM4 5v14l10.5-7z"/></svg></button><input type="range" id="mx-seek" min="0" max="1000" value="0" aria-label="Posición"><output id="mx-time">0:00 / 0:00</output><input type="range" id="mx-vol" min="0" max="100" value="100" aria-label="Volumen de Musix" title="Volumen de Musix" style="max-width:110px"></div>
   </div>
   <div class="mxview" id="mx-dy">
     <div class="mxrow"><input id="dyq" placeholder="Título de la canción o artista" autocomplete="off" spellcheck="false"><button id="dygo" class="primary">Buscar</button></div>
@@ -671,7 +675,7 @@ async function mxLoad() {
     const j = await (await fetch("/api/music")).json();
     const curId = mxTracks[mxCur] && mxTracks[mxCur].id;
     mxTracks = j.tracks || []; mxCur = curId ? mxTracks.findIndex(t => t.id === curId) : -1;
-    mxSearchOk = !!j.search; mxEmbed = j.embed || null;
+    mxSearchOk = !!j.search; mxEmbed = j.embed || null; paintHistory(j.history);
     mxRenderList();
   } catch (e) {}
 }
@@ -700,6 +704,8 @@ $("mx-pp").onclick = mxToggle; $("mx-n").onclick = mxNext; $("mx-p").onclick = m
 $("m-play").onclick = mxToggle; $("m-next").onclick = mxNext; $("m-prev").onclick = mxPrev;
 $("mx-shuf").onclick = () => { mxShuffle = !mxShuffle; $("mx-shuf").classList.toggle("on", mxShuffle); };
 $("mx-refresh").onclick = mxLoad;
+try { const v = parseFloat(localStorage.getItem("mxvol")); if (v >= 0 && v <= 1) { mxAudio.volume = v; $("mx-vol").value = Math.round(v * 100); } } catch (e) {}
+$("mx-vol").oninput = () => { mxAudio.volume = $("mx-vol").value / 100; try { localStorage.setItem("mxvol", String(mxAudio.volume)); } catch (e) {} };
 $("mx-usb").onclick = async () => {
   mxErr("mx-merr", "Copiando del USB…");
   try { const j = await mxApi({action: "import_usb"}); mxErr("mx-merr", j.copied + " canciones copiadas" + (j.skipped ? ", " + j.skipped + " ya estaban" : "") + (j.limit ? " (límite alcanzado)" : "")); await mxLoad(); }
@@ -729,6 +735,15 @@ function mxShow(v) {
   if (v === "dy") { mxLoad().then(() => { $("dypaste").hidden = mxSearchOk; if (!mxSearchOk) mxErr("dyerr", "Para buscar por título falta la clave gratuita de YouTube (ver el tutorial). Mientras tanto, pega el enlace."); }); }
   if (v === "yt") mxLoad().then(() => setYt(mxEmbed));
 }
+function paintHistory(h) {
+  const box = $("mxhist"); box.textContent = "";
+  for (const it of h || []) {
+    const b = document.createElement("button"); const id = (/embed\/([A-Za-z0-9_-]+)/.exec(it.url) || [])[1] || "";
+    b.textContent = it.title || (it.url.includes("videoseries") ? "Lista de YouTube" : "Video " + id.slice(0, 6));
+    b.title = it.url; b.onclick = () => { setYt(it.url); mxApi({action: "embed", link: it.url, title: it.title}).then(j => paintHistory(j.history)).catch(() => {}); };
+    box.append(b);
+  }
+}
 function setYt(url) {
   const f = $("mxframe");
   if (url && f.dataset.src !== url) { f.dataset.src = url; f.src = url; }
@@ -742,7 +757,7 @@ $("mx-full").onclick = () => { const f = $("mxpanel").classList.toggle("full"); 
 for (const b of document.querySelectorAll("#mxhome button")) b.onclick = () => mxShow(b.dataset.go);
 async function ytGo() {
   mxErr("mxerr", "");
-  try { const j = await mxApi({action: "embed", link: $("mxin").value}); setYt(j.url); $("mxin").value = ""; } catch (e) { mxErr("mxerr", e.message); }
+  try { const j = await mxApi({action: "embed", link: $("mxin").value}); setYt(j.url); paintHistory(j.history); $("mxin").value = ""; } catch (e) { mxErr("mxerr", e.message); }
 }
 $("mxgo").onclick = ytGo; $("mxin").addEventListener("keydown", e => { if (e.key === "Enter") ytGo(); });
 
@@ -768,7 +783,7 @@ function dyRenderResults(list) {
     if (r.thumb) { const im = document.createElement("img"); im.src = r.thumb; im.alt = ""; im.referrerPolicy = "no-referrer"; d.append(im); }
     const n = document.createElement("span"); n.textContent = r.title; const sm = document.createElement("small"); sm.textContent = r.channel; n.append(sm);
     const l = document.createElement("button"); l.textContent = "Escuchar";
-    l.onclick = async () => { try { const j = await mxApi({action: "embed", link: r.url}); mxShow("yt"); setYt(j.url); } catch (e) { mxErr("dyerr", e.message); } };
+    l.onclick = async () => { try { const j = await mxApi({action: "embed", link: r.url, title: r.title}); mxShow("yt"); setYt(j.url); paintHistory(j.history); } catch (e) { mxErr("dyerr", e.message); } };
     const g = document.createElement("button"); g.textContent = "Descargar MP3"; g.className = "primary"; g.onclick = () => dyDownload(r.url, r.id);
     d.append(n, l, g); box.append(d);
   }

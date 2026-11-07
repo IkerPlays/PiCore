@@ -1121,7 +1121,7 @@ MUSIC = {"seq": 0, "cmd": None}
 
 
 def music_info():
-    return {"seq": MUSIC["seq"], "cmd": MUSIC["cmd"], "embed": musix.load_embed(), "search": bool(read_conf().get("musix", "youtube_api_key", fallback="").strip())}
+    return {"seq": MUSIC["seq"], "cmd": MUSIC["cmd"], "embed": musix.load_embed(), "history": musix.load_history(), "search": bool(read_conf().get("musix", "youtube_api_key", fallback="").strip())}
 
 
 def music_list():
@@ -1150,7 +1150,10 @@ def music_post(body):
         return {"ok": True}
     if act == "embed":
         try:
-            return {"ok": True, "url": musix.save_embed(body.get("link"))}
+            url = musix.save_embed(body.get("link"))
+            if url:
+                musix.add_history(url, body.get("title"))
+            return {"ok": True, "url": url, "history": musix.load_history()}
         except ValueError as e:
             raise musix.MusixError(str(e))
     if act == "search":

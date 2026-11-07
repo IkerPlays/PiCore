@@ -15,7 +15,7 @@ sys.path.insert(0, str(ROOT / "voice"))
 T = Path(tempfile.mkdtemp())
 ENV = {"PCPI_CONF": str(T / "pcpi.conf"), "PCPI_MODE_FILE": str(T / "mode"), "PCPI_RUN_DIR": str(T / "run"), "PCPI_NOTES_DIR": str(T / "notes"),
        "PCPI_NOWPLAYING": str(T / "np.json"), "PCPI_VOICE_STATE": str(T / "v.json"), "PCPI_TIMERS": str(T / "t.json"),
-       "PCPI_BOOKMARKS": str(T / "bm.json"), "PCPI_MUSIC_DIR": str(T / "music"), "PCPI_MUSIC_EMBED": str(T / "emb.json"), "PCPI_MOUNTS": str(T / "mounts")}
+       "PCPI_BOOKMARKS": str(T / "bm.json"), "PCPI_MUSIC_DIR": str(T / "music"), "PCPI_MUSIC_EMBED": str(T / "emb.json"), "PCPI_MUSIC_HISTORY": str(T / "hist.json"), "PCPI_MOUNTS": str(T / "mounts")}
 os.environ.update(ENV)
 import intents  # noqa: E402
 import musix  # noqa: E402
@@ -112,6 +112,26 @@ class EmbedTest(unittest.TestCase):
         self.assertIsNone(musix.load_embed(f))
         f.write_text(json.dumps({"link": "https://evil.com/x"}))
         self.assertIsNone(musix.load_embed(f))
+
+
+class HistoryTest(unittest.TestCase):
+    def test_most_recent_first_no_duplicates_and_capped(self):
+        f = T / ("h%s.json" % os.urandom(3).hex())
+        self.assertEqual(musix.load_history(f), [])
+        for i in range(10):
+            musix.add_history("https://youtu.be/%011d" % i, "Tema %d" % i, f)
+        h = musix.add_history("https://youtu.be/%011d" % 5, "Otra vez", f)
+        self.assertEqual(len(h), musix.HISTORY_MAX)
+        self.assertEqual(h[0]["url"], "https://www.youtube-nocookie.com/embed/%011d" % 5)
+        self.assertEqual(h[0]["title"], "Otra vez")
+        self.assertEqual(len([x for x in h if x["url"].endswith("%011d" % 5)]), 1)
+
+    def test_tampered_file_is_filtered(self):
+        f = T / "ht.json"
+        f.write_text(json.dumps([{"url": "https://evil.com/x", "title": "x"}, {"url": "https://youtu.be/" + VID, "title": "bien"}, 5, {"nada": 1}]))
+        self.assertEqual([h["title"] for h in musix.load_history(f)], ["bien"])
+        f.write_text("{no json")
+        self.assertEqual(musix.load_history(f), [])
 
 
 class SearchTest(unittest.TestCase):
@@ -235,6 +255,9 @@ class ApiTest(unittest.TestCase):
         code, _, body = self.req("/api/music", {"action": "embed", "link": "https://youtu.be/" + VID})
         self.assertEqual((code, json.loads(body)["url"]), (200, "https://www.youtube-nocookie.com/embed/" + VID))
         self.assertEqual(json.loads(self.req("/api/status")[2])["music"]["embed"], "https://www.youtube-nocookie.com/embed/" + VID)
+        h = json.loads(self.req("/api/music", {"action": "embed", "link": "https://youtu.be/" + VID, "title": "Mi tema"})[2])["history"]
+        self.assertEqual(h[0]["title"], "Mi tema")
+        self.assertEqual(json.loads(self.req("/api/music")[2])["history"][0]["url"], "https://www.youtube-nocookie.com/embed/" + VID)
         self.assertEqual(self.req("/api/music", {"action": "embed", "link": "https://evil.com"})[0], 502)
         self.assertEqual(self.req("/api/music", {"action": "search", "q": "x"})[0], 502)          # sin clave
         self.assertEqual(self.req("/api/music", {"action": "web", "target": "downloader"})[0], 200)
