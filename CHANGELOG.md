@@ -6,6 +6,10 @@
 
 
 
+## Modo Iker: Ctrl+F salta al buscador
+
+- Con teclado físico, Ctrl+F lleva el cursor al buscador de notas (el navegador no abre su propio buscador). Comprobado en navegador sin pantalla. (Mi primer intento con la tecla `/` no funcionaba porque la nota ya tiene el foco; lo descarté.)
+
 ## Simulador: botón «Tema»
 
 - Cambia entre tema claro y oscuro de Casa (en la Pi se toca la hora). Comprobado en navegador sin pantalla.

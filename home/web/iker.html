@@ -230,6 +230,7 @@ document.addEventListener("keydown", e => {
   if (e.ctrlKey && e.key === "s") { e.preventDefault(); save(); }
   if (e.ctrlKey && e.key === "n") { e.preventDefault(); openNote(null); }
   if (e.ctrlKey && e.key === "p") { e.preventDefault(); $("pin").click(); }
+  if (e.ctrlKey && e.key === "f") { e.preventDefault(); $("q").focus(); $("q").select(); }           // Ctrl+F salta al buscador de notas
 });
 window.addEventListener("beforeunload", () => { if (dirty) save(); });
 refresh(); counts(); paintMarks();
