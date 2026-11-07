@@ -216,6 +216,8 @@ def execute(cfg, intent):
         if n == "pihole_stats":
             with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=8) as r:
                 return intents.say_pihole(json.load(r).get("pihole"))
+        if n == "date_tomorrow":
+            return "Mañana es " + intents.say_date(datetime.datetime.now() + datetime.timedelta(days=1)).replace("Hoy es ", "")
         if n == "help":
             return intents.HELP_TEXT
         if n == "sys_info":

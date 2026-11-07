@@ -6,6 +6,10 @@
 
 
 
+## Voz: qué día es mañana
+
+- «Qué día es mañana» dice el día de la semana y la fecha de mañana. Probado con tests; no en una Pi real.
+
 ## El simulador entiende todo lo que dice el tutorial
 
 - Le faltaban 17 de las ~70 frases de la tabla «Qué puedes pedir» (Pi-hole con guion, silenciar, vigilancia, cuántas notas, leer la última nota, próximo evento, cuánto falta para Navidad, «repite», «avísame en…», «ponle un minuto más»). Añadidas, y el test de navegador de la demo comprueba ahora todas las frases del tutorial (salvo las de «modo…», que cambian de página). Sigue siendo una simulación con datos de ejemplo.

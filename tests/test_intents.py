@@ -117,6 +117,8 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.say_pihole({"ok": True, "blocked": 326, "total": 1211, "percent": 26.9, "blocking": "enabled"}), "Pi-hole ha bloqueado 326 de 1211 consultas, un 27 por ciento")
         self.assertTrue(i.say_pihole({"ok": True, "blocked": 1, "total": 2, "percent": 50, "blocking": "disabled"}).endswith("Ahora está en pausa"))
         self.assertEqual(i.say_pihole({"ok": False}), "Pi-hole no responde ahora mismo")
+        self.assertEqual(P("qué día es mañana"), ("date_tomorrow", None))
+        self.assertEqual(P("qué día de la semana es"), ("date", None))
         self.assertEqual(P("activa el salvapantallas"), ("screensaver", True))
         self.assertEqual(P("desactiva el salvapantallas"), ("screensaver", False))
         self.assertEqual(P("sube el brillo"), ("brightness", "+20"))

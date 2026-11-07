@@ -23,7 +23,7 @@ CASOS = [
     ("activa el salvapantallas", "screensaver"), ("desactiva el salvapantallas", "screensaver"),
     ("toma nota comprar leche", "note_add"), ("lee mi última nota", "note_read"), ("añade pan a la lista de la compra", "list_add"),
     ("cuánto espacio libre queda", "sys_info"), ("cómo está la pi", "sys_info"), ("a qué wifi estoy conectado", "net_info"),
-    ("qué puedes hacer", "help"), ("repite", "repeat"), ("cómo va el Pi-hole", "pihole_stats"), ("ponle un minuto más", "timer_extend"), ("cuántos anuncios has bloqueado", "pihole_stats"), ("pospón cinco minutos", "snooze"), ("cinco minutos más", "snooze"), ("tira un dado", "random"), ("cuánto falta para Navidad", "days_until"), ("qué hora es en Tokio", "time_in"), ("cuántas notas tengo", "count"), ("cuántos temporizadores hay", "count"), ("qué has dicho", "repeat"), ("gracias", "chat"), ("cuánto llevas encendida", "uptime"),
+    ("qué puedes hacer", "help"), ("repite", "repeat"), ("qué día es mañana", "date_tomorrow"), ("cómo va el Pi-hole", "pihole_stats"), ("ponle un minuto más", "timer_extend"), ("cuántos anuncios has bloqueado", "pihole_stats"), ("pospón cinco minutos", "snooze"), ("cinco minutos más", "snooze"), ("tira un dado", "random"), ("cuánto falta para Navidad", "days_until"), ("qué hora es en Tokio", "time_in"), ("cuántas notas tengo", "count"), ("cuántos temporizadores hay", "count"), ("qué has dicho", "repeat"), ("gracias", "chat"), ("cuánto llevas encendida", "uptime"),
 ]
 
 

@@ -260,6 +260,11 @@ class ExecuteApiIntentsTest(unittest.TestCase):
         self.assertEqual(self.posts[-2][1], {"action": "dismiss"})
         self.assertEqual(self.posts[-1][1], {"action": "timer", "seconds": 300, "label": "Alarma"})
 
+    def test_tomorrow_date_by_voice(self):
+        out = assistant.execute(self.cfg, ("date_tomorrow", None))
+        self.assertTrue(out.startswith("Mañana es "), out)
+        self.assertNotIn("Hoy", out)
+
     def test_note_by_voice_goes_to_notes_api(self):
         self.assertEqual(assistant.execute(self.cfg, ("note_add", "comprar leche")), "Anotado")
         self.assertEqual(self.posts[-1], ("/api/notes", {"id": None, "text": "comprar leche"}, "1"))
