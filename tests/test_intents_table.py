@@ -88,6 +88,23 @@ class TablaDeOrdenes(unittest.TestCase):
             self.assertIsNotNone(intents.parse(frase), "el README dice «%s» pero el asistente no lo entiende" % frase)
         self.assertGreater(total, 15)
 
+    def test_frases_al_azar_nunca_rompen_el_analizador(self):
+        """Mezclas raras de palabras de las ordenes (y basura): parse() devuelve una orden o None, jamas lanza una excepcion."""
+        import random
+        rnd = random.Random(1234)
+        vocab = set()
+        for frase, _ in CASOS:
+            vocab.update(frase.replace("«", "").split())
+        vocab = sorted(vocab) + ["", "  ", "ñ", "¿qué?", "!!!", "9999999999999", "0", "-1", "a", "las", "y", "media", "menos", "cuarto", "de", "la", "tarde", "noche",
+                                 "\n", "\t", "x" * 300, "🙂", "A LAS 25", "a las 99:99", "minutos", "segundos", "horas"]
+        for _ in range(3000):
+            texto = " ".join(rnd.choice(vocab) for _ in range(rnd.randint(0, 12)))
+            try:
+                r = intents.parse(texto)
+            except Exception as e:      # noqa: BLE001
+                self.fail("parse(%r) lanzo %r" % (texto, e))
+            self.assertTrue(r is None or hasattr(r, "name"), texto)
+
     def test_frases_sin_orden_no_hacen_nada(self):
         for frase in ("", "blablabla", "repite esta canción", "me gusta el queso", "hoy fui al mercado"):
             self.assertIsNone(intents.parse(frase), frase)
