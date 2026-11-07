@@ -141,7 +141,7 @@ def checks(status, disk=None, mem=None, thr=None):
         out.append({"level": "info", "text": "No detecto la salida de sonido. En la terminal: pcpi-sound status y pcpi-doctor."})
     up = status.get("update") or update_state()
     if up.get("available"):
-        out.append({"level": "info", "text": "Hay una actualización de PiCore (%d cambios). Ejecuta: pcpi-update" % up["behind"]})
+        out.append({"level": "info", "text": "Hay una actualización de PiCore (%d cambios). Toca «Actualizar ahora» más abajo (o ejecuta pcpi-update)." % up["behind"]})
     return out or [{"level": "ok", "text": "Todo en orden."}]
 
 
