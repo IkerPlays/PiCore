@@ -163,6 +163,11 @@ def execute(cfg, intent):
             except urllib.error.HTTPError:
                 return "No he podido guardar la nota"
             return "Anotado"
+        if n == "chat":
+            return a
+        if n == "uptime":
+            with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
+                return intents.say_uptime(json.load(r).get("uptime"))
         if n == "help":
             return intents.HELP_TEXT
         if n == "sys_info":

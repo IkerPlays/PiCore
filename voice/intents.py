@@ -161,6 +161,12 @@ def parse(text):
         return Intent("sys_info", "temp" if not has("como esta", "estado") else "all")
     if has("que puedes hacer", "que sabes hacer", "ayuda", "que te puedo pedir", "que comandos"):
         return Intent("help", None)
+    if has("gracias", "muchas gracias", "eres genial"):
+        return Intent("chat", "De nada")
+    if t.strip() in ("hola", "buenas", "buenos dias", "buenas tardes", "buenas noches", "hola pi"):
+        return Intent("chat", "Hola, dime")
+    if has("cuanto llevas encendida", "cuanto tiempo llevas encendida", "desde cuando estas encendida"):
+        return Intent("uptime", None)
     if has("calendario", "agenda", "que tengo", "tengo algo", "mis eventos", "proximo evento", "tengo hoy", "tengo manana"):
         return Intent("calendar", "tomorrow" if has("manana") else "today")
     if has("temporizador", "cuenta atras", "cuentaatras"):
@@ -287,6 +293,19 @@ def say_system(kind, st):
 
 HELP_TEXT = ("Puedes pedirme la hora, el tiempo, que ponga temporizadores y alarmas, que controle la música, el volumen y el brillo, "
              "que cambie de modo, que tome notas, o que te diga cómo está la Pi.")
+
+
+def say_uptime(secs):
+    secs = int(secs or 0)
+    d, h, m = secs // 86400, secs % 86400 // 3600, secs % 3600 // 60
+    out = []
+    if d:
+        out.append("%d día%s" % (d, "" if d == 1 else "s"))
+    if h:
+        out.append("%d hora%s" % (h, "" if h == 1 else "s"))
+    if m or not out:
+        out.append("%d minuto%s" % (m, "" if m == 1 else "s"))
+    return "Llevo encendida " + " y ".join(out)
 
 
 def say_date(now):
