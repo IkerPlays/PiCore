@@ -14,6 +14,10 @@ if [ -f /etc/pcpi/pcpi.conf ]; then
     printf '      %s\n' "$inline"
   else ok "/etc/pcpi/pcpi.conf sin problemas de formato"; fi
 else bad "no existe /etc/pcpi/pcpi.conf (¿ejecutaste ./install.sh?)"; fi
+if [ -f /etc/pcpi/pcpi.conf ]; then
+  [ -w /etc/pcpi/pcpi.conf ] && ok "pcpi.conf se puede escribir (la ciudad, el Pi-hole y los ajustes de la pantalla se guardan solos)" \
+    || warn "pcpi.conf no es escribible por tu usuario: los ajustes desde la pantalla no se guardarian (sudo chown \$USER /etc/pcpi /etc/pcpi/pcpi.conf)"
+fi
 mode="$(cat /etc/pcpi/mode 2>/dev/null)" && ok "modo actual: $mode" || bad "no existe /etc/pcpi/mode (¿ejecutaste ./install.sh?)"
 if systemctl is-active --quiet pcpi-home 2>/dev/null; then ok "servicio pcpi-home activo"; else warn "pcpi-home no esta activo: sudo systemctl status pcpi-home"; fi
 if st="$(curl -sf -m 4 "http://127.0.0.1:$PORT/api/status")"; then

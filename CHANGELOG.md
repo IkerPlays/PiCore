@@ -5,6 +5,10 @@
 
 
 
+## pcpi-doctor: comprueba que los ajustes de la pantalla se pueden guardar
+
+- Avisa si `pcpi.conf` no es escribible por tu usuario (la ciudad, Pi-hole y los ajustes de la hoja Sistema no se guardarían) y dice cómo arreglarlo.
+
 ## Voz: «a la mitad» y «al máximo»
 
 - «El volumen a la mitad», «volumen al máximo» y «el brillo a la mitad» funcionan como atajos. Probado con tests; no en una Pi real.
