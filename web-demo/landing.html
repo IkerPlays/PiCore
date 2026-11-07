@@ -12,6 +12,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/static/landing.css">
+<script>try{var t=localStorage.getItem("picore-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"PiCore","applicationCategory":"UtilitiesApplication","operatingSystem":"Raspberry Pi OS","inLanguage":"es","description":"Pantalla de casa tipo Alexa sin nube, bloc de notas y modo para trastear con una Raspberry Pi 5 y pantalla táctil.","license":"https://opensource.org/licenses/MIT","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"codeRepository":"https://github.com/IkerPlays/PiCore"}</script>
 </head>
 <body>
@@ -20,6 +21,7 @@
 <header class="nav"><div class="wrap">
   <a class="brand" href="/"><img src="/favicon.svg" alt="" width="30" height="30">PiCore</a>
   <nav aria-label="Principal"><a href="#que-es">Qué es</a><a href="#sirve">Para qué sirve</a><a href="#funciona">Cómo funciona</a><a href="#modos">Modos</a><a href="#instalar">Instalar</a><a href="#faq">Preguntas</a></nav>
+  <button class="theme" id="theme" type="button" aria-label="Cambiar entre tema claro y oscuro" title="Tema claro / oscuro"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg></button>
   <a class="btn sm ghost" href="https://github.com/IkerPlays/PiCore" rel="noopener">GitHub</a>
   <a class="btn sm primary" href="/simulador">Probar el simulador</a>
 </div></header>
@@ -195,6 +197,11 @@ for (const b of document.querySelectorAll("button[data-copy]")) b.addEventListen
   try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = "Copiado"; } catch (e) { b.textContent = "Selecciona y copia"; }
   setTimeout(() => { b.textContent = old; }, 1600);
 });
+
+document.getElementById("theme").onclick = function () {
+  var d = document.documentElement, cur = d.dataset.theme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"), nx = cur === "light" ? "dark" : "light";
+  d.dataset.theme = nx; try { localStorage.setItem("picore-theme", nx); } catch (e) {}
+};
 </script>
 </body>
 </html>

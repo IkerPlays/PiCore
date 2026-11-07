@@ -1,8 +1,10 @@
 /* PiCore · pagina de inicio (landing). Sin librerias; claro/oscuro segun el sistema. */
 :root { --bg:#07090e; --bg2:#0c1018; --card:#12161e; --card2:#171c26; --line:#252c39; --hair:#ffffff14; --fg:#f4f6fa; --dim:#9aa5b8; --acc:#7cabff; --acc2:#b794ff; --ok:#4ade80; --warn:#fbbf24; --acc-fg:#06101f;
         --glow:radial-gradient(900px 480px at 78% -10%, #24325a99, transparent 60%), radial-gradient(700px 420px at 8% 12%, #3b1f5a66, transparent 60%); --shadow:0 24px 70px #0008; --r:20px; }
+:root[data-theme="light"] { --bg:#f4efe5; --bg2:#ece6d8; --card:#fcfaf5; --card2:#f4efe3; --line:#ddd4c2; --hair:#00000014; --fg:#221f1a; --dim:#6f685b; --acc:#2a5fd8; --acc2:#7c4fe0; --ok:#26904f; --warn:#b97a00; --acc-fg:#fff;
+          --glow:radial-gradient(900px 480px at 78% -10%, #ffd9a066, transparent 60%), radial-gradient(700px 420px at 8% 12%, #bcd0ff66, transparent 60%); --shadow:0 24px 60px #6b5b3a26; }
 @media (prefers-color-scheme: light) {
-  :root { --bg:#f4efe5; --bg2:#ece6d8; --card:#fcfaf5; --card2:#f4efe3; --line:#ddd4c2; --hair:#00000014; --fg:#221f1a; --dim:#6f685b; --acc:#2a5fd8; --acc2:#7c4fe0; --ok:#26904f; --warn:#b97a00; --acc-fg:#fff;
+  :root:not([data-theme="dark"]) { --bg:#f4efe5; --bg2:#ece6d8; --card:#fcfaf5; --card2:#f4efe3; --line:#ddd4c2; --hair:#00000014; --fg:#221f1a; --dim:#6f685b; --acc:#2a5fd8; --acc2:#7c4fe0; --ok:#26904f; --warn:#b97a00; --acc-fg:#fff;
           --glow:radial-gradient(900px 480px at 78% -10%, #ffd9a066, transparent 60%), radial-gradient(700px 420px at 8% 12%, #bcd0ff66, transparent 60%); --shadow:0 24px 60px #6b5b3a26; }
 }
 * { box-sizing:border-box; margin:0; }
@@ -95,3 +97,5 @@ footer { padding:44px 0 60px; color:var(--dim); font-size:14.5px; border-top:1px
 @media (prefers-reduced-motion:reduce) { * { transition:none !important; scroll-behavior:auto !important; } }
 
 .skip { position:absolute; left:12px; top:-60px; z-index:100; padding:10px 16px; border-radius:10px; background:var(--acc); color:#fff; font-weight:600; transition:top .15s; } .skip:focus { top:10px; }
+
+.theme { display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; padding:0; border-radius:50%; border:1px solid var(--line); background:transparent; color:var(--fg); cursor:pointer; } .theme:hover { border-color:var(--acc); }

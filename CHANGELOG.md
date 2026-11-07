@@ -5,6 +5,10 @@
 
 
 
+## Portada: botón de tema claro / oscuro
+
+- La web de inicio sigue el tema del sistema y ahora tiene un botón para cambiarlo a mano (se recuerda en el navegador). Comprobado en navegador sin pantalla.
+
 ## «Qué puedo decirle a la Pi» en la pantalla
 
 - La hoja Sistema tiene un desplegable con ejemplos de órdenes de voz. Comprobado en navegador sin pantalla (captura revisada).
