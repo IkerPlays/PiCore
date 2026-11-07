@@ -115,6 +115,8 @@
   #upd { margin-top:14px; padding:12px 14px; border:1px solid var(--line); border-radius:14px; background:var(--card2); }
   #upd-row { display:flex; align-items:center; gap:12px; } #upd-txt { flex:1; font-size:16px; } #upd-btn { min-height:48px; border-radius:14px; padding:0 16px; font-size:16px; }
   #upd-log { margin-top:10px; font:12px/1.4 ui-monospace,Menlo,monospace; white-space:pre-wrap; word-break:break-word; max-height:130px; overflow:auto; color:var(--dim); } #upd-log[hidden] { display:none; }
+  #voicehelp { margin-top:14px; padding:10px 14px; border:1px solid var(--line); border-radius:14px; background:var(--card2); font-size:15px; }
+  #voicehelp summary { cursor:pointer; font-weight:600; font-size:16px; } #voicehelp p { margin:10px 0 4px; color:var(--dim); } #voicehelp ul { margin:0; padding-left:20px; line-height:1.6; }
   #prefs { margin-top:14px; padding:6px 14px; border:1px solid var(--line); border-radius:14px; background:var(--card2); }
   .pf { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:7px 0; font-size:16px; } .pf + .pf { border-top:1px solid var(--line); }
   .pf .st { display:flex; align-items:center; gap:4px; } .pf .st b { min-width:64px; text-align:center; font-variant-numeric:tabular-nums; }
@@ -446,6 +448,19 @@
   <div class="sysrow" id="s-stats"></div>
   <div id="s-health"></div>
   <div id="upd"><div id="upd-row"><span id="upd-txt"></span><button id="upd-btn">Buscar actualizaciones</button></div><pre id="upd-log" hidden></pre></div>
+  <details id="voicehelp"><summary>Qué puedo decirle a la Pi</summary>
+    <p>Empieza con «Oye Pi». Por ejemplo:</p>
+    <ul>
+      <li>«qué hora es» · «qué tiempo hace» · «qué tengo hoy»</li>
+      <li>«pon un temporizador de diez minutos para la pasta» · «añade un minuto al temporizador»</li>
+      <li>«despiértame a las siete y media»</li>
+      <li>«pon la música» · «pausa» · «siguiente» · «sube el volumen»</li>
+      <li>«sube el brillo» · «brillo automático» · «activa el salvapantallas»</li>
+      <li>«toma nota comprar leche» · «lee mi última nota»</li>
+      <li>«cuánto espacio libre queda» · «a qué wifi estoy conectado»</li>
+      <li>«modo Iker» · «modo Dev» · «modo Casa»</li>
+    </ul>
+  </details>
   <div id="prefs" aria-label="Preferencias">
     <div class="pf"><span>Salvapantallas</span><button id="pf-screensaver" role="switch" aria-checked="true" class="tg"></button></div>
     <div class="pf"><span>Salta tras</span><div class="st"><button data-k="idle_minutes" data-d="-1" aria-label="Menos">-</button><b id="pf-idle_minutes"></b><button data-k="idle_minutes" data-d="1" aria-label="Más">+</button></div></div>

@@ -5,6 +5,10 @@
 
 
 
+## «Qué puedo decirle a la Pi» en la pantalla
+
+- La hoja Sistema tiene un desplegable con ejemplos de órdenes de voz. Comprobado en navegador sin pantalla (captura revisada).
+
 ## Voz: estado de la red
 
 - «¿A qué wifi estoy conectado?» / «¿tengo internet?» responden con la red activa y si hay internet o hace falta iniciar sesión. Probado con tests; no en una Pi real.
