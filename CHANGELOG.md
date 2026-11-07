@@ -3,6 +3,12 @@
 > Todo está probado con tests automáticos y un «Pi virtual» (servidor y `pcpi-session` reales con un Chromium sin pantalla).
 > **Nada se ha probado todavía en una Raspberry Pi real**: pantalla, audio, Wayland, cámara, micrófono e instalación con `apt`.
 
+
+## Simulador: voz y visita guiada
+
+- El simulador entiende frases escritas (hora, tiempo, temporizadores, música, volumen, modos...) y las responde en voz alta, como la Pi real. Probado en navegador sin pantalla; sin la IA local, lo desconocido recibe una respuesta fija.
+- Botón «Visita guiada» de 12 pasos que toca de verdad la interfaz (`/simulador?tour`).
+
 ## Sesión de mejoras continuas
 
 - **09:51** Este registro de cambios. CI de GitHub en verde (run 69).

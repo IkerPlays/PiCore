@@ -20,9 +20,19 @@
   header b { font-size:16px; letter-spacing:-.01em; } header small { color:#8a94a6; margin-right:auto; font-size:13px; }
   button, a.b { font:inherit; font-size:13px; font-weight:600; color:#e9eef7; background:#ffffff10; border:1px solid #ffffff1f; border-radius:99px; padding:7px 14px; cursor:pointer; text-decoration:none; }
   button:hover, a.b:hover { border-color:#7cabff; } button.on { background:#7cabff; color:#06101f; border-color:#7cabff; }
-  #stage { position:absolute; left:0; right:0; top:56px; bottom:34px; overflow:hidden; }
+  #stage { position:absolute; left:0; right:0; top:56px; bottom:100px; overflow:hidden; }
   #dev { position:absolute; left:50%; top:50%; width:1024px; height:600px; border-radius:22px; background:#000; box-shadow:0 0 0 10px #0d1017, 0 0 0 11px #2b3342, 0 30px 90px #000c; overflow:hidden; transform-origin:center center; }
   #dev iframe { width:1024px; height:600px; border:0; display:block; background:#000; }
+  #bar { position:absolute; left:50%; bottom:34px; transform:translateX(-50%); width:min(860px, calc(100% - 24px)); display:flex; flex-direction:column; gap:6px; }
+  #say { display:flex; gap:8px; } #say input { flex:1; min-width:0; font:inherit; font-size:15px; padding:10px 16px; border-radius:99px; border:1px solid #ffffff26; background:#ffffff0d; color:#e9eef7; outline:0; } #say input:focus { border-color:#7cabff; box-shadow:0 0 0 3px #7cabff33; } #say button { padding:9px 18px; }
+  #chips { display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none; } #chips::-webkit-scrollbar { display:none; } #chips button { flex:none; font-size:12px; padding:5px 11px; font-weight:560; color:#c4cee0; }
+  #reply { font-size:13px; color:#9fb4d8; min-height:18px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } #reply b { color:#e9eef7; }
+  #tour { position:absolute; z-index:5; left:16px; top:72px; width:300px; padding:16px 18px; border-radius:18px; background:#0e1320f2; border:1px solid #ffffff2a; box-shadow:0 18px 50px #000a; display:none; } #tour.on { display:block; }
+  #tour small { color:#7cabff; font-weight:700; letter-spacing:.08em; text-transform:uppercase; font-size:11px; } #tour h4 { font-size:17px; margin:6px 0 6px; letter-spacing:-.01em; } #tour p { font-size:14px; color:#b5bfd0; line-height:1.5; }
+  #tour .row { display:flex; gap:8px; margin-top:14px; align-items:center; } #tour .row span { margin-left:auto; color:#7e8aa2; font-size:12px; }
+  #tour .dots { display:flex; gap:4px; margin-top:12px; } #tour .dots i { flex:1; height:3px; border-radius:2px; background:#ffffff22; } #tour .dots i.on { background:#7cabff; }
+  @media (max-width:1380px) { #tour { left:50%; transform:translateX(-50%); top:auto; bottom:110px; width:min(520px, calc(100% - 24px)); } }
+  @media (max-width:700px) { #chips { display:none; } #stage { bottom:84px; } }
   #hint { position:absolute; left:0; right:0; bottom:10px; text-align:center; color:#8a94a6; font-size:12px; } #rot { display:none; color:#fbbf24; }
   @media (orientation:portrait) and (max-width:700px) { #rot { display:inline; } header small { display:none; } }
 </style>
@@ -31,8 +41,15 @@
 <header><a href="/" style="color:inherit;text-decoration:none;display:flex;align-items:center;gap:8px"><img src="/favicon.svg" alt="" width="24" height="24"><b>PiCore</b></a><small>simulador en el navegador: nada de esto es real</small>
   <a class="b" href="/" title="Volver a la página de inicio">Inicio</a>
   <button data-m="home">Casa</button><button data-m="iker">Iker</button><button data-m="dev">Dev</button>
-  <a class="b" href="https://github.com/IkerPlays/PiCore" target="_blank" rel="noopener">GitHub</a><button id="reset">Restablecer</button></header>
+  <button id="tourbtn" title="Un paseo por las funciones, paso a paso">Visita guiada</button><a class="b" href="https://github.com/IkerPlays/PiCore" target="_blank" rel="noopener">GitHub</a><button id="reset">Restablecer</button></header>
 <div id="stage"><div id="dev"><iframe id="f" title="PiCore" allow="autoplay; encrypted-media"></iframe></div></div>
+<div id="tour" role="dialog" aria-label="Visita guiada"><small id="t-n"></small><h4 id="t-h"></h4><p id="t-p"></p><div class="dots" id="t-d"></div>
+  <div class="row"><button id="t-prev" type="button">Atrás</button><button id="t-next" type="button" class="on">Siguiente</button><button id="t-x" type="button" aria-label="Cerrar la visita">Salir</button></div></div>
+<div id="bar">
+  <div id="reply" aria-live="polite"></div>
+  <form id="say" autocomplete="off"><input id="sayin" placeholder="Háblale a la Pi: escribe lo que dirías, por ejemplo «oye Pi, qué hora es»" aria-label="Háblale a la Pi" maxlength="140"><button class="on" type="submit">Decir</button></form>
+  <div id="chips"></div>
+</div>
 <div id="hint"><span id="rot">Gira el móvil en horizontal para verlo mejor. </span>Pantalla de 1024×600, como la de la Raspberry Pi.</div>
 <script>
 "use strict";
@@ -61,6 +78,57 @@ document.getElementById("reset").onclick = () => {
   try { Object.keys(localStorage).filter(k => k.startsWith("pcpi-demo-")).forEach(k => localStorage.removeItem(k)); sessionStorage.clear(); } catch (e) {}
   location.href = "/simulador";
 };
+/* ---- voz simulada: la «Pi» entiende lo que escribes ---- */
+const reply = document.getElementById("reply");
+function say(text) {
+  text = String(text || "").trim(); if (!text) return;
+  let out = "(el simulador todavía está cargando)";
+  try { out = f.contentWindow.PCPI_DEMO.say(text); } catch (e) {}
+  reply.innerHTML = ""; const b = document.createElement("b"); b.textContent = "«" + text + "» "; reply.append(b, document.createTextNode("→ " + out));
+}
+document.getElementById("say").onsubmit = e => { e.preventDefault(); const i = document.getElementById("sayin"); say(i.value); i.value = ""; };
+for (const c of ["qué hora es", "qué tiempo hace", "pon un temporizador de un minuto", "pon la música", "pausa la música", "sube el volumen", "qué tengo hoy", "modo iker", "modo casa"]) {
+  const b = document.createElement("button"); b.type = "button"; b.textContent = c; b.onclick = () => say(c); document.getElementById("chips").append(b);
+}
+
+/* ---- visita guiada: cada paso toca de verdad la interfaz del simulador ---- */
+const $f = sel => { try { return f.contentDocument.querySelector(sel); } catch (e) { return null; } };
+const click = sel => { const el = $f(sel); if (el) el.click(); return !!el; };
+const closeAll = () => { const sc = $f("#scrim"); if (sc && sc.classList.contains("on")) sc.click(); };
+const mode = m => { try { f.contentWindow.fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: m }) }); } catch (e) {} };
+function glow(sel) {
+  const el = $f(sel); if (!el) return;
+  const old = el.style.cssText; el.style.cssText += ";outline:3px solid #7cabff;outline-offset:4px;border-radius:14px;transition:outline-color .3s";
+  setTimeout(() => { el.style.cssText = old; }, 3500);
+}
+const STEPS = [
+  { h: "Esta es la pantalla de Casa", p: "La ves en la pantalla táctil de la Pi: hora, tiempo, Pi-hole, música y accesos. Todo se toca con el dedo (aquí, con el ratón).", run: () => { closeAll(); if (location.pathname !== "/simulador" || !$f("#time")) mode("home"); glow("#time"); } },
+  { h: "El tiempo", p: "Por horas y por días, con aviso de lluvia. Al principio eliges tu ciudad desde la pantalla, sin editar archivos.", run: () => { closeAll(); setTimeout(() => click("#weather"), 250); } },
+  { h: "Pi-hole", p: "Muestra cuántos anuncios y rastreadores bloquea tu red y lo pausas con un toque (aquí es de mentira).", run: () => { closeAll(); setTimeout(() => glow("#ph-btn"), 300); } },
+  { h: "Musix", p: "Tu música: YouTube pegando un enlace, MP3 sin conexión y DYMusic. En el simulador hay tres canciones generadas.", run: () => { closeAll(); setTimeout(() => { click("#mxbtn"); setTimeout(() => click('#mxhome button[data-go="mp3"]'), 600); }, 250); } },
+  { h: "Temporizadores", p: "Se crean con un toque o con la voz, suenan en cualquier modo y sobreviven a un reinicio. Prueba: «pon un temporizador de un minuto».", run: () => { closeAll(); setTimeout(() => click("#chip-timer"), 300); } },
+  { h: "Wi-Fi sin teclado", p: "Cambia de red, conecta a redes ocultas y decide en qué redes se usa el Pi-hole. Con teclado en pantalla.", run: () => { closeAll(); setTimeout(() => click("#chip-wifi"), 300); } },
+  { h: "Brillo y sonido", p: "Brillo con modo noche automático y volumen del sistema, con un botón para probar el altavoz.", run: () => { closeAll(); setTimeout(() => click("#chip-bright"), 300); } },
+  { h: "Sistema y actualizaciones", p: "Salud de la Pi (disco, calor, fuente), actualizar desde la pantalla y apagar o reiniciar con doble toque. Aquí no se apaga nada de verdad.", run: () => { closeAll(); setTimeout(() => click("#chip-sys"), 300); } },
+  { h: "Háblale a la Pi", p: "En la Pi real la voz se entiende dentro de la propia Pi (Whisper), sin nube. Aquí escribe abajo lo que dirías: «qué hora es», «qué tiempo hace»...", run: () => { closeAll(); document.getElementById("sayin").focus(); setTimeout(() => say("qué hora es"), 500); } },
+  { h: "Modo Iker", p: "Un bloc de notas con etiquetas, búsqueda y PDF, y un navegador. Tus notas se guardan en este navegador.", run: () => { closeAll(); setTimeout(() => mode("iker"), 200); } },
+  { h: "Modo Dev", p: "Una consola, un terminal real, un explorador de la API y experimentos. En el simulador la consola solo reconoce unas pocas órdenes (escribe «help»).", run: () => { mode("dev"); } },
+  { h: "Y ahora, tuya", p: "Instálalo en tu Raspberry Pi 5 en tres pasos: la web de inicio lo explica. Vuelve a Casa y sigue probando lo que quieras.", run: () => { mode("home"); } },
+];
+let step = -1; const tour = document.getElementById("tour");
+function show(i) {
+  step = Math.max(0, Math.min(STEPS.length - 1, i)); const s = STEPS[step];
+  document.getElementById("t-n").textContent = "Paso " + (step + 1) + " de " + STEPS.length; document.getElementById("t-h").textContent = s.h; document.getElementById("t-p").textContent = s.p;
+  document.getElementById("t-d").innerHTML = STEPS.map((_, k) => '<i class="' + (k <= step ? "on" : "") + '"></i>').join("");
+  document.getElementById("t-next").textContent = step === STEPS.length - 1 ? "Terminar" : "Siguiente"; document.getElementById("t-prev").style.visibility = step ? "visible" : "hidden";
+  tour.classList.add("on"); try { s.run(); } catch (e) {}
+}
+document.getElementById("tourbtn").onclick = () => show(0);
+document.getElementById("t-next").onclick = () => { if (step >= STEPS.length - 1) { tour.classList.remove("on"); step = -1; } else show(step + 1); };
+document.getElementById("t-prev").onclick = () => show(step - 1);
+document.getElementById("t-x").onclick = () => { tour.classList.remove("on"); step = -1; };
+if (/[?&]tour\b/.test(location.search)) setTimeout(() => show(0), 1200);
+
 setInterval(() => {
   let m = "home"; try { m = JSON.parse(localStorage.getItem("pcpi-demo-mode") || '"home"'); } catch (e) {}
   for (const b of document.querySelectorAll("button[data-m]")) b.classList.toggle("on", b.dataset.m === m);

@@ -194,3 +194,12 @@ class BrowserTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SimuladorVozYVisita(unittest.TestCase):
+    def test_shell_tiene_voz_y_visita(self):
+        s = (ROOT / "web-demo" / "shell.html").read_text(encoding="utf-8")
+        for k in ('id="sayin"', 'id="tourbtn"', "PCPI_DEMO.say", "STEPS"):
+            self.assertIn(k, s)
+        d = (ROOT / "web-demo" / "demo.js").read_text(encoding="utf-8")
+        self.assertIn("window.PCPI_DEMO", d)

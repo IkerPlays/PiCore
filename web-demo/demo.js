@@ -41,6 +41,7 @@
     wifi: LS.get("wifi", { active: "CasaIker", wantsPi: { CasaIker: true } }),
     update: { state: "idle", tail: [], available: true, behind: 3 },
     audio: LS.get("audio", { volume: 60, muted: false }),
+    voice: { state: "listening", wake: "oye pi" },
     cmds: {},
   };
 
@@ -173,7 +174,7 @@
     return {
       mode: LS.get("mode", "home"), cpu_temp: t, uptime: Math.floor((Date.now() - T0) / 1000) + 320,
       pihole: { ok: true, blocking: ph.blocking ? "enabled" : "disabled", total: 1211 + Math.floor((Date.now() - T0) / 4000), blocked: 326 + Math.floor((Date.now() - T0) / 14000), percent: 26.9, domains: 168432 },
-      weather: weather(), nowplaying: S.nowplaying, voice: { state: "listening", wake: "oye pi" }, camera: { available: true, show: S.camera },
+      weather: weather(), nowplaying: S.nowplaying, voice: S.voice, camera: { available: true, show: S.camera },
       net: S.wifi.active ? { available: true, name: S.wifi.active, ssid: S.wifi.active, type: "wifi", connectivity: "full", portal: false, dns: S.wifi.wantsPi[S.wifi.active] ? "pihole" : "router" }
                          : { available: true, name: null, connectivity: "none", portal: false },
       display: displayInfo(), motion: motionInfo(), battery: { available: true, percent: 76, charging: false, low: false, critical: false },
@@ -460,6 +461,74 @@
     return realFetch(input, init);
   };
 
+  /* ---------------- voz simulada: escribes lo que dirias y la «Pi» contesta (y habla, si tu navegador sabe) ---------------- */
+  const WORDS = { un: 1, uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10, once: 11, doce: 12, trece: 13, catorce: 14, quince: 15, dieciseis: 16,
+    diecisiete: 17, dieciocho: 18, diecinueve: 19, veinte: 20, treinta: 30, cuarenta: 40, cincuenta: 50, sesenta: 60 };
+  function duration(t) {                                            // «diez minutos», «5 min», «media hora», «una hora y media» -> segundos
+    if (/media hora/.test(t) && !/hora y media/.test(t)) return 1800;
+    const m = /(\d+|[a-z]+)\s*(segundos?|minutos?|min|horas?)\b/.exec(t); if (!m) return null;
+    const n = /^\d+$/.test(m[1]) ? parseInt(m[1], 10) : WORDS[m[1]]; if (!n) return null;
+    let sec = n * (/^seg/.test(m[2]) ? 1 : /^h/.test(m[2]) ? 3600 : 60);
+    if (/hora y media/.test(t)) sec += 1800;
+    return sec;
+  }
+  function sayDuration(sec) {
+    const h = Math.floor(sec / 3600), mi = Math.floor(sec % 3600 / 60), se = sec % 60, out = [];
+    if (h) out.push(h === 1 ? "una hora" : h + " horas"); if (mi) out.push(mi === 1 ? "un minuto" : mi + " minutos"); if (se || !out.length) out.push(se === 1 ? "un segundo" : se + " segundos");
+    return out.join(" y ");
+  }
+  function understand(text) {
+    const t = norm(text).replace(/^(oye pi|hey jarvis|ok pi)[,\s]*/, "").trim(), has = (...k) => k.some(x => t.includes(x)), now = new Date();
+    if (!t) return "Dime algo, por ejemplo: qué hora es";
+    if (has("temporizador", "cuenta atras")) {
+      if (has("cancela", "quita", "borra")) { S.timers = S.timers.filter(x => x.kind !== "timer"); LS.set("timers", S.timers); return "Temporizadores cancelados"; }
+      const sec = duration(t); if (!sec) return "No he entendido cuánto tiempo. Prueba: pon un temporizador de diez minutos";
+      S.timers.push({ id: rid(8), kind: "timer", label: "", due: Date.now() + sec * 1000 }); LS.set("timers", S.timers); return "Temporizador de " + sayDuration(sec) + " en marcha";
+    }
+    if (has("despiertame", "alarma")) {
+      const m = /a las (\d{1,2})(?:[:\s](\d{2}))?(?: y media)?/.exec(t); if (!m) return "No he entendido la hora. Prueba: despiértame a las siete y media";
+      let h = +m[1], mi = m[2] ? +m[2] : /y media/.test(t) ? 30 : 0; const d = new Date(); d.setHours(h, mi, 0, 0); if (d <= now) d.setDate(d.getDate() + 1);
+      S.timers.push({ id: rid(8), kind: "alarm", label: "", due: d.getTime(), hour: h, minute: mi }); LS.set("timers", S.timers); return "Alarma a las " + pad(h) + ":" + pad(mi);
+    }
+    if (has("que hora", "dime la hora")) return "Son las " + pad(now.getHours()) + ":" + pad(now.getMinutes());
+    if (has("que dia", "que fecha")) return "Hoy es " + now.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+    if (has("tiempo", "llover", "lluvia", "temperatura", "calor", "frio")) {
+      const w = weather(); return "Ahora hay " + Math.round(w.temp) + " grados y poco nuboso. Máxima " + Math.round(w.tmax) + ", mínima " + Math.round(w.tmin) + ". " + (w.rain_alert ? "Habrá lluvia en " + w.rain_alert.in_hours + " hora, con un " + w.rain_alert.prob + " por ciento." : "");
+    }
+    if (has("calendario", "agenda", "que tengo")) { const ev = calendar().events; return "Hoy tienes " + ev[0].title + " a las " + ev[0].time + ". Mañana: " + ev[1].title; }
+    if (has("modo casa", "modo hogar")) { LS.set("mode", "home"); fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "home" }) }); return "Cambiando a modo casa"; }
+    if (has("modo iker", "modo notas", "bloc")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "iker" }) }); return "Cambiando a modo iker"; }
+    if (has("modo dev", "modo desarrollador", "modo consola")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "dev" }) }); return "Cambiando a modo desarrollador"; }
+    if (has("musica", "cancion")) {
+      const cmd = has("siguiente", "salta") ? "next" : has("anterior") ? "previous" : has("pausa", "para", "deten", "silencia") ? "pause" : has("pon", "reanuda", "sigue", "reproduce") ? "play" : null;
+      if (cmd) { S.music = { seq: S.music.seq + 1, cmd, arg: null }; return { pause: "Música en pausa", play: "Seguimos con la música", next: "Siguiente canción", previous: "Canción anterior" }[cmd]; }
+    }
+    if (has("volumen")) {
+      if (has("sube", "mas alto")) S.audio.volume = Math.min(100, S.audio.volume + 15); else if (has("baja", "mas bajo")) S.audio.volume = Math.max(0, S.audio.volume - 15);
+      else { const m = /(\d+|[a-z]+)\s*(?:por ciento)?$/.exec(t); const n = m ? (/^\d+$/.test(m[1]) ? +m[1] : WORDS[m[1]]) : null; if (n == null) return "No he entendido el volumen"; S.audio.volume = Math.min(100, n); }
+      S.audio.muted = false; LS.set("audio", S.audio); return "Volumen al " + S.audio.volume + " por ciento";
+    }
+    if (has("brillo")) { if (has("auto")) S.display.auto = true; else { S.display.auto = false; S.display.level = Math.max(10, Math.min(100, S.display.level + (has("sube", "mas") ? 20 : -20))); } LS.set("display", S.display); return has("auto") ? "Brillo automático" : "Brillo al " + S.display.level + " por ciento"; }
+    if (has("pihole", "pi hole", "anuncios")) {
+      if (has("pausa", "desactiva", "apaga")) { S.pihole = { blocking: false, until: Date.now() + (duration(t) || 300) * 1000 }; return "Pi-hole en pausa"; }
+      S.pihole = { blocking: true, until: 0 }; return "Pi-hole activado";
+    }
+    if (has("camara")) { S.camera = !has("cierra", "oculta"); return S.camera ? "Abriendo la cámara" : "Cámara cerrada"; }
+    if (has("apaga la pi", "reinicia")) return "En el simulador no se apaga nada. En tu Pi real te pediría confirmar en pantalla";
+    return "No te he entendido. La IA local no está activada en el simulador; prueba con: qué hora es, qué tiempo hace o pon un temporizador de un minuto";
+  }
+  function say(text) {
+    const heard = String(text || "").trim().slice(0, 140), reply = understand(heard);
+    S.voice = { state: "listening", wake: "oye pi", heard, reply, ts: Date.now() / 1000 };
+    try { if (typeof window.refresh === "function") window.refresh(); } catch (e) {}
+    try {                                                           // la «Pi» habla (con la voz de tu navegador, si hay una en español)
+      if (window.speechSynthesis && !S.audio.muted && S.audio.volume > 0) {
+        speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(reply); u.lang = "es-ES"; u.volume = S.audio.volume / 100; speechSynthesis.speak(u);
+      }
+    } catch (e) {}
+    return reply;
+  }
+
   /* ---------------- insignia de la demo ---------------- */
   function badge() {
     if (framed || !document.body || document.getElementById("demo-badge")) return;
@@ -471,5 +540,5 @@
     b.querySelector("a").onclick = e => e.stopPropagation();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", badge); else badge();
-  window.PCPI_DEMO = { LS, status, toast };
+  window.PCPI_DEMO = { LS, status, toast, say, understand };
 })();
