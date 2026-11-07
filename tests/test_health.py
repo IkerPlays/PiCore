@@ -58,6 +58,12 @@ class ChecksTest(unittest.TestCase):
         self.assertEqual(r[0]["level"], "info")
         self.assertIn("3", r[0]["text"])
 
+    def test_music_folder_note_only_when_space_is_tight(self):
+        tight = {"free_gb": 3.5, "total_gb": 30, "pct": 88}
+        self.assertTrue([x for x in lv({"music_mb": 2500, "update": {}}, disk=tight) if "música" in x["text"]])
+        self.assertFalse([x for x in lv({"music_mb": 2500, "update": {}}) if "música" in x["text"]])             # mucho espacio libre
+        self.assertFalse([x for x in lv({"music_mb": 200, "update": {}}, disk=tight) if "música" in x["text"]])  # poca musica
+
     def test_throttled_parsing(self):
         out = type("R", (), {"stdout": "throttled=0x50005\n"})
         r = health.throttled(run=lambda *a, **k: out)

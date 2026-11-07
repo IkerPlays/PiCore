@@ -67,6 +67,9 @@ def checks(status, disk=None, mem=None, thr=None):
             out.append({"level": "bad", "text": "Casi no queda espacio en la tarjeta (%.1f GB libres). Borra cosas o cambia a una tarjeta mayor." % d["free_gb"]})
         elif d["free_gb"] < 3:
             out.append({"level": "warn", "text": "Queda poco espacio en la tarjeta (%.1f GB libres)." % d["free_gb"]})
+    mu = status.get("music_mb")
+    if isinstance(mu, (int, float)) and d and mu > 0 and d["free_gb"] < 5 and mu > 1000:
+        out.append({"level": "info", "text": "La música ocupa %.1f GB y la tarjeta tiene poco espacio libre: puedes quitar canciones en Musix." % (mu / 1000)})
     m = mem if mem is not None else mem_available_mb()
     if m is not None and m < 300:
         out.append({"level": "warn", "text": "Queda poca memoria libre (%d MB). Cierra algo o usa un modelo de IA más pequeño." % m})

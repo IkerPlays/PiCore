@@ -1174,7 +1174,11 @@ def music_post(body):
 def system_info(st):
     """Disco, memoria, avisos de salud y actualizaciones (cada 20 s como mucho: vcgencmd es un proceso)."""
     def build():
-        base = {**st, "update": health.update_state()}
+        try:
+            music_mb = sum(t["size"] for t in musix.list_tracks()) // 1_000_000
+        except OSError:
+            music_mb = 0
+        base = {**st, "update": health.update_state(), "music_mb": music_mb}
         return {"disk": health.disk_info(), "mem_avail_mb": health.mem_available_mb(), "update": base["update"],
                 "health": health.checks(base)}
     return cached("system", 20, build)
