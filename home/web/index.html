@@ -431,6 +431,7 @@
   <div class="mxview" id="mx-mp3">
     <div class="mxrow"><button id="mx-usb" title="Copiar las canciones de un USB a la Pi">Importar de un USB</button><button id="mx-refresh">Actualizar</button><span id="mx-count" class="mxnote" style="margin:0;align-self:center"></span></div>
     <div class="mxerr" id="mx-merr"></div>
+    <div class="mxrow" id="mx-fwrap" hidden><input id="mx-filter" placeholder="Buscar en tu música" autocomplete="off" spellcheck="false" aria-label="Buscar en tu música"></div>
     <div id="mxlist"></div>
     <div class="mxbar"><button id="mx-shuf" aria-label="Aleatorio" title="Aleatorio">Aleatorio</button><button id="mx-rep" aria-label="Repetir" title="Repetir: todo, una canción o nada">Repetir todo</button><button id="mx-sleep" aria-label="Apagar la música en un rato" title="Apagar la música en un rato">Dormir</button><button id="mx-p" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.5v14H6zM20 5v14L9.5 12z"/></svg></button><button id="mx-pp" aria-label="Reproducir o pausar"><svg id="mx-pp-ic" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button><button id="mx-n" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 5H18v14h-2.5zM4 5v14l10.5-7z"/></svg></button><input type="range" id="mx-seek" min="0" max="1000" value="0" aria-label="Posición"><output id="mx-time">0:00 / 0:00</output><input type="range" id="mx-vol" min="0" max="100" value="100" aria-label="Volumen de Musix" title="Volumen de Musix" style="max-width:110px"></div>
   </div>
@@ -756,11 +757,15 @@ function mxPaintPlay() {
   const d = playing ? "M6 5h4v14H6zM14 5h4v14h-4z" : "M8 5v14l11-7z";
   $("mx-pp-ic").firstElementChild.setAttribute("d", d); $("m-play-ic").firstElementChild.setAttribute("d", d);
 }
+const mxNorm = x => String(x || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 function mxRenderList() {
   const l = $("mxlist"); l.textContent = "";
   $("mx-count").textContent = mxTracks.length ? mxTracks.length + " canciones" : "";
   if (!mxTracks.length) { const e = document.createElement("div"); e.className = "mxnote"; e.textContent = "Todavía no hay canciones. Importa desde un USB, o búscalas en DYMusic."; l.append(e); return; }
+  $("mx-fwrap").hidden = mxTracks.length < 8;                            // con pocas canciones no hace falta buscar
+  const fq = mxNorm($("mx-filter").value);
   mxTracks.forEach((t, i) => {
+    if (fq && !mxNorm(t.title).includes(fq)) return;
     const d = document.createElement("div"); d.className = "trk" + (i === mxCur ? " cur" : "");
     const n = document.createElement("span"); n.textContent = t.title;
     const x = document.createElement("button"); x.textContent = "Quitar"; x.setAttribute("aria-label", "Quitar " + t.title);
@@ -817,6 +822,8 @@ mxAudio.addEventListener("timeupdate", () => {
 $("mx-seek").oninput = () => { if (isFinite(mxAudio.duration)) mxAudio.currentTime = mxAudio.duration * $("mx-seek").value / 1000; };
 $("mx-pp").onclick = mxToggle; $("mx-n").onclick = mxNext; $("mx-p").onclick = mxPrev;
 $("m-play").onclick = mxToggle; $("m-next").onclick = mxNext; $("m-prev").onclick = mxPrev;
+$("mx-filter").addEventListener("input", () => mxRenderList());
+oskFor("mx-filter", () => {});
 $("mx-shuf").onclick = () => { mxShuffle = !mxShuffle; $("mx-shuf").classList.toggle("on", mxShuffle); };
 $("mx-refresh").onclick = mxLoad;
 try { const v = parseFloat(localStorage.getItem("mxvol")); if (v >= 0 && v <= 1) { mxAudio.volume = v; $("mx-vol").value = Math.round(v * 100); } } catch (e) {}

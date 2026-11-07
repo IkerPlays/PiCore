@@ -5,6 +5,10 @@
 
 
 
+## MP3 Player: buscar en tu música
+
+- Con 8 o más canciones aparece un cuadro para filtrar por título (sin distinguir mayúsculas ni tildes, con teclado en pantalla). Comprobado en navegador sin pantalla.
+
 ## Portada: botón de tema claro / oscuro
 
 - La web de inicio sigue el tema del sistema y ahora tiene un botón para cambiarlo a mano (se recuerda en el navegador). Comprobado en navegador sin pantalla.
