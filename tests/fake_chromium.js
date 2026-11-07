@@ -6,7 +6,7 @@ const { chromium } = require('playwright');
 const url = process.argv[process.argv.length - 1];
 const log = line => fs.appendFileSync(process.env.FAKE_CHROMIUM_LOG, process.pid + ' ' + line + '\n');
 (async () => {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch().catch(e => { log('error ' + e.message.split('\n')[0]); process.exit(1); });
   const ctx = await browser.newContext({ viewport: { width: 1024, height: 600 }, locale: 'es-ES' });
   const page = await ctx.newPage();
   page.on('framenavigated', f => { if (f === page.mainFrame()) log('nav ' + f.url()); });

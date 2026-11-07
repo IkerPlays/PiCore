@@ -48,6 +48,8 @@ class PiVirtualTest(unittest.TestCase):
                     "PCPI_PORT": str(self.port), "PCPI_RUN_DIR": str(self.run_dir), "PCPI_MODE_FILE": str(self.mode), "PCPI_TICK": "0.3",
                     "FAKE_CHROMIUM_LOG": str(self.log), "PCPI_UPDATE_EVERY": "99999", "PCPI_UPDATE_FIRST": "99999"}
         self.env.pop("WAYLAND_DISPLAY", None)
+        # el HOME de la prueba es temporal: Playwright buscaria sus navegadores ahi y no los encontraria (en el CI estan en el HOME real)
+        self.env.setdefault("PLAYWRIGHT_BROWSERS_PATH", os.environ.get("PLAYWRIGHT_BROWSERS_PATH") or os.path.join(os.path.expanduser("~"), ".cache", "ms-playwright"))
         self.mode.write_text("home\n")
         # el servidor, en este mismo proceso, con SUS rutas (no se mezclan con las del resto de pruebas)
         self.saved = {k: os.environ.get(k) for k in self.srv_env}
