@@ -181,6 +181,12 @@ class ApiTest(unittest.TestCase):
         finally:
             server.pihole_stats = real
 
+    def test_every_pref_exists_in_the_example_config(self):
+        """Los ajustes de la pantalla tienen que existir (y estar documentados) en config/pcpi.conf.example."""
+        ejemplo = (Path(__file__).resolve().parent.parent / "config" / "pcpi.conf.example").read_text(encoding="utf-8")
+        for clave, (sec, nombre, _tipo, _lo, _hi) in server.PREFS.items():
+            self.assertIsNotNone(confedit.get(ejemplo, sec, nombre), "%s: [%s] %s no esta en pcpi.conf.example" % (clave, sec, nombre))
+
     def test_a_dangerous_name_cannot_inject_settings(self):
         self.post({"action": "city_set", "lat": 1, "lon": 2, "name": "X\n[pihole]\npassword = hackeado"})
         text = (T / "pcpi.conf").read_text()
