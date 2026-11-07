@@ -534,6 +534,10 @@
     }
     if (has("que hora", "dime la hora")) return "Son las " + pad(now.getHours()) + ":" + pad(now.getMinutes());
     if (has("que dia", "que fecha")) return "Hoy es " + now.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+    if (has("tiempo", "llover", "llovera", "lluvia", "temperatura", "hara") && has("manana")) {
+      const off = has("pasado manana") ? 2 : 1, d = weather().days[off - 1];
+      return (off === 1 ? "Mañana" : "Pasado mañana") + " habrá una máxima de " + d.tmax + " grados y una mínima de " + d.tmin + (d.rain >= 30 ? ", y un " + d.rain + " por ciento de probabilidad de lluvia" : "");
+    }
     if (has("tiempo", "llover", "lluvia", "temperatura", "calor", "frio")) {
       const w = weather(); return "Ahora hay " + Math.round(w.temp) + " grados y poco nuboso. Máxima " + Math.round(w.tmax) + ", mínima " + Math.round(w.tmin) + ". " + (w.rain_alert ? "Habrá lluvia en " + w.rain_alert.in_hours + " hora, con un " + w.rain_alert.prob + " por ciento." : "");
     }
