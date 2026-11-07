@@ -115,6 +115,7 @@
   #upd { margin-top:14px; padding:12px 14px; border:1px solid var(--line); border-radius:14px; background:var(--card2); }
   #upd-row { display:flex; align-items:center; gap:12px; } #upd-txt { flex:1; font-size:16px; } #upd-btn { min-height:48px; border-radius:14px; padding:0 16px; font-size:16px; }
   #upd-log { margin-top:10px; font:12px/1.4 ui-monospace,Menlo,monospace; white-space:pre-wrap; word-break:break-word; max-height:130px; overflow:auto; color:var(--dim); } #upd-log[hidden] { display:none; }
+  .hl { display:flex; align-items:center; justify-content:space-between; gap:10px; } .hl button { flex:none; padding:6px 12px; font-size:14px; border-radius:99px; }
   #voicehelp { margin-top:14px; padding:10px 14px; border:1px solid var(--line); border-radius:14px; background:var(--card2); font-size:15px; }
   #voicehelp summary { cursor:pointer; font-weight:600; font-size:16px; } #voicehelp p { margin:10px 0 4px; color:var(--dim); } #voicehelp ul { margin:0; padding-left:20px; line-height:1.6; }
   #prefs { margin-top:14px; padding:6px 14px; border:1px solid var(--line); border-radius:14px; background:var(--card2); }
@@ -985,7 +986,12 @@ function renderSystem() {
   stat(lastCpu != null ? lastCpu + " °C" : "--", "temperatura");
   stat(sy.update && sy.update.available ? "Sí" : "No", "actualización");
   const h = $("s-health"); h.textContent = "";
-  for (const it of (sy.health || [])) { const d = document.createElement("div"); d.className = "hl " + it.level; d.textContent = it.text; h.append(d); }
+  for (const it of (sy.health || [])) {
+    const d = document.createElement("div"); d.className = "hl " + it.level; const t = document.createElement("span"); t.textContent = it.text; d.append(t);
+    const go = {city: ["Elegir ciudad", () => { closeSystem(); openCity(); }], pihole: ["Conectar Pi-hole", () => { closeSystem(); openPh(); }]}[it.action];
+    if (go) { const b = document.createElement("button"); b.textContent = go[0]; b.onclick = go[1]; d.append(b); }
+    h.append(d);
+  }
 }
 let lastCpu = null;
 function pwrReset() { pwrAsk = null; clearTimeout(pwrTimer); for (const [id, t] of [["s-reboot", "Reiniciar"], ["s-off", "Apagar"]]) { $(id).textContent = t; $(id).classList.remove("sure"); } }

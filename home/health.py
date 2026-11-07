@@ -124,7 +124,7 @@ def checks(status, disk=None, mem=None, thr=None):
             out.append({"level": "bad", "text": "Hay red pero no hay internet."})
     ph = status.get("pihole") or {}
     if ph and not ph.get("ok"):
-        out.append({"level": "warn", "text": "Pi-hole no responde (¿contraseña o servicio?)."})
+        out.append({"level": "warn", "text": "Pi-hole no responde (¿contraseña o servicio?).", "action": "pihole"})
     ai = status.get("ai") or {}
     if ai.get("enabled") and ai.get("reachable") is False:
         out.append({"level": "warn", "text": "La IA está activada pero Ollama no responde."})
@@ -133,7 +133,7 @@ def checks(status, disk=None, mem=None, thr=None):
     # Avisos de «falta configurar» (solo informan: no ponen el icono en naranja)
     setup = status.get("setup") or {}
     if setup.get("weather") is False:
-        out.append({"level": "info", "text": "Falta tu ciudad para el tiempo: ejecuta pcpi-setup (o pon lat y lon en [weather])."})
+        out.append({"level": "info", "text": "Falta tu ciudad para el tiempo. Elígela desde la pantalla (o con pcpi-setup).", "action": "city"})
     if setup.get("voice") is False:
         out.append({"level": "info", "text": "La voz no está activa. Se instala con ./install.sh --voice (o mira systemctl --user status pcpi-voice)."})
     au = status.get("audio")

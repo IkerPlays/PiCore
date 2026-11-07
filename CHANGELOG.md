@@ -5,6 +5,10 @@
 
 
 
+## Hoja Sistema: las alertas tienen botón
+
+- «Falta tu ciudad» trae un botón «Elegir ciudad» y «Pi-hole no responde» uno de «Conectar Pi-hole», que cierran la hoja y abren el panel correspondiente. Comprobado en navegador sin pantalla.
+
 ## Simulador: «Copiar enlace» y arreglos en el móvil
 
 - Botón «Copiar enlace» (abre el simulador en el modo actual). En el móvil la barra de voz ya no se solapa con el aviso de abajo, la cabecera se desplaza en vez de cortarse y se esconden los atajos de teclado. Comprobado en navegador sin pantalla a 390 px (capturas revisadas).

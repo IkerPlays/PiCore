@@ -68,6 +68,7 @@ class ChecksTest(unittest.TestCase):
         r = lv({"setup": {"weather": False, "voice": False}, "audio": {"available": False}, "update": {}})
         texts = " | ".join(x["text"] for x in r)
         self.assertIn("pcpi-setup", texts)
+        self.assertIn("city", [x.get("action") for x in r])                          # la alerta de la ciudad trae su boton
         self.assertIn("--voice", texts)
         self.assertIn("pcpi-sound", texts)
         self.assertEqual({x["level"] for x in r}, {"info"})                               # nunca naranja ni rojo por «falta configurar»
