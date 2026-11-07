@@ -53,6 +53,10 @@ home/web/index.html  (reloj, tiempo,           └─ iker    → Chromium (vent
 2. ✅ Asistente de voz local con palabra de activación dedicada. ⏳ Entrenar «Oye Pi» y voz más natural (Piper).
 3. ✅ Cámara en modo Casa y detección de movimiento con aviso.
 4. ✅ Mini pantalla de estado (OLED, sin probar en hardware). ✅ Brillo desde la UI e indicador de batería (si hay UPS/medidor).
+5. ✅ Musix (YT Music, MP3 Player, DYMusic), temporizadores y alarmas, tiempo por horas, calendario, salvapantallas, Modo Dev y actualizaciones desde la pantalla.
+6. ✅ Ajustes desde la pantalla sin editar archivos (ciudad, Pi-hole, salvapantallas, modo noche) y órdenes de voz para notas, listas, estado de la Pi y tiempo de mañana.
+7. ✅ Web pública con portada, simulador (voz escrita y visita guiada) y pruebas automáticas.
+8. ⏳ **Probarlo todo en una Raspberry Pi real** (hoy solo hay pruebas automáticas, un «Pi virtual» y el simulador). ⏳ Voz más natural (Piper) y un «Oye Pi» fiable.
 
 ## Pruebas «Pi virtual»
 
@@ -71,5 +75,7 @@ home/web/index.html  (reloj, tiempo,           └─ iker    → Chromium (vent
 - **Cerrojo de instancia única.** El `flock` de `pcpi-session` se hereda por los procesos hijos salvo que se cierre (`9>&-`); se cierra para Chromium, el reloj (`sleep`) y los trabajos en segundo plano, para que un vigilante reiniciado con el navegador vivo pueda volver a arrancar.
 
 ## Demo web (Netlify)
+
+La web tiene tres partes: la **portada** (`web-demo/landing.html` + `landing.css`: qué es, cómo funciona, instalar y preguntas), el **simulador** (`web-demo/shell.html`: la interfaz dentro de un marco de 1024×600 con barra de voz y visita guiada, en `/simulador`) y las **páginas reales** de la Pi con la API simulada (`/app`, `/iker`, `/dev`, `/loading`). Todo lo genera `tools/build_web_demo.py`.
 
 `web-demo/demo.js` reimplementa en JavaScript la API que sirve `home/server.py` (estado, notas, música, consola Dev falsa, Wi-Fi, temporizadores...) sustituyendo `window.fetch` para las rutas `/api/*`, y parchea `HTMLMediaElement.src` (las canciones `/music/<id>` se generan como WAV en el navegador) y `HTMLImageElement.src` (la cámara es un SVG animado). `tools/build_web_demo.py` (solo stdlib, Python 3.8+) produce `dist-demo/` con las páginas, el sprite de iconos incrustado, `_headers` (CSP estricta con `blob:` para el audio y `frame-src` de YouTube) y `netlify.toml` define build y rutas. La única fuente de verdad de las páginas sigue siendo `home/web/`; el test `test_web_demo.py` comprueba que toda ruta que usen las páginas esté simulada y que la demo no publique nada de Python.
