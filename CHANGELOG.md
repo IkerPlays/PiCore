@@ -6,6 +6,10 @@
 
 
 
+## Accesibilidad: el interruptor del salvapantallas tiene nombre
+
+- Un lector de pantalla no sabía qué era el interruptor del salvapantallas. Revisé con el navegador todos los botones, enlaces y cuadros de la interfaz (Casa, Iker, Dev, Escritorio, simulador y portada): el resto ya tenía nombre.
+
 ## Voz: qué día es mañana
 
 - «Qué día es mañana» dice el día de la semana y la fecha de mañana. Probado con tests; no en una Pi real.
