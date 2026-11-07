@@ -5,6 +5,10 @@
 
 
 
+## Modo Iker: contador de notas
+
+- Sobre la lista sale «N notas» (o «N notas encontradas» al buscar o filtrar por etiqueta). Comprobado en navegador sin pantalla.
+
 ## Hoja Sistema: botón «Abrir Wi-Fi» en las alertas de red
 
 - «Sin conexión de red», «la wifi pide iniciar sesión» y «hay red pero no hay internet» traen un botón que abre el panel de Wi-Fi. La parte del servidor está probada con tests; el botón comparte el código del de la ciudad (probado en navegador).

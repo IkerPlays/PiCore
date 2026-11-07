@@ -30,6 +30,7 @@
   aside .empty { color:var(--dim); padding:16px 8px; font-size:15px; line-height:1.4; }
   #tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
   #tags button { font-size:14px; padding:5px 10px; border-radius:999px; }
+  .ncount { font-size:12px; color:var(--dim); padding:2px 6px 6px; }
   #pin.on { background:var(--acc); color:var(--acc-fg); border-color:var(--acc); }
   #tags button.on { background:var(--acc); color:var(--acc-fg); border-color:var(--acc); }
   #marks { grid-column:1 / span 2; display:flex; gap:8px; align-items:center; padding:6px 12px; background:var(--side); border-bottom:1px solid var(--line); overflow-x:auto; }
@@ -64,7 +65,7 @@
   <button id="madd" title="Añadir un acceso directo a una web"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg> Añadir</button>
   <span id="mform"><input id="mt" placeholder="Nombre" maxlength="40" autocomplete="off"><input id="mu" placeholder="direccion.com" autocomplete="off"><button id="msave" class="primary">Guardar</button></span>
 </div>
-<aside><input id="q" type="search" placeholder="Buscar en las notas…" autocomplete="off"><div id="tags"></div><div id="list"></div></aside>
+<aside><input id="q" type="search" placeholder="Buscar en las notas…" autocomplete="off"><div id="tags"></div><div id="ncount" class="ncount" aria-live="polite"></div><div id="list"></div></aside>
 <main>
   <textarea id="text" placeholder="Escribe aquí…  (se guarda solo)" spellcheck="true" autofocus></textarea>
   <footer><span id="status">Lista</span><span id="count"></span><span style="margin-left:auto">Ctrl+S guardar · Ctrl+N nueva · Internet se abre en una pestaña nueva</span></footer>
@@ -113,6 +114,7 @@ async function refresh() {
   let notes = await api("/api/notes" + (query ? "?q=" + encodeURIComponent(query) : ""));
   paintTags();
   if (tagSel) notes = notes.filter(n => (n.tags || []).includes(tagSel));
+  $("ncount").textContent = notes.length ? notes.length + (notes.length === 1 ? " nota" : " notas") + (query || tagSel ? (notes.length === 1 ? " encontrada" : " encontradas") : "") : "";
   const l = $("list"); l.innerHTML = "";
   const words = query.split(/\s+/).filter(Boolean);
   if (!notes.length) l.innerHTML = query ? "" : '<div class="empty">Aún no hay notas.<br>Pulsa «Nueva» y empieza a escribir.</div>';
