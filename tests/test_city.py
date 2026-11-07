@@ -222,7 +222,7 @@ class ApiTest(unittest.TestCase):
         for body in raros:
             try:
                 code, _ = self.post(body)
-            except Exception as e:          # noqa: BLE001 - json.dumps puede negarse a serializar inf: ese caso no llega al servidor
+            except Exception:          # noqa: BLE001 - json.dumps puede negarse a serializar inf: ese caso no llega al servidor
                 continue
             self.assertIn(code, (200, 400, 413, 502), repr(body)[:80])
         self.assertEqual(self.post({"action": "prefs_get"})[0], 200)
