@@ -349,6 +349,8 @@ pcpi-doctor
 
 ✅ Termina con **«Todo correcto»**, o con avisos `!` solo de cosas que aún no has configurado (Pi-hole, ciudad…). Un `✘` es un error real: mira [Si algo falla](#si-algo-falla).
 
+> **¿Necesitas pedir ayuda?** Ejecuta `pcpi-doctor --report`: guarda el diagnóstico, la versión del sistema y tu configuración (con las contraseñas como `******`) en `~/picore-informe.txt`. Revísalo y adjúntalo a tu [incidencia](https://github.com/IkerPlays/PiCore/issues/new/choose).
+
 ### 5.8 Cambiar o actualizar el código más adelante
 
 | Quiero… | Hago… |
