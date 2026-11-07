@@ -169,8 +169,9 @@ def execute(cfg, intent):
         if n == "ask":
             return ask_ai(cfg, a)
         if n == "timer_set":
-            api(cfg, "/api/timers", {"action": "timer", "seconds": a})
-            return "Temporizador de " + intents.say_duration(a)
+            secs, label = a if isinstance(a, tuple) else (a, "")
+            api(cfg, "/api/timers", dict({"action": "timer", "seconds": secs}, **({"label": label} if label else {})))
+            return "Temporizador de " + intents.say_duration(secs) + (" para " + label if label else "")
         if n == "alarm_set":
             api(cfg, "/api/timers", {"action": "alarm", "hour": a[0], "minute": a[1]})
             return "Alarma a las %d y %02d" % a if a[1] else "Alarma a las %d en punto" % a[0]

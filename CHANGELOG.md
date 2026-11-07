@@ -5,6 +5,10 @@
 
 
 
+## Voz: temporizadores con nombre
+
+- «Pon un temporizador de diez minutos para la pasta» crea el temporizador con el nombre «pasta» (sale en la lista y en el aviso). Arreglado: «temporizador para diez minutos» se entendía como parar. También en el simulador. Probado con tests; no en una Pi real.
+
 ## Notas fijadas
 
 - Modo Iker: botón «Fijar» para dejar una nota arriba de la lista (con estrella). Editar la nota no la desfija. También en el simulador. Probado con tests y en navegador sin pantalla; no en una Pi real.

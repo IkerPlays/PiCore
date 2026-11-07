@@ -498,7 +498,8 @@
     if (has("temporizador", "cuenta atras")) {
       if (has("cancela", "quita", "borra")) { S.timers = S.timers.filter(x => x.kind !== "timer"); LS.set("timers", S.timers); return "Temporizadores cancelados"; }
       const sec = duration(t); if (!sec) return "No he entendido cuánto tiempo. Prueba: pon un temporizador de diez minutos";
-      S.timers.push({ id: rid(8), kind: "timer", label: "", due: Date.now() + sec * 1000 }); LS.set("timers", S.timers); return "Temporizador de " + sayDuration(sec) + " en marcha";
+      const lm = /\bpara (?:el |la |los |las |mi |mis |un |una )?([a-záéíóúñü]+(?: [a-záéíóúñü]+){0,2})$/.exec(String(text).toLowerCase().replace(/[\s.,!?¡¿]+$/, "")), label = lm && !duration(norm(lm[1])) ? lm[1].slice(0, 40) : "";
+      S.timers.push({ id: rid(8), kind: "timer", label, due: Date.now() + sec * 1000 }); LS.set("timers", S.timers); return "Temporizador de " + sayDuration(sec) + (label ? " para " + label : "") + " en marcha";
     }
     if (has("despiertame", "alarma")) {
       const m = /a las (\d{1,2})(?:[:\s](\d{2}))?(?: y media)?/.exec(t); if (!m) return "No he entendido la hora. Prueba: despiértame a las siete y media";

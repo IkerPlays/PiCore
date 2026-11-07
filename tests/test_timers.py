@@ -190,6 +190,10 @@ class IntentTest(unittest.TestCase):
 
     def test_stop_cancel_query(self):
         P = i.parse
+        self.assertEqual(P("pon un temporizador de diez minutos para la pasta"), ("timer_set", (600, "pasta")))
+        self.assertEqual(P("pon un temporizador de una hora para estudiar"), ("timer_set", (3600, "estudiar")))
+        self.assertEqual(P("temporizador de cinco minutos"), ("timer_set", 300))                # sin nombre: como siempre
+        self.assertEqual(P("temporizador para diez minutos"), ("timer_set", 600))               # «para» aqui no es parar ni nombre
         self.assertEqual(P("cancela el temporizador"), ("timer_cancel", None))
         self.assertEqual(P("cuanto queda del temporizador"), ("timer_query", None))
         self.assertEqual(P("para la alarma"), ("timers_stop", None))

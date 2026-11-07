@@ -213,6 +213,8 @@ class ExecuteApiIntentsTest(unittest.TestCase):
         self.status["timers"] = []
         self.assertEqual(assistant.execute(self.cfg, ("timer_set", 600)), "Temporizador de 10 minutos")
         self.assertEqual(self.posts[-1], ("/api/timers", {"action": "timer", "seconds": 600}, "1"))
+        self.assertEqual(assistant.execute(self.cfg, ("timer_set", (600, "pasta"))), "Temporizador de 10 minutos para pasta")
+        self.assertEqual(self.posts[-1], ("/api/timers", {"action": "timer", "seconds": 600, "label": "pasta"}, "1"))
         self.assertEqual(assistant.execute(self.cfg, ("alarm_set", (7, 30))), "Alarma a las 7 y 30")
         self.assertEqual(self.posts[-1][1], {"action": "alarm", "hour": 7, "minute": 30})
         self.assertEqual(assistant.execute(self.cfg, ("alarm_set", (7, 0))), "Alarma a las 7 en punto")
