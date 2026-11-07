@@ -81,12 +81,15 @@ for (const b of document.querySelectorAll("#tabs button")) b.onclick = () => {
 };
 
 /* consola: la orden la ejecuta pcpi-session; aqui se pregunta por el resultado hasta que acaba */
-const hist = []; let hi = 0, busy = false;
+let hist = []; let hi = 0, busy = false;
+try { const h = JSON.parse(localStorage.getItem("pcpi-dev-hist") || "[]"); if (Array.isArray(h)) hist = h.filter(x => typeof x === "string").slice(-30); } catch (e) {}      // el historial sobrevive a recargar (solo en este navegador)
+hi = hist.length;
+const saveHist = () => { try { localStorage.setItem("pcpi-dev-hist", JSON.stringify(hist.slice(-30))); } catch (e) {} };
 function add(cls, text) { const s = document.createElement("span"); s.className = cls; s.textContent = text; $("out").append(s); $("out").scrollTop = 1e9; return s; }
 async function runCmd() {
   const cmd = $("cmd").value.trim();
   if (!cmd || busy) return;
-  busy = true; hist.push(cmd); hi = hist.length; $("cmd").value = "";
+  busy = true; if (hist[hist.length - 1] !== cmd) hist.push(cmd); saveHist(); hi = hist.length; $("cmd").value = "";
   add("cmd", "\n$ " + cmd + "\n");
   const body = add("", "");
   try {

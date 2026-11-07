@@ -5,6 +5,10 @@
 
 
 
+## Modo Dev: el historial de la consola se recuerda
+
+- Las últimas 30 órdenes (flecha arriba) sobreviven a recargar la página, solo en ese navegador. Comprobado en navegador sin pantalla.
+
 ## Modo Iker: contador de notas
 
 - Sobre la lista sale «N notas» (o «N notas encontradas» al buscar o filtrar por etiqueta). Comprobado en navegador sin pantalla.
