@@ -149,6 +149,8 @@ if (/[?&]tour\b/.test(location.search)) setTimeout(() => show(0), 1200);
 addEventListener("keydown", e => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   const el = document.activeElement; if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+  if (e.key === "Escape" && tour.classList.contains("on")) { tour.classList.remove("on"); step = -1; return; }
+  if (tour.classList.contains("on") && (e.key === "ArrowRight" || e.key === "ArrowLeft")) { e.preventDefault(); show(step + (e.key === "ArrowRight" ? 1 : -1)); return; }
   const m = {"1": "home", "2": "iker", "3": "dev"}[e.key];
   if (m) { const b = document.querySelector('button[data-m="' + m + '"]'); if (b) b.click(); }
   else if (e.key === "t" || e.key === "T") document.getElementById("tourbtn").click();

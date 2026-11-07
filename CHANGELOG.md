@@ -5,6 +5,10 @@
 
 
 
+## Visita guiada con el teclado
+
+- Con la visita abierta, las flechas ← → cambian de paso y `Esc` la cierra. Comprobado en navegador sin pantalla.
+
 ## Voz: posponer
 
 - «Pospón» / «cinco minutos más» mientras suena un temporizador o alarma. Probado con tests; no en una Pi real (y no se ha comprobado que la palabra de activación se oiga con el aviso sonando).
