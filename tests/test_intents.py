@@ -41,6 +41,8 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(P("muestra la cámara"), ("camera_show", None))
         self.assertEqual(P("enséñame la cámara"), ("camera_show", None))
         self.assertEqual(P("cierra la cámara"), ("camera_hide", None))
+        self.assertEqual(P("activa el salvapantallas"), ("screensaver", True))
+        self.assertEqual(P("desactiva el salvapantallas"), ("screensaver", False))
         self.assertEqual(P("sube el brillo"), ("brightness", "+20"))
         self.assertEqual(P("baja el brillo"), ("brightness", "-20"))
         self.assertEqual(P("brillo al cincuenta por ciento"), ("brightness", "50"))

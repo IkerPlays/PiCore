@@ -206,6 +206,11 @@ def parse(text):
             return Intent("motion", False)
         if has("activa", "enciende", "pon", "empieza", "vigila"):
             return Intent("motion", True)
+    if has("salvapantalla", "marco de fotos", "protector de pantalla"):
+        if has("desactiva", "apaga", "quita", "deja de", "desconecta", "sin "):
+            return Intent("screensaver", False)
+        if has("activa", "enciende", "pon", "conecta", "con "):
+            return Intent("screensaver", True)
     if has("brillo"):
         if has("automatic", "auto "):
             return Intent("brightness", "auto")

@@ -519,6 +519,10 @@
       S.audio.muted = false; LS.set("audio", S.audio); return "Volumen al " + S.audio.volume + " por ciento";
     }
     if (has("brillo")) { if (has("auto")) S.display.auto = true; else { S.display.auto = false; S.display.level = Math.max(10, Math.min(100, S.display.level + (has("sube", "mas") ? 20 : -20))); } LS.set("display", S.display); return has("auto") ? "Brillo automático" : "Brillo al " + S.display.level + " por ciento"; }
+    if (has("salvapantalla", "marco de fotos")) {
+      const on = !has("desactiva", "apaga", "quita"), P = Object.assign({ screensaver: true, idle_minutes: 5, night_from: 22, night_to: 7, night_level: 40 }, LS.get("prefs", {}));
+      P.screensaver = on; LS.set("prefs", P); return on ? "Salvapantallas activado" : "Salvapantallas desactivado";
+    }
     if (has("pihole", "pi hole", "anuncios")) {
       if (has("pausa", "desactiva", "apaga")) { S.pihole = { blocking: false, until: Date.now() + (duration(t) || 300) * 1000 }; return "Pi-hole en pausa"; }
       S.pihole = { blocking: true, until: 0 }; return "Pi-hole activado";

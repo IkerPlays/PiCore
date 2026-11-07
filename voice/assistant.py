@@ -157,6 +157,9 @@ def execute(cfg, intent):
             level = max(10, min(100, level))
             api(cfg, "/api/display", {"level": level, "auto": False})
             return "Brillo al %d por ciento" % level
+        if n == "screensaver":
+            api(cfg, "/api/settings", {"action": "pref_set", "key": "screensaver", "value": bool(a)})
+            return "Salvapantallas activado" if a else "Salvapantallas desactivado"
         if n == "calendar":
             with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
                 cal = json.load(r).get("calendar", {})

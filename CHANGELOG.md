@@ -5,6 +5,10 @@
 
 
 
+## Voz: salvapantallas
+
+- «Activa / desactiva el salvapantallas» por voz (y en el simulador). Probado con tests de intenciones; no en una Pi real.
+
 ## Preferencias desde la pantalla
 
 - La hoja Sistema deja activar el salvapantallas, elegir tras cuántos minutos salta y la hora y el brillo de la noche, sin editar `pcpi.conf`. El servidor solo escribe 5 claves de una lista cerrada y recorta los valores. Probado con tests y en el simulador; no en una Pi real.
