@@ -6,6 +6,10 @@
 
 
 
+## Voz: «apaga la pantalla»
+
+- Baja el brillo al mínimo (10 %); no la apaga del todo. Probado con tests; no en una Pi real.
+
 ## Corrección: el test de interfaz no contaba con el cuarto experimento
 
 - Al añadir el experimento «Lo último que oyó la voz» subí sin pasar el test de interfaz, que esperaba 3 experimentos y la posición del de depuración: el CI salió en rojo 2 veces (commits `0fc0ea2` y `0f9fd03`). Ahora el test espera 4, elige cada experimento por su nombre y comprueba el de la voz.

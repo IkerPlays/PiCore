@@ -199,6 +199,8 @@ def parse(text):
         return Intent("timer_extend", secs_p)
     if has("que dia de la semana", "que dia es manana", "que dia sera manana", "que dia cae"):
         return Intent("date_tomorrow" if has("manana") else "date", None)
+    if has("pon la pantalla en negro", "apaga la pantalla", "oscurece la pantalla"):
+        return Intent("brightness", "10")
     if has("calendario", "agenda", "que tengo", "tengo algo", "mis eventos", "proximo evento", "siguiente evento", "proxima cita", "tengo hoy", "tengo manana"):
         return Intent("calendar", "next" if has("proximo evento", "siguiente evento", "proxima cita") else "tomorrow" if has("manana") else "today")
     if has("temporizador", "cuenta atras", "cuentaatras"):
