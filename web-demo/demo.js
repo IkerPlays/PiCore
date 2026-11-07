@@ -560,6 +560,7 @@
     if (has("calendario", "agenda", "que tengo")) { const ev = calendar().events; return "Hoy tienes " + ev[0].title + " a las " + ev[0].time + ". Mañana: " + ev[1].title; }
     if (has("modo casa", "modo hogar")) { LS.set("mode", "home"); fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "home" }) }); return "Cambiando a modo casa"; }
     if (has("modo iker", "modo notas", "bloc")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "iker" }) }); return "Cambiando a modo iker"; }
+    if (has("modo escritorio", "modo desktop", "ve al escritorio")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "desktop" }) }); return "Cambiando a modo escritorio"; }
     if (has("modo dev", "modo desarrollador", "modo consola")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "dev" }) }); return "Cambiando a modo desarrollador"; }
     if (has("musica", "cancion")) {
       const cmd = has("siguiente", "salta") ? "next" : has("anterior") ? "previous" : has("pausa", "para", "deten", "silencia") ? "pause" : has("pon", "reanuda", "sigue", "reproduce") ? "play" : null;
