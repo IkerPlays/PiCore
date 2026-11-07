@@ -24,6 +24,7 @@ ROOT = Path(os.environ.get("PCPI_ROOT", "/"))
 ITEMS = [
     ("etc/pcpi/pcpi.conf", False), ("etc/pcpi/mode", False),
     ("var/lib/pcpi/notes", True), ("var/lib/pcpi/nets.json", False), ("var/lib/pcpi/display.json", False), ("var/lib/pcpi/motion.json", False), ("var/lib/pcpi/bookmarks.json", False),
+    ("var/lib/pcpi/timers.json", False), ("var/lib/pcpi/musix_history.json", False), ("var/lib/pcpi/musix_embed.json", False),   # (la carpeta de musica NO entra: pesa mucho)
     ("opt/pcpi/extra-assets", True),
 ]
 ALLOWED = tuple(p for p, _ in ITEMS)
