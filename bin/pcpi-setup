@@ -119,3 +119,4 @@ case "${1:-todo}" in
 esac
 apply
 printf '\n%sListo.%s Comprueba todo con:  pcpi-doctor\n' "$B" "$N"
+printf '(La ciudad, la contraseña de Pi-hole, el salvapantallas y el modo noche también se cambian tocando la pantalla.)\n'
