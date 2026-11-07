@@ -5,6 +5,10 @@
 
 
 
+## Hoja Sistema: botón «Abrir Wi-Fi» en las alertas de red
+
+- «Sin conexión de red», «la wifi pide iniciar sesión» y «hay red pero no hay internet» traen un botón que abre el panel de Wi-Fi. La parte del servidor está probada con tests; el botón comparte el código del de la ciudad (probado en navegador).
+
 ## Hoja Sistema: las alertas tienen botón
 
 - «Falta tu ciudad» trae un botón «Elegir ciudad» y «Pi-hole no responde» uno de «Conectar Pi-hole», que cierran la hoja y abren el panel correspondiente. Comprobado en navegador sin pantalla.

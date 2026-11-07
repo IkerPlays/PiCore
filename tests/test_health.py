@@ -64,6 +64,10 @@ class ChecksTest(unittest.TestCase):
         self.assertFalse([x for x in lv({"music_mb": 2500, "update": {}}) if "música" in x["text"]])             # mucho espacio libre
         self.assertFalse([x for x in lv({"music_mb": 200, "update": {}}, disk=tight) if "música" in x["text"]])  # poca musica
 
+    def test_network_alerts_offer_the_wifi_button(self):
+        r = lv({"net": {"available": True, "name": None}, "update": {}})
+        self.assertIn("wifi", [x.get("action") for x in r])
+
     def test_setup_hints_inform_but_do_not_alarm(self):
         r = lv({"setup": {"weather": False, "voice": False}, "audio": {"available": False}, "update": {}})
         texts = " | ".join(x["text"] for x in r)

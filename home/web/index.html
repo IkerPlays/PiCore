@@ -988,7 +988,7 @@ function renderSystem() {
   const h = $("s-health"); h.textContent = "";
   for (const it of (sy.health || [])) {
     const d = document.createElement("div"); d.className = "hl " + it.level; const t = document.createElement("span"); t.textContent = it.text; d.append(t);
-    const go = {city: ["Elegir ciudad", () => { closeSystem(); openCity(); }], pihole: ["Conectar Pi-hole", () => { closeSystem(); openPh(); }]}[it.action];
+    const go = {city: ["Elegir ciudad", () => { closeSystem(); openCity(); }], pihole: ["Conectar Pi-hole", () => { closeSystem(); openPh(); }], wifi: ["Abrir Wi-Fi", () => { closeSystem(); openSheet(); }]}[it.action];
     if (go) { const b = document.createElement("button"); b.textContent = go[0]; b.onclick = go[1]; d.append(b); }
     h.append(d);
   }

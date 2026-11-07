@@ -117,11 +117,11 @@ def checks(status, disk=None, mem=None, thr=None):
     net = status.get("net") or {}
     if net.get("available"):
         if not net.get("name"):
-            out.append({"level": "bad", "text": "Sin conexión de red."})
+            out.append({"level": "bad", "text": "Sin conexión de red.", "action": "wifi"})
         elif net.get("connectivity") == "portal":
-            out.append({"level": "warn", "text": "La wifi pide iniciar sesión (portal cautivo)."})
+            out.append({"level": "warn", "text": "La wifi pide iniciar sesión (portal cautivo).", "action": "wifi"})
         elif net.get("connectivity") == "none":
-            out.append({"level": "bad", "text": "Hay red pero no hay internet."})
+            out.append({"level": "bad", "text": "Hay red pero no hay internet.", "action": "wifi"})
     ph = status.get("pihole") or {}
     if ph and not ph.get("ok"):
         out.append({"level": "warn", "text": "Pi-hole no responde (¿contraseña o servicio?).", "action": "pihole"})
