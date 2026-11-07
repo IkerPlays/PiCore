@@ -148,6 +148,9 @@ def parse(text):
     words = t.split()
     has = lambda *ks: any(k in t for k in ks)
 
+    m = re.match(r"^(?:por favor )?(?:anade|añade|apunta|pon|mete|agrega|agregame|anademe|añademe)\s+(.{2,80}?)\s+(?:a|en)\s+(?:la\s+)?lista(?:\s+de\s+(?:la\s+)?(compra|compras|tareas|pendientes))?$", str(text).strip(" .!?¡¿"), re.I)
+    if m:
+        return Intent("list_add", (m.group(1).strip(), {"tareas": "Tareas", "pendientes": "Tareas"}.get((m.group(2) or "compra").lower(), "Lista de la compra")))
     m = re.match(r"^(?:por favor )?(?:toma nota|apunta|anota|apuntame|anotame|guarda una nota)(?: de| que| lo siguiente)?[ :,]+(.{2,400})$", str(text).strip(" .!?¡¿"), re.I)
     if m:
         return Intent("note_add", m.group(1).strip())

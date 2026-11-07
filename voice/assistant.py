@@ -157,6 +157,21 @@ def execute(cfg, intent):
             level = max(10, min(100, level))
             api(cfg, "/api/display", {"level": level, "auto": False})
             return "Brillo al %d por ciento" % level
+        if n == "list_add":
+            item, title = a
+            try:
+                with urllib.request.urlopen(cfg["api"] + "/api/notes", timeout=5) as r:
+                    notes = json.load(r)
+                found = next((x for x in notes if intents.norm(x.get("title", "")) == intents.norm(title)), None)
+                if found:
+                    with urllib.request.urlopen(cfg["api"] + "/api/notes/" + found["id"], timeout=5) as r:
+                        text = json.load(r)["text"].rstrip("\n") + "\n- " + item + "\n"
+                else:
+                    text = title + "\n- " + item + "\n"
+                api(cfg, "/api/notes", {"id": found["id"] if found else None, "text": text})
+            except (urllib.error.URLError, ValueError, KeyError):
+                return "No he podido guardarlo en la lista"
+            return "Añadido %s a %s" % (item, "la lista de la compra" if title.startswith("Lista") else "tus tareas")
         if n == "note_add":
             try:
                 api(cfg, "/api/notes", {"id": None, "text": a})

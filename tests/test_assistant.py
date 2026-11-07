@@ -227,6 +227,16 @@ class ExecuteApiIntentsTest(unittest.TestCase):
         self.assertEqual(assistant.execute(self.cfg, ("timer_extend", 300)), "Añadido 5 minutos al temporizador")
         self.assertEqual(self.posts[-1], ("/api/timers", {"action": "extend", "seconds": 300}, "1"))
 
+    def test_shopping_list_by_voice_appends_or_creates(self):
+        out = assistant.execute(self.cfg, ("list_add", ("leche", "Lista de la compra")))                 # sin lista: se crea
+        self.assertEqual(out, "Añadido leche a la lista de la compra")
+        self.assertEqual(self.posts[-1][1], {"id": None, "text": "Lista de la compra\n- leche\n"})
+        self.notes = [{"id": "a", "title": "lista de la Compra", "updated": 1}]                         # con lista: se añade (sin importar mayusculas)
+        assistant.execute(self.cfg, ("list_add", ("pan", "Lista de la compra")))
+        self.assertEqual(self.posts[-1][1]["id"], "a")
+        self.assertTrue(self.posts[-1][1]["text"].endswith("\n- pan\n"))
+        self.assertIn("tus tareas", assistant.execute(self.cfg, ("list_add", ("llamar", "Tareas"))))
+
     def test_note_by_voice_goes_to_notes_api(self):
         self.assertEqual(assistant.execute(self.cfg, ("note_add", "comprar leche")), "Anotado")
         self.assertEqual(self.posts[-1], ("/api/notes", {"id": None, "text": "comprar leche"}, "1"))

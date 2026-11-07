@@ -5,6 +5,10 @@
 
 
 
+## Voz: lista de la compra y tareas
+
+- «Añade leche a la lista de la compra» añade una línea a la nota «Lista de la compra» (la crea si no existe); lo mismo con «lista de tareas». Probado con tests; no en una Pi real.
+
 ## Simulador: «Restablecer» pide confirmación
 
 - El botón borra tus notas y ajustes de la demo, así que ahora hace falta pulsarlo dos veces (comprobado en navegador sin pantalla).
