@@ -6,6 +6,10 @@
 
 
 
+## Visita guiada: el foco va al botón «Siguiente»
+
+- Al abrir la visita (o cambiar de paso) el foco queda en «Siguiente», así se puede avanzar con Intro. Comprobado en navegador sin pantalla.
+
 ## Visita guiada: paso del Escritorio (14 pasos)
 
 - Un paso nuevo enseña la maqueta del modo Escritorio antes del final.

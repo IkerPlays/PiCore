@@ -138,7 +138,7 @@ function show(i) {
   document.getElementById("t-n").textContent = "Paso " + (step + 1) + " de " + STEPS.length; document.getElementById("t-h").textContent = s.h; document.getElementById("t-p").textContent = s.p;
   document.getElementById("t-d").innerHTML = STEPS.map((_, k) => '<i class="' + (k <= step ? "on" : "") + '"></i>').join("");
   document.getElementById("t-next").textContent = step === STEPS.length - 1 ? "Terminar" : "Siguiente"; document.getElementById("t-prev").style.visibility = step ? "visible" : "hidden";
-  tour.classList.add("on"); try { s.run(); } catch (e) {}
+  tour.classList.add("on"); try { document.getElementById("t-next").focus({ preventScroll: true }); } catch (e) {} try { s.run(); } catch (e) {}
 }
 document.getElementById("tourbtn").onclick = () => show(0);
 document.getElementById("t-next").onclick = () => { if (step >= STEPS.length - 1) { tour.classList.remove("on"); step = -1; } else show(step + 1); };
