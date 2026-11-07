@@ -85,6 +85,9 @@
   #tv .osd { position:absolute; left:34px; top:28px; font:700 clamp(34px,6vw,64px)/1 "Courier New",ui-monospace,monospace; color:#e8ffe8; letter-spacing:.04em;
              text-shadow:3px 0 #ff2d55aa,-3px 0 #00e5ffaa,0 0 18px #7dff9a; animation:osd 1s steps(2) infinite; }
   #tv .osd small { display:block; font-size:.34em; margin-top:8px; letter-spacing:.2em; opacity:.85; }
+  .ic { width:1em; height:1em; flex:none; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; vertical-align:-.15em; }
+  #intro-skip,#unmute,#skip { display:inline-flex; align-items:center; gap:6px; }
+  #intro-skip[hidden],#unmute[hidden],#skip[hidden] { display:none; }
   #tv .arrows i { display:inline-block; font-style:normal; animation:arrow .9s infinite; opacity:.25; }
   #tv .arrows i:nth-child(2) { animation-delay:.15s; } #tv .arrows i:nth-child(3) { animation-delay:.3s; }
   @keyframes flicker { 50% { opacity:.78 } }
@@ -100,8 +103,10 @@
     #stage::before,#stage::after,#fill::after,#tv .scan,#tv .noise,#tv .roll,body.fast .popup,#tv .osd { animation:none; }
   }
 </style>
+<link rel="stylesheet" href="/static/ui.css">
 </head>
 <body>
+<!--ICONS-->
 
 <div id="intro" hidden>
   <div id="dl" hidden>
@@ -113,7 +118,7 @@
       <button id="dl-skip">Continuar sin esperar</button>
     </div>
   </div>
-  <video id="intro-video" playsinline preload="auto"></video><button id="intro-skip" hidden>Saltar ⏭</button><button id="unmute" hidden>🔇 Toca para activar el sonido</button></div>
+  <video id="intro-video" playsinline preload="auto"></video><button id="intro-skip" hidden>Saltar <svg class="ic" aria-hidden="true"><use href="#i-skip-next"/></svg></button><button id="unmute" hidden><svg class="ic" aria-hidden="true"><use href="#i-volume-off"/></svg> Toca para activar el sonido</button></div>
 
 <div id="stage">
   <div class="popup">
@@ -125,12 +130,12 @@
     </div>
     <div class="media" id="media"><span class="count" id="count"></span></div>
   </div>
-  <button id="skip" hidden>Saltar ⏭</button>
+  <button id="skip" hidden>Saltar <svg class="ic" aria-hidden="true"><use href="#i-skip-next"/></svg></button>
 </div>
 
 <div id="tv" aria-hidden="true">
   <div class="noise"></div><div class="scan"></div><div class="roll"></div>
-  <div class="osd"><span class="arrows"><i>▶</i><i>▶</i><i>▶</i></span> x2<small>FF</small></div>
+  <div class="osd"><span class="arrows"><i><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg></i><i><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg></i><i><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg></i></span> x2<small>FF</small></div>
 </div>
 
 <script>

@@ -29,7 +29,7 @@ def main():
             hit = det.feed(data)
             bar = "█" * int(det.last_score * 40)
             if det.last_score > 0.03 or hit:
-                print("%-42s %.2f %s" % (bar, det.last_score, "  🔔 ACTIVADO" if hit else ""), flush=True)
+                print("%-42s %.2f %s" % (bar, det.last_score, "  [ACTIVADO]" if hit else ""), flush=True)
     except KeyboardInterrupt:
         pass
     finally:

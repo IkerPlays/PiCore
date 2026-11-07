@@ -186,8 +186,19 @@ def page_bytes(name):
     f = WEB / name
     m = f.stat().st_mtime_ns
     hit = _pages.get(name)
-    if not hit or hit[0] != m:
-        hit = _pages[name] = (m, f.read_bytes())
+    icons = WEB / "static" / "icons.svg"
+    try:
+        mi = icons.stat().st_mtime_ns
+    except OSError:
+        mi = 0
+    if not hit or hit[0] != (m, mi):
+        data = f.read_bytes()
+        if b"<!--ICONS-->" in data:                  # los iconos van dentro de cada pagina (un <use href="#i-..."> no necesita otra peticion)
+            try:
+                data = data.replace(b"<!--ICONS-->", icons.read_bytes())
+            except OSError:
+                data = data.replace(b"<!--ICONS-->", b"")
+        hit = _pages[name] = ((m, mi), data)
     return hit[1]
 
 
@@ -799,7 +810,7 @@ class Handler(BaseHTTPRequestHandler):
             f.relative_to((WEB / "static").resolve())
         except ValueError:                  # `..`, o un byte nulo en la ruta
             return self._send(404, {"error": "no encontrado"})
-        types = {".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8"}
+        types = {".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".svg": "image/svg+xml"}
         if not f.is_file() or f.suffix not in types:
             return self._send(404, {"error": "no encontrado"})
         self._send(200, f.read_bytes(), types[f.suffix])

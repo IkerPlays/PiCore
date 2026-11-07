@@ -3,9 +3,9 @@
 cur="$(pcpi-mode status)"
 choice="$(zenity --list --title="PiCore · Elegir modo" --text="Modo actual: $cur" \
   --column=id --column=Modo --hide-column=1 --print-column=1 \
-  desktop "🖥  Escritorio" \
-  iker    "📝  Iker (bloc de notas + internet)" \
-  home    "🏠  Casa (Pi-hole · Musix · reloj)" \
-  dev     "🛠  Dev (consola y experimentos)" \
+  desktop "Escritorio" \
+  iker    "Iker (bloc de notas + internet)" \
+  home    "Casa (Pi-hole, Musix, reloj)" \
+  dev     "Dev (consola y experimentos)" \
   --width=520 --height=380)" || exit 0
 [ -n "$choice" ] && pcpi-mode "$choice"

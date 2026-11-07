@@ -12,6 +12,7 @@
           --acc:#2f64d8; --acc2:#8a5cf0; --acc-fg:#fff; --orb1:#ffb86b; --orb2:#7aa7ff; --orbo:.28; --shadow:0 18px 40px #7a6a4a26; }
   * { box-sizing:border-box; margin:0; user-select:none; -webkit-user-select:none; -webkit-tap-highlight-color:transparent; }
   [hidden] { display:none !important; }
+  .ic { width:1.15em; height:1.15em; flex:none; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; vertical-align:-.2em; }
   html,body { height:100%; background:var(--bg); color:var(--fg); font-family:system-ui,"Segoe UI",sans-serif; overflow:hidden; cursor:none; transition:background .8s,color .8s; }
   body { animation:pagein .7s var(--ease) both; }
   @keyframes pagein { from { opacity:0 } to { opacity:1 } }
@@ -302,8 +303,10 @@
     .orb { animation:none !important; }
   }
 </style>
+<link rel="stylesheet" href="/static/ui.css">
 </head>
 <body>
+<!--ICONS-->
 <div class="orb a"></div><div class="orb b"></div>
 <main>
   <section class="card clock" id="clock">
@@ -312,8 +315,8 @@
       <span class="chip" id="chip-cpu" hidden></span>
       <button class="chip" id="chip-timer" aria-label="Temporizadores" style="color:var(--fg)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:17px;height:17px;vertical-align:-3px"><circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 2M9.5 3h5"/></svg> <span id="timer-txt">Temporizador</span></button>
       <span class="chip" id="chip-bat" hidden></span>
-      <button class="chip" id="chip-motion" hidden aria-label="Vigilancia">👁</button>
-      <button class="chip" id="chip-bright" aria-label="Brillo" style="color:var(--fg)">☀</button>
+      <button class="chip" id="chip-motion" hidden aria-label="Vigilancia"><svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg></button>
+      <button class="chip" id="chip-bright" aria-label="Brillo" style="color:var(--fg)"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg></button>
       <button class="chip" id="chip-sys" aria-label="Sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:19px;height:19px;vertical-align:-4px"><path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></button>
       <button class="chip" id="chip-wifi" hidden aria-label="Wi-Fi">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 9a14 14 0 0 1 19 0"/><path d="M5.5 12.5a9.5 9.5 0 0 1 13 0"/><path d="M8.7 16a5 5 0 0 1 6.6 0"/><circle cx="12" cy="19.4" r="1.2" fill="currentColor" stroke="none"/></svg>
@@ -350,18 +353,20 @@
     <div class="card">
       <h2>Musix</h2>
       <div class="music" style="margin-top:10px">
-        <div id="cover">🎵</div>
+        <div id="cover"><svg class="ic" aria-hidden="true"><use href="#i-music"/></svg></div>
         <div id="meta">
           <div id="track">Nada sonando</div>
           <div id="artist">Abre Musix para poner música</div>
           <div id="pstate"></div>
         </div>
       </div>
-      <button id="mxbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg> Abrir Musix</button>
-      <div id="mctl">
+      <div id="mrow">
+        <div id="mctl">
         <button id="m-prev" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.5v14H6zM20 5v14L9.5 12z"/></svg></button>
         <button id="m-play" aria-label="Pausa o seguir"><svg id="m-play-ic" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
         <button id="m-next" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 5H18v14h-2.5zM4 5v14l10.5-7z"/></svg></button>
+      </div>
+        <button id="mxbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg> Abrir Musix</button>
       </div>
     </div>
   </section>
@@ -377,7 +382,7 @@
 <div id="dim"></div>
 <div id="voice"></div>
 <section id="tpanel" aria-label="Temporizadores">
-  <h3>Temporizadores y alarmas <button id="t-close" aria-label="Cerrar">✕</button></h3>
+  <h3>Temporizadores y alarmas <button id="t-close" aria-label="Cerrar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></h3>
   <div id="t-list"></div>
   <div class="dim" style="font-size:14px;margin:6px 2px">Nuevo temporizador (o dilo: «pon un temporizador de diez minutos»)</div>
   <div class="presets"><button data-s="60">1 min</button><button data-s="300">5 min</button><button data-s="600">10 min</button><button data-s="1800">30 min</button></div>
@@ -391,13 +396,13 @@
 </div>
 
 <section id="wpanel" aria-label="Tiempo">
-  <h3>Tiempo <button id="w-close" aria-label="Cerrar">✕</button></h3>
+  <h3>Tiempo <button id="w-close" aria-label="Cerrar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></h3>
   <div class="dim" style="font-size:14px;margin-bottom:6px">Próximas horas</div><div class="hours" id="w-hours"></div>
   <div class="dim" style="font-size:14px;margin-bottom:6px">Próximos días</div><div class="days" id="w-days"></div>
 </section>
 <audio id="mxaudio" preload="none"></audio>
 <section id="mxpanel" aria-label="Musix">
-  <div id="mxhead"><button id="mx-back" hidden aria-label="Volver">Volver</button><h3 id="mx-title">Musix</h3><button id="mx-full" hidden aria-label="Pantalla completa">Pantalla completa</button><button id="mx-close" aria-label="Cerrar">✕</button></div>
+  <div id="mxhead"><button id="mx-back" hidden aria-label="Volver">Volver</button><h3 id="mx-title">Musix</h3><button id="mx-full" hidden aria-label="Pantalla completa">Pantalla completa</button><button id="mx-close" aria-label="Cerrar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div>
   <div class="mxview on" id="mxhome">
     <button data-go="yt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="4"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/></svg>YT Music<small>Pega un enlace de YouTube o YouTube Music</small></button>
     <button data-go="mp3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg>MP3 Player<small>Tu música offline, dentro de la Pi</small></button>
@@ -426,7 +431,7 @@
   </div>
 </section>
 <section id="spanel" aria-label="Sistema">
-  <h3>Sistema <button id="s-close" aria-label="Cerrar">✕</button></h3>
+  <h3>Sistema <button id="s-close" aria-label="Cerrar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></h3>
   <div class="sysrow" id="s-stats"></div>
   <div id="s-health"></div>
   <div id="upd"><div id="upd-row"><span id="upd-txt"></span><button id="upd-btn">Buscar actualizaciones</button></div><pre id="upd-log" hidden></pre></div>
@@ -434,19 +439,19 @@
   <div id="pwr-msg"></div>
 </section>
 <section id="cpanel" aria-label="Calendario">
-  <h3>Calendario <button id="c-close" aria-label="Cerrar">✕</button></h3>
+  <h3>Calendario <button id="c-close" aria-label="Cerrar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></h3>
   <div id="c-list"></div>
 </section>
 <div id="saver" aria-hidden="true"><div class="shade"></div><div class="sclock" id="sclock"><b id="sc-time"></b><span id="sc-date"></span></div></div>
 <div id="scrim"></div>
 <section id="sheet" aria-label="Wi-Fi">
-  <div class="sh-head"><h3>Wi-Fi</h3><button id="sh-close" aria-label="Cerrar">✕</button></div>
+  <div class="sh-head"><h3>Wi-Fi</h3><button id="sh-close" aria-label="Cerrar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div>
   <div class="sh-body" id="sh-body"></div>
 </section>
 
 <section id="bpanel" aria-label="Brillo">
-  <h3>Brillo <button id="b-close" aria-label="Cerrar">✕</button></h3>
-  <div class="bl"><span>🔅</span><input type="range" id="b-range" min="10" max="100" step="1" value="100"><span>🔆</span><output id="b-val">100%</output></div>
+  <h3>Brillo <button id="b-close" aria-label="Cerrar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></h3>
+  <div class="bl"><span><svg class="ic" aria-hidden="true"><use href="#i-sun-dim"/></svg></span><input type="range" id="b-range" min="10" max="100" step="1" value="100"><span><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg></span><output id="b-val">100%</output></div>
   <div class="tg"><div>Automático<small id="b-auto-sub">Baja poco a poco de noche</small></div><button class="sw on" id="b-auto" aria-label="Automático"></button></div>
   <div id="bnote"></div>
 </section>
@@ -456,14 +461,19 @@
 <script src="/static/osk.js"></script>
 <script>
 const $ = id => document.getElementById(id);
+/* iconos: simbolos SVG del sprite incrustado en la pagina (el servidor lo rellena al servir la pagina) */
+const ico = (n, cls) => '<svg class="ic' + (cls ? " " + cls : "") + '" aria-hidden="true"><use href="#i-' + n + '"/></svg>';
+const icoEl = (n, cls) => { const t = document.createElement("span"); t.innerHTML = ico(n, cls); return t.firstChild; };
 const post = (url, body) => fetch(url, {method:"POST", headers:{"X-PCPI":"1"}, body:JSON.stringify(body)});
 /* la portada viene de fuera: solo https, y entre comillas bien escapadas (nada de romper el CSS) */
 function safeUrl(u) { try { const x = new URL(u); return x.protocol === "https:" ? x.href : null; } catch (e) { return null; } }
 const fmt = n => (n ?? "--").toLocaleString("es-ES");
 let lastWeather = null;
-const WMO = {0:["☀️","Despejado"],1:["🌤","Poco nuboso"],2:["⛅","Nuboso"],3:["☁️","Cubierto"],45:["🌫","Niebla"],48:["🌫","Niebla"],
-  51:["🌦","Llovizna"],53:["🌦","Llovizna"],55:["🌦","Llovizna"],61:["🌧","Lluvia"],63:["🌧","Lluvia"],65:["🌧","Lluvia fuerte"],
-  71:["❄️","Nieve"],73:["❄️","Nieve"],75:["❄️","Nieve"],80:["🌦","Chubascos"],81:["🌧","Chubascos"],82:["🌧","Chubascos"],95:["⛈","Tormenta"]};
+/* codigo del tiempo -> [icono del sprite, texto] */
+const WMO = {0:["w-sun","Despejado"],1:["w-partly","Poco nuboso"],2:["w-partly","Nuboso"],3:["w-cloud","Cubierto"],45:["w-fog","Niebla"],48:["w-fog","Niebla"],
+  51:["w-drizzle","Llovizna"],53:["w-drizzle","Llovizna"],55:["w-drizzle","Llovizna"],61:["w-rain","Lluvia"],63:["w-rain","Lluvia"],65:["w-rain","Lluvia fuerte"],
+  71:["w-snow","Nieve"],73:["w-snow","Nieve"],75:["w-snow","Nieve"],80:["w-drizzle","Chubascos"],81:["w-rain","Chubascos"],82:["w-rain","Chubascos"],95:["w-storm","Tormenta"]};
+const wIcon = code => (WMO[code] || ["w-cloud", ""])[0];
 /* escapa texto que viene de fuera (nombres de Wi-Fi) antes de meterlo en HTML */
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
@@ -603,7 +613,7 @@ function paintBattery(b) {
   chip.hidden = false;
   chip.className = "chip" + (b.critical ? " crit" : b.low ? " low" : "");
   chip.innerHTML = '<span class="cell"><i style="width:' + Math.max(4, b.percent) + '%"></i></span><span></span>';
-  chip.lastChild.textContent = (b.charging ? "⚡" : "") + b.percent + "%";
+  chip.lastChild.innerHTML = (b.charging ? ico("bolt") : "") + b.percent + "%";
   chip.title = b.critical ? "Batería crítica: conecta el cargador" : b.low ? "Batería baja" : b.charging ? "Cargando" : "Batería";
 }
 
@@ -933,15 +943,15 @@ function renderWeather() {
   if (!w) { H.textContent = "Sin datos del tiempo."; return; }
   for (const x of w.hourly || []) {
     const d = document.createElement("div"); d.className = "hr";
-    const ic = (WMO[x.code] || ["🌡"])[0];
-    d.innerHTML = `<small>${esc(x.h)}</small><div class="ic">${ic}</div><b>${x.temp == null ? "--" : Math.round(x.temp) + "°"}</b><small class="r">${x.rain == null ? "" : x.rain + "%"}</small>`;
+    const ic = wIcon(x.code);
+    d.innerHTML = `<small>${esc(x.h)}</small><div class="wic">${ico(ic)}</div><b>${x.temp == null ? "--" : Math.round(x.temp) + "°"}</b><small class="r">${x.rain == null ? "" : x.rain + "%"}</small>`;
     H.append(d);
   }
   for (const x of w.days || []) {
     const row = document.createElement("div"); row.className = "dy";
     const name = new Date(x.date + "T12:00").toLocaleDateString("es-ES", {weekday:"long"});
     const a = document.createElement("span"); a.textContent = name.charAt(0).toUpperCase() + name.slice(1);
-    const ic = document.createElement("span"); ic.textContent = (WMO[x.code] || ["🌡"])[0];
+    const ic = document.createElement("span"); ic.className = "wic"; ic.innerHTML = ico(wIcon(x.code));
     const t = document.createElement("span"); t.textContent = (x.tmax == null ? "--" : Math.round(x.tmax)) + "° / " + (x.tmin == null ? "--" : Math.round(x.tmin)) + "°";
     const r = document.createElement("span"); r.textContent = x.rain ? x.rain + "%" : "";
     row.append(a, ic, t, r); D.append(row);
@@ -1068,8 +1078,8 @@ function renderSheet() {
     h += `<div class="tg"><div>Usar Pi-hole en esta red<small>Bloquea anuncios y rastreadores en esta Wi-Fi</small></div><button class="sw ${w.wants_pihole ? "on" : ""}" id="sw-pi" aria-label="Pi-hole"></button></div>`;
   }
   h += `<div class="act">`;
-  if (w.portal || w.connectivity === "portal") h += `<button id="b-portal" style="background:var(--warn);color:#000;border-color:var(--warn)">🔑 Iniciar sesión</button>`;
-  h += `<button id="b-scan">↻ Buscar redes</button>`;
+  if (w.portal || w.connectivity === "portal") h += `<button id="b-portal" style="background:var(--warn);color:#000;border-color:var(--warn)">${ico("key")} Iniciar sesión</button>`;
+  h += `<button id="b-scan">${ico("refresh")} Buscar redes</button>`;
   if (a && a.type === "wifi") h += `<button id="b-forget">Olvidar</button>`;
   h += `</div><div class="err" id="sh-err"></div></div>`;
   h += `<div id="pwbox"></div>`;
@@ -1078,7 +1088,7 @@ function renderSheet() {
     h += `<button class="net${n.active ? " active" : ""}" style="--k:${i}" data-ssid="${esc(n.ssid)}" data-secure="${n.secure ? 1 : 0}">${bars(n.signal)}<span class="nm">${esc(n.ssid)}</span>${n.active ? '<span class="tag">conectada</span>' : saved.has(n.ssid) ? '<span class="tag">guardada</span>' : ""}${n.secure ? LOCK : ""}</button>`;
   });
   if (!(w.networks || []).length) h += '<div class="cur"><div class="s">No veo ninguna red. Pulsa «Buscar redes».</div></div>';
-  h += '<button class="net" id="b-hidden" style="--k:' + (w.networks || []).length + '"><span class="nm">＋ Red oculta…</span><span class="tag">escribir el nombre</span></button>';
+  h += '<button class="net" id="b-hidden" style="--k:' + (w.networks || []).length + '"><span class="nm">' + ico("plus") + ' Red oculta…</span><span class="tag">escribir el nombre</span></button>';
   body.innerHTML = h;
   const sw = $("sw-pi"); if (sw) sw.onclick = async () => {
     const on = !sw.classList.contains("on"); sw.classList.toggle("on", on);
@@ -1099,7 +1109,7 @@ function pick(ssid, secure, isSaved, isActive) {
   if (!secure || isSaved) return doConnect(ssid, null);
   formFor = ssid;
   const box = $("pwbox");
-  box.innerHTML = `<div class="pw"><div class="l">Contraseña de <b>${esc(ssid)}</b></div><div class="f"><input id="pw-in" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Toca para escribir"><button id="pw-eye" aria-label="Mostrar">👁</button><button id="pw-go" style="background:var(--acc);color:var(--acc-fg)">Conectar</button></div><div class="err" id="pw-err"></div></div>`;
+  box.innerHTML = `<div class="pw"><div class="l">Contraseña de <b>${esc(ssid)}</b></div><div class="f"><input id="pw-in" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Toca para escribir"><button id="pw-eye" aria-label="Mostrar">${ico("eye")}</button><button id="pw-go" style="background:var(--acc);color:var(--acc-fg)">Conectar</button></div><div class="err" id="pw-err"></div></div>`;
   const inp = $("pw-in");
   const go = () => { const v = inp.value; if (v.length < 8) { $("pw-err").textContent = "Mínimo 8 caracteres"; return; } PCPIKeyboard.close(); doConnect(ssid, v); };
   inp.onfocus = () => PCPIKeyboard.open(inp, {onEnter: go});
@@ -1114,7 +1124,7 @@ function hiddenForm() {
   const box = $("pwbox");
   box.innerHTML = `<div class="pw"><div class="l">Conectar a una <b>red oculta</b></div>
     <div class="f" style="margin-bottom:8px"><input id="hid-ssid" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Nombre de la red (SSID)"></div>
-    <div class="f"><input id="hid-pw" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Contraseña (vacía si es abierta)"><button id="hid-eye" aria-label="Mostrar">👁</button><button id="hid-go" style="background:var(--acc);color:var(--acc-fg)">Conectar</button></div>
+    <div class="f"><input id="hid-pw" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Contraseña (vacía si es abierta)"><button id="hid-eye" aria-label="Mostrar">${ico("eye")}</button><button id="hid-go" style="background:var(--acc);color:var(--acc-fg)">Conectar</button></div>
     <div class="err" id="pw-err"></div></div>`;
   const ssid = $("hid-ssid"), pw = $("hid-pw");
   const go = () => {
@@ -1177,12 +1187,12 @@ async function refresh() {
   }
   const w = s.weather;
   if (w.ok) {
-    const [ic, tx] = WMO[w.code] || ["🌡", ""];
-    $("weather").innerHTML = `<span class="wi">${ic}</span><span><b>${Math.round(w.temp)}°C</b> <span class="dim">${tx}</span></span>`;
+    const [ic, tx] = WMO[w.code] || ["w-cloud", ""];
+    $("weather").innerHTML = `<span class="wi">${ico(ic)}</span><span><b>${Math.round(w.temp)}°C</b> <span class="dim">${tx}</span></span>`;
     const bits = [];
     if (w.tmax != null) bits.push(`Máx ${Math.round(w.tmax)}° · Mín ${Math.round(w.tmin)}°`);
-    if (w.rain != null) bits.push(`💧 ${w.rain}%`);
-    $("wsub").textContent = bits.join("   ");
+    if (w.rain != null) bits.push(`${ico("drop")} ${w.rain}%`);
+    $("wsub").innerHTML = bits.join("   ");
     if (w.rain_alert) {                                   // aviso de lluvia en las proximas horas
       const a = w.rain_alert, sp = document.createElement("span"); sp.className = "rain";
       sp.textContent = "   " + (a.in_hours === 0 ? "Lluvia ahora" : "Lluvia en " + a.in_hours + " h") + " (" + a.prob + "%)";
@@ -1204,13 +1214,13 @@ async function refresh() {
     }, 220);
   } else { $("track").textContent = title; $("artist").textContent = on ? (n.artist || "") : "Abre Musix para poner música"; }
   firstMusic = false;
-  $("pstate").innerHTML = on ? (n.state === "playing" ? '<span class="eq"><i></i><i></i><i></i><i></i></span>Reproduciendo' : "⏸ En pausa") : "";
+  $("pstate").innerHTML = on ? (n.state === "playing" ? '<span class="eq"><i></i><i></i><i></i><i></i></span>Reproduciendo' : ico("pause") + " En pausa") : "";
   const cv = $("cover");
   const cu = on ? safeUrl(n.cover) : null;
   if (cu) { cv.textContent = ""; cv.style.backgroundImage = "url(" + JSON.stringify(cu) + ")"; }
-  else { cv.style.backgroundImage = ""; cv.textContent = "🎵"; }
+  else { cv.style.backgroundImage = ""; cv.innerHTML = ico("music"); }
 
-  if (s.cpu_temp != null) { $("chip-cpu").hidden = false; $("chip-cpu").textContent = "🌡 " + s.cpu_temp + "°"; }
+  if (s.cpu_temp != null) { $("chip-cpu").hidden = false; $("chip-cpu").innerHTML = ico("thermo") + " " + s.cpu_temp + "°"; }
   paintNet(s.net);
   paintDisplay(s.display);
   paintTimers(s.timers);
@@ -1233,9 +1243,9 @@ async function refresh() {
   if (v.state === "awake") showVoice("Te escucho…", true, 0);
   else if (v.state === "thinking") showVoice("Pensando…", true, 0);
   else if (v.state === "speaking") showVoice(v.reply || "", true, 0);
-  else if (v.heard && fresh) showVoice("«" + v.heard + "» → " + (v.reply || ""), false, 5000);
+  else if (v.heard && fresh) showVoice("«" + v.heard + "»: " + (v.reply || ""), false, 5000);
   else if (!fresh) $("voice").classList.remove("on");
-  $("hint").textContent = (v.state && v.state !== "off") ? "🎤 Di «" + (v.wake || "oye pi") + "»" : (s.ip ? s.ip : "");
+  $("hint").innerHTML = (v.state && v.state !== "off") ? ico("mic") + " Di «" + esc(v.wake || "oye pi") + "»" : esc(s.ip ? s.ip : "");
 }
 
 /* mantener la pantalla encendida */

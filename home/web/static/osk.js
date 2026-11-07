@@ -7,12 +7,12 @@
     abc: [
       "q w e r t y u i o p".split(" "),
       "a s d f g h j k l ñ".split(" "),
-      ["⇧", ..."z x c v b n m".split(" "), "⌫"],
+      ["shift", ..."z x c v b n m".split(" "), "bksp"],
     ],
     sym: [
       "1 2 3 4 5 6 7 8 9 0".split(" "),
       "@ # $ % & * - + = _".split(" "),
-      ["¡", ..."! ? . , : ; / \\".split(" "), "⌫"],
+      ["¡", ..."! ? . , : ; / \\".split(" "), "bksp"],
       /* (las comillas, parentesis y demas simbolos extra van en la fila 4) */
     ],
   };
@@ -40,7 +40,11 @@
 
   function key(label, cls, handler) {
     const b = document.createElement("button");
-    b.type = "button"; b.textContent = label; if (cls) b.className = cls;
+    b.type = "button"; if (cls) b.className = cls;
+    if (label.startsWith("#")) {                        // "#nombre" = icono del sprite de la pagina
+      const sv = document.createElementNS("http://www.w3.org/2000/svg", "svg"); sv.setAttribute("class", "ic"); sv.setAttribute("aria-hidden", "true");
+      const u = document.createElementNS("http://www.w3.org/2000/svg", "use"); u.setAttribute("href", "#i-" + label.slice(1)); sv.appendChild(u); b.appendChild(sv);
+    } else b.textContent = label;
     /* pointerdown + preventDefault: el input NO pierde el foco al tocar una tecla */
     b.addEventListener("pointerdown", e => { e.preventDefault(); handler(); });
     return b;
@@ -68,12 +72,12 @@
     rows.forEach((r, ri) => {
       const row = document.createElement("div"); row.className = "row";
       r.forEach(k => {
-        if (k === "⇧") row.appendChild(key("⇧", "wide" + (shift || caps ? " act" : ""), () => {
+        if (k === "shift") row.appendChild(key("#shift", "wide" + (shift || caps ? " act" : ""), () => {
           const now = Date.now();
           if (now - lastShift < 350) { caps = !caps; shift = false; } else { shift = !shift; caps = false; }
           lastShift = now; render();
         }));
-        else if (k === "⌫") row.appendChild(key("⌫", "wide", backspace));
+        else if (k === "bksp") row.appendChild(key("#backspace", "wide", backspace));
         else {
           const up = mode === "abc" && (shift || caps);
           row.appendChild(key(up ? k.toUpperCase() : k, "", () => { insert(up ? k.toUpperCase() : k); if (shift && !caps) { shift = false; render(); } }));
@@ -86,7 +90,7 @@
     last.appendChild(key("espacio", "", () => insert(" ")));
     last.lastChild.style.flex = "5 1 0"; last.lastChild.style.maxWidth = "none";
     last.appendChild(key("Ocultar", "wide", close));
-    last.appendChild(key("Hecho ↵", "enter", () => { const f = onEnter; if (f) f(); }));
+    last.appendChild(key("Hecho", "enter", () => { const f = onEnter; if (f) f(); }));
     root.appendChild(last);
   }
 

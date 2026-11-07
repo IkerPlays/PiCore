@@ -1,0 +1,150 @@
+/* PiCore · sistema de diseño compartido (se carga DESPUES de los estilos de cada pagina y los afina).
+   Sin backdrop-filter ni sombras enormes: la Pi tiene una GPU modesta. Todo el color sale de variables. */
+
+:root {
+  --r-sm: 12px; --r-md: 18px; --r-lg: 26px;
+  --hair: #ffffff14;                         /* borde finisimo */
+  --glow: #ffffff0a;                         /* brillo superior de las tarjetas */
+  --press: scale(.965);
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+}
+:root { --bg:#07090e; --card:#12161e; --card2:#181d27; --line:#232a36; --dim:#8a94a6; --fg:#f4f6fa; --acc:#7cabff; --acc2:#b794ff; --ok:#4ade80; --bad:#fb7185; --warn:#fbbf24; --acc-fg:#06101f;
+        --shadow:0 1px 0 var(--glow) inset, 0 16px 40px #0007; }
+html[data-theme=light] { --bg:#eee9de; --card:#fcfaf5; --card2:#f4efe4; --line:#ddd4c2; --dim:#756f62; --fg:#221f1a; --acc:#2a5fd8; --acc2:#7c4fe0; --ok:#26904f; --bad:#cf4256; --warn:#b97a00; --acc-fg:#fff;
+        --hair:#00000012; --glow:#ffffffb0; --shadow:0 1px 0 var(--glow) inset, 0 14px 34px #6b5b3a1f; }
+
+html, body { font-family:var(--font); -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; font-feature-settings:"cv11","ss01"; }
+::selection { background:color-mix(in srgb, var(--acc) 35%, transparent); }
+:focus-visible { outline:2px solid var(--acc); outline-offset:2px; border-radius:var(--r-sm); }
+input, textarea, select { font-family:inherit; }
+::-webkit-scrollbar { width:10px; height:10px; } ::-webkit-scrollbar-thumb { background:var(--line); border-radius:99px; border:3px solid transparent; background-clip:content-box; } ::-webkit-scrollbar-track { background:transparent; }
+
+/* ---------- botones (todas las paginas) ---------- */
+button { font-family:inherit; font-weight:550; letter-spacing:-.005em; border-radius:var(--r-md); border:1px solid var(--line); background:linear-gradient(180deg, var(--card2), var(--card)); color:var(--fg);
+         box-shadow:0 1px 0 var(--glow) inset; transition:transform .14s var(--ease, ease), background .2s, color .2s, border-color .2s, box-shadow .2s, opacity .2s; display:inline-flex; align-items:center; justify-content:center; gap:8px; }
+button:hover { border-color:color-mix(in srgb, var(--acc) 55%, var(--line)); }
+button:active { transform:var(--press); background:var(--acc); color:var(--acc-fg); border-color:var(--acc); }
+button:disabled { opacity:.5; pointer-events:none; }
+button.primary, #hid-go, #pw-go, #upd-btn:not(:disabled), #mxgo, #dygo, #xgo { background:linear-gradient(180deg, color-mix(in srgb, var(--acc) 92%, #fff), var(--acc)); color:var(--acc-fg); border-color:transparent;
+         box-shadow:0 1px 0 #ffffff55 inset, 0 8px 22px color-mix(in srgb, var(--acc) 35%, transparent); }
+button.primary:active { filter:brightness(.92); }
+button .ic { width:1.2em; height:1.2em; }
+
+/* ---------- tarjetas y titulos ---------- */
+.card { border-radius:var(--r-lg); border:1px solid var(--hair); background:linear-gradient(180deg, color-mix(in srgb, var(--card) 100%, #fff 3%), var(--card)); box-shadow:var(--shadow); }
+h2 { font-size:12px; letter-spacing:.16em; font-weight:650; display:flex; align-items:center; gap:8px; }
+h2::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--acc); box-shadow:0 0 12px var(--acc); }
+
+/* ---------- chips de arriba a la derecha: solo iconos, mas pequeños, sin pisar el saludo ---------- */
+#chips { gap:6px; top:12px; right:12px; }
+.chip { min-width:38px; height:38px; padding:0 11px; display:inline-flex; align-items:center; justify-content:center; gap:6px; background:color-mix(in srgb, var(--bg) 82%, var(--card)); border:1px solid var(--hair);
+        color:var(--fg); font-size:13px; font-weight:600; box-shadow:none; background-image:none; }
+.chip .ic { width:18px; height:18px; }
+#chip-timer #timer-txt { display:none; }
+#chip-timer.on #timer-txt { display:inline; }
+#chip-timer.on { border-color:var(--acc); color:var(--acc); }
+#chip-wifi { max-width:150px; } #chip-wifi span { font-weight:600; }
+#chip-cpu, #chip-bat { font-variant-numeric:tabular-nums; color:var(--dim); }
+#greet { font-weight:600; letter-spacing:-.01em; font-size:20px; }
+
+/* ---------- reloj y tiempo ---------- */
+#time { font-weight:760; letter-spacing:-.055em; background:linear-gradient(180deg, var(--fg) 30%, color-mix(in srgb, var(--fg) 72%, var(--acc)) 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+#time .colon { -webkit-text-fill-color:var(--acc); }
+#date { font-weight:520; letter-spacing:-.01em; }
+#weather .wi .ic { width:52px; height:52px; fill:currentColor; stroke:none; filter:drop-shadow(0 6px 14px #0004); }
+#weather b { font-weight:700; }
+.hr .wic .ic, .dy .wic .ic { width:32px; height:32px; fill:currentColor; stroke:none; }
+.hr { background:var(--card2); border:1px solid var(--hair); }
+.ev, .ev2 { border-radius:var(--r-sm); }
+
+/* ---------- Pi-hole, musica ---------- */
+#cover { width:92px; height:92px; border-radius:22px; border:1px solid var(--hair); background-image:linear-gradient(135deg, color-mix(in srgb, var(--acc) 22%, var(--card2)), color-mix(in srgb, var(--acc2) 22%, var(--card2))); }
+#cover .ic { width:46px; height:46px; opacity:.9; stroke-width:1.7; }
+#track { letter-spacing:-.02em; font-weight:700; }
+#pstate .ic { width:14px; height:14px; vertical-align:-2px; }
+#mrow { display:flex; align-items:center; gap:10px; margin-top:12px; }
+#mxbtn { flex:1; margin:0; min-height:50px; }
+#mctl { margin:0; gap:8px; }
+#mctl button { width:46px; height:46px; }
+#mctl #m-play { width:52px; height:52px; background:var(--acc); color:var(--acc-fg); border-color:transparent; }
+#mctl .ic { width:20px; height:20px; fill:currentColor; stroke:none; }
+
+/* ---------- barra de modos ---------- */
+nav button { border-radius:var(--r-lg); font-weight:600; font-size:18px; border:1px solid var(--hair); }
+nav button .ic { width:22px; height:22px; color:var(--acc); }
+
+/* ---------- hojas inferiores (tiempo, calendario, sistema, brillo, wifi, musix) ---------- */
+#wpanel, #cpanel, #spanel, #bpanel, #tpanel, #sheet, #mxpanel { border-radius:28px 28px 0 0; border:1px solid var(--hair); border-bottom:0; box-shadow:none; }
+#wpanel.on, #cpanel.on, #spanel.on, #bpanel.on, #tpanel.on, #sheet.on, #mxpanel.on { box-shadow:0 -24px 70px #0009, 0 1px 0 var(--glow) inset; }
+#wpanel::before, #cpanel::before, #spanel::before, #bpanel::before, #tpanel::before, #sheet::before, #mxpanel::before { content:""; display:none; width:44px; height:5px; border-radius:9px; background:var(--line); margin:-8px auto 12px; }
+#wpanel.on::before, #cpanel.on::before, #spanel.on::before, #bpanel.on::before, #tpanel.on::before, #sheet.on::before, #mxpanel.on::before { display:block; }
+#mxpanel.full::before { display:none !important; }
+#wpanel h3, #cpanel h3, #spanel h3, #bpanel h3, #tpanel h3, #sh-head h3, .sh-head h3, #mxhead h3 { font-weight:700; letter-spacing:-.02em; }
+#wpanel h3 button, #cpanel h3 button, #spanel h3 button, #bpanel h3 button, #tpanel h3 button, .sh-head button, #mxhead #mx-close { width:44px; min-width:44px; height:44px; padding:0; border-radius:50%; }
+#scrim { background:#0009; }
+.sysrow div { border-radius:var(--r-md); border:1px solid var(--hair); background:var(--card2); }
+.hl { border-radius:var(--r-sm); border:1px solid var(--hair); border-left-width:4px; }
+#upd { border-radius:var(--r-md); border:1px solid var(--hair); }
+.pwr button { min-height:54px; border-radius:var(--r-md); }
+
+/* ---------- Musix ---------- */
+#mxhome button { border-radius:var(--r-lg); border:1px solid var(--hair); background:linear-gradient(160deg, color-mix(in srgb, var(--acc) 10%, var(--card2)), var(--card2)); flex-direction:column; }
+#mxhome button:nth-child(2) { background:linear-gradient(160deg, color-mix(in srgb, var(--acc2) 12%, var(--card2)), var(--card2)); }
+#mxhome button:nth-child(3) { background:linear-gradient(160deg, color-mix(in srgb, var(--ok) 10%, var(--card2)), var(--card2)); }
+#mxhome button svg { width:46px; height:46px; color:var(--acc); } #mxhome button:nth-child(2) svg { color:var(--acc2); } #mxhome button:nth-child(3) svg { color:var(--ok); }
+#mxhome button:active svg { color:inherit; }
+.trk { border-radius:var(--r-md); } .trk.cur { background:color-mix(in srgb, var(--acc) 12%, var(--card2)); }
+.mxbar { border-top:1px solid var(--hair); }
+.mxbar button .ic { fill:currentColor; stroke:none; }
+#mx-shuf .ic, #mx-sleep .ic { fill:none; stroke:currentColor; }
+.mxrow input, #xlink input, .mxrow input { border-radius:var(--r-md); border:1px solid var(--hair); background:var(--card2); }
+.mxrow input:focus { border-color:var(--acc); box-shadow:0 0 0 3px color-mix(in srgb, var(--acc) 25%, transparent); outline:0; }
+#dysteps { border-radius:var(--r-md); }
+
+/* ---------- Wi-Fi ---------- */
+.net { border-radius:var(--r-md); border:1px solid var(--hair); }
+.net.active { border-color:var(--acc); background:color-mix(in srgb, var(--acc) 10%, var(--card2)); }
+#sheet button .ic, #sheet .ic { width:1.1em; height:1.1em; }
+
+/* ---------- teclado en pantalla ---------- */
+#osk { border-top:1px solid var(--hair); }
+#osk.on { box-shadow:0 -20px 50px #0008; }
+#osk button { border-radius:12px; font-weight:600; }
+#osk button .ic { width:20px; height:20px; }
+
+/* ---------- Iker (notas) ---------- */
+body > header { background:var(--card); border-bottom:1px solid var(--hair); }
+header .title { font-weight:760; letter-spacing:-.02em; display:flex; align-items:center; gap:8px; }
+header .title::before { content:""; width:9px; height:9px; border-radius:50%; background:var(--acc); box-shadow:0 0 14px var(--acc); }
+aside { border-right:1px solid var(--hair); }
+aside .item { border-radius:var(--r-md); border:1px solid transparent; transition:background .15s, border-color .15s; }
+aside .item:hover { background:color-mix(in srgb, var(--card) 70%, transparent); }
+aside .item.sel { border-color:var(--acc); background:var(--card); box-shadow:none; }
+#q { border-radius:var(--r-md); border:1px solid var(--hair); }
+#q:focus { box-shadow:0 0 0 3px color-mix(in srgb, var(--acc) 25%, transparent); outline:0; }
+#tags button { border-radius:999px; }
+#marks .mk { border:1px solid var(--hair); background:var(--card2); } #marks .mk button { box-shadow:none; background:none; border:0; } #marks .mk button .ic { width:14px; height:14px; }
+textarea { letter-spacing:.005em; }
+footer { border-top:1px solid var(--hair); }
+
+/* ---------- Dev ---------- */
+body > header .title small { font-weight:500; }
+nav.tabs { border-bottom:1px solid var(--hair); }
+nav.tabs button { box-shadow:none; background:none; border:1px solid transparent; border-bottom:0; border-radius:12px 12px 0 0; color:var(--dim); }
+nav.tabs button.on { background:var(--bg); color:var(--acc); border-color:var(--hair); }
+#out, #apiout, #chatlog { border:1px solid var(--hair); border-radius:var(--r-md); }
+.exp { border-radius:var(--r-md); border:1px solid var(--hair); }
+.sw { background:var(--line); border:0; box-shadow:none; } .sw::after { box-shadow:0 2px 6px #0006; }
+.sw.on { background:var(--ok); }
+
+/* ---------- carga ---------- */
+#skip, #intro-skip, #unmute { font-weight:600; }
+
+@media (prefers-reduced-motion: reduce) { * { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; } }
+
+textarea:focus-visible, #cmd:focus-visible, #apipath:focus-visible, #apibody:focus-visible, #chatin:focus-visible, #q:focus-visible { outline:0; }
+#text:focus-visible { box-shadow:none; }
+header button .ic, nav.tabs button .ic { width:1.1em; height:1.1em; }
+#run .ic { fill:currentColor; stroke:none; width:.9em; height:.9em; }
+button.danger.armed { background:var(--bad); color:#fff; border-color:var(--bad); }

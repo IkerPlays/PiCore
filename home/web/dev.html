@@ -7,6 +7,7 @@
 <style>
   :root { --bg:#0e1116; --side:#0a0c10; --card:#151a22; --fg:#e6edf3; --dim:#8b96a5; --line:#262d38; --acc:#58a6ff; --acc-fg:#04111f; --bad:#f85149; --ok:#3fb950; --warn:#d29922; }
   * { box-sizing:border-box; margin:0; }
+  .ic { width:1.15em; height:1.15em; flex:none; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; vertical-align:-.2em; }
   html,body { height:100%; background:var(--bg); color:var(--fg); font-family:system-ui,"Segoe UI",sans-serif; }
   body { display:grid; grid-template-rows:52px 1fr; }
   header { display:flex; align-items:center; gap:8px; padding:0 12px; background:var(--side); border-bottom:1px solid var(--line); }
@@ -29,19 +30,21 @@
   #graph { width:100%; height:150px; background:#05070a; border:1px solid var(--line); border-radius:10px; }
   .warn { color:var(--warn); font-size:13px; }
 </style>
+<link rel="stylesheet" href="/static/ui.css">
 </head>
 <body>
+<!--ICONS-->
 <header>
   <span class="title">Modo Dev<small>consola · terminal · API · experimentos</small></span>
-  <button id="term" title="Abre un terminal de verdad (para programas interactivos como nano o top)">Terminal real</button>
-  <button id="exit">Salir a Casa</button>
+  <button id="term" title="Abre un terminal de verdad (para programas interactivos como nano o top)"><svg class="ic" aria-hidden="true"><use href="#i-terminal"/></svg> Terminal real</button>
+  <button id="exit"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg> Salir a Casa</button>
 </header>
 <main>
-  <nav class="tabs" id="tabs"><button data-t="console" class="on">Consola</button><button data-t="api">API</button><button data-t="exp">Experimentos</button></nav>
+  <nav class="tabs" id="tabs"><button data-t="console" class="on"><svg class="ic" aria-hidden="true"><use href="#i-terminal"/></svg> Consola</button><button data-t="api"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg> API</button><button data-t="exp"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg> Experimentos</button></nav>
   <section id="t-console" class="on">
     <div id="quick"></div>
     <div id="out"><span class="dim">Aquí salen los resultados. Cada orden se ejecuta con tus permisos normales, con un máximo de 120 s y sin entrada de teclado (nada de nano ni top: para eso, «Terminal real»).</span></div>
-    <div id="line"><span>$</span><input id="cmd" placeholder="escribe una orden y pulsa Intro  (↑ ↓ historial)" autocomplete="off" spellcheck="false" autocapitalize="off"><button id="run" class="primary">Ejecutar</button><button id="clear">Limpiar</button></div>
+    <div id="line"><span>$</span><input id="cmd" placeholder="escribe una orden y pulsa Intro  (flechas arriba y abajo: historial)" autocomplete="off" spellcheck="false" autocapitalize="off"><button id="run" class="primary"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg> Ejecutar</button><button id="clear"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> Limpiar</button></div>
     <div class="warn">Cuidado: esto es una consola de verdad con tu usuario. Puedes romper cosas; para deshacer una actualización mala, <code>pcpi-backup restore</code>.</div>
   </section>
   <section id="t-api">
@@ -62,6 +65,7 @@
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
+const ico = (n, cls) => '<svg class="ic' + (cls ? " " + cls : "") + '" aria-hidden="true"><use href="#i-' + n + '"/></svg>';
 const post = (url, body) => fetch(url, {method:"POST", headers:{"X-PCPI":"1"}, body:JSON.stringify(body || {})});
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const QUICK = ["pcpi-doctor", "pcpi-config get server port", "pcpi-mode status", "systemctl status pcpi-home --no-pager -n 15", "journalctl -u pcpi-home -n 30 --no-pager",

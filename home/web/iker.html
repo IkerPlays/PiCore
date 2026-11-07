@@ -8,6 +8,7 @@
   :root { --bg:#ece6da; --side:#e3dccd; --card:#fbf8f1; --fg:#23201b; --dim:#7a7468; --line:#d3cab7; --acc:#2f64d8; --acc-fg:#fff; --bad:#d04a3f; --ok:#2f9e5b; }
   @media (prefers-color-scheme: dark) { :root { --bg:#14161b; --side:#0f1115; --card:#1a1d24; --fg:#f2f4f8; --dim:#8b93a3; --line:#2a2f39; --acc:#7aa7ff; --acc-fg:#07101f; } }
   * { box-sizing:border-box; margin:0; }
+  .ic { width:1.15em; height:1.15em; flex:none; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; vertical-align:-.2em; }
   html,body { height:100%; background:var(--bg); color:var(--fg); font-family:system-ui,"Segoe UI",sans-serif; }
   body { display:grid; grid-template-columns:270px 1fr; grid-template-rows:56px auto 1fr; }
   header { grid-column:1 / span 2; display:flex; align-items:center; gap:8px; padding:0 12px; background:var(--side); border-bottom:1px solid var(--line); }
@@ -41,29 +42,32 @@
   footer { display:flex; gap:16px; padding:6px 16px; font-size:13px; color:var(--dim); background:var(--side); border-top:1px solid var(--line); }
   #status.ok { color:var(--ok); } #status.err { color:var(--bad); }
 </style>
+<link rel="stylesheet" href="/static/ui.css">
 </head>
 <body>
+<!--ICONS-->
 <header>
   <span class="title">Modo Iker</span>
-  <button id="new">Nueva</button>
-  <button id="save" class="primary">Guardar</button>
-  <button id="del" class="danger">Borrar</button>
-  <button id="usb" title="Copiar todas las notas a un USB como archivos .txt">📤 USB</button>
-  <button id="pdf" title="Abrir esta nota como PDF para imprimirla o guardarla">PDF</button>
-  <button id="web">Internet</button>
-  <button id="exit">Salir</button>
+  <button id="new"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg> Nueva</button>
+  <button id="save" class="primary"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg> Guardar</button>
+  <button id="del" class="danger"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> Borrar</button>
+  <button id="usb" title="Copiar todas las notas a un USB como archivos .txt"><svg class="ic" aria-hidden="true"><use href="#i-usb"/></svg> USB</button>
+  <button id="pdf" title="Abrir esta nota como PDF para imprimirla o guardarla"><svg class="ic" aria-hidden="true"><use href="#i-pdf"/></svg> PDF</button>
+  <button id="web"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg> Internet</button>
+  <button id="exit"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg> Salir</button>
 </header>
 <div id="marks"><span>Marcadores</span><span id="mlist"></span>
-  <button id="madd" title="Añadir un acceso directo a una web">+ Añadir</button>
+  <button id="madd" title="Añadir un acceso directo a una web"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg> Añadir</button>
   <span id="mform"><input id="mt" placeholder="Nombre" maxlength="40" autocomplete="off"><input id="mu" placeholder="direccion.com" autocomplete="off"><button id="msave" class="primary">Guardar</button></span>
 </div>
-<aside><input id="q" type="search" placeholder="🔍 Buscar en las notas…" autocomplete="off"><div id="tags"></div><div id="list"></div></aside>
+<aside><input id="q" type="search" placeholder="Buscar en las notas…" autocomplete="off"><div id="tags"></div><div id="list"></div></aside>
 <main>
   <textarea id="text" placeholder="Escribe aquí…  (se guarda solo)" spellcheck="true" autofocus></textarea>
   <footer><span id="status">Lista</span><span id="count"></span><span style="margin-left:auto">Ctrl+S guardar · Ctrl+N nueva · Internet se abre en una pestaña nueva</span></footer>
 </main>
 <script>
 const $ = id => document.getElementById(id);
+const ico = (n, cls) => '<svg class="ic' + (cls ? " " + cls : "") + '" aria-hidden="true"><use href="#i-' + n + '"/></svg>';
 const api = (url, body) => fetch(url, body === undefined ? {} : {method:"POST", headers:{"X-PCPI":"1"}, body:JSON.stringify(body)}).then(r => r.json());
 let cur = null, dirty = false, timer = 0, armed = 0;
 
@@ -143,7 +147,7 @@ async function paintMarks() {
   for (const m of items) {
     const w = document.createElement("span"); w.className = "mk";
     const a = document.createElement("a"); a.textContent = m.title; a.href = m.url; a.target = "_blank"; a.rel = "noopener noreferrer";
-    const x = document.createElement("button"); x.textContent = "✕"; x.title = "Quitar"; x.setAttribute("aria-label", "Quitar " + m.title);
+    const x = document.createElement("button"); x.innerHTML = ico("x"); x.title = "Quitar"; x.setAttribute("aria-label", "Quitar " + m.title);
     x.onclick = async () => { await api("/api/bookmarks", {action:"delete", id:m.id}); paintMarks(); };
     w.append(a, x); box.append(w, " ");
   }
@@ -165,7 +169,7 @@ async function save() {
   try {
     const r = await api("/api/notes", {id: cur, text});
     cur = r.id; dirty = false;
-    setStatus("Guardado ✓", "ok");
+    setStatus("Guardado", "ok");
     refresh();
   } catch (e) { setStatus("No se pudo guardar", "err"); }
 }
@@ -189,10 +193,10 @@ $("del").onclick = async () => {
   const b = $("del");
   if (!cur) { $("text").value = ""; dirty = false; counts(); return; }
   if (!b.classList.contains("armed")) {                         // doble toque para confirmar
-    b.classList.add("armed"); b.textContent = "¿Seguro?";
-    armed = setTimeout(() => { b.classList.remove("armed"); b.textContent = "Borrar"; }, 3000); return;
+    b.classList.add("armed"); b.innerHTML = ico("trash") + " ¿Seguro?";
+    armed = setTimeout(() => { b.classList.remove("armed"); b.innerHTML = ico("trash") + " Borrar"; }, 3000); return;
   }
-  clearTimeout(armed); b.classList.remove("armed"); b.textContent = "Borrar";
+  clearTimeout(armed); b.classList.remove("armed"); b.innerHTML = ico("trash") + " Borrar";
   await api("/api/notes/delete", {id: cur});
   cur = null; $("text").value = ""; dirty = false; counts(); setStatus("Nota borrada"); refresh();
 };
@@ -202,7 +206,7 @@ $("usb").onclick = async () => {
   try {
     const r = await fetch("/api/notes/export", {method:"POST", headers:{"X-PCPI":"1"}, body:"{}"});
     const d = await r.json();
-    if (r.ok) setStatus("✓ " + d.count + " notas copiadas a " + d.path, "ok"); else setStatus(d.error || "No se pudo exportar", "err");
+    if (r.ok) setStatus(d.count + " notas copiadas a " + d.path, "ok"); else setStatus(d.error || "No se pudo exportar", "err");
   } catch (e) { setStatus("No se pudo exportar", "err"); }
 };
 $("web").onclick = () => window.open("https://www.google.com/", "_blank");

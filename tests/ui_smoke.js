@@ -116,8 +116,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.waitForFunction(() => !document.getElementById('chip-bat').hidden, null, { timeout: 9000 }).catch(() => {});
   check('la bateria baja se muestra en aviso', (await page.getAttribute('#chip-bat', 'class')).includes('low') && (await page.textContent('#chip-bat')).includes('12%'));
   fakeBat = { available: true, percent: 80, charging: true, low: false, critical: false };
-  await page.waitForFunction(() => document.getElementById('chip-bat').textContent.includes('⚡'), null, { timeout: 9000 }).catch(() => {});
-  check('cargando muestra el rayo y quita el aviso', (await page.textContent('#chip-bat')).includes('⚡80%') && !(await page.getAttribute('#chip-bat', 'class')).includes('low'));
+  await page.waitForFunction(() => document.getElementById('chip-bat').querySelector('use[href="#i-bolt"]') !== null, null, { timeout: 9000 }).catch(() => {});
+  check('cargando muestra el rayo y quita el aviso', (await page.locator('#chip-bat use[href="#i-bolt"]').count()) === 1 && (await page.textContent('#chip-bat')).includes('80%') && !(await page.getAttribute('#chip-bat', 'class')).includes('low'));
   await page.unroute('**/api/status');
 
   // ------------------------------------------------------------------ Modo Dev
@@ -342,9 +342,9 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('al tocar la contraseña sale el teclado en pantalla', await page.evaluate(() => document.getElementById('osk') && document.getElementById('osk').classList.contains('on')));
   await page.click('#osk button:text-is("q")');
   await page.click('#osk button:text-is("w")');
-  await page.click('#osk button:text-is("⌫")');
+  await page.click('#osk button:has(use[href="#i-backspace"])');
   check('el teclado escribe y borra', (await page.inputValue('#pw-in')) === 'q', await page.inputValue('#pw-in'));
-  await page.click('#osk button:text-is("⇧")');
+  await page.click('#osk button:has(use[href="#i-shift"])');
   await page.click('#osk button:text-is("A")');
   check('mayusculas y minusculas', (await page.inputValue('#pw-in')) === 'qA');
   await page.fill('#pw-in', 'equivocada1');
