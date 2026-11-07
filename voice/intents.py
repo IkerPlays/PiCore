@@ -198,7 +198,7 @@ def parse(text):
             return Intent("timers_stop", None)
         clock = parse_clock(words)
         if clock:
-            return Intent("alarm_set", clock)
+            return Intent("alarm_set", clock + (True,) if has("todos los dias", "cada dia", "diaria", "a diario", "diariamente") else clock)
     if has("musica", "cancion", "musix", "tema "):
         if has(" en ", "dentro de", "durante") and has("para", "apaga", "pausa", "deten"):
             secs = parse_duration(words)

@@ -5,6 +5,10 @@
 
 
 
+## Voz: alarmas diarias
+
+- «Despiértame todos los días a las siete y media» crea una alarma diaria (el servidor ya las soportaba; faltaba poder pedirlas por voz). Probado con tests; no en una Pi real.
+
 ## Voz: el tiempo de mañana
 
 - «Qué tiempo hará mañana» / «pasado mañana» dicen máxima, mínima, cielo y lluvia del día. Probado con tests; no en una Pi real.

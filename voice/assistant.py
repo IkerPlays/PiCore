@@ -223,8 +223,10 @@ def execute(cfg, intent):
                 return "No hay ningún temporizador en marcha"
             return "Añadido " + intents.say_duration(a) + " al temporizador"
         if n == "alarm_set":
-            api(cfg, "/api/timers", {"action": "alarm", "hour": a[0], "minute": a[1]})
-            return "Alarma a las %d y %02d" % a if a[1] else "Alarma a las %d en punto" % a[0]
+            daily = len(a) > 2 and a[2] is True
+            api(cfg, "/api/timers", dict({"action": "alarm", "hour": a[0], "minute": a[1]}, **({"daily": True} if daily else {})))
+            base = "Alarma a las %d y %02d" % (a[0], a[1]) if a[1] else "Alarma a las %d en punto" % a[0]
+            return base + (", todos los días" if daily else "")
         if n in ("timer_cancel", "alarm_cancel"):
             api(cfg, "/api/timers", {"action": "cancel", "kind": "timer" if n == "timer_cancel" else "alarm"})
             return "Temporizador cancelado" if n == "timer_cancel" else "Alarma cancelada"

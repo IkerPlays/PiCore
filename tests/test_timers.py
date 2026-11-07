@@ -213,6 +213,8 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(P("temporizador para diez minutos"), ("timer_set", 600))               # «para» aqui no es parar ni nombre
         self.assertEqual(P("añade cinco minutos al temporizador"), ("timer_extend", 300))
         self.assertEqual(P("ponle un minuto más al temporizador"), ("timer_extend", 60))
+        self.assertEqual(P("despiértame todos los días a las siete y media"), ("alarm_set", (7, 30, True)))
+        self.assertEqual(P("despiértame a las siete y media"), ("alarm_set", (7, 30)))
         self.assertEqual(P("cancela el temporizador"), ("timer_cancel", None))
         self.assertEqual(P("cuanto queda del temporizador"), ("timer_query", None))
         self.assertEqual(P("para la alarma"), ("timers_stop", None))

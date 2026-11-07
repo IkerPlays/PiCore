@@ -599,6 +599,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «pon un temporizador de diez minutos» · «temporizador de una hora y media» · «de treinta segundos» | Crea un temporizador (hasta 48 h). Al acabar **suena por el altavoz y sale un aviso a pantalla completa** con el botón «Parar» |
 | «despiértame a las siete y media» · «pon una alarma a las ocho menos cuarto» · «alarma a las 7 de la tarde» | Crea una alarma para la próxima vez que el reloj marque esa hora |
 | «añade cinco minutos al temporizador» · «ponle un minuto más» | Suma tiempo al temporizador que antes vence |
+| «despiértame todos los días a las siete y media» | Crea una alarma que se repite cada día (se reprograma sola al pararla) |
 | «cuánto queda del temporizador» · «cancela el temporizador» · «para la alarma» | Consultar, cancelar o parar lo que suena |
 
 Si no entiende, dice *«No te he entendido»*. Si no dices nada en 8 segundos, vuelve a esperar la palabra.
