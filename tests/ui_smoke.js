@@ -340,7 +340,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.waitForFunction(() => /\d\d:\d\d/.test(document.getElementById('timer-txt').textContent), null, { timeout: 8000 }).catch(() => {});
   check('un temporizador de 5 min cuenta atras en el icono', /0[45]:\d\d/.test(await page.textContent('#timer-txt')), await page.textContent('#timer-txt'));
   check('sale en la lista con su boton Cancelar', (await page.textContent('#t-list')).includes('Cancelar'));
-  await page.click('#t-list button');
+  await page.click('#t-list button[aria-label="Añadir un minuto"]');                                    // +1 min: el servidor suma 60 s
+  await sleep(1200);
+  check('+1 min lo alarga', /0[56]:\d\d/.test(await page.textContent('#t-list .trow b')), await page.textContent('#t-list .trow b'));
+  await page.click('#t-list button:has-text("Cancelar")');
   await sleep(1200);
   check('Cancelar lo quita', (await page.textContent('#timer-txt')).includes('Temporizador'));
   // suena: un temporizador de 1 s vence y sale la pantalla de aviso

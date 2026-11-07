@@ -5,6 +5,10 @@
 
 
 
+## Test de interfaz: «+1 min» y «Cancelar» de los temporizadores
+
+- Al añadir «+1 min» el test de interfaz pulsaba ese botón en lugar de «Cancelar» y fallaba (lo detectó la suite completa, no el CI aún). Ahora pulsa cada botón por su nombre y comprueba que «+1 min» alarga el temporizador.
+
 ## Voz: la hora en otras ciudades
 
 - «Qué hora es en Tokio» (y 15 ciudades más, con su zona horaria y el cambio de horario). Probado con tests; no en una Pi real.
