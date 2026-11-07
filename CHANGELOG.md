@@ -6,6 +6,10 @@
 
 
 
+## `make lint` también pasa pyflakes
+
+- Detecta variables sin usar, imports que sobran y nombres sin definir en el código y los tests (el CI lo instala; en local se omite si no lo tienes). El código está limpio hoy.
+
 ## Test de interfaz: diagnóstico de los 403
 
 - Una ejecución del CI falló una vez con «Failed to load resource: 403» sin decir qué petición era (las demás pasaron, y en local tampoco se reproduce). El test ahora añade a ese mensaje las peticiones que dieron 403, para localizarla si vuelve a pasar. Aún no sé la causa.

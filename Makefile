@@ -10,6 +10,7 @@ demo:        ## Demo web en http://127.0.0.1:8081 (la misma que se despliega en 
 lint:        ## Comprueba los scripts de shell y Python
 	./tools/lint-shell.sh
 	python3 -m py_compile home/*.py voice/*.py stats/*.py tools/*.py training/*.py bin/pcpi-wifi bin/pcpi-backup bin/pcpi-update bin/pcpi-config
+	@if python3 -c "import pyflakes" 2>/dev/null; then python3 -m pyflakes home/*.py voice/*.py tools/*.py tests/*.py bin/pcpi-config && echo "pyflakes OK"; else echo "(pyflakes no esta instalado: pip install pyflakes; se omite)"; fi
 
 mini-preview: ## Genera preview.png con el diseno de la mini pantalla (sin hardware)
 	python3 stats/miniscreen.py --backend png --once --out preview.png
