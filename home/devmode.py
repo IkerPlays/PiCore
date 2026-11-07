@@ -23,6 +23,7 @@ KEEP_S = 600
 EXPERIMENTS = {
     "ai_chat": {"title": "Chat con la IA", "desc": "Un chat en esta consola con la IA local (necesita ./install.sh --ai)."},
     "live_graph": {"title": "Gráfica en vivo", "desc": "Temperatura de la CPU y memoria libre en directo."},
+    "voice_log": {"title": "Lo último que oyó la voz", "desc": "Muestra en esta consola lo que entendió el asistente y lo que contestó (útil para ajustar el micrófono)."},
     "casa_debug": {"title": "Insignia de depuración en Casa", "desc": "Muestra en la pantalla de Casa cuánto tarda el servidor en responder."},
 }
 

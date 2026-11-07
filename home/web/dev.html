@@ -56,6 +56,7 @@
   <section id="t-exp">
     <div class="warn">Cosas a medio hacer: se pueden encender y apagar sin riesgo para el resto. Algunas se ven en Casa o aquí abajo.</div>
     <div id="explist" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div id="expvoice" hidden><div class="dim" style="font-size:12px;margin-bottom:4px">Voz (se actualiza cada 2 s)</div><pre id="voicelog" style="min-height:64px">…</pre></div>
     <div id="expgraph" hidden><canvas id="graph" width="900" height="150"></canvas><div class="dim" id="graphlbl" style="font-size:12px"></div></div>
     <div id="chat" hidden style="display:none;flex:1;min-height:0;flex-direction:column;gap:8px">
       <div id="chatlog"><span class="dim">Pregúntale algo a la IA local sobre la Pi. Solo responde, no ejecuta nada.</span></div>
@@ -128,7 +129,7 @@ $("apigo").onclick = async () => {
 };
 
 /* experimentos */
-let flags = {}, graphTimer = 0;
+let flags = {}, graphTimer = 0, voiceTimer = 0;
 async function loadExp() {
   const j = await (await fetch("/api/dev")).json(); flags = j.flags;
   const box = $("explist"); box.textContent = "";
@@ -143,7 +144,14 @@ async function loadExp() {
 }
 function applyFlags() {
   $("expgraph").hidden = !flags.live_graph; $("chat").style.display = flags.ai_chat ? "flex" : "none"; $("chat").hidden = !flags.ai_chat;
+  $("expvoice").hidden = !flags.voice_log; clearInterval(voiceTimer); if (flags.voice_log) { voiceTimer = setInterval(sampleVoice, 2000); sampleVoice(); }
   clearInterval(graphTimer); if (flags.live_graph) { graphTimer = setInterval(sample, 2000); sample(); }
+}
+async function sampleVoice() {
+  try {
+    const v = (await (await fetch("/api/status")).json()).voice || {};
+    $("voicelog").textContent = v.state && v.state !== "off" ? "estado:   " + v.state + "\nactivación: " + (v.wake || "?") + "\noyó:      " + (v.heard || "—") + "\ncontestó: " + (v.reply || "—") : "La voz no está activa (se instala con ./install.sh --voice).";
+  } catch (e) {}
 }
 const pts = [];
 async function sample() {

@@ -37,7 +37,7 @@
     nowplaying: { state: "stopped" },
     music: { seq: 0, cmd: null, arg: null },
     tracks: null,
-    flags: LS.get("flags", { ai_chat: false, live_graph: false, casa_debug: false }),
+    flags: LS.get("flags", { ai_chat: false, live_graph: false, voice_log: false, casa_debug: false }),
     wifi: LS.get("wifi", { active: "CasaIker", wantsPi: { CasaIker: true } }),
     update: { state: "idle", tail: [], available: true, behind: 3 },
     audio: LS.get("audio", { volume: 60, muted: false }),
@@ -448,6 +448,7 @@
         return J({ enabled: true, mode: LS.get("mode", "home"), flags: S.flags, experiments: [
           { id: "ai_chat", title: "Chat con la IA", desc: "Un chat en esta consola con la IA local (necesita ./install.sh --ai)." },
           { id: "live_graph", title: "Gráfica en vivo", desc: "Temperatura de la CPU y memoria libre en directo." },
+          { id: "voice_log", title: "Lo último que oyó la voz", desc: "Muestra en esta consola lo que entendió el asistente y lo que contestó (útil para ajustar el micrófono)." },
           { id: "casa_debug", title: "Insignia de depuración en Casa", desc: "Muestra en la pantalla de Casa cuánto tarda el servidor en responder." }] });
       }
       if (body.action === "run") {

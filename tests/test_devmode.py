@@ -174,6 +174,10 @@ class ApiTest(unittest.TestCase):
         s = self.req("/api/status")[1]["dev"]
         self.assertEqual((s["enabled"], s["flags"]["casa_debug"]), (True, True))
         self.assertEqual(self.req("/api/dev", {"action": "flag", "id": "casa_debug", "on": "x"})[0], 400)
+        code, body = self.req("/api/dev", {"action": "flag", "id": "voice_log", "on": True})          # el experimento de la voz existe y se enciende
+        self.assertEqual((code, body["flags"]["voice_log"]), (200, True))
+        self.assertIn("voice_log", [e["id"] for e in self.req("/api/dev")[1]["experiments"]])
+        self.req("/api/dev", {"action": "flag", "id": "voice_log", "on": False})
         info = self.req("/api/dev")[1]
         self.assertEqual({e["id"] for e in info["experiments"]}, set(devmode.EXPERIMENTS))
 
