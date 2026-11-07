@@ -5,6 +5,10 @@
 
 
 
+## Test del inicio: ya no falla de forma intermitente
+
+- `test_browser_without_autoplay_permission_gets_an_unmute_hint` fallaba a ratos en el CI (3 de 14 ejecuciones de hoy) porque comprobaba el aviso «activar sonido» justo al arrancar el vídeo. Ahora espera hasta 4 s a que aparezca. No era un fallo de la interfaz.
+
 ## Voz: próximo evento del calendario
 
 - «Cuál es mi próximo evento» dice el siguiente aunque no sea hoy ni mañana. Probado con tests; no en una Pi real.

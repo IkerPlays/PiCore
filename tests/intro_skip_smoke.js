@@ -21,6 +21,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('el video de inicio se reproduce', playing > 0, String(playing));
 
   if (noFlag) {
+    await page.waitForSelector('#unmute', { state: 'visible', timeout: 4000 }).catch(() => {});      // el aviso sale un instante despues de que el navegador rechace el sonido
     check('sin permiso de sonido el video va mudo y lo avisa', (await page.evaluate(() => document.getElementById('intro-video').muted)) && await page.isVisible('#unmute'));
     await page.click('#intro');                                     // un toque en cualquier sitio
     check('un toque activa el sonido', !(await page.evaluate(() => document.getElementById('intro-video').muted)) && await page.isHidden('#unmute'));
