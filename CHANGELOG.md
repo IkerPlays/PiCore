@@ -5,6 +5,10 @@
 
 
 
+## Tests de seguridad ampliados
+
+- Las rutas nuevas (`/api/settings`, `/api/timers`, `/api/music`, `/api/audio`, `/api/dev`, `/api/system`) exigen la cabecera `X-PCPI`, y una web ajena (sin la cabecera o con otro `Host`) no puede cambiar ajustes ni la contraseña de Pi-hole.
+
 ## Test de interfaz: «+1 min» y «Cancelar» de los temporizadores
 
 - Al añadir «+1 min» el test de interfaz pulsaba ese botón en lugar de «Cancelar» y fallaba (lo detectó la suite completa, no el CI aún). Ahora pulsa cada botón por su nombre y comprueba que «+1 min» alarga el temporizador.

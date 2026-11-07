@@ -126,11 +126,24 @@ class ServerSecurityTest(unittest.TestCase):
 
     def test_post_needs_the_custom_header_everywhere(self):
         for path in ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/notes/export", "/api/loaded",
-                     "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display", "/api/motion"):
+                     "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display", "/api/motion",
+                     "/api/settings", "/api/timers", "/api/music", "/api/audio", "/api/dev", "/api/system"):
             r = urllib.request.Request(self.base + path, data=b"{}")
             with self.assertRaises(urllib.error.HTTPError) as cm:
                 urllib.request.urlopen(r)
             self.assertEqual(cm.exception.code, 403, path)
+
+    def test_a_hostile_page_cannot_change_settings_or_the_pihole_password(self):
+        """Cambiar ajustes exige X-PCPI (una web ajena no puede ponerlo sin permiso CORS) y el Host nuestro."""
+        for body in (b'{"action": "pihole_set", "password": "hackeada"}', b'{"action": "pref_set", "key": "screensaver", "value": false}'):
+            r = urllib.request.Request(self.base + "/api/settings", data=body, headers={"Content-Type": "text/plain"})
+            with self.assertRaises(urllib.error.HTTPError) as cm:
+                urllib.request.urlopen(r)
+            self.assertEqual(cm.exception.code, 403)
+            r = urllib.request.Request(self.base + "/api/settings", data=body, headers=dict(H, Host="evil.example"))
+            with self.assertRaises(urllib.error.HTTPError) as cm:
+                urllib.request.urlopen(r)
+            self.assertEqual(cm.exception.code, 403)
 
     def test_unknown_post_paths(self):
         r = urllib.request.Request(self.base + "/api/wifi/../mode", data=b"{}", headers=H)
