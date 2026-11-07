@@ -5,6 +5,10 @@
 
 
 
+## Visita guiada: paso nuevo sobre los ajustes
+
+- La visita pasa a tener 13 pasos: el nuevo abre la hoja Sistema y baja a los ajustes (salvapantallas y noche) y a la lista de órdenes de voz. Comprobado en navegador sin pantalla (captura revisada).
+
 ## pcpi-config show
 
 - `pcpi-config show [SECCION]` lista lo que tienes puesto en `pcpi.conf` sin comentarios y con las contraseñas tapadas (`******`): sirve para pegarlo en una incidencia sin filtrar secretos. Probado con tests.

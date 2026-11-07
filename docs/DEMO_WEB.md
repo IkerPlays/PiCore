@@ -41,7 +41,7 @@ La demo usa los **vídeos de inicio, GIFs e imágenes reales** de `extra-assets/
 ## Voz, visita guiada y atajos del simulador
 
 - **Voz simulada:** la barra de abajo entiende frases escritas (hora, fecha, tiempo, temporizadores con nombre, alarmas, música, volumen, brillo, notas, «qué puedes hacer», estado de la Pi...) y responde en voz alta con la síntesis de tu navegador. La Pi real usa Whisper para entenderte; aquí no hay micrófono ni IA local, y lo que no entiende recibe una respuesta fija. Está en `understand()` de `web-demo/demo.js`.
-- **Visita guiada:** el botón «Visita guiada» (o `/simulador?tour`) recorre 12 pasos y toca de verdad la interfaz.
+- **Visita guiada:** el botón «Visita guiada» (o `/simulador?tour`) recorre 13 pasos y toca de verdad la interfaz.
 - **Atajos:** `1` `2` `3` cambian de modo, `T` abre la visita y `V` enfoca la barra de voz (no actúan si estás escribiendo en un cuadro).
 - **Enlaces directos:** `/simulador?p=/iker` abre el simulador en ese modo (solo `/app`, `/iker`, `/dev` y `/loading`).
 
