@@ -67,6 +67,7 @@ La wifi de casa va en la microSD (Imager). Para otra red, toca el icono de Wi-Fi
 
 - **Brillo** (☀ en Casa): deslizante y modo noche automático con rampa suave. Si la pantalla no tiene control por software, se oscurece con una capa.
 - **Vigilancia** (👁): detección de movimiento con la cámara y aviso en pantalla; no guarda ni envía imágenes. Apagada por defecto.
+- **Hoja «Sistema»** en la pantalla: disco, memoria, temperatura, avisos de salud, apagar/reiniciar con doble toque y aviso de actualizaciones (comprobación semanal opcional, nunca instala sola).
 - **Calendario** de solo lectura (`.ics` de Google/Apple): próximos eventos en la pantalla y por voz.
 - **Salvapantallas / marco de fotos** con tus fotos de `extra-assets/photos/`.
 - **Tiempo** por horas y próximos días, con aviso de lluvia.

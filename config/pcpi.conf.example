@@ -186,3 +186,7 @@ shuffle = true
 days = 14
 refresh_minutes = 15
 
+[update]
+# Comprobar cada semana si hay una version nueva de PiCore (solo MIRA, no instala; avisa en la hoja «Sistema»).
+check = true
+

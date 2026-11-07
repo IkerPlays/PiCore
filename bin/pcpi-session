@@ -129,6 +129,33 @@ relaunch() {
   launched_at="$(now_s)"; phase=loading; loading_since=$SECONDS
 }
 
+# Apagar / reiniciar desde la pantalla: el servidor deja /run/pcpi/power y SOLO esta sesion grafica puede ejecutarlo
+sync_power() {
+  [ -e "$RUN/power" ] || return 0
+  local act=""
+  read -r act < "$RUN/power" 2>/dev/null || true
+  rm -f "$RUN/power" 2>/dev/null || true
+  case "$act" in
+    shutdown) echo "pcpi-session: apagando" >&2; systemctl poweroff 2>/dev/null || sudo -n systemctl poweroff ;;
+    reboot)   echo "pcpi-session: reiniciando" >&2; systemctl reboot 2>/dev/null || sudo -n systemctl reboot ;;
+  esac
+}
+
+# Comprobacion periodica de actualizaciones (git fetch, sin instalar nada): resultado en /run/pcpi/update
+UPDATE_EVERY="${PCPI_UPDATE_EVERY:-604800}"          # 7 dias
+UPDATE_FIRST="${PCPI_UPDATE_FIRST:-180}"             # la primera, a los 3 minutos de arrancar (ya hay internet)
+last_update_check=-1
+sync_update() {
+  local due=$UPDATE_EVERY
+  [ "$last_update_check" -lt 0 ] && due=$UPDATE_FIRST
+  [ "$last_update_check" -lt 0 ] && [ "$SECONDS" -lt "$due" ] && return 0
+  [ "$last_update_check" -ge 0 ] && [ $((SECONDS - last_update_check)) -lt "$due" ] && return 0
+  last_update_check=$SECONDS
+  if command -v pcpi-update >/dev/null && [ "$(pcpi-config get update check 2>/dev/null || echo true)" != "false" ]; then
+    ( pcpi-update --check > "$RUN/update.tmp" 2>&1 && mv -f "$RUN/update.tmp" "$RUN/update" ) >/dev/null 2>&1 &
+  fi
+}
+
 mkdir -p "$RUN" 2>/dev/null || true
 launched_at="$(now_s)"; restarts=(); cooldown_until=0
 boot=1; [ -e "$RUN/booted" ] && boot=0          # /run es RAM: tras cada encendido no existe
@@ -179,6 +206,8 @@ while true; do
   fi
 
   sync_portal
+  sync_power
+  sync_update
   tick=$((tick + 1))
   sleep "$TICK"
 done

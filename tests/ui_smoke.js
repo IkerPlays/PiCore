@@ -120,6 +120,32 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('cargando muestra el rayo y quita el aviso', (await page.textContent('#chip-bat')).includes('⚡80%') && !(await page.getAttribute('#chip-bat', 'class')).includes('low'));
   await page.unroute('**/api/status');
 
+  // ------------------------------------------------------------------ hoja «Sistema»
+  await page.goto(base + '/');
+  await sleep(1200);
+  await page.route('**/api/status', async route => {
+    const resp = await route.fetch(); const j = await resp.json();
+    j.system = { disk: { free_gb: 0.6, total_gb: 30, pct: 98 }, mem_avail_mb: 900, update: { available: true, behind: 2 },
+                 health: [{ level: 'bad', text: 'Casi no queda espacio en la tarjeta (0.6 GB libres).' }, { level: 'info', text: 'Hay una actualización' }] };
+    await route.fulfill({ response: resp, json: j });
+  });
+  await page.waitForFunction(() => document.getElementById('chip-sys').classList.contains('bad'), null, { timeout: 9000 }).catch(() => {});
+  check('poco disco pone el chip Sistema en rojo', (await page.getAttribute('#chip-sys', 'class')).includes('bad'));
+  await page.click('#chip-sys');
+  await sleep(600);
+  check('la hoja Sistema lista los avisos', (await page.locator('#s-health .hl').count()) === 2 && (await page.textContent('#s-stats')).includes('0.6 GB'));
+  let powerPosts = [];
+  await page.route('**/api/system', async route => { powerPosts.push(route.request().postData()); await route.fulfill({ json: { ok: true } }); });
+  await page.click('#s-off');
+  check('el primer toque en Apagar solo pide confirmacion', powerPosts.length === 0 && (await page.textContent('#s-off')).includes('otra vez'));
+  await page.click('#s-off');
+  await sleep(400);
+  check('el segundo toque apaga', powerPosts.length === 1 && powerPosts[0].includes('shutdown'), JSON.stringify(powerPosts));
+  await page.unroute('**/api/system');
+  await page.unroute('**/api/status');
+  await page.click('#s-close');
+  await sleep(500);
+
   // ------------------------------------------------------------------ temporizadores y alarmas
   await page.goto(base + '/');
   await page.waitForSelector('#chip-timer');

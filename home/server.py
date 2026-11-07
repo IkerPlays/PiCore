@@ -24,6 +24,7 @@ import battery
 import calendar_ics
 import display
 import fetcher
+import health
 import intro
 import intros_tool
 import llm
@@ -508,6 +509,7 @@ def status():
         "timers": TIMERS.snapshot() if TIMERS else [],
         "ai": ai_info(cp),
         "calendar": calendar_info(cp),
+        "system": system_info({"cpu_temp": cpu_temp(), "net": net_summary(), "pihole": cached("pihole", 10, lambda: pihole_stats(cp)), "ai": ai_info(cp)}),
         "ip": cached("ip", 60, local_ip),
         "host": socket.gethostname(),
     }
@@ -899,7 +901,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self._host_ok():
             return self._send(403, {"error": "host no permitido"})
         paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/notes/export", "/api/loaded",
-                 "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display", "/api/motion", "/api/timers", "/api/ask")
+                 "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display", "/api/motion", "/api/timers", "/api/ask", "/api/system")
         if self.path not in paths or self.headers.get("X-PCPI") != "1":
             return self._send(403, {"error": "prohibido"})
         try:
@@ -915,6 +917,8 @@ class Handler(BaseHTTPRequestHandler):
             if self.path == "/api/mode":
                 set_mode(body["mode"])
                 return self._send(200, {"mode": body["mode"]})
+            if self.path == "/api/system":
+                return self._send(200, health.request_power(body.get("action")))
             if self.path == "/api/ask":
                 if not isinstance(body.get("question"), str):
                     raise ValueError("pregunta invalida")
@@ -1070,6 +1074,15 @@ def ai_answer(question):
     if not cfg["enabled"]:
         raise llm.AIError("La IA no está activada. Actívala con: ./install.sh --ai")
     return llm.ask(question, cfg, status())
+
+
+def system_info(st):
+    """Disco, memoria, avisos de salud y actualizaciones (cada 20 s como mucho: vcgencmd es un proceso)."""
+    def build():
+        base = {**st, "update": health.update_state()}
+        return {"disk": health.disk_info(), "mem_avail_mb": health.mem_available_mb(), "update": base["update"],
+                "health": health.checks(base)}
+    return cached("system", 20, build)
 
 
 def timers_post(body):

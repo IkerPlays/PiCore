@@ -61,6 +61,22 @@
             box-shadow:0 -20px 60px #0008; padding:20px 22px 24px; transform:translate(-50%,105%); transition:transform .5s var(--ease); max-height:86vh; overflow:auto; }
   #wpanel.on { transform:translate(-50%,0); }
   #wpanel h3 { font-size:22px; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  #chip-sys { color:var(--fg); position:relative; }
+  #chip-sys.warn { border-color:var(--warn); } #chip-sys.bad { border-color:var(--bad); animation:blink 1.6s ease-in-out infinite; }
+  #spanel { position:fixed; left:50%; bottom:0; z-index:21; width:min(760px,100vw); background:var(--card); border:1px solid var(--line); border-bottom:0; border-radius:26px 26px 0 0;
+            box-shadow:0 -20px 60px #0008; padding:20px 22px 24px; transform:translate(-50%,105%); transition:transform .5s var(--ease); max-height:86vh; overflow:auto; }
+  #spanel.on { transform:translate(-50%,0); }
+  #spanel h3 { font-size:22px; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  #spanel h3 button { width:44px; height:44px; font-size:20px; border-radius:50%; }
+  .sysrow { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px; }
+  .sysrow div { background:var(--card2); border:1px solid var(--line); border-radius:14px; padding:10px 12px; font-size:20px; font-weight:600; }
+  .sysrow small { display:block; color:var(--dim); font-size:13px; font-weight:400; }
+  .hl { padding:10px 14px; margin-bottom:6px; border-radius:12px; background:var(--card2); border:1px solid var(--line); border-left:5px solid var(--ok); font-size:16px; }
+  .hl.info { border-left-color:var(--acc); } .hl.warn { border-left-color:var(--warn); } .hl.bad { border-left-color:var(--bad); }
+  .pwr { display:flex; gap:10px; margin-top:16px; }
+  .pwr button { flex:1; min-height:56px; font-size:18px; border-radius:16px; }
+  .pwr button.sure { background:var(--bad); color:#fff; border-color:var(--bad); }
+  #pwr-msg { margin-top:10px; color:var(--dim); font-size:15px; min-height:20px; }
   #wpanel h3 button { width:44px; height:44px; font-size:20px; border-radius:50%; }
   .hours { display:flex; gap:8px; overflow-x:auto; padding-bottom:8px; margin-bottom:14px; touch-action:pan-x; }
   .hr { flex:0 0 auto; width:74px; text-align:center; padding:10px 4px; background:var(--card2); border:1px solid var(--line); border-radius:16px; }
@@ -256,6 +272,7 @@
       <span class="chip" id="chip-bat" hidden></span>
       <button class="chip" id="chip-motion" hidden aria-label="Vigilancia">👁</button>
       <button class="chip" id="chip-bright" aria-label="Brillo" style="color:var(--fg)">☀</button>
+      <button class="chip" id="chip-sys" aria-label="Sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:19px;height:19px;vertical-align:-4px"><path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></button>
       <button class="chip" id="chip-wifi" hidden aria-label="Wi-Fi">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 9a14 14 0 0 1 19 0"/><path d="M5.5 12.5a9.5 9.5 0 0 1 13 0"/><path d="M8.7 16a5 5 0 0 1 6.6 0"/><circle cx="12" cy="19.4" r="1.2" fill="currentColor" stroke="none"/></svg>
         <span id="wifi-name">Wi-Fi</span>
@@ -328,6 +345,13 @@
   <h3>Tiempo <button id="w-close" aria-label="Cerrar">✕</button></h3>
   <div class="dim" style="font-size:14px;margin-bottom:6px">Próximas horas</div><div class="hours" id="w-hours"></div>
   <div class="dim" style="font-size:14px;margin-bottom:6px">Próximos días</div><div class="days" id="w-days"></div>
+</section>
+<section id="spanel" aria-label="Sistema">
+  <h3>Sistema <button id="s-close" aria-label="Cerrar">✕</button></h3>
+  <div class="sysrow" id="s-stats"></div>
+  <div id="s-health"></div>
+  <div class="pwr"><button id="s-reboot">Reiniciar</button><button id="s-off">Apagar</button></div>
+  <div id="pwr-msg"></div>
 </section>
 <section id="cpanel" aria-label="Calendario">
   <h3>Calendario <button id="c-close" aria-label="Cerrar">✕</button></h3>
@@ -532,7 +556,45 @@ function openCalendar() {
   }
   $("scrim").classList.add("on"); $("cpanel").classList.add("on");
 }
-function closeCalendar() { $("cpanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on")) $("scrim").classList.remove("on"); }
+function closeCalendar() { $("cpanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on")) $("scrim").classList.remove("on"); }
+/* ---- sistema: salud de la Pi y apagar/reiniciar (con confirmacion de dos toques) ---- */
+let sysInfo = null, pwrAsk = null, pwrTimer = 0;
+function paintSystem(sy) {
+  sysInfo = sy || null;
+  const chip = $("chip-sys"); chip.classList.remove("warn", "bad");
+  if (sy && sy.health) {
+    if (sy.health.some(h => h.level === "bad")) chip.classList.add("bad");
+    else if (sy.health.some(h => h.level === "warn")) chip.classList.add("warn");
+  }
+  if ($("spanel").classList.contains("on")) renderSystem();
+}
+function renderSystem() {
+  const sy = sysInfo || {}, box = $("s-stats"); box.textContent = "";
+  const stat = (v, l) => { const d = document.createElement("div"); d.textContent = v; const sm = document.createElement("small"); sm.textContent = l; d.append(sm); box.append(d); };
+  stat(sy.disk ? sy.disk.free_gb + " GB" : "--", "libres en la tarjeta");
+  stat(sy.mem_avail_mb != null ? sy.mem_avail_mb + " MB" : "--", "memoria libre");
+  stat(lastCpu != null ? lastCpu + " °C" : "--", "temperatura");
+  stat(sy.update && sy.update.available ? "Sí" : "No", "actualización");
+  const h = $("s-health"); h.textContent = "";
+  for (const it of (sy.health || [])) { const d = document.createElement("div"); d.className = "hl " + it.level; d.textContent = it.text; h.append(d); }
+}
+let lastCpu = null;
+function pwrReset() { pwrAsk = null; clearTimeout(pwrTimer); for (const [id, t] of [["s-reboot", "Reiniciar"], ["s-off", "Apagar"]]) { $(id).textContent = t; $(id).classList.remove("sure"); } }
+async function pwrClick(action, id, label) {
+  if (pwrAsk !== action) {                       // primer toque: pedir confirmacion; si no se confirma, vuelve solo
+    pwrReset(); pwrAsk = action; $(id).textContent = "Toca otra vez para " + label; $(id).classList.add("sure");
+    pwrTimer = setTimeout(pwrReset, 5000); return;
+  }
+  pwrReset();
+  try { const r = await post("/api/system", {action}); $("pwr-msg").textContent = r.ok ? (action === "reboot" ? "Reiniciando…" : "Apagando… ya puedes soltar el cable en unos segundos.") : "No se pudo."; }
+  catch (e) { $("pwr-msg").textContent = "No se pudo."; }
+}
+function openSystem() { renderSystem(); $("pwr-msg").textContent = ""; pwrReset(); $("scrim").classList.add("on"); $("spanel").classList.add("on"); }
+function closeSystem() { pwrReset(); $("spanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on")) $("scrim").classList.remove("on"); }
+$("chip-sys").onclick = openSystem; $("s-close").onclick = closeSystem;
+$("s-reboot").onclick = () => pwrClick("reboot", "s-reboot", "reiniciar");
+$("s-off").onclick = () => pwrClick("shutdown", "s-off", "apagar");
+
 $("cal").onclick = openCalendar; $("c-close").onclick = closeCalendar;
 
 /* ---- salvapantallas / marco de fotos: tras un rato sin tocar, fotos con la hora (un toque lo quita) ---- */
@@ -562,7 +624,7 @@ function showSaver() {
   svClock(); box.classList.add("on"); svShowPhoto();
 }
 function hideSaver() { svLast = Date.now(); if (!svOn) return; svOn = false; clearTimeout(svTimer); $("saver").classList.remove("on"); setTimeout(() => { if (!svOn) $("saver").querySelectorAll(".ph").forEach(o => o.remove()); }, 1300); }
-function busyForSaver() { return camShown() || $("tring").classList.contains("on") || document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on") || $("switching").classList.contains("on"); }
+function busyForSaver() { return camShown() || $("tring").classList.contains("on") || document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on") || $("switching").classList.contains("on"); }
 ["pointerdown", "keydown", "touchstart"].forEach(ev => document.addEventListener(ev, e => { if (svOn) { e.preventDefault(); e.stopPropagation(); } hideSaver(); }, true));
 setInterval(() => {
   if (svOn) { svClock(); if (busyForSaver()) hideSaver(); return; }
@@ -796,7 +858,7 @@ function closeSheet() {
 }
 $("chip-wifi").onclick = openSheet;
 $("sh-close").onclick = closeSheet;
-$("scrim").onclick = () => { closeSheet(); closeBright(); closeTimers(); closeWeather(); closeCalendar(); };
+$("scrim").onclick = () => { closeSheet(); closeBright(); closeTimers(); closeWeather(); closeCalendar(); closeSystem(); };
 
 async function refresh() {
   let s;
@@ -859,6 +921,8 @@ async function refresh() {
   paintCalendar(s.calendar);
   paintMotion(s.motion);
   paintBattery(s.battery);
+  lastCpu = s.cpu_temp ?? null;
+  paintSystem(s.system);
 
   const c = s.camera || {};
   $("open-cam").style.display = c.available ? "" : "none";
