@@ -54,3 +54,7 @@ home/web/index.html  (reloj, tiempo,           └─ iker    → Chromium (vent
 2. ✅ Asistente de voz local con palabra de activación dedicada. ⏳ Entrenar «Oye Pi» y voz más natural (Piper).
 3. ✅ Cámara en modo Casa y detección de movimiento con aviso.
 4. ✅ Mini pantalla de estado (OLED, sin probar en hardware). ✅ Brillo desde la UI e indicador de batería (si hay UPS/medidor).
+
+## Pruebas «Pi virtual»
+
+`tests/test_pi_virtual.py` lanza `bin/pcpi-session` sin tocarlo, con un `chromium` falso en el `PATH` (`tests/fake_chromium.js`) que abre la dirección recibida en un Chromium real sin pantalla (Playwright) y apunta cada navegación en un registro. El servidor corre en el propio proceso de la prueba con rutas temporales propias (`PCPI_*`). Así se comprueba de verdad que la pantalla de carga avisa con `/api/loaded`, que el vigilante cambia de ventana, que `boot=1/0` decide el vídeo de inicio y que las páginas dan latidos. Limitaciones: sin Wayland/labwc, sin GPU ni audio, sin systemd.
