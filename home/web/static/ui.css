@@ -166,5 +166,15 @@ button.danger.armed { background:var(--bad); color:#fff; border-color:var(--bad)
 #cityres button { width:100%; justify-content:flex-start; text-align:left; margin-bottom:6px; padding:12px 16px; font-size:17px; border-radius:var(--r-md); } #cityres small { color:var(--dim); font-weight:400; margin-left:8px; }
 #cityerr { color:var(--warn); font-size:14px; min-height:20px; margin-bottom:6px; }
 body.osk-open #cityp { padding-bottom:268px; }
+/* Pi-hole: contraseña desde la pantalla */
+/* ciudad del tiempo */
+#php { position:fixed; left:50%; bottom:0; z-index:21; width:min(760px,100vw); max-height:92vh; overflow:auto; background:var(--card); border:1px solid var(--hair); border-bottom:0; border-radius:28px 28px 0 0;
+         padding:20px 22px 24px; transform:translate(-50%,105%); transition:transform .5s var(--ease, ease); }
+#php.on { transform:translate(-50%,0); box-shadow:0 -24px 70px #0009; }
+#php h3 { font-size:22px; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; } #php h3 button { width:44px; height:44px; border-radius:50%; padding:0; }
+#phq { display:flex; gap:8px; margin-bottom:10px; } #phq input { flex:1; min-width:0; font:inherit; font-size:18px; padding:12px 14px; border:1px solid var(--hair); border-radius:var(--r-md); background:var(--card2); color:var(--fg); }
+#phq input:focus { border-color:var(--acc); outline:0; box-shadow:0 0 0 3px color-mix(in srgb, var(--acc) 25%, transparent); } #phq button { padding:0 18px; border-radius:var(--r-md); }
+#pherr { color:var(--warn); font-size:14px; min-height:20px; margin-bottom:6px; }
+body.osk-open #php { padding-bottom:268px; }
 #wcity { min-height:40px; border-radius:99px; padding:0 14px; font-size:14px; }
 #weather .pick { font-size:18px; padding:10px 18px; border-radius:99px; }

@@ -5,6 +5,10 @@
 
 
 
+## Conectar Pi-hole desde la pantalla
+
+- Si Pi-hole no está configurado o la contraseña falla, la tarjeta ofrece «Conectar Pi-hole»: se escribe la contraseña con el teclado en pantalla, se guarda en `pcpi.conf` y se prueba al momento. Rechaza contraseñas con saltos de línea, espacios en los bordes o más de 128 caracteres. Probado con tests y en el simulador; no con un Pi-hole real.
+
 ## Portada: probar cada modo
 
 - Las fichas Casa, Iker y Dev de la portada tienen «Probar este modo», que abre el simulador directamente en ese modo (`/simulador?p=/iker`). Comprobado en navegador sin pantalla con Iker.

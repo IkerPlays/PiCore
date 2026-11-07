@@ -352,6 +352,10 @@
         if (typeof lat !== "number" || typeof lon !== "number" || !(lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180)) return ERR("peticion invalida");
         LS.set("city", String(body.name || "").replace(/[\x00-\x1f#;=\[\]]/g, " ").trim().slice(0, 60)); return J({ ok: true, lat, lon, city: LS.get("city", "") });
       }
+      if (body.action === "pihole_set") {
+        const pw = body.password; if (typeof pw !== "string" || !pw || pw.length > 128 || pw !== pw.trim()) return ERR("contraseña no valida");
+        return J({ ok: pw !== "mala" });
+      }
       if (body.action === "prefs_get") return J({ prefs: prefs() });
       if (body.action === "pref_set") {
         const lim = { idle_minutes: [1, 120], night_from: [0, 23], night_to: [0, 23], night_level: [10, 100] }, k = body.key, v = body.value;

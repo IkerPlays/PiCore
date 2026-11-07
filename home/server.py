@@ -1274,6 +1274,15 @@ def settings_post(body):
             confedit.set_file(path, "weather", "city", name)
         _cache.pop("weather", None)                          # que el tiempo de la ciudad nueva salga ya, no a los 10 minutos
         return {"ok": True, "lat": lat, "lon": lon, "city": name}
+    if act == "pihole_set":
+        pw = body.get("password")
+        if not isinstance(pw, str) or not 1 <= len(pw) <= 128 or pw != pw.strip() or any(ord(c) < 32 for c in pw):
+            raise ValueError("contraseña no valida")
+        with _conf_lock:
+            confedit.set_file(str(conf_path()), "pihole", "password", pw)
+        _sid.update(sid=None, exp=0.0)                       # que la sesion nueva use la contraseña nueva
+        _cache.pop("pihole", None)
+        return {"ok": bool(pihole_stats(read_conf()).get("ok"))}
     if act == "prefs_get":
         return {"prefs": prefs_values(read_conf())}
     if act == "pref_set":

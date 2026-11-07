@@ -166,6 +166,21 @@ class ApiTest(unittest.TestCase):
             self.assertEqual(code, 400, bad)
         self.assertEqual(confedit.get((T / "pcpi.conf").read_text(), "pihole", "password"), "secreta")
 
+    def test_pihole_password_saved_and_tested(self):
+        real = server.pihole_stats
+        server.pihole_stats = lambda cp: {"ok": cp.get("pihole", "password") == "n#ueva%1"}
+        try:
+            code, body = self.post({"action": "pihole_set", "password": "n#ueva%1"})
+            self.assertEqual((code, body), (200, {"ok": True}))
+            self.assertEqual(confedit.get((T / "pcpi.conf").read_text(), "pihole", "password"), "n#ueva%1")
+            for bad in ("", " x", "a\nb", "x" * 200, 5, None, "a\x00b"):
+                code, _ = self.post({"action": "pihole_set", "password": bad})
+                self.assertEqual(code, 400, repr(bad))
+            self.assertEqual(confedit.get((T / "pcpi.conf").read_text(), "pihole", "password"), "n#ueva%1")
+            self.assertEqual(self.post({"action": "pihole_set", "password": "mala"})[1], {"ok": False})      # se guarda, pero avisa de que no responde
+        finally:
+            server.pihole_stats = real
+
     def test_a_dangerous_name_cannot_inject_settings(self):
         self.post({"action": "city_set", "lat": 1, "lon": 2, "name": "X\n[pihole]\npassword = hackeado"})
         text = (T / "pcpi.conf").read_text()

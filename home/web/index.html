@@ -462,6 +462,12 @@
   <div id="cityerr"></div>
   <div id="cityres"></div>
 </section>
+<section id="php" aria-label="Pi-hole">
+  <h3>Conectar con Pi-hole <button id="ph-close" aria-label="Cerrar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></h3>
+  <p class="dim" style="font-size:15px;margin-bottom:12px">Escribe la contraseña del panel web de Pi-hole. Se guarda solo en esta Pi.</p>
+  <div id="phq"><input id="phin" type="password" placeholder="Contraseña de Pi-hole" autocomplete="off" spellcheck="false"><button id="phgo" class="primary">Probar y guardar</button></div>
+  <div id="pherr"></div>
+</section>
 <section id="cpanel" aria-label="Calendario">
   <h3>Calendario <button id="c-close" aria-label="Cerrar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></h3>
   <div id="c-list"></div>
@@ -564,7 +570,21 @@ function countTo(el, to, fmtFn = fmt) {
 
 /* ---- Pi-hole ---- */
 let phEnabled = true;
+let phSetup = false;
+function openPh() { $("pherr").textContent = ""; $("phin").value = ""; $("scrim").classList.add("on"); $("php").classList.add("on"); setTimeout(() => $("phin").focus(), 350); }
+function closePh() { PCPIKeyboard.close(); $("php").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on,#cityp.on,#php.on")) $("scrim").classList.remove("on"); }
+async function phSave() {
+  $("pherr").textContent = "Probando…";
+  try {
+    const r = await post("/api/settings", {action: "pihole_set", password: $("phin").value}); const j = await r.json();
+    if (!r.ok) { $("pherr").textContent = j.error || "No se pudo guardar"; return; }
+    if (j.ok) { closePh(); refresh(); } else $("pherr").textContent = "Guardada, pero Pi-hole no responde con esa contraseña. Revisa que el servicio esté activo.";
+  } catch (e) { $("pherr").textContent = "No se pudo guardar"; }
+}
+$("phgo").onclick = phSave; $("ph-close").onclick = closePh;
+$("phin").addEventListener("focus", () => PCPIKeyboard.open($("phin"), {onEnter: () => { PCPIKeyboard.close(); phSave(); }}));
 $("ph-btn").onclick = async () => {
+  if (phSetup) return openPh();
   await post("/api/pihole", phEnabled ? {action:"disable", minutes:5} : {action:"enable"});
   refresh();
 };
@@ -699,7 +719,7 @@ function openCalendar() {
   }
   $("scrim").classList.add("on"); $("cpanel").classList.add("on");
 }
-function closeCalendar() { $("cpanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on,#cityp.on")) $("scrim").classList.remove("on"); }
+function closeCalendar() { $("cpanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on,#cityp.on,#php.on")) $("scrim").classList.remove("on"); }
 /* ---- sistema: salud de la Pi y apagar/reiniciar (con confirmacion de dos toques) ---- */
 /* ---- Musix: YT Music (YouTube incrustado), MP3 Player (offline) y DYMusic (buscar y bajar a la Pi) ---- */
 const mxAudio = $("mxaudio");
@@ -1000,7 +1020,7 @@ function showSaver() {
   svClock(); box.classList.add("on"); svShowPhoto();
 }
 function hideSaver() { svLast = Date.now(); if (!svOn) return; svOn = false; clearTimeout(svTimer); $("saver").classList.remove("on"); setTimeout(() => { if (!svOn) $("saver").querySelectorAll(".ph").forEach(o => o.remove()); }, 1300); }
-function busyForSaver() { return camShown() || $("tring").classList.contains("on") || document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on,#cityp.on") || $("switching").classList.contains("on"); }
+function busyForSaver() { return camShown() || $("tring").classList.contains("on") || document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on,#cityp.on,#php.on") || $("switching").classList.contains("on"); }
 ["pointerdown", "keydown", "touchstart"].forEach(ev => document.addEventListener(ev, e => { if (svOn) { e.preventDefault(); e.stopPropagation(); } hideSaver(); }, true));
 setInterval(() => {
   if (svOn) { svClock(); if (busyForSaver()) hideSaver(); return; }
@@ -1031,7 +1051,7 @@ function renderWeather() {
 }
 /* ---- ciudad del tiempo: se busca por nombre (Open-Meteo) y se guarda en pcpi.conf; antes habia que editar coordenadas a mano ---- */
 function openCity() { $("cityerr").textContent = ""; $("cityres").textContent = ""; $("scrim").classList.add("on"); $("cityp").classList.add("on"); setTimeout(() => $("cityin").focus(), 350); }
-function closeCity() { PCPIKeyboard.close(); $("cityp").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on,#cityp.on")) $("scrim").classList.remove("on"); }
+function closeCity() { PCPIKeyboard.close(); $("cityp").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on,#cityp.on,#php.on")) $("scrim").classList.remove("on"); }
 async function citySearch() {
   $("cityerr").textContent = "Buscando…"; $("cityres").textContent = "";
   try {
@@ -1271,12 +1291,14 @@ async function refresh() {
     countTo($("ph-blocked"), p.blocked); countTo($("ph-total"), p.total);
     $("ph-state").textContent = phEnabled ? "Activo" : "En pausa";
     $("ph-state").style.color = phEnabled ? "var(--ok)" : "var(--bad)";
-    $("ph-btn").hidden = false;
+    phSetup = false; $("ph-btn").hidden = false;
     $("ph-btn").textContent = phEnabled ? "Pausar 5 min" : "Activar ya";
   } else {
     $("ph-pct").textContent = "--"; $("ring").style.strokeDashoffset = 314.16;
     countTo($("ph-blocked"), null); countTo($("ph-total"), null);
-    $("ph-state").textContent = "Sin conexión"; $("ph-state").style.color = "var(--dim)"; $("ph-btn").hidden = true;
+    $("ph-state").textContent = "Sin conexión"; $("ph-state").style.color = "var(--dim)";
+    phSetup = p.error === "no configurado" || p.error === "HTTPError" || p.error === "KeyError";           // sin URL o con la contraseña mal: se arregla desde aqui
+    $("ph-btn").hidden = !phSetup; $("ph-btn").textContent = "Conectar Pi-hole";
   }
   const w = s.weather;
   if (w.ok) {
