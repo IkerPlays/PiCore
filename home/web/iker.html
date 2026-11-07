@@ -54,6 +54,7 @@
   <button id="save" class="primary"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg> Guardar</button>
   <button id="del" class="danger"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> Borrar</button>
   <button id="usb" title="Copiar todas las notas a un USB como archivos .txt"><svg class="ic" aria-hidden="true"><use href="#i-usb"/></svg> USB</button>
+  <button id="dup" title="Crear una copia de esta nota"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg> Duplicar</button>
   <button id="pin" title="Fijar esta nota arriba de la lista" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-star"/></svg> Fijar</button>
   <button id="pdf" title="Abrir esta nota como PDF para imprimirla o guardarla"><svg class="ic" aria-hidden="true"><use href="#i-pdf"/></svg> PDF</button>
   <button id="web"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg> Internet</button>
@@ -193,6 +194,12 @@ $("text").addEventListener("input", () => {
 let pinned = false;
 function setPin(v) { pinned = v; $("pin").setAttribute("aria-pressed", v ? "true" : "false"); $("pin").classList.toggle("on", v); }
 $("pin").onclick = () => { setPin(!pinned); dirty = true; if (cur) save(); else setStatus("Se fijará al guardar"); };
+$("dup").onclick = async () => {
+  const text = $("text").value;
+  if (!text.trim()) { setStatus("No hay nada que duplicar", "err"); return; }
+  await save();
+  try { const r = await api("/api/notes", {id: null, text}); await openNote(r.id); setStatus("Copia creada", "ok"); } catch (e) { setStatus("No se pudo duplicar", "err"); }
+};
 $("new").onclick = () => openNote(null);
 $("save").onclick = save;
 $("del").onclick = async () => {

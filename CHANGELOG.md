@@ -5,6 +5,10 @@
 
 
 
+## Modo Iker: duplicar nota
+
+- Botón «Duplicar» que crea una copia de la nota abierta y la abre. Comprobado en navegador sin pantalla con el simulador.
+
 ## Modo Dev: más órdenes rápidas
 
 - Botones rápidos nuevos: `pcpi-sound status`, `pcpi-wifi status` y `pcpi-update --check`; la consola del simulador también las reconoce (con datos de ejemplo).
