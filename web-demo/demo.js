@@ -312,6 +312,7 @@
     if (p === "/api/timers") {
       const now = Date.now();
       if (body.action === "timer") { const s = +body.seconds; if (!(s >= 1 && s <= 86400)) return ERR("tiempo invalido"); S.timers.push({ id: rid(8), kind: "timer", label: String(body.label || "").slice(0, 40), due: now + s * 1000 }); }
+      else if (body.action === "extend") { const s = +body.seconds; const c = S.timers.filter(t => t.kind === "timer" && now < t.due && (!body.id || t.id === body.id)).sort((x, y) => x.due - y.due)[0]; if (!(s >= 1 && s <= 172800)) return ERR("tiempo invalido"); if (!c) return ERR("No hay ningun temporizador en marcha"); c.due += s * 1000; }
       else if (body.action === "alarm") { const d = new Date(); d.setHours(+body.hour, +body.minute, 0, 0); if (d.getTime() <= now) d.setDate(d.getDate() + 1); S.timers.push({ id: rid(8), kind: "alarm", label: String(body.label || ""), due: d.getTime(), hour: +body.hour, minute: +body.minute }); }
       else if (body.action === "cancel") S.timers = S.timers.filter(t => body.id && t.id !== body.id);
       else if (body.action === "dismiss") S.timers = S.timers.filter(t => now < t.due);
@@ -507,6 +508,12 @@
     if (has("espacio libre", "cuanto espacio")) return "Quedan 21 coma 4 gigas libres en la tarjeta, el 33 por ciento ocupado (datos de ejemplo)";
     if (has("memoria libre", "cuanta memoria")) return "Hay 5120 megas de memoria libres (datos de ejemplo)";
     if (has("temperatura de la pi", "temperatura tiene la pi", "como esta la pi", "estado de la pi")) return "El procesador está a 46 grados (dato de ejemplo)";
+    if (has("temporizador", "cuenta atras") && (has("anade", "sumale", "mas tiempo", "alarga", "amplia") || (has("ponle") && has("mas")))) {
+      const sec = duration(t), c = S.timers.filter(x => x.kind === "timer" && Date.now() < x.due).sort((x, y) => x.due - y.due)[0];
+      if (!sec) return "No he entendido cuánto tiempo. Prueba: añade cinco minutos al temporizador";
+      if (!c) return "No hay ningún temporizador en marcha";
+      c.due += sec * 1000; LS.set("timers", S.timers); return "Añadido " + sayDuration(sec) + " al temporizador";
+    }
     if (has("temporizador", "cuenta atras")) {
       if (has("cancela", "quita", "borra")) { S.timers = S.timers.filter(x => x.kind !== "timer"); LS.set("timers", S.timers); return "Temporizadores cancelados"; }
       const sec = duration(t); if (!sec) return "No he entendido cuánto tiempo. Prueba: pon un temporizador de diez minutos";

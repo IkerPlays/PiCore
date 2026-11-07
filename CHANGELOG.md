@@ -5,6 +5,10 @@
 
 
 
+## Temporizadores: botón +1 min
+
+- Cada temporizador de la lista tiene «+1 min». También en el simulador, que además entiende «añade cinco minutos al temporizador». Comprobado en navegador sin pantalla.
+
 ## Voz: alargar un temporizador
 
 - «Añade cinco minutos al temporizador» o «ponle un minuto más» suman tiempo al temporizador que antes vence (`POST /api/timers` con `action: extend`; no pasa de 48 h y no toca los que ya suenan). Probado con tests; no en una Pi real.

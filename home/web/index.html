@@ -1131,7 +1131,12 @@ function renderTimers() {
     if (t.label) { const sm = document.createElement("small"); sm.textContent = t.label; tt.append(sm); }
     const b = document.createElement("b"); b.textContent = fmtRem(remNow(t));
     const x = document.createElement("button"); x.textContent = "Cancelar"; x.onclick = async () => { await post("/api/timers", {action:"cancel", id:t.id}); refresh(); };
-    d.append(tt, b, x); l.append(d);
+    if (t.kind === "timer") {
+      const p1 = document.createElement("button"); p1.textContent = "+1 min"; p1.setAttribute("aria-label", "Añadir un minuto");
+      p1.onclick = async () => { await post("/api/timers", {action:"extend", id:t.id, seconds:60}); refresh(); };
+      d.append(tt, b, p1, x);
+    } else d.append(tt, b, x);
+    l.append(d);
   }
 }
 $("chip-timer").onclick = () => { renderTimers(); $("scrim").classList.add("on"); $("tpanel").classList.add("on"); };
