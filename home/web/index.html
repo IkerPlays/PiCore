@@ -409,7 +409,7 @@
     <div class="mxrow"><button id="mx-usb" title="Copiar las canciones de un USB a la Pi">Importar de un USB</button><button id="mx-refresh">Actualizar</button><span id="mx-count" class="mxnote" style="margin:0;align-self:center"></span></div>
     <div class="mxerr" id="mx-merr"></div>
     <div id="mxlist"></div>
-    <div class="mxbar"><button id="mx-shuf" aria-label="Aleatorio" title="Aleatorio">Aleatorio</button><button id="mx-p" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.5v14H6zM20 5v14L9.5 12z"/></svg></button><button id="mx-pp" aria-label="Reproducir o pausar"><svg id="mx-pp-ic" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button><button id="mx-n" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 5H18v14h-2.5zM4 5v14l10.5-7z"/></svg></button><input type="range" id="mx-seek" min="0" max="1000" value="0" aria-label="Posición"><output id="mx-time">0:00 / 0:00</output><input type="range" id="mx-vol" min="0" max="100" value="100" aria-label="Volumen de Musix" title="Volumen de Musix" style="max-width:110px"></div>
+    <div class="mxbar"><button id="mx-shuf" aria-label="Aleatorio" title="Aleatorio">Aleatorio</button><button id="mx-sleep" aria-label="Apagar la música en un rato" title="Apagar la música en un rato">Dormir</button><button id="mx-p" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.5v14H6zM20 5v14L9.5 12z"/></svg></button><button id="mx-pp" aria-label="Reproducir o pausar"><svg id="mx-pp-ic" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button><button id="mx-n" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 5H18v14h-2.5zM4 5v14l10.5-7z"/></svg></button><input type="range" id="mx-seek" min="0" max="1000" value="0" aria-label="Posición"><output id="mx-time">0:00 / 0:00</output><input type="range" id="mx-vol" min="0" max="100" value="100" aria-label="Volumen de Musix" title="Volumen de Musix" style="max-width:110px"></div>
   </div>
   <div class="mxview" id="mx-dy">
     <div class="mxrow"><input id="dyq" placeholder="Título de la canción o artista" autocomplete="off" spellcheck="false"><button id="dygo" class="primary">Buscar</button></div>
@@ -713,6 +713,21 @@ $("mx-usb").onclick = async () => {
   catch (e) { mxErr("mx-merr", e.message); }
 };
 /* ordenes de voz: «pausa la musica», «siguiente cancion»... llegan en el estado (seq nuevo = orden nueva) */
+/* temporizador para dormir: la musica se pausa sola al acabar el tiempo */
+let mxSleepAt = 0, mxSleepTimer = 0;
+function mxSetSleep(sec) {
+  clearTimeout(mxSleepTimer); mxSleepAt = 0; $("mx-sleep").classList.remove("on"); $("mx-sleep").textContent = "Dormir";
+  if (!sec) return;
+  mxSleepAt = Date.now() + sec * 1000; $("mx-sleep").classList.add("on");
+  const tick = () => {
+    const left = Math.round((mxSleepAt - Date.now()) / 1000);
+    if (left <= 0) { mxAudio.pause(); mxSetSleep(0); return; }
+    $("mx-sleep").textContent = "Dormir " + (left >= 60 ? Math.ceil(left / 60) + " min" : left + " s");
+    mxSleepTimer = setTimeout(tick, left > 60 ? 15000 : 1000);
+  };
+  tick();
+}
+$("mx-sleep").onclick = () => { const steps = [0, 15, 30, 60]; const cur = mxSleepAt ? Math.round((mxSleepAt - Date.now()) / 60000) : 0; const nxt = steps.find(m => m > cur + 1); mxSetSleep(nxt ? nxt * 60 : 0); };
 function paintMusic(m) {
   if (!m) return;
   if (mxSeq === null) { mxSeq = m.seq; return; }                      // la primera lectura no es una orden
@@ -722,6 +737,7 @@ function paintMusic(m) {
   else if (m.cmd === "play") { if (mxCur < 0) { mxLoad().then(() => mxToggle()); } else mxAudio.play().catch(() => {}); }
   else if (m.cmd === "next") { if (mxCur < 0) mxLoad().then(() => mxPlay(0)); else mxNext(); }
   else if (m.cmd === "previous") mxPrev();
+  else if (m.cmd === "sleep") mxSetSleep(m.arg || 0);
 }
 
 function mxShow(v) {

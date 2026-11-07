@@ -163,6 +163,12 @@ def parse(text):
         if clock:
             return Intent("alarm_set", clock)
     if has("musica", "cancion", "musix", "tema "):
+        if has(" en ", "dentro de", "durante") and has("para", "apaga", "pausa", "deten"):
+            secs = parse_duration(words)
+            if secs and 60 <= secs <= 12 * 3600:
+                return Intent("music_sleep", secs)
+        if has("cancela", "quita") and has("dormir", "apagado", "programad"):
+            return Intent("music_sleep", 0)
         if has("siguiente", "proxima", "salta", "otra cancion", "cambia"):
             return Intent("music", "next")
         if has("anterior", "previa", "atras", "vuelve"):

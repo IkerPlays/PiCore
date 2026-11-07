@@ -219,6 +219,24 @@ class VoiceTest(unittest.TestCase):
             self.assertEqual((i.name, i.arg), ("music", want), text)
 
 
+class SleepVoiceTest(unittest.TestCase):
+    def test_phrases(self):
+        for text, want in (("apaga la música en 30 minutos", 1800), ("para la música en media hora", 1800), ("pausa la música dentro de una hora", 3600),
+                           ("apaga la música en 10 minutos", 600)):
+            i = intents.parse(text)
+            self.assertEqual((i.name, i.arg), ("music_sleep", want), text)
+        i = intents.parse("cancela el apagado de la música")
+        self.assertEqual((i.name, i.arg), ("music_sleep", 0))
+
+    def test_plain_pause_is_still_pause(self):
+        self.assertEqual(intents.parse("pausa la música").name, "music")
+        self.assertEqual(intents.parse("para la música").arg, "pause")
+
+    def test_absurd_times_are_not_scheduled(self):
+        i = intents.parse("apaga la música en 30 segundos")
+        self.assertTrue(i is None or i.name != "music_sleep")
+
+
 class ApiTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -276,6 +294,14 @@ class ApiTest(unittest.TestCase):
         self.req("/api/music", {"action": "cmd", "cmd": "next"})
         m = json.loads(self.req("/api/status")[2])["music"]
         self.assertEqual((m["seq"], m["cmd"]), (s0 + 1, "next"))
+
+    def test_sleep_timer_values(self):
+        for ok in (0, 60, 1800, 43200):
+            self.assertEqual(self.req("/api/music", {"action": "cmd", "cmd": "sleep", "seconds": ok})[0], 200, ok)
+        m = json.loads(self.req("/api/status")[2])["music"]
+        self.assertEqual((m["cmd"], m["arg"]), ("sleep", 43200))
+        for bad in (-5, 10, 43201, "30", 1.5, True, None):
+            self.assertEqual(self.req("/api/music", {"action": "cmd", "cmd": "sleep", "seconds": bad})[0], 400, bad)
 
     def test_now_playing_goes_to_status(self):
         self.req("/api/music", {"action": "now", "state": "playing", "title": "T" * 500, "artist": "A"})

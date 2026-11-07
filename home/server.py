@@ -1117,11 +1117,11 @@ def ai_answer(question):
     return llm.ask(question, cfg, status())
 
 
-MUSIC = {"seq": 0, "cmd": None}
+MUSIC = {"seq": 0, "cmd": None, "arg": None}
 
 
 def music_info():
-    return {"seq": MUSIC["seq"], "cmd": MUSIC["cmd"], "embed": musix.load_embed(), "history": musix.load_history(), "search": bool(read_conf().get("musix", "youtube_api_key", fallback="").strip())}
+    return {"seq": MUSIC["seq"], "cmd": MUSIC["cmd"], "arg": MUSIC["arg"], "embed": musix.load_embed(), "history": musix.load_history(), "search": bool(read_conf().get("musix", "youtube_api_key", fallback="").strip())}
 
 
 def music_list():
@@ -1132,10 +1132,16 @@ def music_post(body):
     act = body.get("action")
     cp = read_conf()
     if act == "cmd":
-        if body.get("cmd") not in ("play", "pause", "next", "previous"):
+        if body.get("cmd") not in ("play", "pause", "next", "previous", "sleep"):
             raise ValueError("orden invalida")
+        arg = None
+        if body["cmd"] == "sleep":                                  # «apaga la musica en 30 minutos»; 0 = cancelar
+            arg = body.get("seconds")
+            if isinstance(arg, bool) or not isinstance(arg, int) or not (arg == 0 or 60 <= arg <= 12 * 3600):
+                raise ValueError("tiempo invalido")
         MUSIC["seq"] += 1
         MUSIC["cmd"] = body["cmd"]
+        MUSIC["arg"] = arg
         return {"ok": True, "seq": MUSIC["seq"]}
     if act == "now":
         st = body.get("state")

@@ -130,6 +130,12 @@ def execute(cfg, intent):
         if n == "pihole_enable":
             api(cfg, "/api/pihole", {"action": "enable"})
             return "Pi-hole activado"
+        if n == "music_sleep":
+            try:
+                api(cfg, "/api/music", {"action": "cmd", "cmd": "sleep", "seconds": a})
+            except urllib.error.HTTPError:
+                return "No he podido programar el apagado de la música"
+            return "Sin apagado programado" if not a else "Apagaré la música en " + intents.say_duration(a)
         if n == "music":
             try:
                 api(cfg, "/api/music", {"action": "cmd", "cmd": a})
