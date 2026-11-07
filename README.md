@@ -18,7 +18,19 @@ Un PC portátil con **Raspberry Pi 5 (8 GB)** y pantalla táctil de 7" con tres 
 - 📶 **Wi-Fi** (cambiar de red desde la pantalla, Pi-hole en cada red, wifis públicas con login): [Paso 9 del tutorial](docs/TUTORIAL.md#paso-9-wi-fi-en-casa-de-viaje-y-wifis-públicas)
 - 🧱 Cómo funciona y hoja de ruta: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
-## Probar sin Raspberry Pi (emulador)
+## Probar sin Raspberry Pi
+
+**Opción 1 · Demo web (la más fácil, sin instalar nada).** Es la misma interfaz, pero con una API simulada en JavaScript, así que funciona en una web estática: se despliega en **Netlify** (o cualquier hosting) y se prueba desde el navegador, incluso desde el móvil.
+
+```bash
+make demo           # en local: http://127.0.0.1:8081  (construye y sirve exactamente lo que subiría Netlify)
+```
+
+Para ponerla en internet con Netlify: **Add new site → Import an existing project → GitHub → este repositorio → Deploy**. Netlify lee `netlify.toml` y no hay nada más que configurar (build: `python3 tools/build_web_demo.py`, carpeta publicada: `dist-demo`). Detalles, límites y cómo actualizarla: [docs/DEMO_WEB.md](docs/DEMO_WEB.md).
+
+En la demo funciona **casi todo lo visual**: Casa (reloj, tiempo, Pi-hole, temporizadores, Wi-Fi, brillo, Sistema), **Musix** (el MP3 Player suena con canciones generadas en el navegador; YT Music carga el reproductor de YouTube), el modo **Iker** con notas que se guardan en tu navegador, y el modo **Dev** con una consola de mentira. **No hace nada real**: no apaga, no descarga, no ejecuta órdenes, no hay voz ni cámara real.
+
+**Opción 2 · Emulador completo (Python).** Con el servidor real y un Pi-hole falso:
 
 ```bash
 make emulate        # o: python3 tools/emulate.py   (Windows: python tools\emulate.py)

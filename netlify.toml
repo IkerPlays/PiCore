@@ -1,0 +1,20 @@
+# Despliegue de la DEMO WEB de PiCore en Netlify (la interfaz con una API simulada en JavaScript; no necesita servidor).
+# Conectar el repositorio en Netlify: Add new site -> Import an existing project -> GitHub -> este repositorio.
+# Netlify lee este archivo y no hay nada mas que configurar. Para probarlo en local:  make demo
+[build]
+  command = "python3 tools/build_web_demo.py"
+  publish = "dist-demo"
+
+# Las "rutas" de la Pi (/iker, /dev, /loading) son paginas estaticas aqui.
+[[redirects]]
+  from = "/iker"
+  to = "/iker.html"
+  status = 200
+[[redirects]]
+  from = "/dev"
+  to = "/dev.html"
+  status = 200
+[[redirects]]
+  from = "/loading"
+  to = "/loading.html"
+  status = 200

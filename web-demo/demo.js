@@ -1,0 +1,409 @@
+/* PiCore · demo en el navegador.
+   Sustituye al servidor Python (home/server.py) por una API simulada en JavaScript, para poder probar la interfaz
+   en una web estatica (Netlify) sin una Raspberry Pi. NO hace nada real: no apaga, no descarga, no ejecuta ordenes.
+   Lo que "guardas" (notas, marcadores, ajustes) se queda en el almacenamiento local de TU navegador. */
+(function () {
+  "use strict";
+  const PREFIX = "pcpi-demo-";
+  const LS = {
+    get(k, d) { try { const v = localStorage.getItem(PREFIX + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(PREFIX + k, JSON.stringify(v)); } catch (e) {} },
+    clear() { try { Object.keys(localStorage).filter(k => k.startsWith(PREFIX)).forEach(k => localStorage.removeItem(k)); } catch (e) {} },
+  };
+  const T0 = Date.now();
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const pad = n => String(n).padStart(2, "0");
+  const rid = n => Array.from(crypto.getRandomValues(new Uint8Array(n))).map(b => "0123456789abcdef"[b & 15]).join("");
+
+  /* ---------------- estado ---------------- */
+  const here = location.pathname.replace(/\/+$/, "");
+  const PAGE_MODE = here === "/iker" ? "iker" : here === "/dev" ? "dev" : here === "/loading" ? null : "home";
+  if (PAGE_MODE) LS.set("mode", PAGE_MODE);
+  const S = {
+    pihole: { blocking: true, until: 0 },
+    display: LS.get("display", { level: 100, auto: true }),
+    motion: LS.get("motion", false),
+    camera: false,
+    timers: LS.get("timers", []),
+    nowplaying: { state: "stopped" },
+    music: { seq: 0, cmd: null, arg: null },
+    tracks: null,
+    flags: LS.get("flags", { ai_chat: false, live_graph: false, casa_debug: false }),
+    wifi: LS.get("wifi", { active: "CasaIker", wantsPi: { CasaIker: true } }),
+    update: { state: "idle", tail: [], available: true, behind: 3 },
+    cmds: {},
+  };
+
+  /* ---------------- avisos flotantes ---------------- */
+  function toast(msg, ms) {
+    let t = document.getElementById("demo-toast");
+    if (!t) {
+      t = document.createElement("div"); t.id = "demo-toast";
+      t.style.cssText = "position:fixed;left:50%;bottom:76px;transform:translateX(-50%);z-index:100000;max-width:min(560px,90vw);padding:12px 18px;border-radius:14px;background:#0b0d12f2;color:#fff;font:600 15px/1.35 system-ui,sans-serif;border:1px solid #ffffff2a;box-shadow:0 12px 40px #0008;text-align:center;pointer-events:none;transition:opacity .3s";
+      document.body.appendChild(t);
+    }
+    t.textContent = msg; t.style.opacity = "1";
+    clearTimeout(t._h); t._h = setTimeout(() => { t.style.opacity = "0"; }, ms || 3200);
+  }
+
+  /* ---------------- musica: canciones sinteticas (WAV generado al vuelo) ---------------- */
+  const NOTE = n => 440 * Math.pow(2, (n - 9) / 12);
+  const SONGS = [
+    { title: "Aurora (demo)", tempo: 0.42, seq: [0, 4, 7, 12, 7, 4, 0, 4, 9, 12, 16, 12, 9, 4, 2, 5, 9, 14, 9, 5, 4, 7, 11, 7] , base: 60 },
+    { title: "Marea baja (demo)", tempo: 0.55, seq: [0, 3, 7, 3, 5, 8, 12, 8, 7, 10, 14, 10, 5, 8, 12, 8], base: 55 },
+    { title: "Cafe de domingo (demo)", tempo: 0.35, seq: [0, 2, 4, 7, 9, 7, 4, 2, 0, 4, 7, 11, 12, 11, 7, 4, 5, 9, 12, 9], base: 62 },
+  ];
+  const blobs = {};
+  function makeWav(song) {
+    const rate = 22050, step = Math.floor(rate * song.tempo), n = step * song.seq.length * 2;
+    const buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+    const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+    w(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); w(8, "WAVEfmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, n * 2, true);
+    for (let k = 0; k < song.seq.length * 2; k++) {
+      const note = song.seq[k % song.seq.length], f = NOTE(song.base - 57 + note);
+      for (let i = 0; i < step; i++) {
+        const t = i / rate, env = Math.min(1, i / 400) * Math.exp(-t * 2.2);
+        const s = (Math.sin(2 * Math.PI * f * t) * 0.6 + Math.sin(2 * Math.PI * f * 2 * t) * 0.2 + Math.sin(2 * Math.PI * f * 0.5 * t) * 0.2) * env * 0.4;
+        v.setInt16(44 + (k * step + i) * 2, Math.max(-1, Math.min(1, s)) * 32767, true);
+      }
+    }
+    return new Blob([buf], { type: "audio/wav" });
+  }
+  function tracks() {
+    if (!S.tracks) S.tracks = SONGS.map((s, i) => ({ id: ("d0e" + i + "00000000").slice(0, 12), title: s.title, size: 1800000 - i * 100000, added: T0 / 1000 - i * 86400 }));
+    return S.tracks;
+  }
+  const trackUrl = id => {
+    const i = tracks().findIndex(t => t.id === id);
+    if (i < 0) return "";
+    const song = SONGS.find(s => s.title === tracks()[i].title) || SONGS[0];
+    return blobs[id] || (blobs[id] = URL.createObjectURL(makeWav(song)));
+  };
+  /* <audio src="/music/<id>"> -> el WAV generado; <img src="/api/camera/stream"> -> una camara de mentira animada */
+  const mediaSrc = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, "src");
+  Object.defineProperty(HTMLMediaElement.prototype, "src", {
+    configurable: true, get() { return mediaSrc.get.call(this); },
+    set(v) { const m = /^\/music\/([0-9a-f]{12})$/.exec(String(v)); mediaSrc.set.call(this, m ? trackUrl(m[1]) : v); },
+  });
+  const CAM = "data:image/svg+xml;utf8," + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1b2a4a"/><stop offset="1" stop-color="#3b1f4a"/></linearGradient></defs>' +
+    '<rect width="640" height="360" fill="url(#g)"/><circle r="26" fill="#7cabff"><animate attributeName="cx" values="80;560;80" dur="7s" repeatCount="indefinite"/><animate attributeName="cy" values="250;120;250" dur="5s" repeatCount="indefinite"/></circle>' +
+    '<rect x="0" y="0" width="640" height="360" fill="none" stroke="#ffffff22" stroke-width="2"/><text x="24" y="40" fill="#ffffffcc" font-family="monospace" font-size="20">CAMARA DE DEMOSTRACION</text>' +
+    '<circle cx="610" cy="30" r="7" fill="#fb7185"><animate attributeName="opacity" values="1;.2;1" dur="1.4s" repeatCount="indefinite"/></circle></svg>');
+  const imgSrc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, "src");
+  Object.defineProperty(HTMLImageElement.prototype, "src", {
+    configurable: true, get() { return imgSrc.get.call(this); },
+    set(v) { imgSrc.set.call(this, String(v).startsWith("/api/camera/stream") ? CAM : v); },
+  });
+  const realOpen = window.open;
+  window.open = function (u) { if (typeof u === "string" && /^\/api\/notes\/[0-9a-f]+\.pdf$/.test(u)) { toast("El PDF no se genera en la demo (en la Pi real, sí)."); return null; } return realOpen.apply(window, arguments); };
+
+  /* ---------------- datos de ejemplo ---------------- */
+  const dayStr = off => { const d = new Date(Date.now() + off * 864e5); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); };
+  function weather() {
+    const h0 = new Date().getHours(), codes = [1, 61, 61, 61, 1, 1, 1, 1, 1, 1, 1, 1];
+    const hourly = codes.map((c, i) => ({ h: pad((h0 + i) % 24) + ":00", temp: Math.round((21.5 + 2.6 * Math.sin((i - 3) / 3.8)) * 10) / 10, rain: c === 61 ? 70 : 10, code: c }));
+    const days = [[25, 18, 70, 61], [23, 17, 20, 2], [22, 16, 5, 2], [24, 17, 0, 0], [24, 18, 10, 1]].map((d, i) => ({ date: dayStr(i + 1), tmax: d[0], tmin: d[1], rain: d[2], code: d[3] }));
+    return { ok: true, temp: 21.4, code: 1, tmax: 24.1, tmin: 17.6, rain: 10, hourly, days, rain_alert: { in_hours: 1, prob: 70 } };
+  }
+  function calendar() {
+    const d = new Date(Date.now() + 3 * 3600e3);
+    return { configured: true, ok: true, error: null, loaded: true, events: [
+      { when: "Hoy", time: pad(d.getHours()) + ":" + pad(d.getMinutes()), title: "Dentista", location: "Calle Mayor 1", all_day: false, date: dayStr(0) },
+      { when: "Mañana", time: "", title: "Cumple de Ana", location: "", all_day: true, date: dayStr(1) },
+      { when: "Jueves", time: "18:30", title: "Clase de guitarra", location: "", all_day: false, date: dayStr(3) },
+    ] };
+  }
+  const NETS = [{ ssid: "CasaIker", signal: 82, secure: true }, { ssid: "Hotel:Canarias", signal: 64, secure: false }, { ssid: "Vecino", signal: 40, secure: true }];
+  function wifiInfo() {
+    const a = S.wifi.active;
+    return { available: true, active: a ? { name: a, type: "wifi", device: "wlan0", ssid: a } : null, connectivity: a ? "full" : "none", dns: a && S.wifi.wantsPi[a] ? "pihole" : "router", portal: false,
+      wants_pihole: !!(a && S.wifi.wantsPi[a]), saved: Object.keys(S.wifi.wantsPi), networks: NETS.map(n => ({ ...n, active: n.ssid === a })), nets: {} };
+  }
+  function displayInfo() {
+    const d = S.display, h = new Date().getHours(), night = h >= 22 || h < 7;
+    return { level: d.level, auto: d.auto, effective: d.auto && night ? 40 : d.level, night_from: 22, night_to: 7, night_level: 40, ramp: 60, hw: { present: false, writable: false } };
+  }
+  function motionInfo() { return { available: true, enabled: S.motion, last: null, count: 0 }; }
+  function timersList() {
+    const now = Date.now();
+    const out = S.timers.map(t => ({ id: t.id, kind: t.kind, label: t.label || "", due: t.due / 1000, remaining: Math.max(0, Math.ceil((t.due - now) / 1000)), ringing: now >= t.due, hour: t.hour, minute: t.minute, daily: !!t.daily }));
+    return out.sort((a, b) => (b.ringing - a.ringing) || (a.due - b.due));
+  }
+  function systemInfo() {
+    const u = S.update;
+    return { disk: { free_gb: 21.4, total_gb: 58.0, pct: 63 }, mem_avail_mb: 5120, update: { available: u.available, behind: u.behind, checked: Date.now() / 1000 - 3600 },
+      health: [{ level: "ok", text: "Todo en orden (es una demo: estos datos son de ejemplo)." }], update_run: { state: u.state, tail: u.tail } };
+  }
+  function status() {
+    const ph = S.pihole;
+    if (!ph.blocking && ph.until && Date.now() > ph.until) ph.blocking = true;
+    const t = Math.round(46 + 4 * Math.sin((Date.now() - T0) / 20000) * 10) / 10;
+    return {
+      mode: LS.get("mode", "home"), cpu_temp: t, uptime: Math.floor((Date.now() - T0) / 1000) + 320,
+      pihole: { ok: true, blocking: ph.blocking ? "enabled" : "disabled", total: 1211 + Math.floor((Date.now() - T0) / 4000), blocked: 326 + Math.floor((Date.now() - T0) / 14000), percent: 26.9, domains: 168432 },
+      weather: weather(), nowplaying: S.nowplaying, voice: { state: "listening", wake: "oye pi" }, camera: { available: true, show: S.camera },
+      net: S.wifi.active ? { available: true, name: S.wifi.active, ssid: S.wifi.active, type: "wifi", connectivity: "full", portal: false, dns: S.wifi.wantsPi[S.wifi.active] ? "pihole" : "router" }
+                         : { available: true, name: null, connectivity: "none", portal: false },
+      display: displayInfo(), motion: motionInfo(), battery: { available: true, percent: 76, charging: false, low: false, critical: false },
+      timers: timersList(), ai: { enabled: false, model: "qwen2.5:1.5b" }, calendar: calendar(),
+      music: { seq: S.music.seq, cmd: S.music.cmd, arg: S.music.arg, embed: LS.get("embed", null), history: LS.get("history", []), search: false },
+      dev: { enabled: true, flags: S.flags }, system: systemInfo(), ip: "192.0.2.10", host: "picore-demo",
+    };
+  }
+
+  /* ---------------- notas, marcadores ---------------- */
+  function notes() {
+    let n = LS.get("notes", null);
+    if (!n) {
+      const t = Date.now() / 1000;
+      n = [{ id: "a1b2c3d4e5f60718", text: "Bienvenido a PiCore (demo)\nEsto es el bloc de notas del modo Iker. Prueba a escribir, a usar #etiquetas y a buscar.\n#demo #bienvenida", updated: t - 60 },
+           { id: "0f9e8d7c6b5a4321", text: "Lista de la compra\n- leche\n- pan\n- café\n#compra", updated: t - 3600 }];
+      LS.set("notes", n);
+    }
+    return n;
+  }
+  const norm = s => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const title = t => (t.split("\n").find(l => l.trim()) || "Nota sin título").trim().slice(0, 60);
+  const tagsOf = t => { const out = []; for (const m of t.matchAll(/(?<![\w#&/])#([^\W\d_][\w-]{0,29})/g)) { const g = norm(m[1]).replace(/^-+|-+$/g, ""); if (g && !out.includes(g)) out.push(g); } return out.slice(0, 20); };
+  const listNotes = () => notes().slice().sort((a, b) => b.updated - a.updated).map(n => ({ id: n.id, title: title(n.text), updated: n.updated, tags: tagsOf(n.text) }));
+  function searchNotes(q) {
+    const words = norm(q).split(/\s+/).filter(Boolean);
+    return notes().filter(n => words.every(w => norm(n.text).includes(w))).sort((a, b) => b.updated - a.updated).map(n => {
+      const pos = Math.max(0, norm(n.text).indexOf(words[0]) - 30);
+      return { id: n.id, title: title(n.text), updated: n.updated, snippet: n.text.slice(pos, pos + 90).replace(/\s+/g, " "), tags: tagsOf(n.text) };
+    });
+  }
+
+  /* ---------------- YouTube: enlace -> reproductor incrustado (mismas reglas que home/musix.py) ---------------- */
+  function embedUrl(link) {
+    let u; try { u = new URL(String(link || "").trim()); } catch (e) { throw new Error("Pega un enlace https de YouTube o YouTube Music"); }
+    if (u.protocol !== "https:" || u.username || (u.port && u.port !== "443")) throw new Error("Pega un enlace https de YouTube o YouTube Music");
+    const host = u.hostname.toLowerCase(), q = u.searchParams; let vid = null, lst = null;
+    if (host === "youtu.be") vid = u.pathname.split("/").filter(Boolean)[0];
+    else if (["www.youtube.com", "youtube.com", "m.youtube.com", "music.youtube.com", "www.youtube-nocookie.com"].includes(host)) {
+      const p = u.pathname.split("/").filter(Boolean);
+      if (p[0] === "embed" && p[1] && p[1] !== "videoseries") vid = p[1]; else if ((p[0] === "shorts" || p[0] === "live") && p[1]) vid = p[1]; else vid = q.get("v");
+      lst = q.get("list");
+    } else throw new Error("Ese enlace no es de YouTube ni de YouTube Music");
+    const okV = /^[A-Za-z0-9_-]{11}$/, okL = /^[A-Za-z0-9_-]{10,60}$/;
+    if (vid && okV.test(vid)) return "https://www.youtube-nocookie.com/embed/" + vid + (lst && okL.test(lst) ? "?list=" + lst : "");
+    if (lst && okL.test(lst)) return "https://www.youtube-nocookie.com/embed/videoseries?list=" + lst;
+    throw new Error("No encuentro un video ni una lista de YouTube en ese enlace");
+  }
+
+  /* ---------------- consola Dev de mentira ---------------- */
+  const DOCTOR = "PiCore · diagnóstico (DEMO: datos de ejemplo)\n\nSistema\n  ok  Raspberry Pi 5 Model B Rev 1.0 (8 GB)\n  ok  Raspberry Pi OS (Bookworm)\n  ok  temperatura 47 °C\nServidor\n  ok  pcpi-home activo en 127.0.0.1:8080\n  ok  Pi-hole responde\nWi-Fi\n  ok  conectado a CasaIker (internet OK)\nMusica\n  ok  Musix: 3 canciones en el MP3 Player\n\nTodo en orden.\n";
+  function fakeShell(raw) {
+    const cmd = raw.trim(), a = cmd.split(/\s+/);
+    const R = (out, code) => ({ out, code: code || 0 });
+    switch (a[0]) {
+      case "help": case "ayuda": return R("Esto es una DEMO: la consola no ejecuta nada real, solo reconoce unas pocas órdenes:\n  pcpi-doctor  pcpi-mode status  pcpi-config get SECCION CLAVE  uname -a  uptime  df -h /  free -m\n  vcgencmd measure_temp  date  whoami  hostname  ls  echo TEXTO  cat /etc/os-release\nEn una Pi real, aquí va cualquier orden.\n");
+      case "echo": return R(cmd.slice(4).trim().replace(/^(["'])(.*)\1$/, "$2") + "\n");
+      case "pcpi-doctor": return R(DOCTOR);
+      case "pcpi-mode": return R(LS.get("mode", "home") + "\n");
+      case "pcpi-config": return R(a[1] === "get" ? (a[2] === "server" && a[3] === "port" ? "8080\n" : "\n") : "demo: sin cambios\n");
+      case "uname": return R("Linux picore-demo 6.6.31+rpt-rpi-2712 #1 SMP PREEMPT Debian aarch64 GNU/Linux\n");
+      case "uptime": return R(" " + new Date().toTimeString().slice(0, 8) + " up 3 days, 4:12,  1 user,  load average: 0.21, 0.18, 0.15\n");
+      case "df": return R("S.ficheros      Tamaño Usados  Disp Uso% Montado en\n/dev/mmcblk0p2    58G    37G   21G  63% /\n");
+      case "free": return R("               total       usado       libre  compartido  búf/caché  disponible\nMem:            7940        1980        3410          86        2790        5120\nSwap:            512           0         512\n");
+      case "vcgencmd": return R(a[1] === "measure_temp" ? "temp=47.2'C\n" : a[1] === "get_throttled" ? "throttled=0x0\n" : "demo\n");
+      case "date": return R(new Date().toString() + "\n");
+      case "whoami": return R("pi\n");
+      case "hostname": return R("picore-demo\n");
+      case "pwd": return R("/home/pi\n");
+      case "ls": return R(a[1] === "/var/lib/pcpi/music" ? SONGS.map(s => s.title + ".wav").join("\n") + "\n" : "Descargas  Documentos  Música  pcpi-backups\n");
+      case "cat": return a[1] === "/etc/os-release" ? R('PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"\nNAME="Debian GNU/Linux"\n') : R("cat: " + (a[1] || "") + ": demo, sin acceso a archivos\n", 1);
+      case "sudo": return R("sudo: en la demo no hay permisos de administrador\n", 1);
+      default: return R("bash: " + a[0] + ": orden no encontrada (esto es una demo: escribe «help»)\n", 127);
+    }
+  }
+
+  /* ---------------- API ---------------- */
+  const J = (obj, status) => new Response(JSON.stringify(obj), { status: status || 200, headers: { "Content-Type": "application/json" } });
+  const ERR = (msg, status) => J({ error: msg }, status || 400);
+  const navigateAfter = (url, ms) => setTimeout(() => { location.href = url; }, ms || 450);
+
+  async function api(u, init) {
+    const method = (init.method || "GET").toUpperCase(), p = u.pathname;
+    let body = {};
+    if (method === "POST") { try { body = JSON.parse(init.body || "{}") || {}; } catch (e) { return ERR("peticion invalida"); } }
+
+    if (p === "/api/status") return J(status());
+    if (p === "/api/alive") return J({ ok: true });
+    if (p === "/api/mode") {
+      if (method === "GET") return J({ mode: LS.get("mode", "home") });
+      if (!["home", "iker", "desktop", "dev"].includes(body.mode)) return ERR("modo invalido");
+      LS.set("mode", body.mode);
+      if (here !== "/loading") navigateAfter("/loading?to=" + body.mode + "&boot=0", 350);
+      return J({ mode: body.mode });
+    }
+    if (p === "/api/loaded") {                                  // en la Pi, pcpi-session abre la ventana del modo; aqui navegamos
+      const m = body.mode;
+      if (m === "iker") navigateAfter("/iker", 100); else if (m === "dev") navigateAfter("/dev", 100);
+      else if (m === "desktop") { toast("El Escritorio no existe en la demo: vuelves a Casa.", 2600); LS.set("mode", "home"); navigateAfter("/", 2600); }
+      return J({ ok: true });
+    }
+    if (p === "/api/boot") return J({ download: null, intro: null, intro_slot: null, intro_skip_after: 0, media: BOOT_MEDIA, fake: true, fake_seconds: 4, min_seconds: 2, skip_button: true, media_seconds: 2.5 });
+    if (p === "/api/download") return J({ state: "done", bytes: 0, total: 0, percent: 100, error: null });
+
+    if (p === "/api/pihole") {
+      if (body.action === "disable") { S.pihole = { blocking: false, until: Date.now() + Math.max(1, Math.min(+body.minutes || 5, 1440)) * 60000 }; }
+      else if (body.action === "enable") S.pihole = { blocking: true, until: 0 };
+      else return ERR("accion invalida");
+      return J({ ok: true });
+    }
+    if (p === "/api/camera/snapshot.jpg") return ERR("sin camara en la demo", 404);
+    if (p === "/api/camera") { S.camera = !!body.show; return J({ show: S.camera }); }
+    if (p === "/api/display") {
+      if (typeof body.level === "number") S.display.level = Math.max(10, Math.min(100, Math.round(body.level)));
+      if (typeof body.auto === "boolean") S.display.auto = body.auto;
+      LS.set("display", S.display); return J(displayInfo());
+    }
+    if (p === "/api/motion") { if (typeof body.enabled !== "boolean") return ERR("enabled invalido"); S.motion = body.enabled; LS.set("motion", S.motion); return J(motionInfo()); }
+    if (p === "/api/screensaver") return J({ enabled: true, idle_seconds: 300, seconds_per_photo: 8, clock: true, shuffle: true, photos: SAVER });
+
+    if (p === "/api/timers") {
+      const now = Date.now();
+      if (body.action === "timer") { const s = +body.seconds; if (!(s >= 1 && s <= 86400)) return ERR("tiempo invalido"); S.timers.push({ id: rid(8), kind: "timer", label: String(body.label || "").slice(0, 40), due: now + s * 1000 }); }
+      else if (body.action === "alarm") { const d = new Date(); d.setHours(+body.hour, +body.minute, 0, 0); if (d.getTime() <= now) d.setDate(d.getDate() + 1); S.timers.push({ id: rid(8), kind: "alarm", label: String(body.label || ""), due: d.getTime(), hour: +body.hour, minute: +body.minute }); }
+      else if (body.action === "cancel") S.timers = S.timers.filter(t => body.id && t.id !== body.id);
+      else if (body.action === "dismiss") S.timers = S.timers.filter(t => now < t.due);
+      else return ERR("accion invalida");
+      LS.set("timers", S.timers); return J({ ok: true, timers: timersList() });
+    }
+
+    if (p === "/api/system") {
+      if (method === "GET") return J(systemInfo());
+      if (body.action === "shutdown" || body.action === "reboot") { toast("Demo: aquí se " + (body.action === "reboot" ? "reiniciaría" : "apagaría") + " la Pi. No se hace nada."); return J({ ok: true, action: body.action }); }
+      if (body.action === "check") { toast("Demo: comprobando actualizaciones…"); return J({ ok: true }); }
+      if (body.action === "update") {
+        if (S.update.state === "running") return J({ ok: true });
+        S.update.state = "running"; S.update.tail = ["Descargando 3 cambio(s)…"];
+        (async () => {
+          for (const l of ["Copia de seguridad previa en ~/pcpi-backups", "Reinstalando con tus opciones: --camera --voice", "==> Copiando archivos", "==> Reiniciando servicios"]) { await sleep(1100); S.update.tail.push(l); }
+          await sleep(1100); S.update.tail.push("Actualizado (simulado)."); S.update.state = "ok"; S.update.available = false; S.update.behind = 0;
+        })();
+        return J({ ok: true, action: "update" });
+      }
+      return ERR("accion invalida");
+    }
+    if (p === "/api/ask") return J({ error: "La IA local no está disponible en la demo (en una Pi real se instala con ./install.sh --ai)." }, 503);
+
+    /* wifi */
+    if (p === "/api/wifi") return J(wifiInfo());
+    if (p === "/api/wifi/connect") {
+      await sleep(900);
+      const n = NETS.find(x => x.ssid === body.ssid);
+      if (!n && body.hidden !== true) return ERR("No encuentro esa red");
+      if (n && n.secure && body.password === "mala") return ERR("Contraseña incorrecta");
+      if (n && n.secure && !body.password && !(body.ssid in S.wifi.wantsPi)) return ERR("Esa red necesita contraseña");
+      S.wifi.active = body.ssid; if (!(body.ssid in S.wifi.wantsPi)) S.wifi.wantsPi[body.ssid] = true; LS.set("wifi", S.wifi); return J({ ok: true });
+    }
+    if (p === "/api/wifi/forget") { delete S.wifi.wantsPi[body.ssid]; if (S.wifi.active === body.ssid) S.wifi.active = null; LS.set("wifi", S.wifi); return J({ ok: true }); }
+    if (p === "/api/wifi/pihole") { S.wifi.wantsPi[body.ssid] = !!body.on; LS.set("wifi", S.wifi); return J({ ok: true }); }
+    if (p === "/api/wifi/portal") { toast("Demo: aquí se abriría la ventana de inicio de sesión de la wifi."); return J({ ok: true }); }
+
+    /* notas */
+    if (p === "/api/notes" && method === "GET") { const q = u.searchParams.get("q") || ""; return J(q.trim() ? searchNotes(q) : listNotes()); }
+    if (p === "/api/notes" && method === "POST") {
+      if (typeof body.text !== "string" || body.text.length > 200000) return ERR("texto invalido o demasiado grande");
+      const all = notes(); let id = body.id;
+      const n = id && all.find(x => x.id === id);
+      if (n) { n.text = body.text; n.updated = Date.now() / 1000; } else { id = rid(16); all.push({ id, text: body.text, updated: Date.now() / 1000 }); }
+      LS.set("notes", all); return J({ id });
+    }
+    if (p === "/api/notes/delete") { LS.set("notes", notes().filter(n => n.id !== body.id)); return J({ ok: true }); }
+    if (p === "/api/notes/tags") { const c = {}; listNotes().forEach(n => n.tags.forEach(t => { c[t] = (c[t] || 0) + 1; })); return J(Object.entries(c).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).map(([tag, count]) => ({ tag, count }))); }
+    if (p === "/api/notes/usb") return J({ usb: [] });
+    if (p === "/api/notes/export") return ERR("No veo ningún USB conectado (en la demo no hay USB).");
+    const nm = /^\/api\/notes\/([0-9a-f]{16})$/.exec(p);
+    if (nm) { const n = notes().find(x => x.id === nm[1]); return n ? J({ id: n.id, text: n.text, updated: n.updated }) : ERR("nota no encontrada", 404); }
+
+    if (p === "/api/bookmarks") {
+      if (method === "GET") return J(LS.get("bookmarks", []));
+      let items = LS.get("bookmarks", []);
+      if (body.action === "add") {
+        let url = String(body.url || "").trim();
+        if (!url || /\s/.test(url) || url.length > 500) return ERR("enlace invalido");
+        if (!/:\/\//.test(url)) { if (/^[a-z][a-z0-9+.-]*:(?!\d)/i.test(url)) return ERR("solo se admiten enlaces http o https"); url = "https://" + url; }
+        let x; try { x = new URL(url); } catch (e) { return ERR("enlace invalido"); }
+        if (!["http:", "https:"].includes(x.protocol) || !x.hostname) return ERR("solo se admiten enlaces http o https");
+        items = items.filter(b => b.url !== url); items.push({ id: rid(8), title: String(body.title || "").trim().slice(0, 40) || x.hostname.replace(/^www\./, ""), url });
+      } else if (body.action === "delete") items = items.filter(b => b.id !== body.id);
+      else return ERR("accion invalida");
+      LS.set("bookmarks", items); return J(items);
+    }
+
+    /* musica */
+    if (p === "/api/music" && method === "GET") return J({ tracks: tracks(), seq: S.music.seq, cmd: S.music.cmd, arg: S.music.arg, embed: LS.get("embed", null), history: LS.get("history", []), search: false });
+    if (p === "/api/music" && method === "POST") {
+      const act = body.action;
+      if (act === "cmd") { if (!["play", "pause", "next", "previous", "sleep"].includes(body.cmd)) return ERR("orden invalida"); S.music = { seq: S.music.seq + 1, cmd: body.cmd, arg: body.cmd === "sleep" ? body.seconds : null }; return J({ ok: true, seq: S.music.seq }); }
+      if (act === "now") { S.nowplaying = { state: body.state, title: String(body.title || "").slice(0, 120), artist: String(body.artist || "").slice(0, 80) }; return J({ ok: true }); }
+      if (act === "embed") {
+        if (!body.link) { LS.set("embed", null); return J({ ok: true, url: null, history: LS.get("history", []) }); }
+        try {
+          const url = embedUrl(body.link); LS.set("embed", url);
+          const h = LS.get("history", []).filter(x => x.url !== url); h.unshift({ url, title: String(body.title || "").slice(0, 80) }); LS.set("history", h.slice(0, 8));
+          return J({ ok: true, url, history: LS.get("history", []) });
+        } catch (e) { return ERR(e.message, 502); }
+      }
+      if (act === "search") return ERR("En la demo no hay búsqueda (necesita una clave de la API de YouTube). Pega el enlace de una canción.", 502);
+      if (act === "web") { toast("Demo: aquí se abriría la web de descarga en otra ventana. No se descarga nada."); return J({ ok: true, url: "demo" }); }
+      if (act === "delete") { tracks(); S.tracks = S.tracks.filter(t => t.id !== body.id); return J({ ok: true }); }
+      if (act === "import_usb") return ERR("No veo ningún USB conectado (en la demo no hay USB).", 502);
+      return ERR("accion invalida");
+    }
+
+    /* modo dev */
+    if (p === "/api/dev") {
+      if (method === "GET") {
+        const id = u.searchParams.get("id");
+        if (id) { const c = S.cmds[id]; if (!c) return ERR("Esa orden ya no existe", 404); const done = Date.now() >= c.at; return J({ done, code: done ? c.code : null, out: done ? c.out : "", truncated: false, queued: false }); }
+        return J({ enabled: true, mode: LS.get("mode", "home"), flags: S.flags, experiments: [
+          { id: "ai_chat", title: "Chat con la IA", desc: "Un chat en esta consola con la IA local (necesita ./install.sh --ai)." },
+          { id: "live_graph", title: "Gráfica en vivo", desc: "Temperatura de la CPU y memoria libre en directo." },
+          { id: "casa_debug", title: "Insignia de depuración en Casa", desc: "Muestra en la pantalla de Casa cuánto tarda el servidor en responder." }] });
+      }
+      if (body.action === "run") {
+        if (typeof body.cmd !== "string" || !body.cmd.trim()) return ERR("escribe una orden");
+        const id = rid(16), r = fakeShell(body.cmd); S.cmds[id] = { ...r, at: Date.now() + 500 }; return J({ id });
+      }
+      if (body.action === "terminal") { toast("Demo: aquí se abriría un terminal real."); return J({ ok: true }); }
+      if (body.action === "flag") { if (!(body.id in S.flags) || typeof body.on !== "boolean") return ERR("valor invalido"); S.flags[body.id] = body.on; LS.set("flags", S.flags); return J({ flags: S.flags }); }
+      return ERR("accion invalida");
+    }
+    return ERR("no encontrado en la demo", 404);
+  }
+
+  const svgData = (a, b, label) => "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + a + '"/><stop offset="1" stop-color="' + b + '"/></linearGradient></defs><rect width="1280" height="720" fill="url(#g)"/><text x="640" y="380" text-anchor="middle" fill="#ffffffcc" font-family="system-ui,sans-serif" font-size="64" font-weight="700">' + label + '</text></svg>');
+  const BOOT_MEDIA = [{ type: "image", url: svgData("#1b2a4a", "#4a1f5a", "PiCore") }, { type: "image", url: svgData("#0f3d3e", "#1b2a4a", "Iniciando") }, { type: "image", url: svgData("#4a2a1b", "#5a1f3a", "Casi listo") }];
+  const SAVER = [svgData("#1b2a4a", "#3a1f5a", "Marco de fotos"), svgData("#0f3d3e", "#2a4a1b", "Tus fotos aqui"), svgData("#4a2a1b", "#1f3a5a", "Salvapantallas")];
+
+  const realFetch = window.fetch.bind(window);
+  window.fetch = function (input, init) {
+    try {
+      const url = new URL(typeof input === "string" ? input : input.url, location.href);
+      if (url.origin === location.origin && (url.pathname.startsWith("/api/"))) {
+        const i = init || (typeof input === "object" && input.method ? { method: input.method } : {});
+        return api(url, i).catch(e => ERR("error en la demo: " + e.message, 500));
+      }
+    } catch (e) {}
+    return realFetch(input, init);
+  };
+
+  /* ---------------- insignia de la demo ---------------- */
+  function badge() {
+    if (!document.body || document.getElementById("demo-badge")) return;
+    const b = document.createElement("div"); b.id = "demo-badge";
+    b.style.cssText = "position:fixed;right:10px;bottom:6px;z-index:99999;font:600 11px/1 system-ui,sans-serif;display:flex;gap:8px;align-items:center;padding:5px 9px;border-radius:99px;background:#000b;color:#fff;border:1px solid #ffffff30;cursor:pointer;user-select:none";
+    b.innerHTML = '<span style="width:7px;height:7px;border-radius:50%;background:#4ade80"></span><span>DEMO en el navegador</span><a href="https://github.com/IkerPlays/PiCore" target="_blank" rel="noopener" style="color:#9ecbff;text-decoration:none">GitHub</a><button id="demo-reset" style="all:unset;color:#fbbf24;cursor:pointer">Restablecer</button>';
+    document.body.appendChild(b);
+    b.querySelector("#demo-reset").onclick = e => { e.stopPropagation(); LS.clear(); toast("Demo restablecida"); setTimeout(() => { location.href = "/"; }, 600); };
+    b.querySelector("a").onclick = e => e.stopPropagation();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", badge); else badge();
+  window.PCPI_DEMO = { LS, status, toast };
+})();
