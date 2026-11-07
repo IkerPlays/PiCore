@@ -6,8 +6,9 @@
 [![Demo web](https://img.shields.io/badge/demo-picoreweb.netlify.app-00c7b7?logo=netlify&logoColor=white)](https://picoreweb.netlify.app/)
 ![Raspberry Pi 5](https://img.shields.io/badge/Raspberry%20Pi-5%20(8%20GB)-c51a4a?logo=raspberrypi&logoColor=white)
 ![Idioma](https://img.shields.io/badge/idioma-espa%C3%B1ol-blue)
+[![Licencia MIT](https://img.shields.io/badge/licencia-MIT-green)](LICENSE)
 
-### [Web de PiCore: picoreweb.netlify.app](https://picoreweb.netlify.app/) · [Probar el simulador](https://picoreweb.netlify.app/simulador)
+### [Web de PiCore: picoreweb.netlify.app](https://picoreweb.netlify.app/) · [Probar el simulador](https://picoreweb.netlify.app/simulador) · [Visita guiada](https://picoreweb.netlify.app/simulador?tour)
 
 La web explica qué es PiCore, cómo funciona y para qué sirve, y el **simulador** es la misma interfaz que corre en la Pi, sin instalar nada (también desde el móvil). Es una simulación: no ejecuta nada real.
 
