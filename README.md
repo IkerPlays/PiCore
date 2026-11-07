@@ -32,6 +32,7 @@ La web explica qué es PiCore, cómo funciona y para qué sirve, y el **simulado
 - Qué comprar (menos de 250 euros): [docs/SHOPPING_LIST.md](docs/SHOPPING_LIST.md)
 - **Tutorial desde cero (comprar, montar, instalar, configurar):** [docs/TUTORIAL.md](docs/TUTORIAL.md)
 - Cómo funciona y hoja de ruta: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- Novedades resumidas por temas: [docs/NOVEDADES.md](docs/NOVEDADES.md) (el detalle, en el [CHANGELOG](CHANGELOG.md))
 - Demo web y cómo desplegarla: [docs/DEMO_WEB.md](docs/DEMO_WEB.md)
 - Voz: [docs/VOICE.md](docs/VOICE.md) · Mini pantalla de estado (opcional): [docs/PANTALLA_MINI.md](docs/PANTALLA_MINI.md)
 - Tus vídeos, GIFs e imágenes: [extra-assets/](extra-assets/README.md)
