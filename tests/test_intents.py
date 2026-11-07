@@ -45,6 +45,8 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(P("apunta que mañana llamo al dentista"), ("note_add", "mañana llamo al dentista"))
         self.assertEqual(P("anota: revisar el router"), ("note_add", "revisar el router"))
         self.assertIsNone(P("apunta"))
+        self.assertEqual(P("lee mi última nota"), ("note_read", None))
+        self.assertEqual(P("qué pone en la nota más reciente"), ("note_read", None))
         self.assertEqual(P("activa el salvapantallas"), ("screensaver", True))
         self.assertEqual(P("desactiva el salvapantallas"), ("screensaver", False))
         self.assertEqual(P("sube el brillo"), ("brightness", "+20"))

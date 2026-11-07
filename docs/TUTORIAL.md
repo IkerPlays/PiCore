@@ -589,6 +589,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «sube el brillo» · «baja el brillo» | ±20 % (nunca por debajo del 10 %) |
 | «brillo al cincuenta» · «brillo al máximo» · «brillo automático» | Pone el brillo a ese número, o vuelve al modo automático |
 | «toma nota comprar leche» · «apunta que mañana llamo al dentista» · «anota: revisar el router» | Guarda una nota nueva (la verás en el modo Iker) |
+| «lee mi última nota» · «qué pone en la nota más reciente» | Te lee en voz alta la nota más reciente (hasta 300 caracteres) |
 | «activa el salvapantallas» · «desactiva el salvapantallas» | Enciende o apaga el salvapantallas / marco de fotos |
 | «activa la vigilancia» · «desactiva la vigilancia» | Enciende o apaga la detección de movimiento (si hay cámara) |
 | «pon un temporizador de diez minutos» · «temporizador de una hora y media» · «de treinta segundos» | Crea un temporizador (hasta 48 h). Al acabar **suena por el altavoz y sale un aviso a pantalla completa** con el botón «Parar» |

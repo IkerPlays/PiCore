@@ -5,6 +5,10 @@
 
 
 
+## Voz: leer la última nota
+
+- «Lee mi última nota» la dice en voz alta (hasta 300 caracteres). Probado con tests; no con una voz real.
+
 ## Voz: tomar notas
 
 - «Toma nota: comprar leche», «apunta que mañana llamo al dentista» o «anota revisar el router» guardan una nota nueva en Modo Iker. Probado con tests de intenciones y del asistente; no en una Pi real.

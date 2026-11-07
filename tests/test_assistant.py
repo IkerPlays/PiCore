@@ -162,12 +162,18 @@ class ExecuteApiIntentsTest(unittest.TestCase):
 
     def setUp(self):
         import http.server
+        self.notes = []
         self.posts, self.status = [], {"display": {"level": 60}, "motion": {"available": True}}
         outer = self
 
         class H(http.server.BaseHTTPRequestHandler):
             def do_GET(self):
-                body = json.dumps(outer.status).encode()
+                if self.path == "/api/notes":
+                    body = json.dumps(outer.notes).encode()
+                elif self.path.startswith("/api/notes/"):
+                    body = json.dumps({"id": "a", "text": "Comprar\n  leche   y pan " * 40, "updated": 1}).encode()
+                else:
+                    body = json.dumps(outer.status).encode()
                 self.send_response(200); self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
 
             def do_POST(self):
@@ -208,6 +214,14 @@ class ExecuteApiIntentsTest(unittest.TestCase):
         n = len(self.posts)
         self.assertEqual(assistant.execute(self.cfg, ("motion", True)), "No hay cámara para vigilar")
         self.assertEqual(len(self.posts), n)
+
+    def test_read_last_note_by_voice(self):
+        self.assertEqual(assistant.execute(self.cfg, ("note_read", None)), "No tienes ninguna nota")
+        self.notes = [{"id": "a", "updated": 5}, {"id": "b", "updated": 1}]
+        out = assistant.execute(self.cfg, ("note_read", None))
+        self.assertTrue(out.startswith("Tu última nota dice: Comprar leche y pan Comprar"))
+        self.assertTrue(out.endswith("…"))
+        self.assertLessEqual(len(out), len("Tu última nota dice: ") + 301)
 
     def test_note_by_voice_goes_to_notes_api(self):
         self.assertEqual(assistant.execute(self.cfg, ("note_add", "comprar leche")), "Anotado")

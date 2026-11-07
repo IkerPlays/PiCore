@@ -151,6 +151,8 @@ def parse(text):
     m = re.match(r"^(?:por favor )?(?:toma nota|apunta|anota|apuntame|anotame|guarda una nota)(?: de| que| lo siguiente)?[ :,]+(.{2,400})$", str(text).strip(" .!?¡¿"), re.I)
     if m:
         return Intent("note_add", m.group(1).strip())
+    if has("nota") and has("lee", "leeme", "dime", "cual es", "que pone") and has("ultima", "reciente", "anterior"):
+        return Intent("note_read", None)
     if has("calendario", "agenda", "que tengo", "tengo algo", "mis eventos", "proximo evento", "tengo hoy", "tengo manana"):
         return Intent("calendar", "tomorrow" if has("manana") else "today")
     if has("temporizador", "cuenta atras", "cuentaatras"):

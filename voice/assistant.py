@@ -163,6 +163,15 @@ def execute(cfg, intent):
             except urllib.error.HTTPError:
                 return "No he podido guardar la nota"
             return "Anotado"
+        if n == "note_read":
+            with urllib.request.urlopen(cfg["api"] + "/api/notes", timeout=5) as r:
+                notes = json.load(r)
+            if not notes:
+                return "No tienes ninguna nota"
+            newest = max(notes, key=lambda x: x["updated"])
+            with urllib.request.urlopen(cfg["api"] + "/api/notes/" + newest["id"], timeout=5) as r:
+                text = " ".join(json.load(r)["text"].split())
+            return "Tu última nota dice: " + (text[:300] + ("…" if len(text) > 300 else ""))
         if n == "screensaver":
             api(cfg, "/api/settings", {"action": "pref_set", "key": "screensaver", "value": bool(a)})
             return "Salvapantallas activado" if a else "Salvapantallas desactivado"
