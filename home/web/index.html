@@ -61,24 +61,40 @@
             box-shadow:0 -20px 60px #0008; padding:20px 22px 24px; transform:translate(-50%,105%); transition:transform .5s var(--ease); max-height:86vh; overflow:auto; }
   #wpanel.on { transform:translate(-50%,0); }
   #wpanel h3 { font-size:22px; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
-  #xbtn { margin-top:12px; width:100%; min-height:50px; font-size:17px; border-radius:14px; display:flex; align-items:center; justify-content:center; gap:8px; }
-  #xbtn svg { width:20px; height:20px; }
-  #xpanel { position:fixed; left:50%; bottom:0; z-index:21; width:min(760px,100vw); background:var(--card); border:1px solid var(--line); border-bottom:0; border-radius:26px 26px 0 0;
-            box-shadow:0 -20px 60px #0008; padding:18px 22px 22px; transform:translate(-50%,105%); transition:transform .5s var(--ease); max-height:92vh; overflow:auto; }
-  #xpanel.on { transform:translate(-50%,0); }
-  #xpanel h3 { font-size:22px; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:8px; }
-  #xpanel h3 span { display:flex; gap:8px; } #xpanel h3 button { height:44px; min-width:44px; font-size:16px; border-radius:22px; padding:0 14px; }
-  #xlink { display:flex; gap:8px; margin-bottom:10px; } #xlink input { flex:1; min-width:0; font:inherit; font-size:16px; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--card2); color:var(--fg); }
-  #xlink button { border-radius:12px; padding:0 16px; }
-  #xframe { width:100%; height:352px; border:0; border-radius:14px; background:var(--card2); display:block; }
-  #xnote { color:var(--dim); font-size:13px; margin-top:10px; line-height:1.4; } #xerr { color:var(--warn); font-size:14px; min-height:18px; margin-bottom:6px; }
-  #xpanel.full { left:0; top:0; width:100vw; max-height:none; height:100vh; border-radius:0; transform:none; display:flex; flex-direction:column; padding:10px 12px; z-index:40; }
-  #xpanel.full:not(.on) { transform:translate(0,105%); }
-  #xpanel.full #xframe { flex:1; height:auto; } #xpanel.full #xnote, #xpanel.full #xlink { display:none; }
-  #mctl { display:flex; align-items:center; gap:10px; margin-top:12px; } #mctl[hidden] { display:none; }
+  #mxbtn { margin-top:12px; width:100%; min-height:54px; font-size:18px; border-radius:14px; display:flex; align-items:center; justify-content:center; gap:8px; }
+  #mxbtn svg { width:22px; height:22px; }
+  #mctl { display:flex; align-items:center; justify-content:center; gap:12px; margin-top:10px; }
   #mctl button { width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; padding:0; }
   #mctl svg { width:24px; height:24px; }
-  #m-err { color:var(--warn); font-size:14px; flex:1; }
+  #mxpanel { position:fixed; left:50%; bottom:0; z-index:21; width:min(900px,100vw); height:min(560px,94vh); background:var(--card); border:1px solid var(--line); border-bottom:0; border-radius:26px 26px 0 0;
+             box-shadow:0 -20px 60px #0008; padding:16px 20px 18px; transform:translate(-50%,105%); transition:transform .5s var(--ease); display:flex; flex-direction:column; }
+  #mxpanel.on { transform:translate(-50%,0); }
+  #mxpanel.full { left:0; top:0; width:100vw; height:100vh; max-height:none; border-radius:0; transform:none; padding:10px 12px; z-index:40; }
+  #mxpanel.full:not(.on) { transform:translate(0,105%); }
+  #mxhead { display:flex; align-items:center; gap:8px; margin-bottom:12px; } #mxhead h3 { flex:1; font-size:22px; }
+  #mxhead button { height:44px; min-width:44px; font-size:16px; border-radius:22px; padding:0 14px; }
+  .mxview { display:none; flex:1; min-height:0; flex-direction:column; } .mxview.on { display:flex; }
+  #mxhome { flex-direction:row; gap:14px; align-items:stretch; }
+  #mxhome button { flex:1; border-radius:22px; font-size:24px; font-weight:700; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:10px; }
+  #mxhome small { font-size:14px; font-weight:400; color:var(--dim); text-align:center; line-height:1.3; }
+  #mxhome svg { width:46px; height:46px; }
+  .mxrow { display:flex; gap:8px; margin-bottom:10px; } .mxrow input { flex:1; min-width:0; font:inherit; font-size:16px; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--card2); color:var(--fg); }
+  .mxrow[hidden] { display:none; }
+  .mxrow button { border-radius:12px; padding:0 16px; }
+  #mxframe { width:100%; flex:1; min-height:300px; border:0; border-radius:14px; background:var(--card2); }
+  #mxnote, .mxnote { color:var(--dim); font-size:13px; margin-top:8px; line-height:1.4; } .mxerr { color:var(--warn); font-size:14px; min-height:18px; margin-bottom:6px; }
+  #mxpanel.full .mxrow, #mxpanel.full #mxnote { display:none; }
+  #mxlist, #mxres { flex:1; min-height:0; overflow:auto; }
+  .trk { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px; border:1px solid transparent; cursor:pointer; font-size:17px; }
+  .trk:active { background:var(--card2); } .trk.cur { background:var(--card2); border-color:var(--acc); }
+  .trk span { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .trk button { height:38px; padding:0 12px; border-radius:10px; font-size:14px; }
+  .trk img { width:64px; height:48px; object-fit:cover; border-radius:8px; background:var(--card2); }
+  .trk small { display:block; color:var(--dim); font-size:13px; }
+  .mxbar { display:flex; align-items:center; gap:10px; padding-top:10px; border-top:1px solid var(--line); margin-top:8px; }
+  .mxbar button { height:50px; min-width:50px; border-radius:25px; padding:0 14px; display:flex; align-items:center; justify-content:center; } .mxbar svg { width:22px; height:22px; }
+  .mxbar input[type=range] { flex:1; accent-color:var(--acc); } .mxbar output { color:var(--dim); font-size:14px; min-width:84px; text-align:right; }
+  .mxbar button.on { background:var(--acc); color:var(--acc-fg); border-color:var(--acc); }
+  #dysteps { background:var(--card2); border:1px solid var(--warn); border-radius:14px; padding:12px 14px; font-size:15px; line-height:1.5; margin-bottom:10px; } #dysteps[hidden] { display:none; }
   #chip-sys { color:var(--fg); position:relative; }
   #chip-sys.warn { border-color:var(--warn); } #chip-sys.bad { border-color:var(--bad); animation:blink 1.6s ease-in-out infinite; }
   #spanel { position:fixed; left:50%; bottom:0; z-index:21; width:min(760px,100vw); background:var(--card); border:1px solid var(--line); border-bottom:0; border-radius:26px 26px 0 0;
@@ -324,21 +340,20 @@
       </div>
     </div>
     <div class="card">
-      <h2>Spotify</h2>
+      <h2>Musix</h2>
       <div class="music" style="margin-top:10px">
         <div id="cover">🎵</div>
         <div id="meta">
           <div id="track">Nada sonando</div>
-          <div id="artist">Elige «PiCore» en Spotify Connect</div>
+          <div id="artist">Abre Musix para poner música</div>
           <div id="pstate"></div>
         </div>
       </div>
-      <button id="xbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l5.5-3.5z" fill="currentColor"/></svg> Reproductor de Spotify</button>
-      <div id="mctl" hidden>
+      <button id="mxbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg> Abrir Musix</button>
+      <div id="mctl">
         <button id="m-prev" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.5v14H6zM20 5v14L9.5 12z"/></svg></button>
-        <button id="m-play" aria-label="Pausa o seguir"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg></button>
+        <button id="m-play" aria-label="Pausa o seguir"><svg id="m-play-ic" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
         <button id="m-next" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 5H18v14h-2.5zM4 5v14l10.5-7z"/></svg></button>
-        <span id="m-err"></span>
       </div>
     </div>
   </section>
@@ -371,12 +386,34 @@
   <div class="dim" style="font-size:14px;margin-bottom:6px">Próximas horas</div><div class="hours" id="w-hours"></div>
   <div class="dim" style="font-size:14px;margin-bottom:6px">Próximos días</div><div class="days" id="w-days"></div>
 </section>
-<section id="xpanel" aria-label="Reproductor de Spotify">
-  <h3>Spotify <span><button id="x-full" aria-label="Pantalla completa">Pantalla completa</button><button id="x-close" aria-label="Cerrar">✕</button></span></h3>
-  <div id="xlink"><input id="xin" placeholder="Pega un enlace de open.spotify.com (lista, álbum, canción…)" autocomplete="off" spellcheck="false"><button id="xgo" class="primary">Cargar</button></div>
-  <div id="xerr"></div>
-  <iframe id="xframe" title="Reproductor de Spotify" allow="encrypted-media; autoplay; fullscreen; clipboard-write" referrerpolicy="no-referrer"></iframe>
-  <div id="xnote">Es el reproductor incrustado de Spotify: sin iniciar sesión suena una muestra de 30 s por canción. Cerrar esta hoja no corta la música.</div>
+<audio id="mxaudio" preload="none"></audio>
+<section id="mxpanel" aria-label="Musix">
+  <div id="mxhead"><button id="mx-back" hidden aria-label="Volver">Volver</button><h3 id="mx-title">Musix</h3><button id="mx-full" hidden aria-label="Pantalla completa">Pantalla completa</button><button id="mx-close" aria-label="Cerrar">✕</button></div>
+  <div class="mxview on" id="mxhome">
+    <button data-go="yt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="4"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/></svg>YT Music<small>Pega un enlace de YouTube o YouTube Music</small></button>
+    <button data-go="mp3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg>MP3 Player<small>Tu música offline, dentro de la Pi</small></button>
+    <button data-go="dy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M11 8v6M8.5 11.5L11 14l2.5-2.5"/></svg>DYMusic<small>Busca una canción y guárdala en el MP3 Player</small></button>
+  </div>
+  <div class="mxview" id="mx-yt">
+    <div class="mxrow"><input id="mxin" placeholder="Pega un enlace de YouTube / YouTube Music (video o lista)" autocomplete="off" spellcheck="false"><button id="mxgo" class="primary">Cargar</button></div>
+    <div class="mxerr" id="mxerr"></div>
+    <iframe id="mxframe" title="YT Music" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    <div id="mxnote">Es el reproductor incrustado de YouTube: solo reproduce lo que enlazas (no hay buscador aquí, para buscar usa DYMusic) y algunos videos no permiten verse fuera de YouTube. Cerrar esta hoja no corta la música.</div>
+  </div>
+  <div class="mxview" id="mx-mp3">
+    <div class="mxrow"><button id="mx-usb" title="Copiar las canciones de un USB a la Pi">Importar de un USB</button><button id="mx-refresh">Actualizar</button><span id="mx-count" class="mxnote" style="margin:0;align-self:center"></span></div>
+    <div class="mxerr" id="mx-merr"></div>
+    <div id="mxlist"></div>
+    <div class="mxbar"><button id="mx-shuf" aria-label="Aleatorio" title="Aleatorio">Aleatorio</button><button id="mx-p" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.5v14H6zM20 5v14L9.5 12z"/></svg></button><button id="mx-pp" aria-label="Reproducir o pausar"><svg id="mx-pp-ic" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button><button id="mx-n" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 5H18v14h-2.5zM4 5v14l10.5-7z"/></svg></button><input type="range" id="mx-seek" min="0" max="1000" value="0" aria-label="Posición"><output id="mx-time">0:00 / 0:00</output></div>
+  </div>
+  <div class="mxview" id="mx-dy">
+    <div class="mxrow"><input id="dyq" placeholder="Título de la canción o artista" autocomplete="off" spellcheck="false"><button id="dygo" class="primary">Buscar</button></div>
+    <div class="mxrow" id="dypaste" hidden><input id="dylink" placeholder="Sin clave de búsqueda: pega aquí el enlace de YouTube" autocomplete="off" spellcheck="false"><button id="dylinkgo" class="primary">Descargar MP3</button></div>
+    <div class="mxerr" id="dyerr"></div>
+    <div id="dysteps" hidden></div>
+    <div id="mxres"></div>
+    <div class="mxnote">Descarga solo música que tengas derecho a copiar (tuya, de licencia libre o con permiso). Las webs de conversión son de terceros y PiCore no las controla.</div>
+  </div>
 </section>
 <section id="spanel" aria-label="Sistema">
   <h3>Sistema <button id="s-close" aria-label="Cerrar">✕</button></h3>
@@ -588,41 +625,164 @@ function openCalendar() {
   }
   $("scrim").classList.add("on"); $("cpanel").classList.add("on");
 }
-function closeCalendar() { $("cpanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#xpanel.on")) $("scrim").classList.remove("on"); }
+function closeCalendar() { $("cpanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on")) $("scrim").classList.remove("on"); }
 /* ---- sistema: salud de la Pi y apagar/reiniciar (con confirmacion de dos toques) ---- */
-/* ---- mandos de Spotify (solo si hay Client ID y sesion iniciada) ---- */
-async function music(action) {
-  const e = $("m-err"); e.textContent = "";
+/* ---- Musix: YT Music (YouTube incrustado), MP3 Player (offline) y DYMusic (buscar y bajar a la Pi) ---- */
+const mxAudio = $("mxaudio");
+let mxTracks = [], mxCur = -1, mxShuffle = false, mxView = "home", mxEmbed = null, mxSeq = null, mxPoll = 0, mxSearchOk = false;
+const fmtT = t => isFinite(t) ? Math.floor(t / 60) + ":" + String(Math.floor(t % 60)).padStart(2, "0") : "0:00";
+const mxErr = (id, m) => { $(id).textContent = m || ""; };
+async function mxApi(body) {
+  const r = await post("/api/music", body); let j = {};
+  try { j = await r.json(); } catch (e) {}
+  if (!r.ok) throw new Error(j.error || "No se pudo");
+  return j;
+}
+function mxNow(state) {
+  const t = mxTracks[mxCur];
+  post("/api/music", {action: "now", state, title: t ? t.title : "", artist: "MP3 Player"}).catch(() => {});
+}
+function mxPaintPlay() {
+  const playing = !mxAudio.paused && !mxAudio.ended;
+  const d = playing ? "M6 5h4v14H6zM14 5h4v14h-4z" : "M8 5v14l11-7z";
+  $("mx-pp-ic").firstElementChild.setAttribute("d", d); $("m-play-ic").firstElementChild.setAttribute("d", d);
+}
+function mxRenderList() {
+  const l = $("mxlist"); l.textContent = "";
+  $("mx-count").textContent = mxTracks.length ? mxTracks.length + " canciones" : "";
+  if (!mxTracks.length) { const e = document.createElement("div"); e.className = "mxnote"; e.textContent = "Todavía no hay canciones. Importa desde un USB, o búscalas en DYMusic."; l.append(e); return; }
+  mxTracks.forEach((t, i) => {
+    const d = document.createElement("div"); d.className = "trk" + (i === mxCur ? " cur" : "");
+    const n = document.createElement("span"); n.textContent = t.title;
+    const x = document.createElement("button"); x.textContent = "Quitar"; x.setAttribute("aria-label", "Quitar " + t.title);
+    let armed = 0;
+    x.onclick = async ev => {
+      ev.stopPropagation();
+      if (!armed) { x.textContent = "¿Seguro?"; armed = setTimeout(() => { armed = 0; x.textContent = "Quitar"; }, 3000); return; }
+      clearTimeout(armed);
+      try { await mxApi({action: "delete", id: t.id}); if (i === mxCur) { mxAudio.pause(); mxAudio.removeAttribute("src"); mxCur = -1; } await mxLoad(); } catch (e) { mxErr("mx-merr", e.message); }
+    };
+    d.onclick = () => mxPlay(i);
+    d.append(n, x); l.append(d);
+  });
+}
+async function mxLoad() {
   try {
-    const r = await post("/api/spotify", {action});
-    if (!r.ok) e.textContent = (await r.json()).error || "No se pudo";
-  } catch (x) { e.textContent = "No se pudo"; }
+    const j = await (await fetch("/api/music")).json();
+    const curId = mxTracks[mxCur] && mxTracks[mxCur].id;
+    mxTracks = j.tracks || []; mxCur = curId ? mxTracks.findIndex(t => t.id === curId) : -1;
+    mxSearchOk = !!j.search; mxEmbed = j.embed || null;
+    mxRenderList();
+  } catch (e) {}
 }
-$("m-prev").onclick = () => music("previous"); $("m-next").onclick = () => music("next");
-$("m-play").onclick = () => music(document.body.classList.contains("playing") ? "pause" : "play");
-function paintSpotify(sp) { $("mctl").hidden = !(sp && sp.connected); if (sp && sp.embed !== undefined && sp.embed !== xUrl && !$("xpanel").classList.contains("on")) setEmbed(sp.embed); }
-/* ---- reproductor incrustado de Spotify (el reproductor web completo no se deja meter en un iframe) ---- */
-let xUrl = null;
-function setEmbed(url) {
-  xUrl = url || null;
-  const f = $("xframe");
-  if (xUrl && f.dataset.src !== xUrl) { f.dataset.src = xUrl; f.src = xUrl; }
-  if (!xUrl) { f.removeAttribute("src"); f.dataset.src = ""; }
+function mxPlay(i) {
+  if (!mxTracks.length) return;
+  mxCur = ((i % mxTracks.length) + mxTracks.length) % mxTracks.length;
+  mxAudio.src = "/music/" + mxTracks[mxCur].id; mxAudio.play().catch(() => {});
+  mxRenderList();
 }
-function openEmbed() { $("scrim").classList.add("on"); $("xpanel").classList.add("on"); }
-function closeEmbed() { $("xpanel").classList.remove("full", "on"); $("x-full").textContent = "Pantalla completa"; if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#xpanel.on")) $("scrim").classList.remove("on"); }
-async function loadEmbed() {
-  $("xerr").textContent = "";
-  try {
-    const r = await post("/api/spotify", {action: "embed", link: $("xin").value});
-    const j = await r.json();
-    if (!r.ok) { $("xerr").textContent = j.error || "No se pudo"; return; }
-    setEmbed(j.url); $("xin").value = "";
-  } catch (e) { $("xerr").textContent = "No se pudo"; }
+function mxNext() { if (!mxTracks.length) return; mxPlay(mxShuffle && mxTracks.length > 1 ? (mxCur + 1 + Math.floor(Math.random() * (mxTracks.length - 1))) : mxCur + 1); }
+function mxPrev() { if (mxAudio.currentTime > 3) { mxAudio.currentTime = 0; return; } mxPlay(mxCur <= 0 ? mxTracks.length - 1 : mxCur - 1); }
+function mxToggle() {
+  if (mxCur < 0) { mxPlay(mxShuffle ? Math.floor(Math.random() * mxTracks.length) : 0); return; }
+  if (mxAudio.paused) mxAudio.play().catch(() => {}); else mxAudio.pause();
 }
-$("xbtn").onclick = openEmbed; $("x-close").onclick = closeEmbed; $("xgo").onclick = loadEmbed;
-$("xin").addEventListener("keydown", e => { if (e.key === "Enter") loadEmbed(); });
-$("x-full").onclick = () => { const f = $("xpanel").classList.toggle("full"); $("x-full").textContent = f ? "Salir de pantalla completa" : "Pantalla completa"; };
+mxAudio.addEventListener("play", () => { mxPaintPlay(); mxNow("playing"); });
+mxAudio.addEventListener("pause", () => { mxPaintPlay(); mxNow(mxAudio.ended ? "stopped" : "paused"); });
+mxAudio.addEventListener("ended", mxNext);
+mxAudio.addEventListener("error", () => { if (mxAudio.getAttribute("src")) { mxErr("mx-merr", "No se pudo reproducir esa canción"); setTimeout(() => { mxErr("mx-merr", ""); mxNext(); }, 1500); } });
+mxAudio.addEventListener("timeupdate", () => {
+  const d = mxAudio.duration; $("mx-time").textContent = fmtT(mxAudio.currentTime) + " / " + fmtT(d);
+  if (isFinite(d) && d > 0 && document.activeElement !== $("mx-seek")) $("mx-seek").value = Math.round(1000 * mxAudio.currentTime / d);
+});
+$("mx-seek").oninput = () => { if (isFinite(mxAudio.duration)) mxAudio.currentTime = mxAudio.duration * $("mx-seek").value / 1000; };
+$("mx-pp").onclick = mxToggle; $("mx-n").onclick = mxNext; $("mx-p").onclick = mxPrev;
+$("m-play").onclick = mxToggle; $("m-next").onclick = mxNext; $("m-prev").onclick = mxPrev;
+$("mx-shuf").onclick = () => { mxShuffle = !mxShuffle; $("mx-shuf").classList.toggle("on", mxShuffle); };
+$("mx-refresh").onclick = mxLoad;
+$("mx-usb").onclick = async () => {
+  mxErr("mx-merr", "Copiando del USB…");
+  try { const j = await mxApi({action: "import_usb"}); mxErr("mx-merr", j.copied + " canciones copiadas" + (j.skipped ? ", " + j.skipped + " ya estaban" : "") + (j.limit ? " (límite alcanzado)" : "")); await mxLoad(); }
+  catch (e) { mxErr("mx-merr", e.message); }
+};
+/* ordenes de voz: «pausa la musica», «siguiente cancion»... llegan en el estado (seq nuevo = orden nueva) */
+function paintMusic(m) {
+  if (!m) return;
+  if (mxSeq === null) { mxSeq = m.seq; return; }                      // la primera lectura no es una orden
+  if (m.seq === mxSeq) return;
+  mxSeq = m.seq;
+  if (m.cmd === "pause") mxAudio.pause();
+  else if (m.cmd === "play") { if (mxCur < 0) { mxLoad().then(() => mxToggle()); } else mxAudio.play().catch(() => {}); }
+  else if (m.cmd === "next") { if (mxCur < 0) mxLoad().then(() => mxPlay(0)); else mxNext(); }
+  else if (m.cmd === "previous") mxPrev();
+}
+
+function mxShow(v) {
+  mxView = v;
+  for (const e of document.querySelectorAll(".mxview")) e.classList.toggle("on", e.id === (v === "home" ? "mxhome" : "mx-" + v));
+  $("mx-back").hidden = v === "home"; $("mx-full").hidden = v !== "yt";
+  $("mx-title").textContent = {home: "Musix", yt: "YT Music", mp3: "MP3 Player", dy: "DYMusic"}[v];
+  if (v !== "yt") $("mxpanel").classList.remove("full");
+  $("mx-full").textContent = "Pantalla completa";
+  clearInterval(mxPoll);
+  if (v === "mp3") { mxLoad(); mxPoll = setInterval(mxLoad, 5000); }       // las descargas nuevas aparecen solas
+  if (v === "dy") { mxLoad().then(() => { $("dypaste").hidden = mxSearchOk; if (!mxSearchOk) mxErr("dyerr", "Para buscar por título falta la clave gratuita de YouTube (ver el tutorial). Mientras tanto, pega el enlace."); }); }
+  if (v === "yt") mxLoad().then(() => setYt(mxEmbed));
+}
+function setYt(url) {
+  const f = $("mxframe");
+  if (url && f.dataset.src !== url) { f.dataset.src = url; f.src = url; }
+  if (!url) { f.removeAttribute("src"); f.dataset.src = ""; }
+}
+function openMusix(v) { mxShow(v || mxView); $("scrim").classList.add("on"); $("mxpanel").classList.add("on"); }
+function closeMusix() { clearInterval(mxPoll); $("mxpanel").classList.remove("full", "on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on")) $("scrim").classList.remove("on"); }
+$("mxbtn").onclick = () => openMusix("home");
+$("mx-close").onclick = closeMusix; $("mx-back").onclick = () => mxShow("home");
+$("mx-full").onclick = () => { const f = $("mxpanel").classList.toggle("full"); $("mx-full").textContent = f ? "Salir de pantalla completa" : "Pantalla completa"; };
+for (const b of document.querySelectorAll("#mxhome button")) b.onclick = () => mxShow(b.dataset.go);
+async function ytGo() {
+  mxErr("mxerr", "");
+  try { const j = await mxApi({action: "embed", link: $("mxin").value}); setYt(j.url); $("mxin").value = ""; } catch (e) { mxErr("mxerr", e.message); }
+}
+$("mxgo").onclick = ytGo; $("mxin").addEventListener("keydown", e => { if (e.key === "Enter") ytGo(); });
+
+/* DYMusic: buscar -> elegir -> el enlace se copia y se abre la web de conversion; el MP3 caera en la carpeta de Musix */
+async function dyDownload(url, id) {
+  mxErr("dyerr", "");
+  let copied = false;
+  try { await navigator.clipboard.writeText(url); copied = true; } catch (e) {}
+  try { await mxApi({action: "web", target: "downloader"}); } catch (e) { mxErr("dyerr", e.message); return; }
+  const box = $("dysteps"); box.hidden = false; box.textContent = "";
+  const lines = [copied ? "Enlace copiado. Se está abriendo la web de descarga en otra ventana." : "Se está abriendo la web de descarga. No pude copiar el enlace solo: cópialo de aquí abajo.",
+    "1. Pega el enlace en la casilla de la web y pulsa el botón de descargar.", "2. Cuando termine de cargar, elige el formato MP3 y descarga.",
+    "3. Al acabar, cierra esa ventana: la canción saldrá sola en el MP3 Player (en unos segundos)."];
+  for (const t of lines) { const p = document.createElement("div"); p.textContent = t; box.append(p); }
+  const c = document.createElement("input"); c.value = url; c.readOnly = true; c.style.cssText = "width:100%;margin-top:6px;font:inherit;font-size:14px;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--fg)";
+  c.onfocus = () => c.select(); box.append(c);
+}
+function dyRenderResults(list) {
+  const box = $("mxres"); box.textContent = "";
+  if (!list.length) { const e = document.createElement("div"); e.className = "mxnote"; e.textContent = "Sin resultados."; box.append(e); return; }
+  for (const r of list) {
+    const d = document.createElement("div"); d.className = "trk";
+    if (r.thumb) { const im = document.createElement("img"); im.src = r.thumb; im.alt = ""; im.referrerPolicy = "no-referrer"; d.append(im); }
+    const n = document.createElement("span"); n.textContent = r.title; const sm = document.createElement("small"); sm.textContent = r.channel; n.append(sm);
+    const l = document.createElement("button"); l.textContent = "Escuchar";
+    l.onclick = async () => { try { const j = await mxApi({action: "embed", link: r.url}); mxShow("yt"); setYt(j.url); } catch (e) { mxErr("dyerr", e.message); } };
+    const g = document.createElement("button"); g.textContent = "Descargar MP3"; g.className = "primary"; g.onclick = () => dyDownload(r.url, r.id);
+    d.append(n, l, g); box.append(d);
+  }
+}
+async function dySearch() {
+  mxErr("dyerr", "Buscando…"); $("mxres").textContent = "";
+  try { const j = await mxApi({action: "search", q: $("dyq").value}); mxErr("dyerr", ""); dyRenderResults(j.results); } catch (e) { mxErr("dyerr", e.message); }
+}
+$("dygo").onclick = dySearch; $("dyq").addEventListener("keydown", e => { if (e.key === "Enter") dySearch(); });
+$("dylinkgo").onclick = async () => {
+  mxErr("dyerr", "");
+  try { const j = await mxApi({action: "embed", link: $("dylink").value}); const m = /embed\/([A-Za-z0-9_-]{11})/.exec(j.url); if (!m) throw new Error("Pega el enlace de un video, no de una lista"); dyDownload("https://www.youtube.com/watch?v=" + m[1], m[1]); }
+  catch (e) { mxErr("dyerr", e.message); }
+};
 let sysInfo = null, pwrAsk = null, pwrTimer = 0;
 function paintSystem(sy) {
   sysInfo = sy || null;
@@ -689,7 +849,7 @@ function showSaver() {
   svClock(); box.classList.add("on"); svShowPhoto();
 }
 function hideSaver() { svLast = Date.now(); if (!svOn) return; svOn = false; clearTimeout(svTimer); $("saver").classList.remove("on"); setTimeout(() => { if (!svOn) $("saver").querySelectorAll(".ph").forEach(o => o.remove()); }, 1300); }
-function busyForSaver() { return camShown() || $("tring").classList.contains("on") || document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#xpanel.on") || $("switching").classList.contains("on"); }
+function busyForSaver() { return camShown() || $("tring").classList.contains("on") || document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on") || $("switching").classList.contains("on"); }
 ["pointerdown", "keydown", "touchstart"].forEach(ev => document.addEventListener(ev, e => { if (svOn) { e.preventDefault(); e.stopPropagation(); } hideSaver(); }, true));
 setInterval(() => {
   if (svOn) { svClock(); if (busyForSaver()) hideSaver(); return; }
@@ -923,7 +1083,7 @@ function closeSheet() {
 }
 $("chip-wifi").onclick = openSheet;
 $("sh-close").onclick = closeSheet;
-$("scrim").onclick = () => { closeSheet(); closeBright(); closeTimers(); closeWeather(); closeCalendar(); closeSystem(); if (!$("xpanel").classList.contains("full")) closeEmbed(); };
+$("scrim").onclick = () => { closeSheet(); closeBright(); closeTimers(); closeWeather(); closeCalendar(); closeSystem(); if (!$("mxpanel").classList.contains("full")) closeMusix(); };
 
 async function refresh() {
   let s;
@@ -968,10 +1128,10 @@ async function refresh() {
     const m = $("meta"); m.classList.add("swap");
     setTimeout(() => {
       $("track").textContent = title;
-      $("artist").textContent = on ? (n.artist || "") : "Elige «PiCore» en Spotify Connect";
+      $("artist").textContent = on ? (n.artist || "") : "Abre Musix para poner música";
       m.classList.remove("swap");
     }, 220);
-  } else { $("track").textContent = title; $("artist").textContent = on ? (n.artist || "") : "Elige «PiCore» en Spotify Connect"; }
+  } else { $("track").textContent = title; $("artist").textContent = on ? (n.artist || "") : "Abre Musix para poner música"; }
   firstMusic = false;
   $("pstate").innerHTML = on ? (n.state === "playing" ? '<span class="eq"><i></i><i></i><i></i><i></i></span>Reproduciendo' : "⏸ En pausa") : "";
   const cv = $("cover");
@@ -988,7 +1148,7 @@ async function refresh() {
   paintBattery(s.battery);
   lastCpu = s.cpu_temp ?? null;
   paintSystem(s.system);
-  paintSpotify(s.spotify);
+  paintMusic(s.music);
 
   const c = s.camera || {};
   $("open-cam").style.display = c.available ? "" : "none";

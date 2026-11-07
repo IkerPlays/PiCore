@@ -97,6 +97,35 @@ sync_portal() {
   fi
 }
 
+# Ventana de navegador para DYMusic (YouTube / descargador de MP3). El servidor solo deja aqui una direccion https de una
+# lista fija; la descarga cae directamente en la carpeta de Musix, asi aparece sola en el MP3 Player.
+WEB_PROFILE="$HOME/.cache/pcpi-web"
+MUSIC_DIR="${PCPI_MUSIC_DIR:-/var/lib/pcpi/music}"
+sync_web() {
+  [ -e "$RUN/web" ] || return 0
+  local url=""
+  read -r url < "$RUN/web" 2>/dev/null || true
+  rm -f "$RUN/web" 2>/dev/null || true
+  case "$url" in https://*) ;; *) return 0 ;; esac
+  case "$url" in *[[:space:]]*|*\"*|*\'*) return 0 ;; esac
+  pkill -f -- "--user-data-dir=$WEB_PROFILE" 2>/dev/null || true
+  mkdir -p "$WEB_PROFILE/Default" "$MUSIC_DIR" 2>/dev/null || true
+  PREFS="$WEB_PROFILE/Default/Preferences" MUSIC_DIR="$MUSIC_DIR" python3 - <<'PY' 2>/dev/null || true
+import json, os
+p = os.environ["PREFS"]
+try:
+    d = json.load(open(p))
+except (OSError, ValueError):
+    d = {}
+d.setdefault("download", {}).update({"default_directory": os.environ["MUSIC_DIR"], "prompt_for_download": False, "directory_upgrade": True})
+d.setdefault("savefile", {})["default_directory"] = os.environ["MUSIC_DIR"]
+json.dump(d, open(p, "w"))
+PY
+  common_flags
+  FLAGS+=(--start-maximized --user-data-dir="$WEB_PROFILE")
+  setsid nohup "$CHROMIUM" "${FLAGS[@]}" "$url" >/dev/null 2>&1 &
+}
+
 # Segundos desde el ultimo latido de la pagina (o desde que se lanzo el navegador, lo que sea mas reciente)
 now_s() { printf '%(%s)T' -1; }
 heartbeat_age() {
@@ -206,6 +235,7 @@ while true; do
   fi
 
   sync_portal
+  sync_web
   sync_power
   sync_update
   tick=$((tick + 1))

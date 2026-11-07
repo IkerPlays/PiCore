@@ -64,36 +64,6 @@ class PcpiModeTest(Base):
         self.assertEqual(self.mode.read_text().strip(), "iker")
 
 
-class SpotifyHookTest(Base):
-    def event(self, **env):
-        out = self.t / "np.json"
-        r = subprocess.run(["bash", str(BIN / "pcpi-spotify-event")], capture_output=True, text=True,
-                           env={**self.env, "PCPI_NOWPLAYING": str(out), **env})
-        self.assertEqual(r.returncode, 0, r.stderr)
-        return json.loads(out.read_text())
-
-    def test_track_changed_joins_artists_and_takes_first_cover(self):
-        d = self.event(PLAYER_EVENT="track_changed", NAME="Bohemian Rhapsody", ARTISTS="Queen\nDavid Bowie",
-                       COVERS="https://i.scdn.co/a\nhttps://i.scdn.co/b")
-        self.assertEqual(d, {"state": "playing", "title": "Bohemian Rhapsody", "artist": "Queen, David Bowie", "cover": "https://i.scdn.co/a"})
-
-    def test_pause_keeps_title_artist_and_cover(self):
-        self.event(PLAYER_EVENT="track_changed", NAME="Canción", ARTISTS="Artista", COVERS="https://i.scdn.co/x")
-        d = self.event(PLAYER_EVENT="paused")
-        self.assertEqual((d["state"], d["title"], d["artist"], d["cover"]), ("paused", "Canción", "Artista", "https://i.scdn.co/x"))
-
-    def test_stop_and_unknown_events(self):
-        self.event(PLAYER_EVENT="playing", NAME="T", ARTISTS="A")
-        self.assertEqual(self.event(PLAYER_EVENT="stopped")["state"], "stopped")
-        d = self.event(PLAYER_EVENT="volume_changed")                  # evento que no nos interesa: no cambia nada
-        self.assertEqual(d["state"], "stopped")
-
-    def test_quotes_backslashes_and_newlines_produce_valid_json(self):
-        d = self.event(PLAYER_EVENT="track_changed", NAME='Título "con comillas" y \\ barra\ty tab', ARTISTS='A "B"')
-        self.assertIn('"con comillas"', d["title"])
-        self.assertEqual(d["artist"], 'A "B"')
-
-
 class RecordWakeTest(Base):
     def test_records_n_samples_with_configured_device(self):
         conf = self.t / "pcpi.conf"
@@ -377,6 +347,30 @@ class SessionLoopTest(Base):
         self.assertTrue(self.wait(lambda: len(self.lines()) >= 1))
         self.assertNotIn("/loading", self.lines()[0])
         self.assertTrue(self.lines()[0].endswith("localhost:1/"))
+
+    def test_musix_web_window_downloads_into_the_music_folder(self):
+        self.mode.write_text("desktop\n")
+        self.run_dir.mkdir()
+        (self.run_dir / "booted").write_text("")
+        music = self.t / "musica"
+        self.start(PCPI_MUSIC_DIR=str(music))
+        time.sleep(0.8)
+        for bad in ("http://inseguro.example/", "javascript:alert(1)", "https://x.example/a b", "https://x.example/'; rm -rf /"):
+            (self.run_dir / "web").write_text(bad + "\n")
+            time.sleep(0.8)
+            self.assertEqual(self.lines(), [], bad)
+            self.assertFalse((self.run_dir / "web").exists())               # la peticion se consume igual
+        (self.run_dir / "web").write_text("https://www.freemake.com/es/free_video_downloader_splendid/\n")
+        self.assertTrue(self.wait(lambda: len(self.lines()) >= 1), "no abrio la ventana del descargador")
+        self.assertIn("pcpi-web", self.lines()[0])
+        self.assertTrue(self.lines()[0].endswith("freemake.com/es/free_video_downloader_splendid/"))
+        self.assertNotIn("--kiosk", self.lines()[0])
+        prefs = json.loads((self.t / "home/.cache/pcpi-web/Default/Preferences").read_text())
+        self.assertEqual(prefs["download"]["default_directory"], str(music))
+        self.assertFalse(prefs["download"]["prompt_for_download"])
+        self.assertTrue(music.is_dir())
+        time.sleep(0.8)
+        self.assertEqual(len(self.lines()), 1)                              # y no se reabre sola cada vuelta
 
     def test_captive_portal_window_opens_and_closes(self):
         self.mode.write_text("desktop\n")

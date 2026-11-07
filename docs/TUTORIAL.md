@@ -21,7 +21,7 @@ Esta guía te lleva de la **caja cerrada** a tener funcionando los tres modos: *
 | 4 | [Primer arranque](#paso-4-primer-arranque) | la Pi | 15 min |
 | 5 | [**Meter el código en la Pi** e instalarlo](#paso-5-meter-el-código-en-la-pi-e-instalarlo) | la Pi | 20–30 min |
 | 6 | [**Instalar y configurar Pi-hole**](#paso-6-instalar-y-configurar-pi-hole) | la Pi | 15 min |
-| 7 | [Configurar PiCore](#paso-7-configurar-picore): Spotify, tiempo, cámara, **voz** (con el asistente `pcpi-setup`) | la Pi | 20 min |
+| 7 | [Configurar PiCore](#paso-7-configurar-picore): música (Musix), tiempo, cámara, **voz** (con el asistente `pcpi-setup`) | la Pi | 20 min |
 | 8 | [Usar los modos](#paso-8-usar-los-modos) y [las pantallas de **Inicio** y **Carga**](#82-las-pantallas-de-inicio-y-de-carga-tus-vídeos-y-gifs) | la Pi | 10 min |
 | 9 | [**Wi-Fi** en casa, de viaje y wifis públicas](#paso-9-wi-fi-en-casa-de-viaje-y-wifis-públicas) | la Pi | 10 min |
 | 10 | [Mini pantalla de estado: **conectar los cables Dupont** (opcional)](#paso-10-mini-pantalla-de-estado-opcional) | mesa + la Pi | 20 min |
@@ -70,7 +70,7 @@ python tools\emulate.py
 
 Abre <http://127.0.0.1:8080> en el navegador.
 
-✅ Ves el modo Casa con un Pi-hole de mentira, el tiempo, un Spotify de prueba y (si tienes `ffmpeg`) la cámara. `http://127.0.0.1:8080/iker` es el bloc de notas.
+✅ Ves el modo Casa con un Pi-hole de mentira, el tiempo, dos canciones de prueba en Musix y (si tienes `ffmpeg`) la cámara. `http://127.0.0.1:8080/iker` es el bloc de notas.
 
 **Para ver los intros y la pantalla de carga** (como al encender la Pi) abre <http://127.0.0.1:8080/loading?to=home&boot=1>. En la terminal del emulador: `/boot` = «encender de nuevo» (elige otro intro; **recargar la página de arranque también cuenta como encender de nuevo**), `/intro 1` … `/intro 4` fuerza uno (el 4 enseña también el botón «Saltar» a los 6 s), `/intro4 reset` vuelve a mostrar la pantalla de descarga, `/battery 15`, `/portal on`, `/motion` enseñan la batería, la wifi pública y el aviso de movimiento. El intro 4 se «descarga» de un servidor local con uno de tus vídeos como sustituto (para bajar el real, `--real-intro4`, unos 530 MB).
 
@@ -287,7 +287,7 @@ ls           # qué hay aquí
 ### 5.5 Ejecutar el instalador
 
 ```bash
-./install.sh --camera --voice --spotify
+./install.sh --camera --voice
 ```
 
 ⚠️ **Como tu usuario normal, sin `sudo` delante**: el script usa `sudo` solo en lo que lo necesita (y te pedirá la contraseña una vez).
@@ -302,7 +302,7 @@ Sale texto sin parar con títulos que empiezan por `==>`. Es normal: son las fas
 | `==> Configuracion en /etc/pcpi` | Crea tu fichero de ajustes `pcpi.conf` (solo si no existía: **nunca te lo pisa**) |
 | `==> Wi-Fi (NetworkManager)` | Te da permiso para cambiar de wifi desde la pantalla |
 | `==> Servicio pcpi-home` | Deja el servidor arrancando solo con la Pi |
-| `==> Camara / Asistente de voz / Raspotify` | Lo que pediste con `--camera`, `--voice`, `--spotify` |
+| `==> Camara / Asistente de voz` | Lo que pediste con `--camera`, `--voice` |
 
 ✅ **Terminó bien** cuando acaba con **«Instalacion terminada»** y una lista de «Siguiente: 1) Reinicia…». **No pidas Pi-hole todavía** (`--pihole`): se instala aparte en el [Paso 6](#paso-6-instalar-y-configurar-pi-hole), con calma.
 
@@ -313,7 +313,6 @@ Sale texto sin parar con títulos que empiezan por `==>`. Es normal: son las fas
 | *(siempre)* | El servidor, el selector de modos, el modo Casa, el modo Iker, las pantallas de Inicio/Carga y el Wi-Fi |
 | `--camera` | `ffmpeg` para la cámara |
 | `--voice` | El asistente de voz (Vosk + openWakeWord + `espeak-ng`) |
-| `--spotify` | Raspotify (Spotify Connect) |
 | `--pihole` | El instalador oficial de Pi-hole ([Paso 6](#paso-6-instalar-y-configurar-pi-hole)) |
 | `--stats` | La mini pantalla de estado ([Paso 10](#paso-10-mini-pantalla-de-estado-opcional)). Se pide aparte |
 | `--battery` | Solo si usas una power bank ([más adelante](#más-adelante-batería-y-ssd)) |
@@ -370,7 +369,7 @@ pcpi-doctor
 
 | ✅ Sí hace | ❌ No hace |
 |---|---|
-| Bloquea anuncios y rastreadores de **dominios aparte** (la mayoría de banners) | **No** bloquea los anuncios de YouTube ni los de Spotify (vienen del mismo dominio que el contenido) |
+| Bloquea anuncios y rastreadores de **dominios aparte** (la mayoría de banners) | **No** bloquea los anuncios de YouTube ni los de otras plataformas de música (vienen del mismo dominio que el contenido) |
 | Te enseña estadísticas (la tarjeta de Pi-hole del modo Casa) | **No cifra** tu conexión ni te hace anónimo |
 | Se puede pausar 5 minutos con un toque si una web falla | No sustituye a un antivirus |
 
@@ -481,7 +480,7 @@ Hace cuatro cosas, y puedes repetir solo una cuando quieras: `pcpi-setup ciudad`
 | **3. Micrófono** | El número de tu cámara/micro. Te graba 3 s, te los reproduce y te pregunta si te oyes: si dices que sí, lo guarda |
 | **4. Mini pantalla** | Solo si ya la conectaste ([Paso 8](#paso-10-mini-pantalla-de-estado-opcional)); detecta su dirección y pregunta el chip |
 
-✅ Al final reinicia solo lo que hace falta y dice «Listo». **Con eso puedes saltarte los apartados 7.1, 7.3 y la parte del micrófono de 7.5** (el resto sigue siendo necesario: red, Spotify, cámara).
+✅ Al final reinicia solo lo que hace falta y dice «Listo». **Con eso puedes saltarte los apartados 7.1, 7.3 y la parte del micrófono de 7.5** (el resto sigue siendo necesario: red, cámara).
 
 ### Si prefieres hacerlo a mano
 
@@ -502,19 +501,21 @@ systemctl --user restart pcpi-voice       # solo para cambios de la sección [vo
 
 Ya lo hiciste en el [Paso 6](#paso-6-instalar-y-configurar-pi-hole) (instalación, contraseña y conexión con el modo Casa). Si saltaste el `pcpi-setup pihole`, hazlo ahora: la tarjeta Pi-hole del modo Casa necesita esa contraseña. Para proteger **otros dispositivos** de tu casa, mira la opción B del [6.2](#62-para-quién-va-a-filtrar-decide-ahora).
 
-### 7.2 Spotify
+### 7.2 Musix (música)
 
-Hace falta cuenta **Spotify Premium**.
+Musix es el reproductor propio de PiCore. **No necesita Premium, ni cuentas, ni crear ninguna aplicación.** En el modo Casa, toca **Abrir Musix** en la tarjeta de música y elige:
 
-1. La Pi y tu móvil/PC deben estar en la **misma red**.
-2. En Spotify, reproduce algo y pulsa el icono de **dispositivos disponibles**: aparece **PiCore**. Elígelo.
-3. Si no se oye nada, hay **dos sitios** donde elegir la salida (raspotify es un servicio del sistema y no usa el volumen del escritorio):
-   - **Escritorio y voz:** clic derecho en el icono de volumen (arriba a la derecha) → elige **HDMI**.
-   - **Spotify (raspotify):** mira los nombres de salida con `aplay -L | grep -i hdmi` (busca algo como `plughw:CARD=vc4hdmi0,DEV=0`) y ponlo en `/etc/raspotify/conf` como `LIBRESPOT_DEVICE="plughw:CARD=vc4hdmi0,DEV=0"` (quita el `#` si la línea está comentada). Después: `sudo systemctl restart raspotify`.
+- **YT Music:** pega un enlace de YouTube o YouTube Music (un video o una lista) y pulsa *Cargar*. Se reproduce en el reproductor incrustado de YouTube y **Pantalla completa** lo agranda. El último enlace queda guardado. ⚠️ YouTube **no deja** meter su web ni YouTube Music enteras en otra página, por eso no hay buscador aquí (para buscar, usa DYMusic) y solo suena lo que enlazas; además hay videos cuyo autor desactiva la reproducción fuera de YouTube. Con anuncios o sin ellos depende de YouTube (Pi-hole no bloquea los anuncios de YouTube).
+- **MP3 Player:** tu música **offline dentro de la Pi**, en la carpeta `/var/lib/pcpi/music` (mp3, m4a, ogg, opus, flac, wav, aac). Toca una canción para reproducirla; hay anterior, pausa, siguiente, barra de posición y **Aleatorio**. **Importar de un USB** copia las canciones del USB a la Pi (no borra nada del USB). También puedes copiar archivos tú con `scp` o con el explorador de archivos. Cerrar la hoja **no corta la música**, y la tarjeta de Casa muestra lo que suena con sus botones. Por voz: «pausa la música», «pon la música», «siguiente canción», «canción anterior».
+- **DYMusic:** escribes el título de una canción y *Buscar*; sale una lista de YouTube. **Escuchar** la pasa a YT Music; **Descargar MP3** copia el enlace de YouTube y abre en **otra ventana** la web de conversión (`https://www.freemake.com/es/free_video_downloader_splendid/`, cambiable en `[musix] downloader_url`). Allí **tú** pegas el enlace, pulsas descargar y eliges MP3 (te lo recuerda la pantalla). Las descargas del navegador de esa ventana caen **directamente en la carpeta de Musix**, así que al cerrar la ventana la canción aparece sola en el MP3 Player.
 
-   ⚠️ Los nombres de tarjeta pueden variar entre sistemas; usa el que te muestre `aplay -L`.
+   ⚠️ **Lo que NO hace y por qué.** No pulso yo los botones de esa web de terceros: no puedo comprobar cómo es por dentro (cambia sin avisar, tiene anuncios y a veces cuelga), y automatizarla sería frágil y poco seguro. Los pasos de pegar, descargar y elegir MP3 los haces tú en 3 toques. Tampoco está **probado en una Pi real ni con esa web real**; si cambian su página o la bloquean, usa otra y ponla en `downloader_url`. **Legal:** descargar de YouTube va contra sus condiciones de uso y la música tiene derechos de autor; usa DYMusic solo con música que tengas derecho a copiar (tuya, de licencia libre o con permiso).
 
-✅ Suena por los altavoces de la pantalla y en el modo Casa aparece el título, el artista y la portada.
+   **Buscar por título necesita una clave gratuita de YouTube** (si no, DYMusic te deja pegar el enlace a mano): en <https://console.cloud.google.com> crea un proyecto → *APIs y servicios* → activa **YouTube Data API v3** → *Credenciales* → *Crear credenciales* → *Clave de API*; luego `pcpi-config set musix youtube_api_key TU_CLAVE`. Es gratis (unas 100 búsquedas al día) y la clave solo se usa para hablar con YouTube. No se comparte en GitHub (está en `/etc/pcpi/pcpi.conf`).
+
+**Si no se oye nada:** clic derecho en el icono de volumen (arriba a la derecha) → elige **HDMI** (o el jack, según tu altavoz). La música sale por el navegador de Casa, así que usa el volumen del escritorio.
+
+✅ Con música en el MP3 Player, la tarjeta de Casa muestra el título y los botones de anterior/pausa/siguiente.
 
 ### 7.3 Tiempo
 
@@ -721,7 +722,7 @@ También con el icono **«PiCore · Elegir modo»** del menú de aplicaciones, c
 |---|---|
 | 🖥 **Escritorio** | Raspberry Pi OS normal, sin cambios. |
 | 📝 **Iker** | Solo **dos cosas**: un **bloc de notas** (nueva, guardar, borrar; se guarda solo poco más de 1 s después de dejar de escribir) e **Internet** (el botón abre una pestaña nueva de Chromium con barra de direcciones). Las notas se guardan en `/var/lib/pcpi/notes`, **solo accesibles para tu usuario**. Para escribir usa el teclado USB. **Buscar:** la casilla 🔍 de la izquierda filtra las notas sin distinguir mayúsculas ni tildes («cafe» encuentra «Café») y resalta lo que encuentra. **Etiquetas:** escribe una palabra con almohadilla en la nota (`#compra`, `#ideas`) y aparece como botón sobre la lista; tócalo para ver solo esas notas (otra vez para quitar el filtro). No distingue mayúsculas ni tildes. **PDF:** el botón **PDF** abre la nota como PDF en una pestaña nueva, desde donde puedes imprimirla o guardarla (el PDF es de texto sencillo, con tildes y ñ; los emojis salen como «?»). **Marcadores:** la barra de arriba guarda accesos directos a tus webs (**+ Añadir**, nombre y dirección; vale `ejemplo.com` o con `https://`; solo http/https, hasta 40); se abren en una pestaña nueva y se quitan con la ✕. Se guardan en `/var/lib/pcpi/bookmarks.json` y entran en `pcpi-backup`. **Copias:** se hacen solas cada hora (últimas 7). **📤 USB:** copia todas las notas, como archivos `.txt`, a un USB que tengas conectado (si no hay ninguno, te lo dice). |
-| 🏠 **Casa** | Pantalla estilo Alexa con animaciones suaves: **hora y fecha** (las cifras cambian con una transición), **tiempo**, **Pi-hole** (porcentaje bloqueado y botón de pausa), **Spotify** con portada y ecualizador, **cámara**, **Wi-Fi** (el icono de arriba a la derecha abre el panel de redes con teclado en pantalla) y **control por voz**. Es **clara de día y oscura de noche**, y por la noche se atenúa sola. Toca la **hora** para cambiar de tema a mano y el **saludo** para volver a automático. |
+| 🏠 **Casa** | Pantalla estilo Alexa con animaciones suaves: **hora y fecha** (las cifras cambian con una transición), **tiempo**, **Pi-hole** (porcentaje bloqueado y botón de pausa), **Musix** (YT Music, MP3 Player y DYMusic), **cámara**, **Wi-Fi** (el icono de arriba a la derecha abre el panel de redes con teclado en pantalla) y **control por voz**. Es **clara de día y oscura de noche**, y por la noche se atenúa sola. Toca la **hora** para cambiar de tema a mano y el **saludo** para volver a automático. |
 
 ---
 
@@ -1071,12 +1072,11 @@ Empieza **siempre** por `pcpi-doctor`: marca con `✘` lo que está mal y con `!
 | Imagen mala o cortada | Mira el [Paso 4](#paso-4-primer-arranque) |
 | El táctil no responde | Cable USB del táctil conectado a la Pi; prueba otro puerto/cable |
 | Rayo ⚡ o aviso de poca corriente | Usa la **fuente oficial de 27 W**, sin alargadores. `pcpi-doctor` lo detecta |
-| No suena nada | Clic derecho en el volumen → **HDMI**; sube el volumen de la pantalla. Si solo falla **Spotify**, mira el punto 3 de [7.2](#72-spotify) (`LIBRESPOT_DEVICE`) |
+| No suena nada | Clic derecho en el volumen → **HDMI**; sube el volumen de la pantalla. Musix usa la salida que elijas ahí ([7.2](#72-musix-música)) |
 | Al reiniciar no arranca el modo | `pcpi-doctor`; vuelve a un modo seguro con `pcpi-mode desktop`; si falta `pcpi-session`, cierra sesión y entra |
 | **El panel de Wi-Fi no deja conectar**, o no sale la ventana de inicio de sesión de una wifi pública | Mira el [Paso 9](#paso-9-wi-fi-en-casa-de-viaje-y-wifis-públicas), tabla «Si algo sale mal con la red» |
 | La pantalla de **Inicio/Carga** no sale, o se ve sin mi vídeo | Mira el [8.2](#82-las-pantallas-de-inicio-y-de-carga-tus-vídeos-y-gifs): nombres exactos `Inicio1.mp4`…`Inicio4.mp4`, formato H.264 y `./install.sh` tras copiar |
 | Pi-hole «Sin conexión» | Contraseña en `[pihole]` (prueba `pcpi-setup pihole`: te dice si Pi-hole la acepta; ya funcionan contraseñas con `%`, `#` y espacios); `systemctl status pihole-FTL` |
-| Spotify no ve «PiCore» | Misma red; `systemctl status raspotify` |
 | **«Hey Jarvis» no responde** | `arecord -l`, ajusta `device` ([7.5](#75-voz-hey-jarvis)), baja `wake_threshold`, `journalctl --user -u pcpi-voice -f` |
 | **«Hey Jarvis» se activa solo** | Sube `wake_threshold` (0.6–0.7) |
 | **La voz no arranca y no se reinicia sola** | Es un error de configuración (falta el modelo de voz, o `wake_model` mal escrito). El mensaje es claro: `journalctl --user -u pcpi-voice -n 20`. Arregla lo que diga (normalmente `./install.sh --voice`) y `systemctl --user restart pcpi-voice` |
@@ -1105,8 +1105,7 @@ No son necesarios. Puedes añadirlos cuando quieras:
 | **Salvapantallas / marco de fotos** | Tras **5 minutos sin tocar la pantalla** (`[screensaver] idle_minutes`) se muestran **tus fotos** de `extra-assets/photos/` (png, jpg, webp), una cada 12 s con un zoom lento y la **hora** en una esquina que **cambia cada minuto** (para no marcar la pantalla). **Un toque lo quita** (y ese toque no pulsa nada de debajo); hablarle a la Pi o una alarma también lo quitan. Se oscurece con el brillo nocturno. Sin fotos, queda solo el reloj grande. Para subir fotos: como los vídeos del [8.2](#82-las-pantallas-de-inicio-y-de-carga-tus-vídeos-y-gifs) (`scp` o GitHub y luego `./install.sh`). Pesan mejor menos de 1 MB (por ejemplo 1280 px de ancho) |
 | **Tiempo** (toca la temperatura) | Se abre el **detalle**: las **próximas 12 horas** (temperatura, cielo y % de lluvia) y los **próximos 5 días**. Si en las próximas 3 horas hay un **60 % o más de lluvia**, junto al tiempo sale «Lluvia en 2 h (80 %)» (el umbral se cambia con `[weather] rain_alert`), y al preguntar «¿qué tiempo hace?» la Pi también lo dice. Datos de Open-Meteo: **necesita internet** (sin él, la tarjeta del tiempo queda vacía) |
 | **Temporizador** (icono del reloj) | Muestra la cuenta atrás del siguiente temporizador; al tocarlo ves todos, los cancelas y creas uno con 1, 5, 10 o 30 min. Los temporizadores y alarmas **sobreviven a un reinicio**. Suenan por el altavoz aunque estés en el modo Iker o en el Escritorio (el aviso a pantalla completa es solo del modo Casa). Si no oyes nada: `aplay` debe poder usar el audio de tu sesión (el instalador lo prepara; mira «No suena nada» en [Si algo falla](#si-algo-falla)) |
-| **Reproductor de Spotify** (botón bajo la tarjeta de Spotify) | Abre una hoja con el **reproductor incrustado de Spotify**: pegas un enlace de [open.spotify.com](https://open.spotify.com) (una **lista**, **álbum**, **canción**, **artista** o **podcast**; en la app: *Compartir → Copiar enlace*) y lo cargas; queda guardado aunque apagues la Pi. **Pantalla completa** lo agranda a toda la pantalla. Cerrar la hoja **no corta la música**. **No necesita Premium ni crear ninguna app.** ⚠️ **Límites reales, léelos:** (1) El reproductor web *completo* de Spotify (la página de inicio con buscador) **no se puede meter en un iframe**: Spotify lo prohíbe en sus cabeceras (comprobado), por eso se usa el reproductor *embed*, que solo reproduce lo que tú enlazas, sin buscador. (2) **Sin iniciar sesión suena una muestra de 30 segundos por canción.** Iniciar sesión dentro del reproductor depende de que Chromium acepte las cookies de terceros y de que se abra la ventana de acceso, y para canciones completas Spotify usa DRM (Widevine), que **Chromium de Raspberry Pi OS puede no traer**: **no lo he podido probar en una Pi real**, así que puede que solo oigas las muestras. (3) Si quieres la música completa y tienes Premium, la forma segura es **Spotify Connect** (elige «PiCore» desde la app en tu móvil, ya viene en el instalador con `--spotify`). (4) Para abrir Spotify entero tal cual, en el **modo Iker** → *Internet* → `open.spotify.com` (también como **marcador**), con las mismas dudas de DRM. Los botones de pausa/siguiente de más abajo son otra cosa y **sí** exigen Premium y app propia: son opcionales, si no los configuras no salen |
-| **Botones de Spotify** (pausa, siguiente, anterior) | ⚠️ **Opcionales y con más pasos.** Raspotify solo *recibe* música (la eliges desde la app de Spotify): para que **la pantalla** la pause o salte de canción hay que usar la API de Spotify, que exige **cuenta Premium** y una «app» tuya **gratis**. 1) Entra en <https://developer.spotify.com/dashboard> → *Create app*; en *Redirect URI* pon exactamente `http://127.0.0.1:8888/callback`; marca *Web API*. 2) Copia su **Client ID** y en la Pi: `pcpi-config set spotify client_id TU_CLIENT_ID`. 3) `pcpi-spotify login`: te da un enlace, lo abres en tu móvil o PC, aceptas, y el navegador enseñará un error de «no se puede conectar» (es normal): **copia la dirección completa de la barra y pégala** en la terminal. 4) Listo: bajo la tarjeta de Spotify salen los 3 botones, y por voz «pausa la música», «siguiente canción», «canción anterior», «pon la música». Solo controlan **la Pi** (dispositivo `PiCore`; si en la app tienes otro altavoz activo, no lo toca). Los tokens se guardan en `/var/lib/pcpi/spotify.json` (solo tu usuario); `pcpi-spotify logout` los borra. **No hay secreto de cliente**: el inicio de sesión es PKCE. ⚠️ Está probado con una Spotify simulada, **no con una cuenta real**; si Spotify cambia su API puede fallar. Si no oyes ni ves nada: `pcpi-doctor` |
+| **Musix** (tarjeta de música → *Abrir Musix*) | El reproductor de PiCore, con tres opciones: **YT Music**, **MP3 Player** (offline, dentro de la Pi) y **DYMusic**. Todo lo que hace, sus límites y cómo sacar la clave gratuita de búsqueda están en [7.2](#72-musix-música). Resumen honesto: no necesita Premium; YouTube no se puede incrustar entero (solo el enlace que pegues) y el MP3 de DYMusic lo descargas tú en una web de terceros; **no probado en una Pi real** |
 | **Sistema** (icono del botón de apagado) | Abre una hoja con el **espacio libre** de la tarjeta, la **memoria libre**, la **temperatura** y una lista de **avisos en lenguaje normal** (los mismos que mira `pcpi-doctor`): poco disco (naranja por debajo de 3 GB, rojo por debajo de 1 GB), CPU caliente, **poca corriente** (fuente floja), sin internet o con portal cautivo, Pi-hole o la IA sin responder, y si hay **actualización** de PiCore. Si algo está mal, el icono se pone naranja o rojo aunque la hoja esté cerrada. Abajo, **Reiniciar** y **Apagar**: el primer toque solo pide confirmación («Toca otra vez para apagar», se cancela solo a los 5 s); el segundo lo hace. Espera unos segundos a que se apague la luz verde antes de soltar el cable. **Actualizaciones automáticas (opcional, activadas por defecto solo para avisar):** cada semana `pcpi-session` ejecuta `pcpi-update --check` (solo mira si hay cambios nuevos en GitHub, **no instala nada**) y el aviso sale en esta hoja; para instalar, ejecuta `pcpi-update` tú. Se desactiva con `[update] check = false` |
 | **🔋 Batería** | **Solo aparece si hay forma de medirla.** ⚠️ La Raspberry Pi 5 **no mide** la batería, y una power bank normal tampoco dice cuánto le queda: hace falta un **UPS / HAT con batería** que aparezca en `/sys/class/power_supply`, o un comando tuyo en `[battery] command` que escriba el porcentaje. Con eso sale el indicador (naranja por debajo del 20 %, rojo y parpadeando por debajo del 10 %) y también la fila `BAT` de la mini pantalla |
 
@@ -1124,7 +1123,6 @@ pcpi-setup                               # asistente: ciudad, Pi-hole, micro, mi
 pcpi-config get|set SECCION CLAVE [VALOR] # leer/cambiar un ajuste sin abrir el editor
 pcpi-mode home | iker | desktop          # cambiar de modo (muestra la pantalla de Carga)
 pcpi-ask "pregunta"                      # preguntar a la IA local (si instalaste --ai)
-pcpi-spotify login|status|logout         # conectar los botones de Spotify de la pantalla (opcional)
 pcpi-update                              # actualizar PiCore (copia previa + git pull + reinstalar)
 pcpi-backup create [USB o carpeta]       # copia de seguridad de todo lo tuyo en un archivo
 pcpi-backup restore ARCHIVO              # restaurarla

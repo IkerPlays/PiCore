@@ -5,7 +5,7 @@ Arranca el servidor real (home/server.py) en tu ordenador con servicios falsos:
   * Pi-hole v6 falso (estadisticas que suben, pausa con temporizador)
   * tiempo (Open-Meteo falso)
   * camara de prueba (ffmpeg testsrc2) -- si no tienes ffmpeg, el boton de camara se oculta
-  * "sonando ahora" de Spotify
+  * Musix con dos canciones de prueba (silencio) y "sonando ahora"
   * asistente de voz por TECLADO: escribes lo que dirias y pasa por el MISMO codigo que en la Pi
     (maquina de estados, interprete de ordenes y acciones)
 
@@ -15,7 +15,7 @@ Arranca el servidor real (home/server.py) en tu ordenador con servicios falsos:
 Comandos en la terminal:
   oye pi qué hora es      -> simula "Oye Pi" + orden (tambien vale "hey jarvis ...")
   oye pi                  -> solo la palabra: te pide la orden en la linea siguiente
-  /spotify play Titulo - Artista | /spotify pause | /spotify stop
+  /musica play Titulo - Artista | /musica pause | /musica stop
   /mode home|iker|desktop      /quit
   /motion                 -> simula un aviso de movimiento (activa antes la vigilancia con el icono 👁)
   /boot                   -> simula ENCENDER la Pi: nuevo arranque (elige otro intro). (Recargar la pantalla de
@@ -180,7 +180,7 @@ def main():
     write_conf()
     (tmp / "mode").write_text(a.mode + "\n")
     os.environ.update(PCPI_CONF=str(tmp / "pcpi.conf"), PCPI_MODE_FILE=str(tmp / "mode"),
-                      PCPI_NOWPLAYING=str(tmp / "np.json"), PCPI_VOICE_STATE=str(tmp / "voice.json"), PCPI_NOTES_DIR=str(tmp / "notes"), PCPI_BOOKMARKS=str(tmp / "bookmarks.json"),
+                      PCPI_NOWPLAYING=str(tmp / "np.json"), PCPI_VOICE_STATE=str(tmp / "voice.json"), PCPI_NOTES_DIR=str(tmp / "notes"), PCPI_BOOKMARKS=str(tmp / "bookmarks.json"), PCPI_MUSIC_DIR=str(tmp / "music"), PCPI_MUSIC_EMBED=str(tmp / "musix_embed.json"),
                       PCPI_RUN_DIR=str(tmp / "run"), PCPI_DISPLAY_STATE=str(tmp / "display.json"), PCPI_POWER_SUPPLY=str(tmp / "power"), PCPI_TIMERS=str(tmp / "timers.json"), PCPI_MOUNTS=str(tmp / "mounts"), PCPI_BACKUP_DIR=str(tmp / "backups"), PCPI_BACKLIGHT=str(tmp / "backlight"), PCPI_NETS=str(tmp / "nets.json"), PCPI_FAKE_NM=str(tmp / "nm.json"),
                       PCPI_NMCLI="%s %s" % (sys.executable, ROOT / "tools" / "fake_nmcli.py"),
                       PCPI_ASSETS=str(assets), PCPI_INTRO_STATE=str(tmp / "intro.json"), PCPI_BOOT_ID_FILE=str(tmp / "boot_id"))
@@ -196,6 +196,11 @@ def main():
         (tmp / "np.json").write_text(json.dumps({"state": state, "title": title, "artist": artist}))
 
     nowplaying("playing", "Bohemian Rhapsody", "Queen")
+    import wave
+    (tmp / "music").mkdir(exist_ok=True)
+    for n in ("Cancion de prueba 1", "Cancion de prueba 2"):          # 2 s de silencio: lo justo para probar el MP3 Player
+        with wave.open(str(tmp / "music" / (n + ".wav")), "wb") as w:
+            w.setnchannels(1); w.setsampwidth(2); w.setframerate(8000); w.writeframes(b"\0\0" * 16000)
     server.save_note(None, "Lista de la compra\n- leche\n- pan\n- café")
     server.save_note(None, "Ideas para el proyecto\nProbar la voz en la Pi real y ajustar el umbral.")
     # Wi-Fi emulado: nmcli de mentira (3 redes) y un internet que siempre responde
@@ -295,7 +300,7 @@ def main():
                 continue
             if line == "/quit":
                 break
-            if line.startswith("/spotify"):
+            if line.startswith("/musica"):
                 parts = line.split(None, 2)
                 act = parts[1] if len(parts) > 1 else "play"
                 if act == "stop":

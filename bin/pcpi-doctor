@@ -89,12 +89,10 @@ if [ "$(pcpi-config get ai enabled 2>/dev/null)" = "true" ]; then
   else warn "la IA esta activada pero Ollama no responde: sudo systemctl start ollama"; fi
 else echo "  (desactivada; ./install.sh --ai la instala)"; fi
 
-echo "Pi-hole y Spotify"
+echo "Pi-hole y musica"
 systemctl is-active --quiet pihole-FTL 2>/dev/null && ok "Pi-hole activo" || warn "Pi-hole no instalado/activo (./install.sh --pihole)"
-systemctl is-active --quiet raspotify 2>/dev/null && ok "Raspotify (Spotify Connect) activo" || warn "Raspotify no activo (./install.sh --spotify)"
-if [ -n "$(pcpi-config get spotify client_id 2>/dev/null)" ]; then
-  pcpi-spotify status 2>/dev/null | grep -q "^Conectado" && ok "botones de Spotify conectados" || warn "falta iniciar sesion para los botones de Spotify: pcpi-spotify login"
-else echo "  (botones de Spotify sin configurar: opcional, mira el tutorial)"; fi
+n_mp3="$(find "${PCPI_MUSIC_DIR:-/var/lib/pcpi/music}" -maxdepth 1 -type f \( -iname '*.mp3' -o -iname '*.m4a' -o -iname '*.ogg' -o -iname '*.opus' -o -iname '*.flac' -o -iname '*.wav' \) 2>/dev/null | wc -l)"
+[ "$n_mp3" -gt 0 ] && ok "Musix: $n_mp3 cancion(es) en el MP3 Player" || echo "  (Musix: el MP3 Player esta vacio; copia musica desde un USB o con DYMusic)"
 
 if systemctl list-unit-files pcpi-stats.service >/dev/null 2>&1 && systemctl cat pcpi-stats >/dev/null 2>&1; then
   echo "Mini pantalla"

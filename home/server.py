@@ -29,10 +29,10 @@ import intro
 import intros_tool
 import llm
 import motion
+import musix
 import netmgr
 import notes_tools
 import pdf
-import spotify_ctl
 import pcpiconf
 import timers
 
@@ -42,7 +42,7 @@ MODES = ("desktop", "iker", "home")
 PAGES = {"/": "index.html", "/iker": "iker.html", "/loading": "loading.html"}
 LOCAL_HOSTS = ("localhost", "127.0.0.1", "[::1]")
 CSP = ("default-src 'self'; img-src 'self' https: data:; media-src 'self'; style-src 'self' 'unsafe-inline'; "
-       "script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-src https://open.spotify.com; frame-ancestors 'none'; form-action 'none'; base-uri 'none'")
+       "script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-src https://www.youtube-nocookie.com; frame-ancestors 'none'; form-action 'none'; base-uri 'none'")
 HOST_RE = re.compile(r"^(\[[0-9a-f:.]+\]|[a-z0-9._-]+)(?::[0-9]{1,5})?$")
 NOTE_ID = re.compile(r"^[0-9a-f]{16}$")
 MAX_NOTE = 1_000_000
@@ -511,7 +511,7 @@ def status():
         "timers": TIMERS.snapshot() if TIMERS else [],
         "ai": ai_info(cp),
         "calendar": calendar_info(cp),
-        "spotify": spotify_info(read_conf()),
+        "music": music_info(),
         "system": system_info({"cpu_temp": cpu_temp(), "net": net_summary(), "pihole": cached("pihole", 10, lambda: pihole_stats(cp)), "ai": ai_info(cp)}),
         "ip": cached("ip", 60, local_ip),
         "host": socket.gethostname(),
@@ -711,7 +711,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Referrer-Policy", "no-referrer")
         self.send_header("X-Frame-Options", "DENY")
         if ctype.startswith("text/html"):
-            # solo recursos propios (+ portadas y el reproductor incrustado de Spotify); ni otros iframes ni formularios externos
+            # solo recursos propios (+ el reproductor incrustado de YouTube); ni otros iframes ni formularios externos
             self.send_header("Content-Security-Policy", CSP)
         self.end_headers()
         self.wfile.write(body)
@@ -752,6 +752,17 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, boot_info(read_conf(), self.path))
         if path.startswith("/assets/"):
             return self._asset(path[len("/assets/"):])
+        if path.startswith("/music/"):
+            if not self._local():
+                return
+            f = musix.track_path(path[len("/music/"):])
+            if f is None:
+                return self._send(404, {"error": "no encontrado"})
+            return self._serve_file(f, musix.content_type(f), "no-store")
+        if path == "/api/music":
+            if not self._local():
+                return
+            return self._send(200, music_list())
         if path.startswith("/static/"):
             return self._static(path[len("/static/"):])
         name = PAGES.get(path)
@@ -774,6 +785,9 @@ class Handler(BaseHTTPRequestHandler):
         f = assets.resolve(rel)
         if f is None:
             return self._send(404, {"error": "no encontrado"})
+        self._serve_file(f, assets.content_type(f), "max-age=300")
+
+    def _serve_file(self, f, ctype, cache):
         size = f.stat().st_size
         rng = assets.parse_range(self.headers.get("Range"), size)
         if rng == "bad":
@@ -784,12 +798,12 @@ class Handler(BaseHTTPRequestHandler):
             return
         start, end = rng if rng else (0, size - 1)
         self.send_response(206 if rng else 200)
-        self.send_header("Content-Type", assets.content_type(f))
+        self.send_header("Content-Type", ctype)
         self.send_header("Accept-Ranges", "bytes")
         self.send_header("Content-Length", str(end - start + 1))
         if rng:
             self.send_header("Content-Range", "bytes %d-%d/%d" % (start, end, size))
-        self.send_header("Cache-Control", "max-age=300")
+        self.send_header("Cache-Control", cache)
         self.send_header("X-Content-Type-Options", "nosniff")
         if f.suffix.lower() == ".svg":
             self.send_header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'")
@@ -920,7 +934,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         if not self._host_ok():
             return self._send(403, {"error": "host no permitido"})
-        paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/notes/export", "/api/bookmarks", "/api/spotify", "/api/loaded",
+        paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/notes/export", "/api/bookmarks", "/api/music", "/api/loaded",
                  "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display", "/api/motion", "/api/timers", "/api/ask", "/api/system")
         if self.path not in paths or self.headers.get("X-PCPI") != "1":
             return self._send(403, {"error": "prohibido"})
@@ -979,10 +993,10 @@ class Handler(BaseHTTPRequestHandler):
                 except ValueError as e:
                     return self._send(400, {"error": str(e)})
                 return self._send(200, {"ok": True, "path": path_, "count": n})
-            if self.path == "/api/spotify":
+            if self.path == "/api/music":
                 try:
-                    return self._send(200, spotify_post(body))
-                except spotify_ctl.SpotifyError as e:
+                    return self._send(200, music_post(body))
+                except musix.MusixError as e:
                     return self._send(502, {"error": str(e)})
             if self.path == "/api/bookmarks":
                 return self._send(200, notes_tools.edit_bookmarks(body))
@@ -1103,20 +1117,55 @@ def ai_answer(question):
     return llm.ask(question, cfg, status())
 
 
-def spotify_info(cp):
-    cid = cp.get("spotify", "client_id", fallback="").strip()
-    return {"configured": bool(cid), "connected": bool(cid) and spotify_ctl.logged_in(), "embed": spotify_ctl.load_embed()}
+MUSIC = {"seq": 0, "cmd": None}
 
 
-def spotify_post(body):
-    if body.get("action") == "embed":
-        try:
-            return {"ok": True, "url": spotify_ctl.save_embed(body.get("link"))}
-        except ValueError as e:
-            raise spotify_ctl.SpotifyError(str(e))
+def music_info():
+    return {"seq": MUSIC["seq"], "cmd": MUSIC["cmd"], "embed": musix.load_embed(), "search": bool(read_conf().get("musix", "youtube_api_key", fallback="").strip())}
+
+
+def music_list():
+    return {"tracks": musix.list_tracks(), **music_info()}
+
+
+def music_post(body):
+    act = body.get("action")
     cp = read_conf()
-    return spotify_ctl.command(body.get("action"), cp.get("spotify", "client_id", fallback="").strip(),
-                               cp.get("spotify", "device_name", fallback="PiCore").strip() or "PiCore")
+    if act == "cmd":
+        if body.get("cmd") not in ("play", "pause", "next", "previous"):
+            raise ValueError("orden invalida")
+        MUSIC["seq"] += 1
+        MUSIC["cmd"] = body["cmd"]
+        return {"ok": True, "seq": MUSIC["seq"]}
+    if act == "now":
+        st = body.get("state")
+        if st not in ("playing", "paused", "stopped"):
+            raise ValueError("estado invalido")
+        d = {"state": st, "title": str(body.get("title") or "")[:120], "artist": str(body.get("artist") or "")[:80]}
+        f = nowplaying_file()
+        f.parent.mkdir(parents=True, exist_ok=True)
+        tmp = f.with_suffix(".tmp")
+        tmp.write_text(json.dumps(d))
+        os.replace(tmp, f)
+        return {"ok": True}
+    if act == "embed":
+        try:
+            return {"ok": True, "url": musix.save_embed(body.get("link"))}
+        except ValueError as e:
+            raise musix.MusixError(str(e))
+    if act == "search":
+        return {"results": musix.search(body.get("q"), cp.get("musix", "youtube_api_key", fallback="").strip())}
+    if act == "web":
+        return musix.request_web(body.get("target"), body.get("id"), cp.get("musix", "downloader_url", fallback="").strip() or None)
+    if act == "delete":
+        musix.delete_track(body.get("id"))
+        return {"ok": True}
+    if act == "import_usb":
+        mounts = notes_tools.usb_mountpoints()
+        if not mounts:
+            raise musix.MusixError("No veo ningún USB conectado")
+        return {"ok": True, **musix.import_from(mounts)}
+    raise ValueError("accion invalida")
 
 
 def system_info(st):

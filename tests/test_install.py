@@ -23,11 +23,10 @@ class InstallerTest(unittest.TestCase):
         self.home = self.t / "home"
         self.shims = self.t / "shims"
         self.log = self.t / "calls.log"
-        for d in (self.shims, self.home, self.t / "xdg-labwc", self.r / "etc/raspotify", self.r / "boot/firmware",
+        for d in (self.shims, self.home, self.t / "xdg-labwc", self.r / "boot/firmware",
                   self.r / "opt/pcpi/models/vosk-model-small-es-0.42"):
             d.mkdir(parents=True)
         (self.t / "xdg-labwc/autostart").write_text(SYSTEM_AUTOSTART)
-        (self.r / "etc/raspotify/conf").write_text('#LIBRESPOT_NAME="x"\nLIBRESPOT_QUIET=1\n')
         (self.r / "boot/firmware/config.txt").write_text("dtparam=audio=on\n")
         rec = 'echo "%s $*" >> ' + str(self.log) + "\n"
         for name in ("apt-get", "apt-cache", "systemctl", "systemd-tmpfiles", "loginctl", "usermod", "raspi-config", "pkill", "pgrep", "ollama"):
@@ -203,19 +202,16 @@ class InstallerTest(unittest.TestCase):
         self.assertGreater(restart, usermod, "el servidor debe reiniciarse DESPUES de añadir el grupo video")
 
     def test_idempotent_and_keeps_user_changes(self):
-        self.install("--voice", "--spotify", "--camera", "--battery", "--stats")
+        self.install("--voice", "--camera", "--battery", "--stats")
         (self.r / "etc/pcpi/pcpi.conf").write_text("[weather]\nlat = 1\n")
         (self.r / "etc/pcpi/mode").write_text("home\n")
-        self.install("--voice", "--spotify", "--camera", "--battery", "--stats")
+        self.install("--voice", "--camera", "--battery", "--stats")
         conf = self.read("etc/pcpi/pcpi.conf")
         self.assertTrue(conf.startswith("[weather]\nlat = 1\n"))                          # no pisa tu configuracion...
         self.assertEqual(conf.count("intro4_url"), 1)                                    # ...solo añade el ajuste nuevo, una vez
         self.assertEqual(self.read("etc/pcpi/mode").strip(), "home")                    # ni tu modo
         auto = (self.home / ".config/labwc/autostart").read_text().splitlines()
         self.assertEqual(auto.count("pcpi-session &"), 1)
-        conf = self.read("etc/raspotify/conf")
-        self.assertEqual(conf.count("LIBRESPOT_NAME="), 1)
-        self.assertEqual(conf.count("LIBRESPOT_ONEVENT="), 1)
         self.assertEqual(self.read("boot/firmware/config.txt").count("usb_max_current_enable=1"), 1)
 
     # ------------------------------------------------------------------ opciones
@@ -232,20 +228,6 @@ class InstallerTest(unittest.TestCase):
         self.assertIn("loginctl enable-linger", c)
         self.assertIn("systemctl --user enable pcpi-voice.service", c)
         self.assertFalse([l for l in self.calls() if l.startswith("curl") and "alphacephei" in l], "no debe descargar un modelo que ya esta")
-
-    def test_spotify_config(self):
-        self.install("--spotify")
-        conf = self.read("etc/raspotify/conf")
-        self.assertIn('LIBRESPOT_NAME="PiCore"', conf)
-        self.assertIn('LIBRESPOT_ONEVENT="/usr/local/bin/pcpi-spotify-event"', conf)
-        self.assertIn("LIBRESPOT_QUIET=1", conf)                                         # lo ajeno se conserva
-        self.assertNotIn('#LIBRESPOT_NAME="x"', conf)
-        self.assertIn("ReadWritePaths=-/run/pcpi", self.read("etc/systemd/system/raspotify.service.d/pcpi.conf"))
-
-    def test_spotify_missing_conf_does_not_abort(self):
-        (self.r / "etc/raspotify/conf").unlink()
-        r = self.install("--spotify")
-        self.assertIn("no existe", r.stderr)
 
     def test_camera_and_stats_and_pihole(self):
         self.install("--camera", "--stats", "--pihole")

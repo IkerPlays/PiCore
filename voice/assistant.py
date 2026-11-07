@@ -132,12 +132,12 @@ def execute(cfg, intent):
             return "Pi-hole activado"
         if n == "music":
             try:
-                api(cfg, "/api/spotify", {"action": a})
+                api(cfg, "/api/music", {"action": "cmd", "cmd": a})
             except urllib.error.HTTPError as e:
                 try:
-                    return json.load(e).get("error", "No he podido controlar Spotify")
+                    return json.load(e).get("error", "No he podido controlar la música")
                 except ValueError:
-                    return "No he podido controlar Spotify"
+                    return "No he podido controlar la música"
             return {"pause": "Música en pausa", "play": "Seguimos con la música", "next": "Siguiente canción", "previous": "Canción anterior"}[a]
         if n == "volume":
             return "Hecho" if set_volume(a) else "No he podido cambiar el volumen"

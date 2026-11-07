@@ -5,6 +5,6 @@ choice="$(zenity --list --title="PiCore · Elegir modo" --text="Modo actual: $cu
   --column=id --column=Modo --hide-column=1 --print-column=1 \
   desktop "🖥  Escritorio" \
   iker    "📝  Iker (bloc de notas + internet)" \
-  home    "🏠  Casa (Pi-hole · Spotify · reloj)" \
+  home    "🏠  Casa (Pi-hole · Musix · reloj)" \
   --width=520 --height=380)" || exit 0
 [ -n "$choice" ] && pcpi-mode "$choice"

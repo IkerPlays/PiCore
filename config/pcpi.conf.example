@@ -151,13 +151,13 @@ fps = 2
 low_percent = 20
 critical_percent = 10
 
-[spotify]
-# Botones de pausa/siguiente/anterior en la pantalla (opcional). Spotify solo lo permite con cuenta Premium y una app
-# tuya GRATIS en https://developer.spotify.com/dashboard (Redirect URI: http://127.0.0.1:8888/callback).
-# Pon aqui su «Client ID» (no es un secreto de cuenta) y luego, una vez, en la terminal:  pcpi-spotify login
-client_id =
-# Nombre con el que sale la Pi en Spotify Connect (el de LIBRESPOT_NAME; el instalador usa PiCore).
-device_name = PiCore
+[musix]
+# Musix: reproductor propio (YT Music, MP3 Player y DYMusic). Las canciones offline viven en /var/lib/pcpi/music.
+# Clave GRATIS de la API de YouTube (solo para BUSCAR canciones en DYMusic; sin ella puedes pegar el enlace a mano):
+#   console.cloud.google.com -> crear proyecto -> «YouTube Data API v3» -> Credenciales -> Clave de API
+youtube_api_key =
+# Web a la que va DYMusic para convertir el enlace de YouTube en MP3.
+downloader_url = https://www.freemake.com/es/free_video_downloader_splendid/
 
 [ai]
 # IA local con Ollama (./install.sh --ai). Responde preguntas con datos reales de la Pi, SIN internet. Solo contesta:

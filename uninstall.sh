@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Desinstala PiCore (servicios, archivos y autostart). No toca Pi-hole, Raspotify ni tus paquetes.
+# Desinstala PiCore (servicios, archivos y autostart). No toca Pi-hole ni tus paquetes.
 # (Para pruebas: PCPI_ROOT=/otra/raiz y PCPI_HOME=/otra/carpeta actuan sobre un arbol alternativo.)
 set -uo pipefail
 [ "$(id -u)" -ne 0 ] || { echo "Ejecuta como usuario normal, no como root." >&2; exit 1; }
@@ -20,7 +20,7 @@ pkill -f -- "--user-data-dir=$HOME_DIR/.cache/pcpi-kiosk" 2>/dev/null
 pkill -f -- "--user-data-dir=$HOME_DIR/.cache/pcpi-portal" 2>/dev/null
 sudo systemctl disable --now pcpi-home.service pcpi-stats.service 2>/dev/null
 sudo rm -f "$R/etc/systemd/system/pcpi-home.service" "$R/etc/systemd/system/pcpi-stats.service" \
-           "$R/etc/systemd/system/raspotify.service.d/pcpi.conf" "$R/etc/tmpfiles.d/pcpi.conf" \
+           "$R/etc/tmpfiles.d/pcpi.conf" \
            "$R/etc/udev/rules.d/90-pcpi-backlight.rules"
 sudo systemctl daemon-reload
 

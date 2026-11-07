@@ -8,7 +8,7 @@ Un PC portátil con **Raspberry Pi 5 (8 GB)** y pantalla táctil de 7" con tres 
 |---|---|---|
 | 🖥 **Escritorio** | Raspberry Pi OS normal | ✅ |
 | 📝 **Iker** | Solo dos apps: **bloc de notas** (guardar/cargar notas) e **Internet** | ✅ |
-| 🏠 **Casa** | Estilo Alexa con pantalla y animaciones suaves: hora, tiempo, Pi-hole, Spotify Connect, asistente de voz local, cámara y panel de Wi-Fi | ✅ base |
+| 🏠 **Casa** | Estilo Alexa con pantalla y animaciones suaves: hora, tiempo, Pi-hole, Musix (YT Music, MP3 Player y DYMusic), asistente de voz local, cámara y panel de Wi-Fi | ✅ base |
 
 - 🛒 Qué comprar (≤ 250 €): [docs/SHOPPING_LIST.md](docs/SHOPPING_LIST.md)
 - 🖥 **Mini pantalla de estado** (CPU/RAM/disco/GPU, opcional): [docs/PANTALLA_MINI.md](docs/PANTALLA_MINI.md)
@@ -23,7 +23,7 @@ Un PC portátil con **Raspberry Pi 5 (8 GB)** y pantalla táctil de 7" con tres 
 make emulate        # o: python3 tools/emulate.py   (Windows: python tools\emulate.py)
 ```
 
-Abre <http://127.0.0.1:8080> y tienes el modo Casa funcionando en tu ordenador con un Pi-hole falso, tiempo, cámara de prueba y Spotify de mentira. En la misma terminal **escribes lo que dirías**: `oye pi qué hora es`, `oye pi` + (siguiente línea) `muestra la cámara`, `/spotify play Canción - Artista`, `/mode iker`... Usa el mismo código que la Pi (máquina de estados, intérprete de órdenes y acciones). **Ver los intros y la pantalla de carga:** abre <http://127.0.0.1:8080/loading?to=home&boot=1> (o arranca con `--open`); en la terminal, `/boot` simula encender la Pi de nuevo, `/intro 1..4` fuerza un intro, `/intro4 reset` repite la pantalla de descarga, `/battery 15`, `/portal on` y `/motion` enseñan la batería, la wifi pública y el aviso de movimiento. Tus vídeos se leen de `extra-assets/` (si son H.265, tu navegador debe saber reproducirlos: Edge y Safari sí, Chrome según el equipo). Detalles en `python3 tools/emulate.py --help`.
+Abre <http://127.0.0.1:8080> y tienes el modo Casa funcionando en tu ordenador con un Pi-hole falso, tiempo, cámara de prueba y dos canciones de prueba en Musix. En la misma terminal **escribes lo que dirías**: `oye pi qué hora es`, `oye pi` + (siguiente línea) `muestra la cámara`, `/musica play Canción - Artista`, `/mode iker`... Usa el mismo código que la Pi (máquina de estados, intérprete de órdenes y acciones). **Ver los intros y la pantalla de carga:** abre <http://127.0.0.1:8080/loading?to=home&boot=1> (o arranca con `--open`); en la terminal, `/boot` simula encender la Pi de nuevo, `/intro 1..4` fuerza un intro, `/intro4 reset` repite la pantalla de descarga, `/battery 15`, `/portal on` y `/motion` enseñan la batería, la wifi pública y el aviso de movimiento. Tus vídeos se leen de `extra-assets/` (si son H.265, tu navegador debe saber reproducirlos: Edge y Safari sí, Chrome según el equipo). Detalles en `python3 tools/emulate.py --help`.
 
 ## Instalar
 
@@ -32,7 +32,7 @@ En Raspberry Pi OS con escritorio (64 bits), como usuario normal:
 ```bash
 git clone https://github.com/IkerPlays/PiCore.git
 cd PiCore
-./install.sh --camera --voice --spotify   # Pi-hole se instala aparte: ./install.sh --pihole (ver Paso 6 del tutorial). Opciones: --all Aparte: --stats (mini pantalla) y --battery
+./install.sh --camera --voice   # Pi-hole se instala aparte: ./install.sh --pihole (ver Paso 6 del tutorial). Opciones: --all Aparte: --stats (mini pantalla) y --battery
 ```
 
 Después cierra sesión y vuelve a entrar. Para comprobar que todo va: `pcpi-doctor`. **Guía completa paso a paso: [docs/TUTORIAL.md](docs/TUTORIAL.md).** Para quitarlo: `./uninstall.sh`.
@@ -67,8 +67,7 @@ La wifi de casa va en la microSD (Imager). Para otra red, toca el icono de Wi-Fi
 
 - **Brillo** (☀ en Casa): deslizante y modo noche automático con rampa suave. Si la pantalla no tiene control por software, se oscurece con una capa.
 - **Vigilancia** (👁): detección de movimiento con la cámara y aviso en pantalla; no guarda ni envía imágenes. Apagada por defecto.
-- **Reproductor de Spotify incrustado** en la pantalla (pegas un enlace de lista/álbum/canción, pantalla completa; sin Premium ni app propia, con límites: muestras de 30 s sin sesión y posible falta de DRM en Chromium, sin probar en una Pi real).
-- **Botones de Spotify** (pausa/siguiente/anterior, también por voz) con la API web de Spotify: opcional, exige Premium y una app propia gratuita (`pcpi-spotify login`).
+- **Musix**, el reproductor propio de la pantalla: **YT Music** (YouTube incrustado: pegas un enlace), **MP3 Player** (música offline en la Pi, importable desde un USB) y **DYMusic** (buscas una canción en YouTube, abre la web de conversión y el MP3 aparece solo en el MP3 Player). Se maneja por voz («pausa la música», «siguiente canción»). Sin Premium ni cuentas. Límites reales en el tutorial: sin probar en una Pi real y sin automatizar webs de terceros.
 - **Hoja «Sistema»** en la pantalla: disco, memoria, temperatura, avisos de salud, apagar/reiniciar con doble toque y aviso de actualizaciones (comprobación semanal opcional, nunca instala sola).
 - **Calendario** de solo lectura (`.ics` de Google/Apple): próximos eventos en la pantalla y por voz.
 - **Salvapantallas / marco de fotos** con tus fotos de `extra-assets/photos/`.
@@ -98,11 +97,11 @@ La palabra, el umbral y el micro se cambian en `[voice]` de `/etc/pcpi/pcpi.conf
 **323 tests** (`make test`, ~2 min):
 
 - **Instalador y desinstalador ejecutados de verdad** en un árbol alternativo, con `apt`, `systemctl`, `sudo`… de mentira que anotan lo que se les pide: rutas, permisos, idempotencia (no pisa tu configuración ni tu modo), orden de las llamadas (el servidor se reinicia **después** de añadir los grupos), y que desinstalar deja el panel del escritorio intacto.
-- **Todos los scripts de `bin/`** (modos, selector, hook de Spotify, grabación de muestras, `pcpi-doctor`, y el vigilante de modos con un Chromium de mentira).
+- **Todos los scripts de `bin/`** (modos, selector, grabación de muestras, `pcpi-doctor`, y el vigilante de modos con un Chromium de mentira).
 - **Servidor y API**, seguridad (DNS rebinding, cabeceras, entradas raras), notas, cámara, configuración desordenada (contraseñas con `%`, claves repetidas, líneas basura).
 - **Voz** (intérprete de órdenes, máquina de estados) y **mini pantalla** (métricas, dibujo, bytes del SSD1306/SH1106, reconexión).
 - **Pantallas de Inicio/Carga, Wi-Fi, assets**: listado y rutas seguras, Range, el vigilante `pcpi-session` con Chromium de mentira, `nmcli` simulado (contraseñas, DNS por red, portal cautivo) y la pantalla de carga y el panel de Wi-Fi con teclado en un navegador real.
 - **«Pi virtual»** (`tests/test_pi_virtual.py`): el servidor real + `pcpi-session` real + un Chromium real sin pantalla recorren el encendido completo (carga con vídeo de inicio → Casa → latidos), el cambio a Iker (carga sin vídeo → notas), una nota con etiqueta y la vuelta a Casa. Es lo más cercano a una Pi que se puede probar sin una Pi: **no** prueba el hardware (pantalla, audio, Wayland, GPU). Se omite sin `node` + `playwright`.
 - **La interfaz en un navegador real** (más de 50 comprobaciones con Playwright: botones, notas, tema, cámara, XSS, errores de consola/CSP). Se omite si no tienes `node` + `playwright`.
 
-> ⚠️ **Nada de esto se ha probado todavía en una Raspberry Pi real.** Falta comprobar sobre el hardware: el instalador con apt de verdad, el kiosco de Chromium (y el vídeo de Inicio con sus códecs), el Wi-Fi con NetworkManager y los portales cautivos reales, el hook de Spotify, la cámara, el reconocimiento de voz (calidad del micro, umbral de activación) y la mini pantalla. Si algo falla, `pcpi-doctor` y la sección «Si algo falla» del [tutorial](docs/TUTORIAL.md) son el punto de partida.
+> ⚠️ **Nada de esto se ha probado todavía en una Raspberry Pi real.** Falta comprobar sobre el hardware: el instalador con apt de verdad, el kiosco de Chromium (y el vídeo de Inicio con sus códecs), el Wi-Fi con NetworkManager y los portales cautivos reales, el la cámara, el reconocimiento de voz (calidad del micro, umbral de activación) y la mini pantalla. Si algo falla, `pcpi-doctor` y la sección «Si algo falla» del [tutorial](docs/TUTORIAL.md) son el punto de partida.

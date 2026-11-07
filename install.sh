@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 # Instalador PiCore para Raspberry Pi OS (Bookworm/Trixie). Ejecutalo como usuario normal (usa sudo).
-#   ./install.sh [--camera] [--voice] [--spotify] [--pihole] [--stats] [--battery] [--ai] [--all]
+#   ./install.sh [--camera] [--voice] [--pihole] [--stats] [--battery] [--ai] [--all]
 #     --camera   camara USB en el modo Casa (ffmpeg)
 #     --voice    asistente de voz local (Vosk + openWakeWord + espeak-ng): "Hey Jarvis, que hora es"
-#     --spotify  Raspotify (Spotify Connect, requiere Premium) y el hook de "sonando ahora"
 #     --pihole   lanza el instalador oficial de Pi-hole (interactivo)
 #     --stats    mini pantalla OLED I2C con CPU/RAM/disco/temperatura (ver docs/PANTALLA_MINI.md)
 #     --battery  sube el limite de corriente USB (solo si usas una power bank sin 5V/5A)
@@ -13,12 +12,12 @@
 #    personal y el pip del entorno virtual. En uso normal no se toca nada de esto.)
 set -euo pipefail
 
-CAMERA=0; VOICE=0; SPOTIFY=0; PIHOLE=0; STATS=0; BATTERY=0; AI=0
+CAMERA=0; VOICE=0; PIHOLE=0; STATS=0; BATTERY=0; AI=0
 for a in "$@"; do
   case "$a" in
-    --camera) CAMERA=1 ;; --voice) VOICE=1 ;; --spotify) SPOTIFY=1 ;; --pihole) PIHOLE=1 ;;
+    --camera) CAMERA=1 ;; --voice) VOICE=1 ;; --pihole) PIHOLE=1 ;;
     --stats) STATS=1 ;; --battery) BATTERY=1 ;; --ai) AI=1 ;;
-    --all) CAMERA=1; VOICE=1; SPOTIFY=1; PIHOLE=1 ;;   # --all NO incluye --stats ni --battery (hardware opcional)
+    --all) CAMERA=1; VOICE=1; PIHOLE=1 ;;   # --all NO incluye --stats ni --battery (hardware opcional)
     -h|--help) sed -n '2,12p' "$0"; exit 0 ;;
     *) echo "Opcion desconocida: $a  (usa --help)" >&2; exit 1 ;;
   esac
@@ -114,21 +113,6 @@ if [ "$BATTERY" = 1 ]; then
   fi
 fi
 
-if [ "$SPOTIFY" = 1 ]; then
-  step "Raspotify (script oficial de dtcooper/raspotify)"
-  curl -sL https://dtcooper.github.io/raspotify/install.sh | sh
-  sudo mkdir -p "$R/etc/systemd/system/raspotify.service.d"
-  printf '[Service]\nReadWritePaths=-/run/pcpi\n' | sudo tee "$R/etc/systemd/system/raspotify.service.d/pcpi.conf" >/dev/null
-  CONF="$R/etc/raspotify/conf"
-  if [ -f "$CONF" ]; then
-    sudo sed -i '/^#\?LIBRESPOT_ONEVENT=/d;/^#\?LIBRESPOT_NAME=/d' "$CONF"
-    printf 'LIBRESPOT_NAME="PiCore"\nLIBRESPOT_ONEVENT="/usr/local/bin/pcpi-spotify-event"\n' | sudo tee -a "$CONF" >/dev/null
-    sudo systemctl daemon-reload && sudo systemctl restart raspotify
-  else
-    echo "Aviso: no existe $CONF (¿fallo la instalacion de Raspotify?). Repite ./install.sh --spotify cuando funcione." >&2
-  fi
-fi
-
 if [ "$CAMERA" = 1 ]; then
   step "Camara (ffmpeg)"
   sudo apt-get install -y ffmpeg
@@ -207,11 +191,11 @@ OPTS_PREV="$(sed -n 's/^options=//p' "$PREV_FILE" 2>/dev/null || true)"
   echo "src=$SRC"
   OPTS=""
   [ "$CAMERA" = 1 ] && OPTS="$OPTS --camera"; [ "$VOICE" = 1 ] && OPTS="$OPTS --voice"
-  [ "$SPOTIFY" = 1 ] && OPTS="$OPTS --spotify"; [ "$STATS" = 1 ] && OPTS="$OPTS --stats"
+  [ "$STATS" = 1 ] && OPTS="$OPTS --stats"
   [ "$BATTERY" = 1 ] && OPTS="$OPTS --battery"; [ "$AI" = 1 ] && OPTS="$OPTS --ai"
   # lo ya instalado antes no se olvida aunque esta vez no lo pidas (p. ej. ./install.sh a secas para copiar tus extra-assets)
   for o in $OPTS_PREV; do
-    case "$o" in --camera|--voice|--spotify|--stats|--battery|--ai) case " $OPTS " in *" $o "*) ;; *) OPTS="$OPTS $o" ;; esac ;; esac
+    case "$o" in --camera|--voice|--stats|--battery|--ai) case " $OPTS " in *" $o "*) ;; *) OPTS="$OPTS $o" ;; esac ;; esac
   done
   # --pihole NO se recuerda: es el instalador interactivo de Pi-hole y no hay que repetirlo al actualizar
   echo "options=${OPTS# }"

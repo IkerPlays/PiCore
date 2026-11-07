@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(os.environ.get("PCPI_ROOT", "/"))
-KNOWN = {"--camera", "--voice", "--spotify", "--stats", "--battery", "--ai"}   # --pihole es interactivo: nunca se repite al actualizar
+KNOWN = {"--camera", "--voice", "--stats", "--battery", "--ai"}   # --pihole es interactivo: nunca se repite al actualizar
 
 
 def say(m):
@@ -48,7 +48,7 @@ def main(argv):
     check_only, backup, force = "--check" in argv, "--no-backup" not in argv, "--force" in argv
     src, opts = read_install()
     if not src:
-        say("No sé dónde está el proyecto (falta /etc/pcpi/install). Ve a su carpeta y ejecuta:  ./install.sh --camera --voice --spotify")
+        say("No sé dónde está el proyecto (falta /etc/pcpi/install). Ve a su carpeta y ejecuta:  ./install.sh --camera --voice")
         return 1
     if not (Path(src) / ".git").exists() or not (Path(src) / "install.sh").exists():
         say("No encuentro el proyecto en %s (¿lo moviste o lo borraste?). Vuelve a clonarlo y ejecuta ./install.sh" % src)

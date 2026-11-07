@@ -162,7 +162,7 @@ def parse(text):
         clock = parse_clock(words)
         if clock:
             return Intent("alarm_set", clock)
-    if has("musica", "cancion", "spotify", "tema "):
+    if has("musica", "cancion", "musix", "tema "):
         if has("siguiente", "proxima", "salta", "otra cancion", "cambia"):
             return Intent("music", "next")
         if has("anterior", "previa", "atras", "vuelve"):

@@ -22,7 +22,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('la fecha esta en español y con mayuscula', /^[A-ZÁÉÍÓÚ][a-záéíóú]+, \d+ de [a-z]+/.test(await page.textContent('#date')), await page.textContent('#date'));
   check('Pi-hole muestra un porcentaje', /\d+%/.test(await page.textContent('#ph-pct')), await page.textContent('#ph-pct'));
   check('el tiempo se muestra', (await page.textContent('#weather')).includes('°C'));
-  check('Spotify muestra la cancion', (await page.textContent('#track')).length > 0 && (await page.textContent('#track')) !== 'Nada sonando');
+  check('la tarjeta de Musix muestra lo que suena', (await page.textContent('#track')).length > 0 && (await page.textContent('#track')) !== 'Nada sonando');
 
   const state0 = await page.textContent('#ph-state');
   await page.click('#ph-btn');
@@ -120,52 +120,54 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('cargando muestra el rayo y quita el aviso', (await page.textContent('#chip-bat')).includes('⚡80%') && !(await page.getAttribute('#chip-bat', 'class')).includes('low'));
   await page.unroute('**/api/status');
 
-  // ------------------------------------------------------------------ reproductor incrustado de Spotify
-  await page.goto(base + '/');
-  await sleep(1000);
-  await page.click('#xbtn');
-  await sleep(600);
-  await page.fill('#xin', 'https://evil.com/playlist/37i9dQZF1DXcBWIGoYBM5M');
-  await page.click('#xgo');
-  await page.waitForFunction(() => document.getElementById('xerr').textContent.length > 0, null, { timeout: 5000 }).catch(() => {});
-  check('un enlace que no es de Spotify se rechaza con un mensaje', (await page.textContent('#xerr')).includes('open.spotify.com'), await page.textContent('#xerr'));
-  check('sin enlace valido el reproductor esta vacio', !(await page.getAttribute('#xframe', 'src')));
-  await page.fill('#xin', 'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M?si=zzz');
-  await page.click('#xgo');
-  await page.waitForFunction(() => (document.getElementById('xframe').getAttribute('src') || '').includes('/embed/playlist/'), null, { timeout: 5000 }).catch(() => {});
-  check('un enlace valido carga el reproductor embed', (await page.getAttribute('#xframe', 'src')) === 'https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M');
-  await page.click('#x-full');
-  await sleep(500);
-  const fb = await page.evaluate(() => { const r = document.getElementById('xpanel').getBoundingClientRect(); return [r.width, r.height]; });
-  check('pantalla completa ocupa toda la pantalla', fb[0] >= 1020 && fb[1] >= 595, JSON.stringify(fb));
-  await page.click('#x-full');
-  await page.click('#x-close');
-  await sleep(500);
-  check('cerrar la hoja no quita el reproductor (la musica sigue)', !!(await page.getAttribute('#xframe', 'src')));
-  await page.request.post(base + '/api/spotify', { headers: { 'X-PCPI': '1' }, data: { action: 'embed', link: '' } });
-
-  // ------------------------------------------------------------------ mandos de Spotify
+  // ------------------------------------------------------------------ Musix: YT Music, MP3 Player y DYMusic
   await page.goto(base + '/');
   await sleep(1200);
-  check('sin sesion de Spotify no salen los mandos', await page.isHidden('#mctl'));
-  let spPosts = [];
-  await page.route('**/api/status', async route => {
-    const resp = await route.fetch(); const j = await resp.json();
-    j.spotify = { configured: true, connected: true }; j.nowplaying = { state: 'playing', title: 'Tema', artist: 'Yo' };
-    await route.fulfill({ response: resp, json: j });
-  });
-  await page.route('**/api/spotify', async route => {
-    spPosts.push(JSON.parse(route.request().postData()).action);
-    await route.fulfill({ status: spPosts.length === 3 ? 502 : 200, json: spPosts.length === 3 ? { error: 'Spotify pide esperar un poco' } : { ok: true } });
-  });
-  await page.waitForFunction(() => !document.getElementById('mctl').hidden, null, { timeout: 9000 }).catch(() => {});
-  check('con sesion salen los mandos', await page.isVisible('#mctl'));
-  await page.click('#m-play'); await page.click('#m-next'); await page.click('#m-prev');
+  await page.click('#mxbtn');
+  await sleep(700);
+  check('Musix ofrece YT Music, MP3 Player y DYMusic', (await page.locator('#mxhome button').allTextContents()).map(t => t.split(/(?=[A-Z][a-z]+ [a-z])/)[0]).join('|').length > 0 && (await page.locator('#mxhome button').count()) === 3);
+  await page.click('#mxhome button[data-go="yt"]');
+  await page.fill('#mxin', 'https://evil.com/watch?v=dQw4w9WgXcQ');
+  await page.click('#mxgo');
+  await page.waitForFunction(() => document.getElementById('mxerr').textContent.length > 0, null, { timeout: 5000 }).catch(() => {});
+  check('un enlace que no es de YouTube se rechaza', (await page.textContent('#mxerr')).includes('YouTube'), await page.textContent('#mxerr'));
+  await page.fill('#mxin', 'https://youtu.be/dQw4w9WgXcQ?t=3');
+  await page.click('#mxgo');
+  await page.waitForFunction(() => (document.getElementById('mxframe').getAttribute('src') || '').includes('youtube-nocookie'), null, { timeout: 5000 }).catch(() => {});
+  check('un enlace de YouTube carga el reproductor incrustado', (await page.getAttribute('#mxframe', 'src')) === 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ');
+  await page.click('#mx-full');
   await sleep(500);
-  check('los botones mandan pausa (sonando), siguiente y anterior', JSON.stringify(spPosts) === '["pause","next","previous"]', JSON.stringify(spPosts));
-  check('un error de Spotify se ve en la tarjeta', (await page.textContent('#m-err')).includes('esperar'));
-  await page.unroute('**/api/spotify');
-  await page.unroute('**/api/status');
+  const fb = await page.evaluate(() => { const r = document.getElementById('mxpanel').getBoundingClientRect(); return [r.width, r.height]; });
+  check('pantalla completa ocupa toda la pantalla', fb[0] >= 1020 && fb[1] >= 595, JSON.stringify(fb));
+  await page.click('#mx-full');
+  await page.click('#mx-back');
+  await page.click('#mxhome button[data-go="mp3"]');
+  await page.waitForFunction(() => document.querySelectorAll('#mxlist .trk').length >= 2, null, { timeout: 6000 }).catch(() => {});
+  check('el MP3 Player lista las canciones de la Pi', (await page.locator('#mxlist .trk').count()) >= 2, await page.textContent('#mxlist'));
+  await page.locator('#mxlist .trk').first().click();
+  await page.waitForFunction(() => !document.getElementById('mxaudio').paused, null, { timeout: 6000 }).catch(() => {});
+  check('tocar una cancion la reproduce', await page.evaluate(() => !document.getElementById('mxaudio').paused && document.getElementById('mxaudio').src.includes('/music/')));
+  await sleep(600);
+  const np = await (await page.request.get(base + '/api/status')).json();
+  check('lo que suena sale en la tarjeta (estado del servidor)', np.nowplaying && np.nowplaying.state === 'playing' && np.nowplaying.title.length > 0, JSON.stringify(np.nowplaying));
+  const first = await page.evaluate(() => document.getElementById('mxaudio').src);
+  await page.click('#mx-n');
+  await sleep(500);
+  check('siguiente cambia de cancion', (await page.evaluate(() => document.getElementById('mxaudio').src)) !== first);
+  await page.request.post(base + '/api/music', { headers: { 'X-PCPI': '1' }, data: { action: 'cmd', cmd: 'pause' } });
+  await page.waitForFunction(() => document.getElementById('mxaudio').paused, null, { timeout: 9000 }).catch(() => {});
+  check('la orden de voz «pausa» para la musica', await page.evaluate(() => document.getElementById('mxaudio').paused));
+  await page.click('#mx-back');
+  await page.click('#mxhome button[data-go="dy"]');
+  await sleep(800);
+  check('sin clave de busqueda DYMusic deja pegar el enlace', await page.isVisible('#dylink'));
+  await page.fill('#dylink', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ');
+  await page.click('#dylinkgo');
+  await page.waitForFunction(() => !document.getElementById('dysteps').hidden, null, { timeout: 5000 }).catch(() => {});
+  check('DYMusic explica los pasos y deja el enlace limpio', (await page.textContent('#dysteps')).includes('MP3') && (await page.inputValue('#dysteps input')) === 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', await page.textContent('#dysteps'));
+  await page.click('#mx-close');
+  await sleep(500);
+  check('cerrar Musix no corta la musica ni el reproductor', await page.evaluate(() => !!document.getElementById('mxaudio').src));
 
   // ------------------------------------------------------------------ hoja «Sistema»
   await page.goto(base + '/');
