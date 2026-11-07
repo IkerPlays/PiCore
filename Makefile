@@ -1,7 +1,7 @@
 .PHONY: test rapido emulate demo lint mini-preview
 test:        ## Ejecuta todos los tests
 	python3 -m unittest discover tests -v
-rapido:      ## Tests que no abren navegador (mas rapido que make test)
+rapido:      ## Tests que no abren navegador: ~3 min en vez de ~8 (627 tests)
 	python3 -m unittest -q $(addprefix tests.,$(filter-out test_ui_smoke test_pi_virtual test_loading_ui test_screensaver test_web_demo,$(basename $(notdir $(wildcard tests/test_*.py)))))
 emulate:     ## Arranca el emulador en http://127.0.0.1:8080 (escribe ordenes de voz en la terminal)
 	python3 tools/emulate.py
