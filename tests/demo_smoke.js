@@ -159,6 +159,18 @@ const check = (name, ok, extra) => results.push({ name, ok: !!ok, extra });
   check('en un movil la interfaz se escala para caber', pb && pb.width <= 390, JSON.stringify(pb));
   await phone.close();
   check('ninguna peticion /api/ llega a un servidor', apiLeaks.length === 0, apiLeaks.slice(0, 4).join(', '));
+  // 300 frases al azar (mezclas raras de palabras de las ordenes): la voz simulada siempre contesta un texto y nunca lanza una excepcion
+  {
+    const vocab = ['qué', 'hora', 'es', 'temporizador', 'de', 'minutos', 'alarma', 'a', 'las', 'y', 'media', 'menos', 'cuarto', 'nota', 'lista', 'compra', 'tiempo', 'mañana', 'volumen', 'brillo', 'música', 'pausa', 'ñ', '', '!!!', '9999999999999', '-1', 'x'.repeat(300), '🙂', 'segundos', 'horas', 'recuérdame', 'avísame', 'ponle', 'más', 'cuántas', 'notas', 'navidad', 'repite', 'silencia', 'vigilancia', 'wifi', 'tokio', 'dado'];
+    let semilla = 42; const azar = () => { semilla = (semilla * 1664525 + 1013904223) % 4294967296; return semilla / 4294967296; };
+    const malas = [];
+    for (let i = 0; i < 300; i++) {
+      const f = Array.from({ length: Math.floor(azar() * 10) }, () => vocab[Math.floor(azar() * vocab.length)]).join(' ');
+      if (/modo|escritorio|reinicia|apaga/.test(f)) continue;               // cambian de pagina
+      try { const r = await page.evaluate(x => window.PCPI_DEMO.understand(x), f); if (typeof r !== 'string') malas.push(f.slice(0, 40)); } catch (e) { malas.push(f.slice(0, 40) + ' -> ' + String(e.message).slice(0, 60)); }
+    }
+    check('la voz simulada aguanta 300 frases al azar sin romperse', malas.length === 0, JSON.stringify(malas.slice(0, 5)));
+  }
   check('sin errores de JavaScript ni de CSP en la consola', problems.length === 0, problems.join(' | '));
   await browser.close();
   const failed = results.filter(r => !r.ok);

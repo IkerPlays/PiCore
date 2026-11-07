@@ -6,6 +6,10 @@
 
 
 
+## Test de la demo: 300 frases al azar
+
+- La voz simulada se prueba con 300 mezclas raras de palabras (semilla fija): siempre contesta un texto y nunca lanza una excepción. Pasó a la primera.
+
 ## Test de la demo: abre cada hoja de Casa y las alertas con botón
 
 - Recorre las 6 hojas (brillo, Wi-Fi, Sistema, tiempo, calendario, Musix), comprueba que se abren sin errores de consola y que las alertas de la hoja Sistema traen sus botones y abren el panel de Pi-hole.
