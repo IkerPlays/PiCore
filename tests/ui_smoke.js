@@ -120,6 +120,45 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('cargando muestra el rayo y quita el aviso', (await page.textContent('#chip-bat')).includes('⚡80%') && !(await page.getAttribute('#chip-bat', 'class')).includes('low'));
   await page.unroute('**/api/status');
 
+  // ------------------------------------------------------------------ Modo Dev
+  await page.goto(base + '/');
+  await sleep(800);
+  check('Casa tiene el boton «Modo Dev»', await page.isVisible('#nav-dev'));
+  await page.request.post(base + '/api/mode', { headers: { 'X-PCPI': '1' }, data: { mode: 'dev' } });
+  await page.goto(base + '/dev');
+  await sleep(600);
+  check('la pagina Dev muestra la consola y las ordenes rapidas', (await page.locator('#quick button').count()) >= 8 && await page.isVisible('#cmd'));
+  await page.fill('#cmd', 'echo hola');
+  await page.press('#cmd', 'Enter');
+  await sleep(700);
+  check('al ejecutar, la orden se anota en la consola y queda en marcha', (await page.textContent('#out')).includes('$ echo hola'), await page.textContent('#out'));
+  const sent = await page.evaluate(async () => { const r = await fetch('/api/dev'); return (await r.json()).mode; });
+  check('el servidor sabe que esta en modo dev', sent === 'dev');
+  await page.click('#tabs button[data-t="api"]');
+  await page.click('#apigo');
+  await page.waitForFunction(() => document.getElementById('apiout').textContent.startsWith('200'), null, { timeout: 5000 }).catch(() => {});
+  check('el explorador de API pide /api/status', (await page.textContent('#apiout')).includes('"cpu_temp"') || (await page.textContent('#apiout')).includes('"mode"'), (await page.textContent('#apiout')).slice(0, 80));
+  await page.selectOption('#apim', 'POST'); await page.fill('#apipath', '/api/mode'); await page.fill('#apibody', '{no json');
+  await page.click('#apigo');
+  check('un cuerpo que no es JSON se rechaza antes de enviar', (await page.textContent('#apiout')).includes('JSON'));
+  await page.click('#tabs button[data-t="exp"]');
+  await page.waitForFunction(() => document.querySelectorAll('#explist .sw').length === 3, null, { timeout: 5000 }).catch(() => {});
+  check('los 3 experimentos aparecen apagados', (await page.locator('#explist .sw.on').count()) === 0 && (await page.locator('#explist .sw').count()) === 3);
+  await page.locator('#explist .sw').nth(1).click();
+  await page.waitForFunction(() => !document.getElementById('expgraph').hidden, null, { timeout: 5000 }).catch(() => {});
+  check('encender «Gráfica en vivo» la muestra', await page.isVisible('#graph'));
+  await page.locator('#explist .sw').nth(2).click();
+  await sleep(600);
+  await page.request.post(base + '/api/mode', { headers: { 'X-PCPI': '1' }, data: { mode: 'home' } });
+  await page.goto(base + '/');
+  await page.waitForSelector('#dbg', { timeout: 9000 }).catch(() => {});
+  check('«casa_debug» pone la insignia de depuracion en Casa', await page.isVisible('#dbg'));
+  await page.request.post(base + '/api/mode', { headers: { 'X-PCPI': '1' }, data: { mode: 'dev' } });
+  for (const id of ['live_graph', 'casa_debug']) await page.request.post(base + '/api/dev', { headers: { 'X-PCPI': '1' }, data: { action: 'flag', id, on: false } });
+  await page.request.post(base + '/api/mode', { headers: { 'X-PCPI': '1' }, data: { mode: 'home' } });
+  await page.goto(base + '/');
+  await sleep(500);
+
   // ------------------------------------------------------------------ Musix: YT Music, MP3 Player y DYMusic
   await page.goto(base + '/');
   await sleep(1200);

@@ -187,6 +187,8 @@ def parse(text):
             return Intent("mode", "home")
         if has("iker", "notas", "bloc"):
             return Intent("mode", "iker")
+        if has("dev", "desarrollador", "programador", "consola", "terminal"):
+            return Intent("mode", "dev")
         if has("escritorio"):
             return Intent("mode", "desktop")
     if has("volumen", "silencia", "silencio", "mute"):

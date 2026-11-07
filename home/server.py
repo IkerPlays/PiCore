@@ -22,6 +22,7 @@ from pathlib import Path
 import assets
 import battery
 import calendar_ics
+import devmode
 import display
 import fetcher
 import health
@@ -38,8 +39,8 @@ import timers
 
 ROOT = Path(__file__).resolve().parent
 WEB = ROOT / "web"
-MODES = ("desktop", "iker", "home")
-PAGES = {"/": "index.html", "/iker": "iker.html", "/loading": "loading.html"}
+MODES = ("desktop", "iker", "home", "dev")
+PAGES = {"/": "index.html", "/iker": "iker.html", "/dev": "dev.html", "/loading": "loading.html"}
 LOCAL_HOSTS = ("localhost", "127.0.0.1", "[::1]")
 CSP = ("default-src 'self'; img-src 'self' https: data:; media-src 'self'; style-src 'self' 'unsafe-inline'; "
        "script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-src https://www.youtube-nocookie.com; frame-ancestors 'none'; form-action 'none'; base-uri 'none'")
@@ -92,9 +93,15 @@ def get_mode():
     return m if m in MODES else "desktop"
 
 
+def dev_enabled(cp=None):
+    return (cp or read_conf()).get("dev", "enabled", fallback="true").strip().lower() not in ("false", "0", "no", "off")
+
+
 def set_mode(mode):
     if mode not in MODES:
         raise ValueError("modo invalido")
+    if mode == "dev" and not dev_enabled():
+        raise ValueError("el modo Dev esta desactivado ([dev] enabled = false)")
     f = mode_file()
     tmp = f.with_name(f.name + ".tmp")
     tmp.write_text(mode + "\n")
@@ -512,6 +519,7 @@ def status():
         "ai": ai_info(cp),
         "calendar": calendar_info(cp),
         "music": music_info(),
+        "dev": {"enabled": dev_enabled(cp), "flags": devmode.get_flags()},
         "system": {**system_info({"cpu_temp": cpu_temp(), "net": net_summary(), "pihole": cached("pihole", 10, lambda: pihole_stats(cp)), "ai": ai_info(cp)}), "update_run": health.update_run_state()},
         "ip": cached("ip", 60, local_ip),
         "host": socket.gethostname(),
@@ -763,6 +771,21 @@ class Handler(BaseHTTPRequestHandler):
             if not self._local():
                 return
             return self._send(200, music_list())
+        if path == "/api/dev":
+            if not self._local():
+                return
+            q = urllib.parse.parse_qs(self.path.partition("?")[2])
+            if "id" in q:
+                if get_mode() != "dev":
+                    return self._send(403, {"error": "solo en el modo Dev"})
+                try:
+                    return self._send(200, devmode.result(q["id"][0][:40]))
+                except ValueError:
+                    return self._send(400, {"error": "id invalido"})
+                except devmode.DevError as e:
+                    return self._send(404, {"error": str(e)})
+            return self._send(200, dev_info())
+
         if path.startswith("/static/"):
             return self._static(path[len("/static/"):])
         name = PAGES.get(path)
@@ -934,7 +957,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         if not self._host_ok():
             return self._send(403, {"error": "host no permitido"})
-        paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/notes/export", "/api/bookmarks", "/api/music", "/api/loaded",
+        paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/notes/export", "/api/bookmarks", "/api/music", "/api/dev", "/api/loaded",
                  "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display", "/api/motion", "/api/timers", "/api/ask", "/api/system")
         if self.path not in paths or self.headers.get("X-PCPI") != "1":
             return self._send(403, {"error": "prohibido"})
@@ -993,6 +1016,13 @@ class Handler(BaseHTTPRequestHandler):
                 except ValueError as e:
                     return self._send(400, {"error": str(e)})
                 return self._send(200, {"ok": True, "path": path_, "count": n})
+            if self.path == "/api/dev":
+                try:
+                    return self._send(200, dev_post(body))
+                except devmode.DevError as e:
+                    return self._send(429, {"error": str(e)})
+                except ValueError as e:                              # mensajes nuestros (modo, orden vacia...): se ven tal cual
+                    return self._send(400, {"error": str(e)})
             if self.path == "/api/music":
                 try:
                     return self._send(200, music_post(body))
@@ -1115,6 +1145,27 @@ def ai_answer(question):
     if not cfg["enabled"]:
         raise llm.AIError("La IA no está activada. Actívala con: ./install.sh --ai")
     return llm.ask(question, cfg, status())
+
+
+def dev_info():
+    return {"enabled": dev_enabled(), "mode": get_mode(), "flags": devmode.get_flags(),
+            "experiments": [{"id": k, **v} for k, v in devmode.EXPERIMENTS.items()]}
+
+
+def dev_post(body):
+    """La consola solo funciona dentro del modo Dev (y si [dev] enabled no esta apagado)."""
+    if not dev_enabled():
+        raise ValueError("el modo Dev esta desactivado")
+    if get_mode() != "dev":
+        raise ValueError("solo en el modo Dev")
+    act = body.get("action")
+    if act == "run":
+        return {"id": devmode.submit(body.get("cmd"))}
+    if act == "terminal":
+        return devmode.request_terminal()
+    if act == "flag":
+        return {"flags": devmode.set_flag(body.get("id"), body.get("on"))}
+    raise ValueError("accion invalida")
 
 
 MUSIC = {"seq": 0, "cmd": None, "arg": None}

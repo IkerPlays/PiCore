@@ -75,6 +75,9 @@ start_mode() {
   if [ "$mode" = home ]; then
     FLAGS+=(--kiosk --user-data-dir="$PROFILE" --overscroll-history-navigation=0 --disable-pinch)
     setsid nohup "$CHROMIUM" "${FLAGS[@]}" "http://localhost:$PORT/" >/dev/null 2>&1 9>&- &
+  elif [ "$mode" = dev ]; then
+    FLAGS+=(--start-maximized --user-data-dir="$PROFILE-dev")
+    setsid nohup "$CHROMIUM" "${FLAGS[@]}" "http://localhost:$PORT/dev" >/dev/null 2>&1 9>&- &
   else
     FLAGS+=(--start-maximized --user-data-dir="$PROFILE-iker")
     setsid nohup "$CHROMIUM" "${FLAGS[@]}" "http://localhost:$PORT/iker" >/dev/null 2>&1 9>&- &
@@ -124,6 +127,37 @@ PY
   common_flags
   FLAGS+=(--start-maximized --user-data-dir="$WEB_PROFILE")
   setsid nohup "$CHROMIUM" "${FLAGS[@]}" "$url" >/dev/null 2>&1 9>&- &
+}
+
+# Modo Dev: ejecuta las ordenes de la consola (/run/pcpi/dev/in-<id>) con TUS permisos y abre un terminal real si se pide.
+# Solo se mira mientras el modo activo es dev. Cada orden tiene tiempo maximo (PCPI_DEV_TIMEOUT, 120 s) y salida limitada.
+DEV_TIMEOUT="${PCPI_DEV_TIMEOUT:-120}"
+sync_dev() {
+  [ "$mode" = dev ] || return 0
+  local d="$RUN/dev" f id cmd
+  [ -d "$d" ] || return 0
+  for f in "$d"/in-*; do
+    [ -e "$f" ] || break
+    id="${f##*/in-}"
+    case "$id" in *[!0-9a-f]*|"") rm -f "$f"; continue ;; esac
+    [ "${#id}" -eq 16 ] || { rm -f "$f"; continue; }
+    cmd="$(head -c 2000 "$f")"; rm -f "$f"
+    (
+      cd "$HOME" 2>/dev/null || true
+      export TERM=dumb NO_COLOR=1
+      timeout -k 3 "$DEV_TIMEOUT" bash -c "$cmd" < /dev/null 2>&1 | head -c 200000 > "$d/out-$id"
+      rc="${PIPESTATUS[0]}"
+      [ "$rc" = 124 ] && echo "[tiempo agotado: más de ${DEV_TIMEOUT} s]" >> "$d/out-$id"
+      echo "$rc" > "$d/code-$id.tmp" && mv -f "$d/code-$id.tmp" "$d/code-$id"
+    ) >/dev/null 2>&1 9>&- &
+  done
+  if [ -e "$d/term" ]; then
+    rm -f "$d/term"
+    local t
+    for t in lxterminal x-terminal-emulator foot xterm; do
+      if command -v "$t" >/dev/null; then setsid nohup "$t" >/dev/null 2>&1 9>&- & break; fi
+    done
+  fi
 }
 
 # Segundos desde el ultimo latido de la pagina (o desde que se lanzo el navegador, lo que sea mas reciente)
@@ -239,7 +273,7 @@ applied="" ; tick=0 ; phase=running ; loading_since=0
 while true; do
   mode=desktop
   read -r mode < "$MODE_FILE" 2>/dev/null || true          # builtin: no lanza procesos
-  case "$mode" in desktop|iker|home) ;; *) mode=desktop ;; esac
+  case "$mode" in desktop|iker|home|dev) ;; *) mode=desktop ;; esac
 
   if [ "$mode" != "$applied" ]; then
     stop_browser; sleep 0.5
@@ -265,7 +299,7 @@ while true; do
       phase=running; tick=0; launched_at="$(now_s)"
       case "$mode" in
         desktop) stop_browser ;;
-        iker)    stop_browser; sleep 0.3; start_mode iker ;;
+        iker|dev) stop_browser; sleep 0.3; start_mode "$mode" ;;
         home)    browser_alive || start_mode home ;;     # la pagina de carga ya navego sola a la UI de Casa
       esac
     fi
@@ -282,6 +316,7 @@ while true; do
 
   sync_portal
   sync_web
+  sync_dev
   sync_power
   sync_update
   sync_auto

@@ -157,6 +157,7 @@
 
   nav { grid-column:1 / span 2; display:flex; gap:12px; }
   nav button { flex:1; font-size:20px; box-shadow:var(--shadow); opacity:0; animation:rise .7s var(--ease) both; animation-delay:calc(var(--i) * 90ms + 450ms); display:flex; align-items:center; justify-content:center; gap:10px; }
+  nav button[hidden] { display:none; }
   nav button svg { width:22px; height:22px; }
 
   /* ---------------- voz ---------------- */
@@ -369,6 +370,7 @@
     <button id="open-cam" style="--i:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h3l2-3h8l2 3h3v11H3z"/><circle cx="12" cy="13" r="3.5"/></svg>Cámara</button>
     <button data-mode="iker" style="--i:1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h10l4 4v14H5z"/><path d="M9 12h6M9 16h6"/></svg>Modo Iker</button>
     <button data-mode="desktop" style="--i:2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>Escritorio</button>
+    <button data-mode="dev" id="nav-dev" style="--i:3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8l-5 4 5 4M16 8l5 4-5 4M14 5l-4 14"/></svg>Modo Dev</button>
   </nav>
 </main>
 
@@ -543,7 +545,7 @@ $("open-cam").onclick = () => { openCam(); post("/api/camera", {show:true}); };
 $("close-cam").onclick = () => { closeCam(); post("/api/camera", {show:false}); };
 
 /* ---- cambio de modo: la pantalla se funde y entra la pantalla de Carga del vigilante ---- */
-const MODE_NAMES = {iker:"modo Iker", desktop:"el Escritorio", home:"modo Casa"};
+const MODE_NAMES = {iker:"modo Iker", desktop:"el Escritorio", home:"modo Casa", dev:"modo Dev"};
 document.querySelectorAll("button[data-mode]").forEach(b => b.onclick = async () => {
   $("sw-text").textContent = "Cambiando a " + MODE_NAMES[b.dataset.mode] + "…";
   $("switching").classList.add("on");
@@ -732,6 +734,14 @@ function mxSetSleep(sec) {
   tick();
 }
 $("mx-sleep").onclick = () => { const steps = [0, 15, 30, 60]; const cur = mxSleepAt ? Math.round((mxSleepAt - Date.now()) / 60000) : 0; const nxt = steps.find(m => m > cur + 1); mxSetSleep(nxt ? nxt * 60 : 0); };
+/* experimento «casa_debug» (se enciende en el modo Dev): cuanto tarda el servidor en contestar */
+let dbgMs = 0;
+function paintDebug(on) {
+  let b = $("dbg");
+  if (!on) { if (b) b.remove(); return; }
+  if (!b) { b = document.createElement("div"); b.id = "dbg"; b.style.cssText = "position:fixed;left:8px;bottom:8px;z-index:50;font:12px/1.3 ui-monospace,monospace;padding:4px 8px;border-radius:8px;background:#000a;color:#9f9;pointer-events:none"; document.body.append(b); }
+  b.textContent = "estado " + dbgMs + " ms · " + Math.round(performance.now() / 1000) + " s abierta";
+}
 function paintMusic(m) {
   if (!m) return;
   if (mxSeq === null) { mxSeq = m.seq; return; }                      // la primera lectura no es una orden
@@ -1146,7 +1156,9 @@ $("scrim").onclick = () => { closeSheet(); closeBright(); closeTimers(); closeWe
 
 async function refresh() {
   let s;
+  const t0 = performance.now();
   try { s = await (await fetch("/api/status")).json(); } catch (e) { return; }
+  dbgMs = Math.round(performance.now() - t0);
   const p = s.pihole;
   if (p.ok) {
     phEnabled = p.blocking === "enabled";
@@ -1208,6 +1220,8 @@ async function refresh() {
   lastCpu = s.cpu_temp ?? null;
   paintSystem(s.system);
   paintMusic(s.music);
+  $("nav-dev").hidden = !!(s.dev && s.dev.enabled === false);
+  paintDebug(s.dev && s.dev.flags && s.dev.flags.casa_debug);
 
   const c = s.camera || {};
   $("open-cam").style.display = c.available ? "" : "none";

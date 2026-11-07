@@ -137,11 +137,11 @@
 "use strict";
 const $ = id => document.getElementById(id);
 const q = new URLSearchParams(location.search);
-const TO = ["home", "iker", "desktop"].includes(q.get("to")) ? q.get("to") : "home";
+const TO = ["home", "iker", "desktop", "dev"].includes(q.get("to")) ? q.get("to") : "home";
 const IS_BOOT = q.get("boot") === "1";
-const TARGET = {home: "/", iker: "/iker", desktop: null}[TO];     // lo que se precarga
+const TARGET = {home: "/", iker: "/iker", dev: "/dev", desktop: null}[TO];     // lo que se precarga
 const NAVIGATE = TO === "home";            // Casa continua en esta misma ventana; Iker/Escritorio los abre el vigilante
-const NAMES = {home: "Casa", iker: "Iker", desktop: "Escritorio"};
+const NAMES = {home: "Casa", iker: "Iker", dev: "Dev", desktop: "Escritorio"};
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const post = (url, body) => fetch(url, {method: "POST", headers: {"X-PCPI": "1"}, body: JSON.stringify(body || {})}).catch(() => {});
 

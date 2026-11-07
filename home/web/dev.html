@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modo Dev</title>
+<style>
+  :root { --bg:#0e1116; --side:#0a0c10; --card:#151a22; --fg:#e6edf3; --dim:#8b96a5; --line:#262d38; --acc:#58a6ff; --acc-fg:#04111f; --bad:#f85149; --ok:#3fb950; --warn:#d29922; }
+  * { box-sizing:border-box; margin:0; }
+  html,body { height:100%; background:var(--bg); color:var(--fg); font-family:system-ui,"Segoe UI",sans-serif; }
+  body { display:grid; grid-template-rows:52px 1fr; }
+  header { display:flex; align-items:center; gap:8px; padding:0 12px; background:var(--side); border-bottom:1px solid var(--line); }
+  header .title { font-weight:700; font-size:18px; margin-right:auto; } header .title small { color:var(--dim); font-weight:400; margin-left:8px; }
+  button { font:inherit; font-size:15px; border:1px solid var(--line); background:var(--card); color:var(--fg); border-radius:10px; padding:8px 14px; cursor:pointer; }
+  button:hover { border-color:var(--acc); } button.primary { background:var(--acc); color:var(--acc-fg); border-color:var(--acc); }
+  nav.tabs { display:flex; gap:6px; padding:8px 12px 0; background:var(--side); } nav.tabs button { border-radius:10px 10px 0 0; border-bottom:0; }
+  nav.tabs button.on { background:var(--bg); border-color:var(--acc); color:var(--acc); }
+  main { display:flex; flex-direction:column; min-height:0; }
+  section { display:none; flex:1; min-height:0; padding:12px; flex-direction:column; gap:10px; } section.on { display:flex; }
+  #quick { display:flex; flex-wrap:wrap; gap:6px; } #quick button { font-size:13px; padding:5px 10px; font-family:ui-monospace,Menlo,monospace; }
+  #out, #apiout, #chatlog { flex:1; min-height:0; overflow:auto; background:#05070a; border:1px solid var(--line); border-radius:10px; padding:10px 12px; font:13px/1.45 ui-monospace,Menlo,Consolas,monospace; white-space:pre-wrap; word-break:break-word; }
+  .cmd { color:var(--acc); } .err { color:var(--bad); } .okc { color:var(--ok); } .dim { color:var(--dim); }
+  #line { display:flex; gap:8px; align-items:center; } #line span { color:var(--ok); font-family:ui-monospace,monospace; }
+  #cmd, #apipath, #chatin, #apibody { flex:1; min-width:0; font:14px ui-monospace,Menlo,monospace; padding:9px 12px; border:1px solid var(--line); border-radius:10px; background:#05070a; color:var(--fg); outline:0; }
+  #cmd:focus, #apipath:focus, #chatin:focus, #apibody:focus { border-color:var(--acc); }
+  .exp { display:flex; align-items:center; gap:12px; padding:12px 14px; background:var(--card); border:1px solid var(--line); border-radius:12px; } .exp div { flex:1; } .exp small { display:block; color:var(--dim); margin-top:2px; }
+  .sw { width:52px; height:30px; border-radius:15px; padding:0; position:relative; background:#2a313c; } .sw::after { content:""; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; transition:left .2s; }
+  .sw.on { background:var(--ok); border-color:var(--ok); } .sw.on::after { left:25px; }
+  #graph { width:100%; height:150px; background:#05070a; border:1px solid var(--line); border-radius:10px; }
+  .warn { color:var(--warn); font-size:13px; }
+</style>
+</head>
+<body>
+<header>
+  <span class="title">Modo Dev<small>consola · terminal · API · experimentos</small></span>
+  <button id="term" title="Abre un terminal de verdad (para programas interactivos como nano o top)">Terminal real</button>
+  <button id="exit">Salir a Casa</button>
+</header>
+<main>
+  <nav class="tabs" id="tabs"><button data-t="console" class="on">Consola</button><button data-t="api">API</button><button data-t="exp">Experimentos</button></nav>
+  <section id="t-console" class="on">
+    <div id="quick"></div>
+    <div id="out"><span class="dim">Aquí salen los resultados. Cada orden se ejecuta con tus permisos normales, con un máximo de 120 s y sin entrada de teclado (nada de nano ni top: para eso, «Terminal real»).</span></div>
+    <div id="line"><span>$</span><input id="cmd" placeholder="escribe una orden y pulsa Intro  (↑ ↓ historial)" autocomplete="off" spellcheck="false" autocapitalize="off"><button id="run" class="primary">Ejecutar</button><button id="clear">Limpiar</button></div>
+    <div class="warn">Cuidado: esto es una consola de verdad con tu usuario. Puedes romper cosas; para deshacer una actualización mala, <code>pcpi-backup restore</code>.</div>
+  </section>
+  <section id="t-api">
+    <div style="display:flex;gap:8px"><select id="apim" style="font:inherit;padding:8px;border-radius:10px;background:var(--card);color:var(--fg);border:1px solid var(--line)"><option>GET</option><option>POST</option></select><input id="apipath" value="/api/status" autocomplete="off" spellcheck="false"><button id="apigo" class="primary">Enviar</button></div>
+    <textarea id="apibody" rows="3" placeholder='Cuerpo JSON (solo POST), por ejemplo {"mode":"home"}' spellcheck="false" style="flex:none"></textarea>
+    <div id="apiout" class="dim">Prueba las rutas de la API de PiCore. Los POST llevan la cabecera X-PCPI automáticamente.</div>
+  </section>
+  <section id="t-exp">
+    <div class="warn">Cosas a medio hacer: se pueden encender y apagar sin riesgo para el resto. Algunas se ven en Casa o aquí abajo.</div>
+    <div id="explist" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div id="expgraph" hidden><canvas id="graph" width="900" height="150"></canvas><div class="dim" id="graphlbl" style="font-size:12px"></div></div>
+    <div id="chat" hidden style="display:none;flex:1;min-height:0;flex-direction:column;gap:8px">
+      <div id="chatlog"><span class="dim">Pregúntale algo a la IA local sobre la Pi. Solo responde, no ejecuta nada.</span></div>
+      <div style="display:flex;gap:8px"><input id="chatin" placeholder="Pregunta…" autocomplete="off"><button id="chatgo" class="primary">Preguntar</button></div>
+    </div>
+  </section>
+</main>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const post = (url, body) => fetch(url, {method:"POST", headers:{"X-PCPI":"1"}, body:JSON.stringify(body || {})});
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const QUICK = ["pcpi-doctor", "pcpi-config get server port", "pcpi-mode status", "systemctl status pcpi-home --no-pager -n 15", "journalctl -u pcpi-home -n 30 --no-pager",
+  "vcgencmd measure_temp", "vcgencmd get_throttled", "df -h /", "free -m", "uptime", "ip -br a", "ls /var/lib/pcpi/music", "git -C ~ status --short"];
+for (const c of QUICK) { const b = document.createElement("button"); b.textContent = c; b.onclick = () => { $("cmd").value = c; runCmd(); }; $("quick").append(b); }
+
+/* pestañas */
+for (const b of document.querySelectorAll("#tabs button")) b.onclick = () => {
+  for (const x of document.querySelectorAll("#tabs button")) x.classList.toggle("on", x === b);
+  for (const s of document.querySelectorAll("section")) s.classList.toggle("on", s.id === "t-" + b.dataset.t);
+  if (b.dataset.t === "exp") loadExp();
+};
+
+/* consola: la orden la ejecuta pcpi-session; aqui se pregunta por el resultado hasta que acaba */
+const hist = []; let hi = 0, busy = false;
+function add(cls, text) { const s = document.createElement("span"); s.className = cls; s.textContent = text; $("out").append(s); $("out").scrollTop = 1e9; return s; }
+async function runCmd() {
+  const cmd = $("cmd").value.trim();
+  if (!cmd || busy) return;
+  busy = true; hist.push(cmd); hi = hist.length; $("cmd").value = "";
+  add("cmd", "\n$ " + cmd + "\n");
+  const body = add("", "");
+  try {
+    const r = await post("/api/dev", {action: "run", cmd}); const j = await r.json();
+    if (!r.ok) { add("err", (j.error || "No se pudo") + "\n"); busy = false; return; }
+    for (let i = 0; i < 600; i++) {
+      await sleep(i < 10 ? 300 : 800);
+      const g = await fetch("/api/dev?id=" + j.id); const st = await g.json();
+      if (!g.ok) { add("err", (st.error || "Se perdió la orden") + "\n"); break; }
+      body.textContent = (st.truncated ? "[…salida recortada…]\n" : "") + st.out; $("out").scrollTop = 1e9;
+      if (st.done) { add(st.code === 0 ? "okc" : "err", "[código " + st.code + "]\n"); break; }
+    }
+  } catch (e) { add("err", "No se pudo hablar con el servidor\n"); }
+  busy = false;
+}
+$("run").onclick = runCmd; $("clear").onclick = () => { $("out").textContent = ""; };
+$("cmd").addEventListener("keydown", e => {
+  if (e.key === "Enter") runCmd();
+  else if (e.key === "ArrowUp" && hist.length) { hi = Math.max(0, hi - 1); $("cmd").value = hist[hi]; e.preventDefault(); }
+  else if (e.key === "ArrowDown" && hist.length) { hi = Math.min(hist.length, hi + 1); $("cmd").value = hist[hi] || ""; e.preventDefault(); }
+});
+$("term").onclick = async () => { const r = await post("/api/dev", {action: "terminal"}); add("dim", r.ok ? "\nAbriendo un terminal real…\n" : "\nNo se pudo abrir el terminal\n"); };
+$("exit").onclick = () => post("/api/mode", {mode: "home"});
+
+/* API */
+$("apigo").onclick = async () => {
+  const m = $("apim").value, p = $("apipath").value.trim();
+  if (!p.startsWith("/")) { $("apiout").textContent = "La ruta debe empezar por /"; return; }
+  let opts = {};
+  if (m === "POST") { let b = $("apibody").value.trim() || "{}"; try { JSON.parse(b); } catch (e) { $("apiout").textContent = "El cuerpo no es JSON válido"; return; } opts = {method: "POST", headers: {"X-PCPI": "1"}, body: b}; }
+  const t0 = performance.now();
+  try {
+    const r = await fetch(p, opts); const ct = r.headers.get("Content-Type") || ""; let txt = ct.includes("json") ? JSON.stringify(await r.json(), null, 2) : (await r.text()).slice(0, 4000);
+    $("apiout").className = ""; $("apiout").textContent = r.status + " " + r.statusText + "  ·  " + Math.round(performance.now() - t0) + " ms\n\n" + txt;
+  } catch (e) { $("apiout").textContent = "Error de red"; }
+};
+
+/* experimentos */
+let flags = {}, graphTimer = 0;
+async function loadExp() {
+  const j = await (await fetch("/api/dev")).json(); flags = j.flags;
+  const box = $("explist"); box.textContent = "";
+  for (const e of j.experiments) {
+    const row = document.createElement("div"); row.className = "exp";
+    const d = document.createElement("div"); d.textContent = e.title; const sm = document.createElement("small"); sm.textContent = e.desc; d.append(sm);
+    const sw = document.createElement("button"); sw.className = "sw" + (flags[e.id] ? " on" : ""); sw.setAttribute("aria-label", e.title); sw.setAttribute("aria-pressed", String(!!flags[e.id]));
+    sw.onclick = async () => { const r = await post("/api/dev", {action: "flag", id: e.id, on: !flags[e.id]}); if (r.ok) { flags = (await r.json()).flags; applyFlags(); loadExp(); } };
+    row.append(d, sw); box.append(row);
+  }
+  applyFlags();
+}
+function applyFlags() {
+  $("expgraph").hidden = !flags.live_graph; $("chat").style.display = flags.ai_chat ? "flex" : "none"; $("chat").hidden = !flags.ai_chat;
+  clearInterval(graphTimer); if (flags.live_graph) { graphTimer = setInterval(sample, 2000); sample(); }
+}
+const pts = [];
+async function sample() {
+  try { const s = await (await fetch("/api/status")).json(); pts.push({t: s.cpu_temp, m: s.system && s.system.mem_avail_mb}); if (pts.length > 60) pts.shift(); draw(); } catch (e) {}
+}
+function draw() {
+  const c = $("graph"), g = c.getContext("2d"); g.clearRect(0, 0, c.width, c.height);
+  const line = (key, color, lo, hi) => { g.beginPath(); g.strokeStyle = color; g.lineWidth = 2; pts.forEach((p, i) => { const v = p[key]; if (v == null) return; const x = i * (c.width / 59), y = c.height - 10 - (Math.min(hi, Math.max(lo, v)) - lo) / (hi - lo) * (c.height - 20); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke(); };
+  line("t", "#f85149", 30, 90); line("m", "#58a6ff", 0, 8000);
+  const l = pts[pts.length - 1] || {}; $("graphlbl").textContent = "rojo: temperatura CPU " + (l.t ?? "?") + " °C · azul: memoria libre " + (l.m ?? "?") + " MB (últimos 2 min)";
+}
+/* chat con la IA */
+async function ask() {
+  const q = $("chatin").value.trim(); if (!q) return; $("chatin").value = "";
+  const log = $("chatlog"); const u = document.createElement("div"); u.className = "cmd"; u.textContent = "Tú: " + q; log.append(u);
+  const a = document.createElement("div"); a.textContent = "…"; log.append(a);
+  try { const r = await post("/api/ask", {question: q}); const j = await r.json(); a.textContent = r.ok ? j.answer : (j.error || "Sin respuesta"); if (!r.ok) a.className = "err"; } catch (e) { a.textContent = "Error de red"; a.className = "err"; }
+  log.scrollTop = 1e9;
+}
+$("chatgo").onclick = ask; $("chatin").addEventListener("keydown", e => { if (e.key === "Enter") ask(); });
+/* latido: si el navegador se cuelga, esto se para y el vigilante lo relanza */
+setInterval(() => fetch("/api/alive").catch(() => {}), 5000); fetch("/api/alive").catch(() => {});
+$("cmd").focus();
+</script>
+</body>
+</html>

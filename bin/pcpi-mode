@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Uso: pcpi-mode [desktop|iker|home|status]
+# Uso: pcpi-mode [desktop|iker|home|dev|status]
 # Cambia el modo. El vigilante pcpi-session (en la sesion grafica) lo aplica en ~1 s.
 set -eu
 MODE_FILE="${PCPI_MODE_FILE:-/etc/pcpi/mode}"
 cur="$(cat "$MODE_FILE" 2>/dev/null || echo desktop)"
 case "${1:-status}" in
   status) echo "$cur" ;;
-  desktop|iker|home) echo "$1" > "$MODE_FILE"; echo "Modo: $1" ;;
-  *) echo "Uso: pcpi-mode [desktop|iker|home|status]" >&2; exit 1 ;;
+  desktop|iker|home|dev) echo "$1" > "$MODE_FILE"; echo "Modo: $1" ;;
+  *) echo "Uso: pcpi-mode [desktop|iker|home|dev|status]" >&2; exit 1 ;;
 esac

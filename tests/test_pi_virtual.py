@@ -135,6 +135,20 @@ class PiVirtualTest(unittest.TestCase):
         mp3 = music / "Cancion descargada.mp3"                    # el navegador deja ahi el MP3: el reproductor lo ve solo
         mp3.write_bytes(b"ID3" + b"\0" * 4000)
         self.assertIn(b"Cancion descargada", self.get("/api/music"))
+        # 3c) Modo Dev: carga, ventana /dev, y una orden de la consola que ejecuta pcpi-session de verdad
+        r = urllib.request.Request("http://127.0.0.1:%d/api/mode" % self.port, data=b'{"mode":"dev"}', headers={"X-PCPI": "1"})
+        urllib.request.urlopen(r, timeout=5).read()
+        self.assertTrue(self.wait(lambda: any("/loading?to=dev&boot=0" in u for u in self.navs())), "no cargo el modo Dev: %s" % self.navs())
+        self.assertTrue(self.wait(lambda: any(u.endswith("/dev") for u in self.navs())), "no abrio la consola: %s" % self.navs())
+        r = urllib.request.Request("http://127.0.0.1:%d/api/dev" % self.port, data=b'{"action":"run","cmd":"echo hola desde dev; exit 7"}', headers={"X-PCPI": "1"})
+        cid = json.loads(urllib.request.urlopen(r, timeout=5).read())["id"]
+        res = {}
+
+        def done():
+            res.update(json.loads(self.get("/api/dev?id=" + cid)))
+            return res.get("done")
+        self.assertTrue(self.wait(done), "la consola no devolvio el resultado: %s" % res)
+        self.assertEqual((res["code"], res["out"].strip()), (7, "hola desde dev"))
         # 4) vuelta a Casa
         r = urllib.request.Request("http://127.0.0.1:%d/api/mode" % self.port, data=b'{"mode":"home"}', headers={"X-PCPI": "1"})
         urllib.request.urlopen(r, timeout=5).read()

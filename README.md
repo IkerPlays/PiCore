@@ -7,6 +7,7 @@ Un PC portátil con **Raspberry Pi 5 (8 GB)** y pantalla táctil de 7" con tres 
 | Modo | Qué hace | Estado |
 |---|---|---|
 | 🖥 **Escritorio** | Raspberry Pi OS normal | ✅ |
+| 🛠 **Dev** | Consola de comandos (la ejecuta tu sesión, con tus permisos), terminal real, explorador de la API y experimentos que se encienden y apagan | ✅ base |
 | 📝 **Iker** | Solo dos apps: **bloc de notas** (guardar/cargar notas) e **Internet** | ✅ |
 | 🏠 **Casa** | Estilo Alexa con pantalla y animaciones suaves: hora, tiempo, Pi-hole, Musix (YT Music, MP3 Player y DYMusic), asistente de voz local, cámara y panel de Wi-Fi | ✅ base |
 
@@ -68,6 +69,7 @@ La wifi de casa va en la microSD (Imager). Para otra red, toca el icono de Wi-Fi
 - **Brillo** (☀ en Casa): deslizante y modo noche automático con rampa suave. Si la pantalla no tiene control por software, se oscurece con una capa.
 - **Vigilancia** (👁): detección de movimiento con la cámara y aviso en pantalla; no guarda ni envía imágenes. Apagada por defecto.
 - **Musix**, el reproductor propio de la pantalla: **YT Music** (YouTube incrustado: pegas un enlace), **MP3 Player** (música offline en la Pi, importable desde un USB) y **DYMusic** (buscas una canción en YouTube, abre la web de conversión y el MP3 aparece solo en el MP3 Player). Se maneja por voz («pausa la música», «siguiente canción»). Sin Premium ni cuentas. Límites reales en el tutorial: sin probar en una Pi real y sin automatizar webs de terceros.
+- **Actualizar desde la pantalla** (botón en «Sistema», con registro; automático opcional por franja horaria, apagado por defecto).
 - **Hoja «Sistema»** en la pantalla: disco, memoria, temperatura, avisos de salud, apagar/reiniciar con doble toque y aviso de actualizaciones (comprobación semanal opcional, nunca instala sola).
 - **Calendario** de solo lectura (`.ics` de Google/Apple): próximos eventos en la pantalla y por voz.
 - **Salvapantallas / marco de fotos** con tus fotos de `extra-assets/photos/`.
