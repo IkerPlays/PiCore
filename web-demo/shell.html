@@ -33,6 +33,7 @@
   #tour .dots { display:flex; gap:4px; margin-top:12px; } #tour .dots i { flex:1; height:3px; border-radius:2px; background:#ffffff22; } #tour .dots i.on { background:#7cabff; }
   @media (max-width:1380px) { #tour { left:50%; transform:translateX(-50%); top:auto; bottom:110px; width:min(520px, calc(100% - 24px)); } }
   @media (max-width:700px) { #chips { display:none; } #stage { bottom:84px; } }
+  kbd { font:600 11px ui-monospace,monospace; padding:1px 6px; border-radius:5px; border:1px solid #ffffff33; background:#ffffff12; }
   #hint { position:absolute; left:0; right:0; bottom:10px; text-align:center; color:#8a94a6; font-size:12px; } #rot { display:none; color:#fbbf24; }
   @media (orientation:portrait) and (max-width:700px) { #rot { display:inline; } header small { display:none; } }
 </style>
@@ -50,7 +51,7 @@
   <form id="say" autocomplete="off"><input id="sayin" placeholder="Háblale a la Pi: escribe lo que dirías, por ejemplo «oye Pi, qué hora es»" aria-label="Háblale a la Pi" maxlength="140"><button class="on" type="submit">Decir</button></form>
   <div id="chips"></div>
 </div>
-<div id="hint"><span id="rot">Gira el móvil en horizontal para verlo mejor. </span>Pantalla de 1024×600, como la de la Raspberry Pi.</div>
+<div id="hint" class="hint"><span id="rot">Gira el móvil en horizontal para verlo mejor. </span>Pantalla de 1024×600, como la de la Raspberry Pi. Atajos: <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> modos, <kbd>T</kbd> visita, <kbd>V</kbd> voz.</div>
 <script>
 "use strict";
 const f = document.getElementById("f"), dev = document.getElementById("dev");
@@ -129,6 +130,15 @@ document.getElementById("t-prev").onclick = () => show(step - 1);
 document.getElementById("t-x").onclick = () => { tour.classList.remove("on"); step = -1; };
 if (/[?&]tour\b/.test(location.search)) setTimeout(() => show(0), 1200);
 
+/* atajos: 1 Casa, 2 Iker, 3 Dev, T visita guiada, V escribir a la Pi (solo si no estas escribiendo en un cuadro) */
+addEventListener("keydown", e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const el = document.activeElement; if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+  const m = {"1": "home", "2": "iker", "3": "dev"}[e.key];
+  if (m) { const b = document.querySelector('button[data-m="' + m + '"]'); if (b) b.click(); }
+  else if (e.key === "t" || e.key === "T") document.getElementById("tourbtn").click();
+  else if (e.key === "v" || e.key === "V") { e.preventDefault(); document.getElementById("sayin").focus(); }
+});
 setInterval(() => {
   let m = "home"; try { m = JSON.parse(localStorage.getItem("pcpi-demo-mode") || '"home"'); } catch (e) {}
   for (const b of document.querySelectorAll("button[data-m]")) b.classList.toggle("on", b.dataset.m === m);

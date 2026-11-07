@@ -5,6 +5,10 @@
 
 
 
+## Simulador: atajos de teclado
+
+- `1` `2` `3` cambian de modo, `T` abre la visita guiada y `V` lleva el cursor a la barra de voz (no actúan si estás escribiendo). Comprobado en navegador sin pantalla.
+
 ## Voz: temporizadores con nombre
 
 - «Pon un temporizador de diez minutos para la pasta» crea el temporizador con el nombre «pasta» (sale en la lista y en el aviso). Arreglado: «temporizador para diez minutos» se entendía como parar. También en el simulador. Probado con tests; no en una Pi real.
