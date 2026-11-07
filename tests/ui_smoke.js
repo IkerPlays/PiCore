@@ -13,7 +13,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   patchWaitForFunction(page);
   const problems = [];
   page.on('pageerror', e => problems.push('pageerror: ' + e.message));
-  page.on('console', m => { if (m.type() === 'error' && !/scdn|ERR_NAME|ERR_INTERNET|net::|status of 400/.test(m.text())) problems.push('console: ' + m.text()); });
+  page.on('console', m => { if (m.type() === 'error' && !/scdn|ERR_NAME|ERR_INTERNET|net::|status of (400|502)/.test(m.text())) problems.push('console: ' + m.text()); });
 
   // ------------------------------------------------------------------ modo Casa
   await page.goto(base + '/');
@@ -118,6 +118,29 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   fakeBat = { available: true, percent: 80, charging: true, low: false, critical: false };
   await page.waitForFunction(() => document.getElementById('chip-bat').textContent.includes('⚡'), null, { timeout: 9000 }).catch(() => {});
   check('cargando muestra el rayo y quita el aviso', (await page.textContent('#chip-bat')).includes('⚡80%') && !(await page.getAttribute('#chip-bat', 'class')).includes('low'));
+  await page.unroute('**/api/status');
+
+  // ------------------------------------------------------------------ mandos de Spotify
+  await page.goto(base + '/');
+  await sleep(1200);
+  check('sin sesion de Spotify no salen los mandos', await page.isHidden('#mctl'));
+  let spPosts = [];
+  await page.route('**/api/status', async route => {
+    const resp = await route.fetch(); const j = await resp.json();
+    j.spotify = { configured: true, connected: true }; j.nowplaying = { state: 'playing', title: 'Tema', artist: 'Yo' };
+    await route.fulfill({ response: resp, json: j });
+  });
+  await page.route('**/api/spotify', async route => {
+    spPosts.push(JSON.parse(route.request().postData()).action);
+    await route.fulfill({ status: spPosts.length === 3 ? 502 : 200, json: spPosts.length === 3 ? { error: 'Spotify pide esperar un poco' } : { ok: true } });
+  });
+  await page.waitForFunction(() => !document.getElementById('mctl').hidden, null, { timeout: 9000 }).catch(() => {});
+  check('con sesion salen los mandos', await page.isVisible('#mctl'));
+  await page.click('#m-play'); await page.click('#m-next'); await page.click('#m-prev');
+  await sleep(500);
+  check('los botones mandan pausa (sonando), siguiente y anterior', JSON.stringify(spPosts) === '["pause","next","previous"]', JSON.stringify(spPosts));
+  check('un error de Spotify se ve en la tarjeta', (await page.textContent('#m-err')).includes('esperar'));
+  await page.unroute('**/api/spotify');
   await page.unroute('**/api/status');
 
   // ------------------------------------------------------------------ hoja «Sistema»

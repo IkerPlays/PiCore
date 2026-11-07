@@ -32,6 +32,7 @@ import motion
 import netmgr
 import notes_tools
 import pdf
+import spotify_ctl
 import pcpiconf
 import timers
 
@@ -510,6 +511,7 @@ def status():
         "timers": TIMERS.snapshot() if TIMERS else [],
         "ai": ai_info(cp),
         "calendar": calendar_info(cp),
+        "spotify": spotify_info(read_conf()),
         "system": system_info({"cpu_temp": cpu_temp(), "net": net_summary(), "pihole": cached("pihole", 10, lambda: pihole_stats(cp)), "ai": ai_info(cp)}),
         "ip": cached("ip", 60, local_ip),
         "host": socket.gethostname(),
@@ -918,7 +920,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         if not self._host_ok():
             return self._send(403, {"error": "host no permitido"})
-        paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/notes/export", "/api/bookmarks", "/api/loaded",
+        paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/notes/export", "/api/bookmarks", "/api/spotify", "/api/loaded",
                  "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display", "/api/motion", "/api/timers", "/api/ask", "/api/system")
         if self.path not in paths or self.headers.get("X-PCPI") != "1":
             return self._send(403, {"error": "prohibido"})
@@ -977,6 +979,11 @@ class Handler(BaseHTTPRequestHandler):
                 except ValueError as e:
                     return self._send(400, {"error": str(e)})
                 return self._send(200, {"ok": True, "path": path_, "count": n})
+            if self.path == "/api/spotify":
+                try:
+                    return self._send(200, spotify_post(body))
+                except spotify_ctl.SpotifyError as e:
+                    return self._send(502, {"error": str(e)})
             if self.path == "/api/bookmarks":
                 return self._send(200, notes_tools.edit_bookmarks(body))
             if self.path == "/api/notes/delete":
@@ -1094,6 +1101,17 @@ def ai_answer(question):
     if not cfg["enabled"]:
         raise llm.AIError("La IA no está activada. Actívala con: ./install.sh --ai")
     return llm.ask(question, cfg, status())
+
+
+def spotify_info(cp):
+    cid = cp.get("spotify", "client_id", fallback="").strip()
+    return {"configured": bool(cid), "connected": bool(cid) and spotify_ctl.logged_in()}
+
+
+def spotify_post(body):
+    cp = read_conf()
+    return spotify_ctl.command(body.get("action"), cp.get("spotify", "client_id", fallback="").strip(),
+                               cp.get("spotify", "device_name", fallback="PiCore").strip() or "PiCore")
 
 
 def system_info(st):

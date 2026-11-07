@@ -162,6 +162,15 @@ def parse(text):
         clock = parse_clock(words)
         if clock:
             return Intent("alarm_set", clock)
+    if has("musica", "cancion", "spotify", "tema "):
+        if has("siguiente", "proxima", "salta", "otra cancion", "cambia"):
+            return Intent("music", "next")
+        if has("anterior", "previa", "atras", "vuelve"):
+            return Intent("music", "previous")
+        if has("pausa", "para ", "detener", "deten", "silencia", "quita", "apaga"):
+            return Intent("music", "pause")
+        if has("reanuda", "continua", "sigue", "pon ", "reproduce", "activa", "play"):
+            return Intent("music", "play")
     if has("pihole", "pi hole", "pi jol", "anuncios", "bloqueador"):
         if has("desactiva", "pausa", "apaga", "para ", "quita", "deshabilita"):
             return Intent("pihole_disable", find_number(words) or 5)

@@ -61,6 +61,10 @@
             box-shadow:0 -20px 60px #0008; padding:20px 22px 24px; transform:translate(-50%,105%); transition:transform .5s var(--ease); max-height:86vh; overflow:auto; }
   #wpanel.on { transform:translate(-50%,0); }
   #wpanel h3 { font-size:22px; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  #mctl { display:flex; align-items:center; gap:10px; margin-top:12px; } #mctl[hidden] { display:none; }
+  #mctl button { width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; padding:0; }
+  #mctl svg { width:24px; height:24px; }
+  #m-err { color:var(--warn); font-size:14px; flex:1; }
   #chip-sys { color:var(--fg); position:relative; }
   #chip-sys.warn { border-color:var(--warn); } #chip-sys.bad { border-color:var(--bad); animation:blink 1.6s ease-in-out infinite; }
   #spanel { position:fixed; left:50%; bottom:0; z-index:21; width:min(760px,100vw); background:var(--card); border:1px solid var(--line); border-bottom:0; border-radius:26px 26px 0 0;
@@ -315,6 +319,12 @@
           <div id="pstate"></div>
         </div>
       </div>
+      <div id="mctl" hidden>
+        <button id="m-prev" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.5v14H6zM20 5v14L9.5 12z"/></svg></button>
+        <button id="m-play" aria-label="Pausa o seguir"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg></button>
+        <button id="m-next" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 5H18v14h-2.5zM4 5v14l10.5-7z"/></svg></button>
+        <span id="m-err"></span>
+      </div>
     </div>
   </section>
 
@@ -558,6 +568,17 @@ function openCalendar() {
 }
 function closeCalendar() { $("cpanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on")) $("scrim").classList.remove("on"); }
 /* ---- sistema: salud de la Pi y apagar/reiniciar (con confirmacion de dos toques) ---- */
+/* ---- mandos de Spotify (solo si hay Client ID y sesion iniciada) ---- */
+async function music(action) {
+  const e = $("m-err"); e.textContent = "";
+  try {
+    const r = await post("/api/spotify", {action});
+    if (!r.ok) e.textContent = (await r.json()).error || "No se pudo";
+  } catch (x) { e.textContent = "No se pudo"; }
+}
+$("m-prev").onclick = () => music("previous"); $("m-next").onclick = () => music("next");
+$("m-play").onclick = () => music(document.body.classList.contains("playing") ? "pause" : "play");
+function paintSpotify(sp) { $("mctl").hidden = !(sp && sp.connected); }
 let sysInfo = null, pwrAsk = null, pwrTimer = 0;
 function paintSystem(sy) {
   sysInfo = sy || null;
@@ -923,6 +944,7 @@ async function refresh() {
   paintBattery(s.battery);
   lastCpu = s.cpu_temp ?? null;
   paintSystem(s.system);
+  paintSpotify(s.spotify);
 
   const c = s.camera || {};
   $("open-cam").style.display = c.available ? "" : "none";

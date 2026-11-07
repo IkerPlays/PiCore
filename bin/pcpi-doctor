@@ -92,6 +92,9 @@ else echo "  (desactivada; ./install.sh --ai la instala)"; fi
 echo "Pi-hole y Spotify"
 systemctl is-active --quiet pihole-FTL 2>/dev/null && ok "Pi-hole activo" || warn "Pi-hole no instalado/activo (./install.sh --pihole)"
 systemctl is-active --quiet raspotify 2>/dev/null && ok "Raspotify (Spotify Connect) activo" || warn "Raspotify no activo (./install.sh --spotify)"
+if [ -n "$(pcpi-config get spotify client_id 2>/dev/null)" ]; then
+  pcpi-spotify status 2>/dev/null | grep -q "^Conectado" && ok "botones de Spotify conectados" || warn "falta iniciar sesion para los botones de Spotify: pcpi-spotify login"
+else echo "  (botones de Spotify sin configurar: opcional, mira el tutorial)"; fi
 
 if systemctl list-unit-files pcpi-stats.service >/dev/null 2>&1 && systemctl cat pcpi-stats >/dev/null 2>&1; then
   echo "Mini pantalla"
