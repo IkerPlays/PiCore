@@ -195,6 +195,16 @@ class ApiTest(unittest.TestCase):
         finally:
             server.pihole_stats = real
 
+    def test_every_settings_action_is_documented_in_the_architecture_doc(self):
+        """Si se añade una accion a /api/settings y no se documenta, este test avisa."""
+        doc = (Path(__file__).resolve().parent.parent / "docs" / "ARCHITECTURE.md").read_text(encoding="utf-8")
+        for accion in ("city_search", "city_set", "prefs_get", "pref_set", "pihole_set"):
+            self.assertIn(accion, doc, accion)
+        fuente = Path(server.__file__).read_text(encoding="utf-8")
+        import re
+        acciones = set(re.findall(r'act == "([a-z_]+)"', fuente[fuente.index("def settings_post"):fuente.index("PREFS = {")]))
+        self.assertEqual(acciones, {"city_search", "city_set", "prefs_get", "pref_set", "pihole_set"}, "hay una accion nueva en settings_post: documentala y añadela aqui")
+
     def test_every_pref_exists_in_the_example_config(self):
         """Los ajustes de la pantalla tienen que existir (y estar documentados) en config/pcpi.conf.example."""
         ejemplo = (Path(__file__).resolve().parent.parent / "config" / "pcpi.conf.example").read_text(encoding="utf-8")
