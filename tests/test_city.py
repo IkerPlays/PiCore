@@ -187,6 +187,22 @@ class ApiTest(unittest.TestCase):
         for clave, (sec, nombre, _tipo, _lo, _hi) in server.PREFS.items():
             self.assertIsNotNone(confedit.get(ejemplo, sec, nombre), "%s: [%s] %s no esta en pcpi.conf.example" % (clave, sec, nombre))
 
+    def test_weird_bodies_never_break_the_server(self):
+        """Cuerpos raros en /api/settings: siempre una respuesta limpia (nunca un 500) y el servidor sigue vivo."""
+        raros = [{}, {"action": None}, {"action": 5}, {"action": ["pref_set"]}, {"action": "pref_set"}, {"action": "pref_set", "key": None},
+                 {"action": "pref_set", "key": {"a": 1}, "value": 1}, {"action": "pref_set", "key": "idle_minutes", "value": float("inf")},
+                 {"action": "pref_set", "key": "idle_minutes", "value": [1]}, {"action": "pref_set", "key": "night_from", "value": 1e308},
+                 {"action": "pihole_set"}, {"action": "pihole_set", "password": ["x"]}, {"action": "pihole_set", "password": {"a": 1}},
+                 {"action": "city_set", "lat": 1e999, "lon": 0, "name": "x"}, {"action": "city_search", "q": 5}, {"action": "city_search", "q": None},
+                 {"action": "prefs_get", "extra": [1] * 1000}]
+        for body in raros:
+            try:
+                code, _ = self.post(body)
+            except Exception as e:          # noqa: BLE001 - json.dumps puede negarse a serializar inf: ese caso no llega al servidor
+                continue
+            self.assertIn(code, (200, 400, 413, 502), repr(body)[:80])
+        self.assertEqual(self.post({"action": "prefs_get"})[0], 200)
+
     def test_a_dangerous_name_cannot_inject_settings(self):
         self.post({"action": "city_set", "lat": 1, "lon": 2, "name": "X\n[pihole]\npassword = hackeado"})
         text = (T / "pcpi.conf").read_text()
