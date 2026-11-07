@@ -23,7 +23,7 @@ import json, sys
 d = json.loads(sys.argv[1])
 p = d["pihole"]
 print("  %s Pi-hole: %s" % ("\033[32m✔\033[0m" if p["ok"] else "\033[33m!\033[0m",
-      ("bloquea %s%% (%s)" % (p["percent"], p["blocking"])) if p["ok"] else "sin conexion (%s). Revisa [pihole] en /etc/pcpi/pcpi.conf" % p.get("error")))
+      ("bloquea %s%% (%s)" % (p["percent"], p["blocking"])) if p["ok"] else "sin conexion (%s). En la pantalla de Casa toca «Conectar Pi-hole» (o revisa [pihole] en /etc/pcpi/pcpi.conf)" % p.get("error")))
 w = d["weather"]
 print("  %s Tiempo: %s" % ("\033[32m✔\033[0m" if w["ok"] else "\033[33m!\033[0m", "ok" if w["ok"] else "no configurado/sin red"))
 c = d["camera"]
