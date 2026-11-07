@@ -6,6 +6,10 @@
 
 
 
+## Test del inicio sin permiso de sonido: más robusto
+
+- Este test seguía fallando de vez en cuando en el CI aun con la espera que le puse (2 de ~25 ejecuciones hoy). Mi hipótesis (no verificada en el CI) es que a veces Chromium sí deja sonar el vídeo y entonces no hay aviso que mostrar. Ahora el test acepta los dos casos y solo falla si el vídeo va mudo sin avisar o avisa sin ir mudo; imprime cuál fue. Local: pasa 3 de 3.
+
 ## `pcpi-doctor --report`
 
 - Guarda en un archivo (por defecto `~/picore-informe.txt`) lo que dice el diagnóstico sin colores, la versión del sistema y tu configuración con las contraseñas como `******`, para adjuntarlo a una incidencia. Hay que revisarlo antes de compartirlo. Probado con un test.

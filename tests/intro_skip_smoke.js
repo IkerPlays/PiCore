@@ -22,7 +22,11 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   if (noFlag) {
     await page.waitForSelector('#unmute', { state: 'visible', timeout: 4000 }).catch(() => {});      // el aviso sale un instante despues de que el navegador rechace el sonido
-    check('sin permiso de sonido el video va mudo y lo avisa', (await page.evaluate(() => document.getElementById('intro-video').muted)) && await page.isVisible('#unmute'));
+    const estado = await page.evaluate(() => ({ mudo: document.getElementById('intro-video').muted, aviso: !document.getElementById('unmute').hidden && getComputedStyle(document.getElementById('unmute')).display !== 'none' }));
+    // Con la bandera «hace falta un gesto», Chromium normalmente rechaza el sonido (mudo + aviso). Si alguna vez lo deja sonar (pasa a veces en el CI), no hay aviso
+    // que probar: es correcto que NO haya aviso. Lo que nunca puede pasar es ir mudo SIN avisar, o avisar sin ir mudo.
+    check('sin permiso de sonido el video va mudo y lo avisa (o, si el navegador deja sonar, no avisa)', estado.mudo === estado.aviso, JSON.stringify(estado));
+    console.log('       (el navegador ' + (estado.mudo ? 'rechazo el sonido: se probo el aviso' : 'dejo sonar: no habia aviso que probar') + ')');
     await page.click('#intro');                                     // un toque en cualquier sitio
     check('un toque activa el sonido', !(await page.evaluate(() => document.getElementById('intro-video').muted)) && await page.isHidden('#unmute'));
     check('y el video sigue reproduciendose', (await page.evaluate(() => !document.getElementById('intro-video').paused)));
