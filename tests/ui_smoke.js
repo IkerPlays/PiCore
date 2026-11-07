@@ -372,7 +372,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.waitForFunction(() => document.querySelector('.net.active') && document.querySelector('.net.active').dataset.ssid === 'Vecino', null, { timeout: 15000 }).catch(() => {});
   check('contraseña buena: se conecta', (await page.getAttribute('#sheet .net.active', 'data-ssid')) === 'Vecino');
   await page.click('#sw-pi');
-  await sleep(300);
+  await page.waitForFunction(() => { const e = document.getElementById('sw-pi'); return e && !e.classList.contains('on'); }, null, { timeout: 6000 }).catch(() => {});   // (la lista se refresca sola cada 5 s: se espera a que el estado se asiente)
   check('el interruptor de Pi-hole se apaga', !(await page.evaluate(() => document.getElementById('sw-pi').classList.contains('on'))));
   // red oculta: no sale en la lista; se conecta escribiendo su nombre
   check('las redes ocultas no salen en la lista', !(await page.textContent('#sh-body')).includes('RedOculta'));
