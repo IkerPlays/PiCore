@@ -71,6 +71,21 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const dimv = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--dim'));
   check('sin backlight se atenua por software (nunca negro del todo)', parseFloat(dimv) > 0.4 && parseFloat(dimv) <= 0.8, dimv);
   await page.request.post(base + '/api/display', { headers: { 'X-PCPI': '1' }, data: { level: 100, auto: true } });
+  // sonido del sistema (el emulador hace de pcpi-session)
+  await page.waitForFunction(() => !document.getElementById('snd').hidden, null, { timeout: 9000 }).catch(() => {});
+  check('el panel enseña la seccion de sonido (hay audio)', await page.isVisible('#v-range'));
+  await page.fill('#v-range', '25'); await page.dispatchEvent('#v-range', 'input');
+  await sleep(900);
+  let aud = (await (await page.request.get(base + '/api/status')).json()).audio;
+  check('el deslizante cambia el volumen del sistema', aud.volume === 25, JSON.stringify(aud));
+  await page.click('#v-mute'); await sleep(700);
+  aud = (await (await page.request.get(base + '/api/status')).json()).audio;
+  check('silenciar lo silencia', aud.muted === true && await page.evaluate(() => document.getElementById('v-mute').classList.contains('off')), JSON.stringify(aud));
+  await page.click('#v-mute'); await sleep(700);
+  check('y se puede volver a activar', !((await (await page.request.get(base + '/api/status')).json()).audio.muted));
+  await page.click('#v-test');
+  check('«Probar sonido» avisa de que suena', (await page.textContent('#vnote')).includes('Sonando'));
+  await page.request.post(base + '/api/audio', { headers: { 'X-PCPI': '1' }, data: { action: 'volume', value: 60 } });
   await page.click('#b-close');
 
   // ------------------------------------------------------------------ vigilancia de movimiento

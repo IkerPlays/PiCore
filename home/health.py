@@ -130,6 +130,15 @@ def checks(status, disk=None, mem=None, thr=None):
         out.append({"level": "warn", "text": "La IA está activada pero Ollama no responde."})
     elif ai.get("enabled") and ai.get("reachable") and not ai.get("model_present"):
         out.append({"level": "warn", "text": "Falta el modelo de IA: ollama pull %s" % ai.get("model")})
+    # Avisos de «falta configurar» (solo informan: no ponen el icono en naranja)
+    setup = status.get("setup") or {}
+    if setup.get("weather") is False:
+        out.append({"level": "info", "text": "Falta tu ciudad para el tiempo: ejecuta pcpi-setup (o pon lat y lon en [weather])."})
+    if setup.get("voice") is False:
+        out.append({"level": "info", "text": "La voz no está activa. Se instala con ./install.sh --voice (o mira systemctl --user status pcpi-voice)."})
+    au = status.get("audio")
+    if isinstance(au, dict) and au.get("available") is False:
+        out.append({"level": "info", "text": "No detecto la salida de sonido. En la terminal: pcpi-sound status y pcpi-doctor."})
     up = status.get("update") or update_state()
     if up.get("available"):
         out.append({"level": "info", "text": "Hay una actualización de PiCore (%d cambios). Ejecuta: pcpi-update" % up["behind"]})

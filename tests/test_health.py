@@ -64,6 +64,17 @@ class ChecksTest(unittest.TestCase):
         self.assertFalse([x for x in lv({"music_mb": 2500, "update": {}}) if "música" in x["text"]])             # mucho espacio libre
         self.assertFalse([x for x in lv({"music_mb": 200, "update": {}}, disk=tight) if "música" in x["text"]])  # poca musica
 
+    def test_setup_hints_inform_but_do_not_alarm(self):
+        r = lv({"setup": {"weather": False, "voice": False}, "audio": {"available": False}, "update": {}})
+        texts = " | ".join(x["text"] for x in r)
+        self.assertIn("pcpi-setup", texts)
+        self.assertIn("--voice", texts)
+        self.assertIn("pcpi-sound", texts)
+        self.assertEqual({x["level"] for x in r}, {"info"})                               # nunca naranja ni rojo por «falta configurar»
+        ok = lv({"setup": {"weather": True, "voice": True}, "audio": {"available": True}, "update": {}})
+        self.assertEqual([x["level"] for x in ok], ["ok"])
+        self.assertEqual([x["level"] for x in lv({"update": {}})], ["ok"])               # sin datos de configuracion: no inventa avisos
+
     def test_throttled_parsing(self):
         out = type("R", (), {"stdout": "throttled=0x50005\n"})
         r = health.throttled(run=lambda *a, **k: out)

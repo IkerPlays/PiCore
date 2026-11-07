@@ -25,6 +25,7 @@
 - **11:22** Imágenes de la documentación (`docs/img/casa-claro.png`, `casa-oscuro.png`, `iker.png`) regeneradas con la interfaz nueva.
 - **11:40** **Preparación para hacerlo público:** README renovado (descripción, insignias, demo en vivo <https://picoreweb.netlify.app/>, capturas nuevas), `CONTRIBUTING.md`, `SECURITY.md`, plantillas de issues y de pull request, tarjeta para compartir (`docs/img/social.png`). La demo usa ahora los **vídeos de inicio, GIFs e imágenes reales** de `extra-assets/` (copias H.264) y la primera visita arranca como un encendido de la Pi.
 - **11:48** Licencia **MIT** (`LICENSE`), con avisos sobre los archivos de `extra-assets/` y las licencias de los modelos de voz de terceros.
+- **12:10** **Mejoras para la Pi:** (1) el servidor avisa a systemd con `Type=notify` y **se reinicia solo si deja de contestar** (watchdog), y `StartLimitIntervalSec=0` evita que systemd lo dé por perdido tras varios fallos seguidos; (2) **volumen del sistema** desde la pantalla (panel «Pantalla y sonido»: deslizante, silencio y «Probar sonido») y `pcpi-sound` en la terminal; (3) la hoja «Sistema» avisa de lo que **falta configurar** (ciudad del tiempo, voz, sonido) sin poner el icono en naranja; (4) `pcpi-doctor` revisa watchdog, señales de vida de la pantalla y salida de sonido. La demo web simula el volumen y «Probar sonido» suena de verdad.
 
 ## Antes de esta sesión (resumen)
 

@@ -40,6 +40,7 @@
     flags: LS.get("flags", { ai_chat: false, live_graph: false, casa_debug: false }),
     wifi: LS.get("wifi", { active: "CasaIker", wantsPi: { CasaIker: true } }),
     update: { state: "idle", tail: [], available: true, behind: 3 },
+    audio: LS.get("audio", { volume: 60, muted: false }),
     cmds: {},
   };
 
@@ -108,6 +109,23 @@
   const realOpen = window.open;
   window.open = function (u) { if (typeof u === "string" && /^\/api\/notes\/[0-9a-f]+\.pdf$/.test(u)) { toast("El PDF no se genera en la demo (en la Pi real, sí)."); return null; } return realOpen.apply(window, arguments); };
 
+  /* ---------------- «Probar sonido»: dos tonos (como pcpi-sound test) con el volumen de la demo ---------------- */
+  let actx = null;
+  function beep() {
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === "suspended") actx.resume();
+      if (S.audio.muted) { toast("Demo: el sonido esta silenciado"); return; }
+      const t0 = actx.currentTime + 0.02;
+      [660, 880].forEach((f, i) => {
+        const o = actx.createOscillator(), g = actx.createGain();
+        o.frequency.value = f; g.gain.setValueAtTime(0, t0 + i * 0.38);
+        g.gain.linearRampToValueAtTime(0.25 * S.audio.volume / 100, t0 + i * 0.38 + 0.05); g.gain.linearRampToValueAtTime(0, t0 + i * 0.38 + 0.34);
+        o.connect(g); g.connect(actx.destination); o.start(t0 + i * 0.38); o.stop(t0 + i * 0.38 + 0.36);
+      });
+    } catch (e) {}
+  }
+
   /* ---------------- datos de ejemplo ---------------- */
   const dayStr = off => { const d = new Date(Date.now() + off * 864e5); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); };
   function weather() {
@@ -158,6 +176,7 @@
       display: displayInfo(), motion: motionInfo(), battery: { available: true, percent: 76, charging: false, low: false, critical: false },
       timers: timersList(), ai: { enabled: false, model: "qwen2.5:1.5b" }, calendar: calendar(),
       music: { seq: S.music.seq, cmd: S.music.cmd, arg: S.music.arg, embed: LS.get("embed", null), history: LS.get("history", []), search: false },
+      audio: { available: true, volume: S.audio.volume, muted: S.audio.muted },
       dev: { enabled: true, flags: S.flags }, system: systemInfo(), ip: "192.0.2.10", host: "picore-demo",
     };
   }
@@ -307,6 +326,15 @@
         return J({ ok: true, action: "update" });
       }
       return ERR("accion invalida");
+    }
+    if (p === "/api/audio") {                                   // el volumen es de mentira, pero «Probar sonido» suena de verdad (WebAudio)
+      if (body.action === "volume") {
+        const v = String(body.value); if (!/^[+-]?\d{1,3}$/.test(v)) return ERR("volumen invalido");
+        S.audio.volume = Math.max(0, Math.min(100, /^[+-]/.test(v) ? S.audio.volume + parseInt(v, 10) : parseInt(v, 10)));
+      } else if (body.action === "mute" || body.action === "unmute") S.audio.muted = body.action === "mute";
+      else if (body.action === "test") beep();
+      else return ERR("accion invalida");
+      LS.set("audio", S.audio); return J({ ok: true });
     }
     if (p === "/api/ask") return J({ error: "La IA local no está disponible en la demo (en una Pi real se instala con ./install.sh --ai)." }, 503);
 

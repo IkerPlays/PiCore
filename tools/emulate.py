@@ -229,6 +229,26 @@ def main():
             (tmp / "boot_id").write_text("emulador-%d" % boot_n[0])
         return _page_bytes(name)
     server.page_bytes = page_bytes
+    # Sonido emulado: en la Pi lo aplica pcpi-session; aqui el emulador hace de sesion y guarda el estado
+    import sound as _sound
+    _audio = {"available": True, "volume": 60, "muted": False, "backend": "emulador"}
+
+    def _write_audio():
+        (tmp / "run").mkdir(exist_ok=True)
+        (tmp / "run" / "audio.json").write_text(json.dumps(_audio))
+
+    def audio_request(act, value=None):
+        if act == "volume":
+            kind, n = _sound.parse_target(value)
+            _audio["volume"] = max(0, min(100, _audio["volume"] + n if kind == "add" else n))
+        elif act in ("mute", "unmute"):
+            _audio["muted"] = act == "mute"
+        elif act != "test":
+            raise ValueError("accion invalida")
+        _write_audio()
+        return {"ok": True}
+    server.audio_request = audio_request
+    _write_audio()
     server.refresh_calendar()
     srv = server.make_server(a.host, a.port)
     threading.Thread(target=srv.serve_forever, daemon=True).start()

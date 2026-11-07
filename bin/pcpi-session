@@ -160,6 +160,34 @@ sync_dev() {
   fi
 }
 
+# Sonido: el servidor deja una peticion en /run/pcpi/audio («volume 40», «volume +5», «mute», «unmute», «test») y SOLO esta sesion
+# llega al audio del usuario. El estado (volumen, silenciado) queda en /run/pcpi/audio.json y se refresca cada AUDIO_EVERY segundos.
+AUDIO_EVERY="${PCPI_AUDIO_EVERY:-45}"
+last_audio=-1
+audio_refresh() {
+  command -v pcpi-sound >/dev/null || return 0
+  pcpi-sound status > "$RUN/audio.tmp" 2>/dev/null; mv -f "$RUN/audio.tmp" "$RUN/audio.json" 2>/dev/null || true
+}
+sync_audio() {
+  if [ -e "$RUN/audio" ]; then
+    local a="" v=""
+    read -r a v < "$RUN/audio" 2>/dev/null || true
+    rm -f "$RUN/audio" 2>/dev/null || true
+    command -v pcpi-sound >/dev/null || return 0
+    case "$a" in
+      volume) case "$v" in [0-9]|[0-9][0-9]|100|[+-][0-9]|[+-][0-9][0-9]) pcpi-sound volume "$v" > "$RUN/audio.tmp" 2>/dev/null; mv -f "$RUN/audio.tmp" "$RUN/audio.json" 2>/dev/null || true ;; esac ;;
+      mute|unmute) pcpi-sound "$a" > "$RUN/audio.tmp" 2>/dev/null; mv -f "$RUN/audio.tmp" "$RUN/audio.json" 2>/dev/null || true ;;
+      test) ( pcpi-sound test >/dev/null 2>&1 ) 9>&- & ;;
+    esac
+    last_audio=$SECONDS
+    return 0
+  fi
+  if [ "$last_audio" -lt 0 ] || [ $((SECONDS - last_audio)) -ge "$AUDIO_EVERY" ]; then
+    last_audio=$SECONDS
+    audio_refresh
+  fi
+}
+
 # Segundos desde el ultimo latido de la pagina (o desde que se lanzo el navegador, lo que sea mas reciente)
 now_s() { printf '%(%s)T' -1; }
 heartbeat_age() {
@@ -318,6 +346,7 @@ while true; do
   sync_web
   sync_dev
   sync_power
+  sync_audio
   sync_update
   sync_auto
   tick=$((tick + 1))

@@ -1,6 +1,9 @@
 [Unit]
 Description=PiCore - servidor de la UI (modo Casa / Gaming)
 After=network-online.target
+Wants=network-online.target
+# Nunca rendirse: por defecto systemd deja de reiniciar un servicio tras 5 fallos en 10 s y la pantalla se quedaria sin servidor
+StartLimitIntervalSec=0
 
 [Service]
 User=__USER__
@@ -8,8 +11,14 @@ Environment=PCPI_CONF=/etc/pcpi/pcpi.conf
 # Para que aplay (alarmas y temporizadores) llegue al audio de la sesion del usuario (PipeWire)
 Environment=XDG_RUNTIME_DIR=/run/user/__UID__
 ExecStart=/usr/bin/python3 /opt/pcpi/home/server.py
+# El servidor avisa de que esta listo y da un latido solo si CONTESTA (home/sdnotify.py): si se cuelga, systemd lo reinicia
+Type=notify
+NotifyAccess=main
+WatchdogSec=60
 Restart=always
 RestartSec=2
+TimeoutStartSec=60
+TimeoutStopSec=10
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true

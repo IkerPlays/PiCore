@@ -290,6 +290,10 @@
   input[type=range] { -webkit-appearance:none; appearance:none; flex:1; height:12px; border-radius:999px; background:linear-gradient(90deg,var(--acc) var(--p,100%),var(--line) var(--p,100%)); outline:none; cursor:pointer; }
   input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:38px; height:38px; border-radius:50%; background:#fff; box-shadow:0 2px 10px #0006; border:0; }
   input[type=range]::-moz-range-thumb { width:38px; height:38px; border-radius:50%; background:#fff; border:0; }
+  .sec { margin-top:18px; padding-top:14px; border-top:1px solid var(--line); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); font-weight:650; }
+  #v-mute { width:46px; height:46px; border-radius:50%; padding:0; flex:none; } #v-mute.off { color:var(--bad); }
+  .snd-actions { display:flex; align-items:center; gap:14px; margin-top:6px; } #v-test { min-height:46px; padding:0 18px; border-radius:14px; } #vnote { color:var(--dim); font-size:14px; }
+  #snd[hidden], #snd-h[hidden] { display:none; }
   #bnote { color:var(--dim); font-size:14px; margin-top:12px; min-height:36px; }
 
   /* ---------------- cambio de modo ---------------- */
@@ -450,10 +454,15 @@
 </section>
 
 <section id="bpanel" aria-label="Brillo">
-  <h3>Brillo <button id="b-close" aria-label="Cerrar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></h3>
+  <h3>Pantalla y sonido <button id="b-close" aria-label="Cerrar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></h3>
   <div class="bl"><span><svg class="ic" aria-hidden="true"><use href="#i-sun-dim"/></svg></span><input type="range" id="b-range" min="10" max="100" step="1" value="100"><span><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg></span><output id="b-val">100%</output></div>
   <div class="tg"><div>Automático<small id="b-auto-sub">Baja poco a poco de noche</small></div><button class="sw on" id="b-auto" aria-label="Automático"></button></div>
   <div id="bnote"></div>
+  <div class="sec" id="snd-h">Sonido</div>
+  <div id="snd">
+    <div class="bl"><button id="v-mute" aria-label="Silenciar" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-volume"/></svg></button><input type="range" id="v-range" min="0" max="100" step="1" value="50" aria-label="Volumen"><output id="v-val">50%</output></div>
+    <div class="snd-actions"><button id="v-test"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg> Probar sonido</button><span id="vnote"></span></div>
+  </div>
 </section>
 
 <div id="switching"><div class="spin"></div><div id="sw-text">Cambiando de modo…</div></div>
@@ -605,6 +614,30 @@ $("b-auto").onclick = () => { const on = !$("b-auto").classList.contains("on"); 
 $("chip-bright").onclick = () => { syncBPanel(); $("scrim").classList.add("on"); $("bpanel").classList.add("on"); };
 function closeBright() { $("bpanel").classList.remove("on"); if (!$("sheet").classList.contains("on")) $("scrim").classList.remove("on"); }
 $("b-close").onclick = closeBright;
+
+/* ---- sonido del sistema (lo cambia pcpi-session; si no hay audio detectado, la seccion se esconde) ---- */
+let vUser = false, vTimer = 0, audio = null;
+const sendAudio = body => post("/api/audio", body).catch(() => {});
+function paintAudio(a) {
+  audio = a || null;
+  const ok = !!(a && a.available);
+  $("snd").hidden = $("snd-h").hidden = !ok;
+  if (!ok || vUser) return;
+  $("v-range").value = a.volume; $("v-range").style.setProperty("--p", a.volume + "%"); $("v-val").textContent = a.volume + "%";
+  $("v-mute").classList.toggle("off", !!a.muted); $("v-mute").setAttribute("aria-pressed", String(!!a.muted));
+  $("v-mute").innerHTML = ico(a.muted ? "volume-off" : "volume");
+}
+$("v-range").oninput = () => {
+  vUser = true; clearTimeout(vTimer);
+  const v = +$("v-range").value; $("v-range").style.setProperty("--p", v + "%"); $("v-val").textContent = v + "%";
+  vTimer = setTimeout(() => { sendAudio({action: "volume", value: v}); setTimeout(() => { vUser = false; }, 1500); }, 200);
+};
+$("v-mute").onclick = () => {
+  const mute = !(audio && audio.muted); vUser = false; paintAudio({...audio, available: true, muted: mute});        // se ve al instante...
+  vUser = true; setTimeout(() => { vUser = false; }, 1800);                                                          // ...y un estado viejo del servidor no lo deshace
+  sendAudio({action: mute ? "mute" : "unmute"});
+};
+$("v-test").onclick = () => { sendAudio({action: "test"}); $("vnote").textContent = "Sonando…"; setTimeout(() => { $("vnote").textContent = ""; }, 1800); };
 
 /* ---- bateria (solo si hay un UPS o un comando que la mida; la Pi 5 no la mide sola) ---- */
 function paintBattery(b) {
@@ -1228,6 +1261,7 @@ async function refresh() {
   paintCalendar(s.calendar);
   paintMotion(s.motion);
   paintBattery(s.battery);
+  paintAudio(s.audio);
   lastCpu = s.cpu_temp ?? null;
   paintSystem(s.system);
   paintMusic(s.music);

@@ -33,6 +33,15 @@ else bad "la API no responde en :$PORT"; fi
 
 pgrep -f "[p]cpi-session" >/dev/null && ok "vigilante de modos (pcpi-session) en marcha" \
   || warn "pcpi-session no esta en marcha (cierra sesion y vuelve a entrar; si sigue igual: pcpi-session &)"
+# El servidor avisa a systemd de que esta vivo (Type=notify + WatchdogSec): si se cuelga, systemd lo reinicia solo
+if systemctl cat pcpi-home >/dev/null 2>&1; then
+  if systemctl show pcpi-home -p WatchdogUSec 2>/dev/null | grep -qv '=0$\|=infinity$'; then ok "vigilancia de systemd activa (se reinicia solo si se cuelga)"
+  else warn "la unidad pcpi-home no tiene watchdog: actualiza con pcpi-update (o ./install.sh) para que se reinicie sola si se cuelga"; fi
+fi
+if [ -r /run/pcpi/alive ]; then
+  age=$(( $(date +%s) - $(cat /run/pcpi/alive 2>/dev/null || echo 0) ))
+  [ "$age" -lt 30 ] && ok "la pantalla da señales de vida (hace ${age} s)" || warn "la pantalla no da señales de vida desde hace ${age} s (si estas en modo Iker/Escritorio es normal)"
+fi
 [ -d /run/pcpi ] && ok "/run/pcpi existe (estado en RAM)" || warn "falta /run/pcpi: sudo systemd-tmpfiles --create /etc/tmpfiles.d/pcpi.conf"
 
 echo "Alimentacion y temperatura (Raspberry Pi)"
@@ -44,6 +53,11 @@ if command -v vcgencmd >/dev/null; then
 else warn "vcgencmd no existe (¿no es una Raspberry Pi?)"; fi
 
 echo "Audio"
+if command -v pcpi-sound >/dev/null; then
+  if snd="$(pcpi-sound status 2>/dev/null)"; then
+    ok "salida de sonido: $(python3 -c 'import json,sys; d=json.loads(sys.argv[1]); print("volumen %d%%%s (%s)" % (d["volume"], ", silenciado" if d["muted"] else "", d["backend"]))' "$snd" 2>/dev/null || echo "detectada")"
+  else warn "no detecto la salida de sonido (¿altavoz/HDMI y sesion grafica?). Prueba: pcpi-sound status  y  pcpi-sound test"; fi
+fi
 if command -v arecord >/dev/null; then
   mics="$(arecord -l 2>/dev/null | grep -c '^card')"
   [ "$mics" -gt 0 ] && ok "$mics dispositivo(s) de captura: $(arecord -l | grep '^card' | sed 's/,.*//' | tr '\n' ' ')" \

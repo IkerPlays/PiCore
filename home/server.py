@@ -34,6 +34,7 @@ import musix
 import netmgr
 import notes_tools
 import pdf
+import sdnotify
 import pcpiconf
 import timers
 
@@ -530,8 +531,10 @@ def status():
         "ai": ai_info(cp),
         "calendar": calendar_info(cp),
         "music": music_info(),
+        "audio": audio_info(),
         "dev": {"enabled": dev_enabled(cp), "flags": devmode.get_flags()},
-        "system": {**system_info({"cpu_temp": cpu_temp(), "net": net_summary(), "pihole": cached("pihole", 10, lambda: pihole_stats(cp)), "ai": ai_info(cp)}), "update_run": health.update_run_state()},
+        "system": {**system_info({"cpu_temp": cpu_temp(), "net": net_summary(), "pihole": cached("pihole", 10, lambda: pihole_stats(cp)), "ai": ai_info(cp),
+                                  "setup": setup_state(cp), "audio": audio_info()}), "update_run": health.update_run_state()},
         "ip": cached("ip", 60, local_ip),
         "host": socket.gethostname(),
     }
@@ -968,7 +971,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         if not self._host_ok():
             return self._send(403, {"error": "host no permitido"})
-        paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/notes/export", "/api/bookmarks", "/api/music", "/api/dev", "/api/loaded",
+        paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/notes/export", "/api/bookmarks", "/api/music", "/api/dev", "/api/audio", "/api/loaded",
                  "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display", "/api/motion", "/api/timers", "/api/ask", "/api/system")
         if self.path not in paths or self.headers.get("X-PCPI") != "1":
             return self._send(403, {"error": "prohibido"})
@@ -1027,6 +1030,8 @@ class Handler(BaseHTTPRequestHandler):
                 except ValueError as e:
                     return self._send(400, {"error": str(e)})
                 return self._send(200, {"ok": True, "path": path_, "count": n})
+            if self.path == "/api/audio":
+                return self._send(200, audio_post(body))
             if self.path == "/api/dev":
                 try:
                     return self._send(200, dev_post(body))
@@ -1239,6 +1244,50 @@ def music_post(body):
     raise ValueError("accion invalida")
 
 
+def audio_info():
+    """Estado del sonido que deja pcpi-session en /run/pcpi/audio.json. Sin el (emulador, sin sesion grafica) -> no disponible."""
+    try:
+        d = json.loads((run_dir() / "audio.json").read_text())
+        if isinstance(d, dict) and d.get("available") is True:
+            return {"available": True, "volume": max(0, min(100, int(d.get("volume", 0)))), "muted": bool(d.get("muted"))}
+    except (OSError, ValueError, TypeError):
+        pass
+    return {"available": False, "volume": 0, "muted": False}
+
+
+def audio_request(act, value=None):
+    """Pide a pcpi-session que cambie el volumen / silencie / pruebe el sonido (el servidor no llega al audio del usuario)."""
+    if act == "volume":
+        v = str(value)
+        if isinstance(value, bool) or not re.fullmatch(r"[+-]?\d{1,3}", v):
+            raise ValueError("volumen invalido")
+        if v[0] in "+-":
+            line = "volume %s%d" % (v[0], min(int(v[1:]), 99))
+        else:
+            line = "volume %d" % min(int(v), 100)
+    elif act in ("mute", "unmute", "test"):
+        line = act
+    else:
+        raise ValueError("accion invalida")
+    d = run_dir()
+    d.mkdir(parents=True, exist_ok=True)
+    tmp = d / "audio.req.tmp"
+    tmp.write_text(line + "\n")
+    os.replace(tmp, d / "audio")
+    return {"ok": True}
+
+
+def audio_post(body):
+    return audio_request(body.get("action"), body.get("value"))
+
+
+def setup_state(cp):
+    """Que esta configurado (para los avisos de «falta configurar» de la hoja Sistema)."""
+    lat = cp.get("weather", "lat", fallback="").strip()
+    lon = cp.get("weather", "lon", fallback="").strip()
+    return {"weather": bool(lat and lon), "voice": (voice_state() or {}).get("state", "off") != "off"}
+
+
 def system_info(st):
     """Disco, memoria, avisos de salud y actualizaciones (cada 20 s como mucho: vcgencmd es un proceso)."""
     def build():
@@ -1304,8 +1353,10 @@ def main():
     start_motion(cp)
     start_timers()
     threading.Thread(target=calendar_loop, daemon=True).start()
+    srv = make_server(host, port)
+    sdnotify.start(host, port)                 # systemd: «listo» y latido (solo si la unidad es Type=notify)
     print("PiCore escuchando en http://%s:%d" % (host, port), flush=True)
-    make_server(host, port).serve_forever()
+    srv.serve_forever()
 
 
 if __name__ == "__main__":
