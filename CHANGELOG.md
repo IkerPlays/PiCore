@@ -5,6 +5,10 @@
 
 
 
+## Voz: estado de la red
+
+- «¿A qué wifi estoy conectado?» / «¿tengo internet?» responden con la red activa y si hay internet o hace falta iniciar sesión. Probado con tests; no en una Pi real.
+
 ## Temporizadores: botón +1 min
 
 - Cada temporizador de la lista tiene «+1 min». También en el simulador, que además entiende «añade cinco minutos al temporizador». Comprobado en navegador sin pantalla.

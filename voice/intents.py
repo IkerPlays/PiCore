@@ -167,6 +167,8 @@ def parse(text):
         return Intent("chat", "Hola, dime")
     if has("cuanto llevas encendida", "cuanto tiempo llevas encendida", "desde cuando estas encendida"):
         return Intent("uptime", None)
+    if has("a que wifi", "que wifi", "a que red", "que red", "tengo internet", "hay internet", "estoy conectad", "estamos conectad"):
+        return Intent("net_info", None)
     if has("calendario", "agenda", "que tengo", "tengo algo", "mis eventos", "proximo evento", "tengo hoy", "tengo manana"):
         return Intent("calendar", "tomorrow" if has("manana") else "today")
     if has("temporizador", "cuenta atras", "cuentaatras"):
@@ -310,6 +312,22 @@ def say_uptime(secs):
     if m or not out:
         out.append("%d minuto%s" % (m, "" if m == 1 else "s"))
     return "Llevo encendida " + " y ".join(out)
+
+
+def say_net(net):
+    """Frase sobre la conexion (net = lo que devuelve /api/status en «net»)."""
+    if not net or not net.get("available"):
+        return "No puedo ver el estado de la red"
+    name = net.get("ssid") or net.get("name")
+    if not name:
+        return "No estoy conectada a ninguna red"
+    kind = "por cable" if net.get("type") == "ethernet" else "a la wifi " + name
+    c = net.get("connectivity")
+    if net.get("portal") or c == "portal":
+        return "Estoy conectada %s, pero la red pide iniciar sesión" % kind
+    if c == "none":
+        return "Estoy conectada %s, pero no hay internet" % kind
+    return "Estoy conectada %s y hay internet" % kind
 
 
 def say_date(now):

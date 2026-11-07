@@ -168,6 +168,9 @@ def execute(cfg, intent):
         if n == "uptime":
             with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
                 return intents.say_uptime(json.load(r).get("uptime"))
+        if n == "net_info":
+            with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
+                return intents.say_net(json.load(r).get("net"))
         if n == "help":
             return intents.HELP_TEXT
         if n == "sys_info":
