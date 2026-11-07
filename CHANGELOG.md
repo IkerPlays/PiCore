@@ -6,6 +6,10 @@
 
 
 
+## Visita guiada: paso del Escritorio (14 pasos)
+
+- Un paso nuevo enseña la maqueta del modo Escritorio antes del final.
+
 ## Simulador: maqueta del modo Escritorio y marco sin recortar
 
 - El botón «Escritorio» (y la tecla `4`) lleva a una maqueta del escritorio con terminal, navegador y archivos de mentira y un «Volver a Casa» (antes te devolvía a Casa con un aviso). Ruta nueva `/escritorio` (Netlify, servidor local y `robots.txt`).

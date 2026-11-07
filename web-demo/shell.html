@@ -129,6 +129,7 @@ const STEPS = [
   { h: "Háblale a la Pi", p: "En la Pi real la voz se entiende dentro de la propia Pi (Whisper), sin nube. Aquí escribe abajo lo que dirías: «qué hora es», «qué tiempo hace»...", run: () => { closeAll(); document.getElementById("sayin").focus(); setTimeout(() => say("qué hora es"), 500); } },
   { h: "Modo Iker", p: "Un bloc de notas con etiquetas, búsqueda y PDF, y un navegador. Tus notas se guardan en este navegador.", run: () => { closeAll(); setTimeout(() => mode("iker"), 200); } },
   { h: "Modo Dev", p: "Una consola, un terminal real, un explorador de la API y experimentos. En el simulador la consola solo reconoce unas pocas órdenes (escribe «help»).", run: () => { mode("dev"); } },
+  { h: "Modo Escritorio", p: "El Raspberry Pi OS de siempre, sin nada de PiCore encima, para usar la Pi como un ordenador normal. Aquí es una maqueta: terminal, navegador y archivos de mentira.", run: () => { mode("desktop"); } },
   { h: "Y ahora, tuya", p: "Instálalo en tu Raspberry Pi 5 en tres pasos: la web de inicio lo explica. Vuelve a Casa y sigue probando lo que quieras.", run: () => { mode("home"); } },
 ];
 let step = -1; const tour = document.getElementById("tour");
