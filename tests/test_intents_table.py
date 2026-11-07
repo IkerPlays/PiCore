@@ -59,6 +59,23 @@ class TablaDeOrdenes(unittest.TestCase):
                 self.assertIsNotNone(intents.parse(frase), "el tutorial dice «%s» pero el asistente no lo entiende" % frase)
         self.assertGreater(vistas, 60)                      # que el test no pase en vacio si cambia el formato de la tabla
 
+    def test_las_frases_de_ejemplo_de_la_pantalla_y_la_web_se_entienden(self):
+        """La lista «Qué puedo decirle a la Pi» (hoja Sistema) y la pregunta frecuente de la portada solo ponen ejemplos que funcionan."""
+        import re
+        raiz = Path(__file__).resolve().parent.parent
+        h = (raiz / "home" / "web" / "index.html").read_text(encoding="utf-8")
+        l = (raiz / "web-demo" / "landing.html").read_text(encoding="utf-8")
+        a = h.index('id="voicehelp"')
+        b = l.index("¿Qué le puedo decir a la Pi?")
+        total = 0
+        for texto in (h[a:h.index("</details>", a)], l[b:l.index("</details>", b)]):
+            for frase in re.findall(r"«([^»]+)»", texto):
+                if frase == "Hey Jarvis" or any(c in frase for c in "…/"):
+                    continue
+                total += 1
+                self.assertIsNotNone(intents.parse(frase), "la pantalla o la web dicen «%s» pero el asistente no lo entiende" % frase)
+        self.assertGreater(total, 25)
+
     def test_frases_sin_orden_no_hacen_nada(self):
         for frase in ("", "blablabla", "repite esta canción", "me gusta el queso", "hoy fui al mercado"):
             self.assertIsNone(intents.parse(frase), frase)

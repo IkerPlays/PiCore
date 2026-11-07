@@ -6,6 +6,10 @@
 
 
 
+## Ejemplos de voz de la pantalla y la web: todos se entienden
+
+- La lista de la hoja Sistema decía «pausa» y «siguiente», que el asistente no entiende solos; ahora dice «pausa la música» y «siguiente canción». Un test comprueba todos los ejemplos de la hoja Sistema y de la portada.
+
 ## Voz: lo que dice el tutorial se entiende (y un test lo vigila)
 
 - Un test comprueba que las ~70 frases de la tabla «Qué puedes pedir» del tutorial las entiende el asistente. Encontró dos que no: «cómo va el Pi-hole» y «ponle un minuto más» (sin decir «temporizador»); ya funcionan.
