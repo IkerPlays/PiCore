@@ -132,7 +132,7 @@
     const h0 = new Date().getHours(), codes = [1, 61, 61, 61, 1, 1, 1, 1, 1, 1, 1, 1];
     const hourly = codes.map((c, i) => ({ h: pad((h0 + i) % 24) + ":00", temp: Math.round((21.5 + 2.6 * Math.sin((i - 3) / 3.8)) * 10) / 10, rain: c === 61 ? 70 : 10, code: c }));
     const days = [[25, 18, 70, 61], [23, 17, 20, 2], [22, 16, 5, 2], [24, 17, 0, 0], [24, 18, 10, 1]].map((d, i) => ({ date: dayStr(i + 1), tmax: d[0], tmin: d[1], rain: d[2], code: d[3] }));
-    return { ok: true, temp: 21.4, code: 1, tmax: 24.1, tmin: 17.6, rain: 10, hourly, days, rain_alert: { in_hours: 1, prob: 70 } };
+    return { ok: true, city: LS.get("city", "Las Palmas de Gran Canaria"), temp: 21.4, code: 1, tmax: 24.1, tmin: 17.6, rain: 10, hourly, days, rain_alert: { in_hours: 1, prob: 70 } };
   }
   function calendar() {
     const d = new Date(Date.now() + 3 * 3600e3);
@@ -142,6 +142,9 @@
       { when: "Jueves", time: "18:30", title: "Clase de guitarra", location: "", all_day: false, date: dayStr(3) },
     ] };
   }
+  const CITIES = [{ name: "Las Palmas de Gran Canaria", region: "Canarias", country: "España", lat: 28.1248, lon: -15.43 }, { name: "Madrid", region: "Comunidad de Madrid", country: "España", lat: 40.4165, lon: -3.7026 },
+    { name: "Santa Cruz de Tenerife", region: "Canarias", country: "España", lat: 28.4682, lon: -16.2546 }, { name: "Barcelona", region: "Cataluña", country: "España", lat: 41.3888, lon: 2.159 },
+    { name: "Sevilla", region: "Andalucía", country: "España", lat: 37.3826, lon: -5.9963 }, { name: "Ciudad de México", region: "CDMX", country: "México", lat: 19.4285, lon: -99.1277 }];
   const NETS = [{ ssid: "CasaIker", signal: 82, secure: true }, { ssid: "Hotel:Canarias", signal: 64, secure: false }, { ssid: "Vecino", signal: 40, secure: true }];
   function wifiInfo() {
     const a = S.wifi.active;
@@ -335,6 +338,19 @@
       else if (body.action === "test") beep();
       else return ERR("accion invalida");
       LS.set("audio", S.audio); return J({ ok: true });
+    }
+    if (p === "/api/settings") {                                // ciudad del tiempo: lista de ejemplo (la demo no usa internet)
+      if (body.action === "city_search") {
+        const q = norm(String(body.q || "").trim());
+        if (q.length < 2) return ERR("Escribe al menos 2 letras del nombre de la ciudad", 502);
+        return J({ results: CITIES.filter(c => norm(c.name).includes(q)).slice(0, 6) });
+      }
+      if (body.action === "city_set") {
+        const lat = body.lat, lon = body.lon;
+        if (typeof lat !== "number" || typeof lon !== "number" || !(lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180)) return ERR("peticion invalida");
+        LS.set("city", String(body.name || "").replace(/[\x00-\x1f#;=\[\]]/g, " ").trim().slice(0, 60)); return J({ ok: true, lat, lon, city: LS.get("city", "") });
+      }
+      return ERR("accion invalida");
     }
     if (p === "/api/ask") return J({ error: "La IA local no está disponible en la demo (en una Pi real se instala con ./install.sh --ai)." }, 503);
 

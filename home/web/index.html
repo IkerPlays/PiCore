@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="es">
 <head>
+<script src="/static/online.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PiCore · Casa</title>
@@ -400,7 +401,7 @@
 </div>
 
 <section id="wpanel" aria-label="Tiempo">
-  <h3>Tiempo <button id="w-close" aria-label="Cerrar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></h3>
+  <h3><span id="w-title">Tiempo</span> <button id="wcity" hidden>Cambiar ciudad</button><button id="w-close" aria-label="Cerrar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></h3>
   <div class="dim" style="font-size:14px;margin-bottom:6px">Próximas horas</div><div class="hours" id="w-hours"></div>
   <div class="dim" style="font-size:14px;margin-bottom:6px">Próximos días</div><div class="days" id="w-days"></div>
 </section>
@@ -441,6 +442,12 @@
   <div id="upd"><div id="upd-row"><span id="upd-txt"></span><button id="upd-btn">Buscar actualizaciones</button></div><pre id="upd-log" hidden></pre></div>
   <div class="pwr"><button id="s-reboot">Reiniciar</button><button id="s-off">Apagar</button></div>
   <div id="pwr-msg"></div>
+</section>
+<section id="cityp" aria-label="Ciudad">
+  <h3>Elige tu ciudad <button id="city-close" aria-label="Cerrar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></h3>
+  <div id="cityq"><input id="cityin" placeholder="Nombre de tu ciudad o pueblo" autocomplete="off" spellcheck="false"><button id="citygo" class="primary"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg> Buscar</button></div>
+  <div id="cityerr"></div>
+  <div id="cityres"></div>
 </section>
 <section id="cpanel" aria-label="Calendario">
   <h3>Calendario <button id="c-close" aria-label="Cerrar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></h3>
@@ -679,7 +686,7 @@ function openCalendar() {
   }
   $("scrim").classList.add("on"); $("cpanel").classList.add("on");
 }
-function closeCalendar() { $("cpanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on")) $("scrim").classList.remove("on"); }
+function closeCalendar() { $("cpanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on,#cityp.on")) $("scrim").classList.remove("on"); }
 /* ---- sistema: salud de la Pi y apagar/reiniciar (con confirmacion de dos toques) ---- */
 /* ---- Musix: YT Music (YouTube incrustado), MP3 Player (offline) y DYMusic (buscar y bajar a la Pi) ---- */
 const mxAudio = $("mxaudio");
@@ -961,7 +968,7 @@ function showSaver() {
   svClock(); box.classList.add("on"); svShowPhoto();
 }
 function hideSaver() { svLast = Date.now(); if (!svOn) return; svOn = false; clearTimeout(svTimer); $("saver").classList.remove("on"); setTimeout(() => { if (!svOn) $("saver").querySelectorAll(".ph").forEach(o => o.remove()); }, 1300); }
-function busyForSaver() { return camShown() || $("tring").classList.contains("on") || document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on") || $("switching").classList.contains("on"); }
+function busyForSaver() { return camShown() || $("tring").classList.contains("on") || document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on,#cityp.on") || $("switching").classList.contains("on"); }
 ["pointerdown", "keydown", "touchstart"].forEach(ev => document.addEventListener(ev, e => { if (svOn) { e.preventDefault(); e.stopPropagation(); } hideSaver(); }, true));
 setInterval(() => {
   if (svOn) { svClock(); if (busyForSaver()) hideSaver(); return; }
@@ -990,7 +997,28 @@ function renderWeather() {
     row.append(a, ic, t, r); D.append(row);
   }
 }
-function openWeather() { renderWeather(); $("scrim").classList.add("on"); $("wpanel").classList.add("on"); }
+/* ---- ciudad del tiempo: se busca por nombre (Open-Meteo) y se guarda en pcpi.conf; antes habia que editar coordenadas a mano ---- */
+function openCity() { $("cityerr").textContent = ""; $("cityres").textContent = ""; $("scrim").classList.add("on"); $("cityp").classList.add("on"); setTimeout(() => $("cityin").focus(), 350); }
+function closeCity() { PCPIKeyboard.close(); $("cityp").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on,#cityp.on")) $("scrim").classList.remove("on"); }
+async function citySearch() {
+  $("cityerr").textContent = "Buscando…"; $("cityres").textContent = "";
+  try {
+    const r = await post("/api/settings", {action: "city_search", q: $("cityin").value}); const j = await r.json();
+    if (!r.ok) { $("cityerr").textContent = j.error || "No se pudo buscar"; return; }
+    $("cityerr").textContent = j.results.length ? "" : "No encuentro esa ciudad. Prueba con otro nombre.";
+    for (const c of j.results) {
+      const b = document.createElement("button"); b.textContent = c.name; const sm = document.createElement("small"); sm.textContent = [c.region, c.country].filter(Boolean).join(", "); b.append(sm);
+      b.onclick = async () => {
+        const rr = await post("/api/settings", {action: "city_set", lat: c.lat, lon: c.lon, name: c.name});
+        if (rr.ok) { closeCity(); closeWeather(); refresh(); } else $("cityerr").textContent = "No se pudo guardar";
+      };
+      $("cityres").append(b);
+    }
+  } catch (e) { $("cityerr").textContent = "No se pudo buscar"; }
+}
+$("citygo").onclick = citySearch; $("city-close").onclick = closeCity; $("wcity").onclick = () => { closeWeather(); openCity(); };
+$("cityin").addEventListener("focus", () => PCPIKeyboard.open($("cityin"), {onEnter: () => { PCPIKeyboard.close(); citySearch(); }}));
+function openWeather() { renderWeather(); $("wcity").hidden = false; $("w-title").textContent = "Tiempo" + (lastWeather && lastWeather.city ? " · " + lastWeather.city : ""); $("scrim").classList.add("on"); $("wpanel").classList.add("on"); }
 function closeWeather() { $("wpanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on")) $("scrim").classList.remove("on"); }
 $("weather").onclick = $("wsub").onclick = openWeather;
 $("w-close").onclick = closeWeather;
@@ -1195,7 +1223,7 @@ function closeSheet() {
 }
 $("chip-wifi").onclick = openSheet;
 $("sh-close").onclick = closeSheet;
-$("scrim").onclick = () => { closeSheet(); closeBright(); closeTimers(); closeWeather(); closeCalendar(); closeSystem(); if (!$("mxpanel").classList.contains("full")) closeMusix(); };
+$("scrim").onclick = () => { closeSheet(); closeBright(); closeTimers(); closeWeather(); closeCalendar(); closeSystem(); closeCity(); if (!$("mxpanel").classList.contains("full")) closeMusix(); };
 
 async function refresh() {
   let s;
@@ -1232,7 +1260,14 @@ async function refresh() {
       $("wsub").append(sp);
     }
     lastWeather = w;
-  } else { $("weather").textContent = ""; $("wsub").textContent = ""; lastWeather = null; }
+  } else {
+    lastWeather = null; $("wsub").textContent = "";
+    if (w && w.error === "no configurado") {               // primer arranque: se invita a elegir la ciudad (en vez de dejar un hueco vacio)
+      $("weather").innerHTML = '<button class="pick primary" id="pickcity">' + ico("search") + ' Elegir tu ciudad</button>';
+      $("pickcity").onclick = e => { e.stopPropagation(); openCity(); };
+      $("wsub").textContent = "Para ver el tiempo y los avisos de lluvia";
+    } else $("weather").textContent = "";
+  }
 
   const n = s.nowplaying || {};
   const on = n.state === "playing" || n.state === "paused";

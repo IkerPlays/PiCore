@@ -149,3 +149,22 @@ textarea:focus-visible, #cmd:focus-visible, #apipath:focus-visible, #apibody:foc
 header button .ic, nav.tabs button .ic { width:1.1em; height:1.1em; }
 #run .ic { fill:currentColor; stroke:none; width:.9em; height:.9em; }
 button.danger.armed { background:var(--bad); color:#fff; border-color:var(--bad); }
+
+/* aviso de reconexion (static/online.js) */
+#offline { position:fixed; left:50%; top:10px; transform:translateX(-50%); z-index:99998; display:flex; align-items:center; gap:10px; padding:9px 16px; border-radius:99px;
+           background:color-mix(in srgb, var(--warn) 18%, var(--card)); color:var(--fg); border:1px solid var(--warn); font-size:14px; font-weight:600; box-shadow:0 10px 30px #0006; animation:rise .4s var(--ease, ease) both; }
+#offline .dot { width:9px; height:9px; border-radius:50%; background:var(--warn); animation:blink 1.2s ease-in-out infinite; }
+@keyframes blink { 50% { opacity:.25 } }
+
+/* ciudad del tiempo */
+#cityp { position:fixed; left:50%; bottom:0; z-index:21; width:min(760px,100vw); max-height:92vh; overflow:auto; background:var(--card); border:1px solid var(--hair); border-bottom:0; border-radius:28px 28px 0 0;
+         padding:20px 22px 24px; transform:translate(-50%,105%); transition:transform .5s var(--ease, ease); }
+#cityp.on { transform:translate(-50%,0); box-shadow:0 -24px 70px #0009; }
+#cityp h3 { font-size:22px; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; } #cityp h3 button { width:44px; height:44px; border-radius:50%; padding:0; }
+#cityq { display:flex; gap:8px; margin-bottom:10px; } #cityq input { flex:1; min-width:0; font:inherit; font-size:18px; padding:12px 14px; border:1px solid var(--hair); border-radius:var(--r-md); background:var(--card2); color:var(--fg); }
+#cityq input:focus { border-color:var(--acc); outline:0; box-shadow:0 0 0 3px color-mix(in srgb, var(--acc) 25%, transparent); } #cityq button { padding:0 18px; border-radius:var(--r-md); }
+#cityres button { width:100%; justify-content:flex-start; text-align:left; margin-bottom:6px; padding:12px 16px; font-size:17px; border-radius:var(--r-md); } #cityres small { color:var(--dim); font-weight:400; margin-left:8px; }
+#cityerr { color:var(--warn); font-size:14px; min-height:20px; margin-bottom:6px; }
+body.osk-open #cityp { padding-bottom:268px; }
+#wcity { min-height:40px; border-radius:99px; padding:0 14px; font-size:14px; }
+#weather .pick { font-size:18px; padding:10px 18px; border-radius:99px; }

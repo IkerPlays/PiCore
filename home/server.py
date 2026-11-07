@@ -22,9 +22,11 @@ from pathlib import Path
 import assets
 import battery
 import calendar_ics
+import confedit
 import devmode
 import display
 import fetcher
+import geocode
 import health
 import intro
 import intros_tool
@@ -303,6 +305,7 @@ def weather(cp):
         out = {"ok": True, "temp": cur["temperature_2m"], "code": cur["weather_code"],
                "tmax": first("temperature_2m_max"), "tmin": first("temperature_2m_min"),
                "rain": first("precipitation_probability_max")}
+        out["city"] = geocode.clean_name(cp.get("weather", "city", fallback=""))
         out["hourly"] = weather_hours(d, cur.get("time"))
         out["days"] = weather_days(day)
         try:
@@ -971,7 +974,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         if not self._host_ok():
             return self._send(403, {"error": "host no permitido"})
-        paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/notes/export", "/api/bookmarks", "/api/music", "/api/dev", "/api/audio", "/api/loaded",
+        paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/notes/export", "/api/bookmarks", "/api/music", "/api/dev", "/api/audio", "/api/settings", "/api/loaded",
                  "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display", "/api/motion", "/api/timers", "/api/ask", "/api/system")
         if self.path not in paths or self.headers.get("X-PCPI") != "1":
             return self._send(403, {"error": "prohibido"})
@@ -1030,6 +1033,11 @@ class Handler(BaseHTTPRequestHandler):
                 except ValueError as e:
                     return self._send(400, {"error": str(e)})
                 return self._send(200, {"ok": True, "path": path_, "count": n})
+            if self.path == "/api/settings":
+                try:
+                    return self._send(200, settings_post(body))
+                except SettingsError as e:
+                    return self._send(502, {"error": str(e)})
             if self.path == "/api/audio":
                 return self._send(200, audio_post(body))
             if self.path == "/api/dev":
@@ -1242,6 +1250,35 @@ def music_post(body):
             raise musix.MusixError("No veo ningún USB conectado")
         return {"ok": True, **musix.import_from(mounts)}
     raise ValueError("accion invalida")
+
+
+_conf_lock = threading.Lock()
+
+
+def settings_post(body):
+    """Ajustes que se cambian desde la pantalla (hoy: la ciudad del tiempo). Lista CERRADA de acciones y de claves:
+    la pantalla no puede escribir cualquier cosa en pcpi.conf."""
+    act = body.get("action")
+    if act == "city_search":
+        try:
+            return {"results": geocode.search(body.get("q"))}
+        except geocode.GeoError as e:
+            raise SettingsError(str(e))
+    if act == "city_set":
+        lat, lon = geocode.validate_point(body.get("lat"), body.get("lon"))
+        name = geocode.clean_name(body.get("name"))
+        path = str(conf_path())
+        with _conf_lock:
+            confedit.set_file(path, "weather", "lat", repr(lat))
+            confedit.set_file(path, "weather", "lon", repr(lon))
+            confedit.set_file(path, "weather", "city", name)
+        _cache.pop("weather", None)                          # que el tiempo de la ciudad nueva salga ya, no a los 10 minutos
+        return {"ok": True, "lat": lat, "lon": lon, "city": name}
+    raise ValueError("accion invalida")
+
+
+class SettingsError(Exception):
+    pass
 
 
 def audio_info():

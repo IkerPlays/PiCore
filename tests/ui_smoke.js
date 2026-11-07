@@ -135,6 +135,44 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('cargando muestra el rayo y quita el aviso', (await page.locator('#chip-bat use[href="#i-bolt"]').count()) === 1 && (await page.textContent('#chip-bat')).includes('80%') && !(await page.getAttribute('#chip-bat', 'class')).includes('low'));
   await page.unroute('**/api/status');
 
+  // ------------------------------------------------------------------ ciudad del tiempo (primer arranque sin ciudad)
+  await page.goto(base + '/');
+  await sleep(900);
+  let cityPosts = [];
+  await page.route('**/api/status', async route => {
+    const resp = await route.fetch(); const j = await resp.json();
+    j.weather = { ok: false, error: 'no configurado' };
+    await route.fulfill({ response: resp, json: j });
+  });
+  await page.route('**/api/settings', async route => {
+    const b = JSON.parse(route.request().postData());
+    if (b.action === 'city_search') await route.fulfill({ json: { results: [{ name: 'Telde', region: 'Canarias', country: 'España', lat: 27.9924, lon: -15.4192 }] } });
+    else { cityPosts.push(b); await route.fulfill({ json: { ok: true } }); }
+  });
+  await page.waitForSelector('#pickcity', { timeout: 9000 }).catch(() => {});
+  check('sin ciudad, el tiempo invita a elegirla', (await page.textContent('#weather')).includes('Elegir tu ciudad'));
+  await page.click('#pickcity'); await sleep(600);
+  check('se abre el panel de ciudad', await page.evaluate(() => document.getElementById('cityp').classList.contains('on')));
+  await page.click('#cityin'); await sleep(400);
+  check('con el teclado en pantalla', await page.evaluate(() => document.body.classList.contains('osk-open')));
+  await page.fill('#cityin', 'telde'); await page.click('#citygo');
+  await page.waitForSelector('#cityres button', { timeout: 5000 }).catch(() => {});
+  check('salen las ciudades encontradas', (await page.textContent('#cityres')).includes('Telde') && (await page.textContent('#cityres')).includes('Canarias'));
+  await page.click('#cityres button'); await sleep(500);
+  check('al elegir una se guarda su latitud, longitud y nombre', cityPosts.length === 1 && cityPosts[0].action === 'city_set' && cityPosts[0].name === 'Telde' && Math.abs(cityPosts[0].lat - 27.9924) < 1e-6, JSON.stringify(cityPosts));
+  check('y el panel se cierra', !(await page.evaluate(() => document.getElementById('cityp').classList.contains('on'))));
+  await page.unroute('**/api/status'); await page.unroute('**/api/settings');
+
+  // ------------------------------------------------------------------ aviso de reconexion (el servidor se reinicia)
+  await page.goto(base + '/');
+  await sleep(900);
+  await page.route('**/api/**', route => route.abort());                // servidor caido: ninguna ruta contesta
+  await page.waitForSelector('#offline', { timeout: 25000 }).catch(() => {});
+  check('si el servidor no contesta, sale «Reconectando»', (await page.isVisible('#offline')) && (await page.textContent('#offline')).includes('Reconectando'));
+  await page.unroute('**/api/**');
+  await page.waitForFunction(() => !document.getElementById('offline'), null, { timeout: 15000 }).catch(() => {});
+  check('y se quita solo al volver', (await page.locator('#offline').count()) === 0);
+
   // ------------------------------------------------------------------ Modo Dev
   await page.goto(base + '/');
   await sleep(800);

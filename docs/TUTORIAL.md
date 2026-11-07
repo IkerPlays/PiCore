@@ -521,7 +521,9 @@ Musix es el reproductor propio de PiCore. **No necesita Premium, ni cuentas, ni 
 
 ### 7.3 Tiempo
 
-En `[weather]` pon las coordenadas de tu ciudad (sin cuenta ni API key):
+**Lo más fácil, desde la pantalla:** en el modo Casa, donde iría el tiempo sale el botón **Elegir tu ciudad** (y, si ya hay tiempo, tócalo y pulsa **Cambiar ciudad**). Escribe el nombre con el teclado en pantalla, pulsa **Buscar** y toca tu ciudad en la lista: PiCore guarda por ti `lat`, `lon` y `city` en `[weather]` (sin tocar el resto de tu configuración ni tus comentarios) y el tiempo aparece al momento. La búsqueda usa Open-Meteo, sin cuenta ni API key, y **necesita internet** (sin él te lo dice y puedes poner las coordenadas a mano).
+
+**A mano:** en `[weather]` pon las coordenadas de tu ciudad:
 
 | Ciudad | `lat` | `lon` |
 |---|---|---|

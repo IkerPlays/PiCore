@@ -53,7 +53,7 @@ class UiSmokeTest(unittest.TestCase):
             else:
                 self.fail("el emulador no arranco en 30 s")
             r = subprocess.run(["node", str(ROOT / "tests" / "ui_smoke.js"), "http://127.0.0.1:%d" % port],
-                               capture_output=True, text=True, env=node_env(), timeout=120)
+                               capture_output=True, text=True, env=node_env(), timeout=300)
             self.assertEqual(r.returncode, 0, "\n" + r.stdout + r.stderr)
         finally:
             emu.terminate()

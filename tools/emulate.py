@@ -229,6 +229,18 @@ def main():
             (tmp / "boot_id").write_text("emulador-%d" % boot_n[0])
         return _page_bytes(name)
     server.page_bytes = page_bytes
+    # Buscar ciudad: sin internet en el emulador, una lista de ejemplo
+    import geocode as _geo
+    _CITIES = [("Las Palmas de Gran Canaria", "Canarias", "España", 28.1248, -15.43), ("Madrid", "Comunidad de Madrid", "España", 40.4165, -3.7026),
+               ("Santa Cruz de Tenerife", "Canarias", "España", 28.4682, -16.2546), ("Barcelona", "Cataluña", "España", 41.3888, 2.159)]
+
+    def _city_search(q, http=None, count=6, language="es"):
+        q = " ".join(str(q or "").split()).lower()
+        if len(q) < 2:
+            raise _geo.GeoError("Escribe al menos 2 letras del nombre de la ciudad")
+        return [{"name": n, "region": r, "country": c, "lat": la, "lon": lo} for n, r, c, la, lo in _CITIES if q in n.lower()][:count]
+    _geo.search = _city_search
+
     # Sonido emulado: en la Pi lo aplica pcpi-session; aqui el emulador hace de sesion y guarda el estado
     import sound as _sound
     _audio = {"available": True, "volume": 60, "muted": False, "backend": "emulador"}

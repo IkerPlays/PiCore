@@ -6,71 +6,21 @@
 Ejemplo:  pcpi-config set weather lat 28.1235
 """
 import os
-import re
-import shutil
 import sys
-import tempfile
+from pathlib import Path
+
+sys.dont_write_bytecode = True
+HERE = Path(os.path.realpath(__file__)).parent
+for cand in (HERE.parent / "home", Path("/opt/pcpi/home")):
+    if (cand / "confedit.py").exists():
+        sys.path.insert(0, str(cand))
+        break
+import confedit  # noqa: E402
+from confedit import get, section_range, set_value, split  # noqa: E402  (se reexportan: las pruebas los usan desde aqui)
+
+__all__ = ["get", "section_range", "set_value", "split", "main"]
 
 PATH = os.environ.get("PCPI_CONF", "/etc/pcpi/pcpi.conf")
-
-
-def split(text):
-    return text.splitlines(keepends=True)
-
-
-def section_range(lines, section):
-    start = None
-    for i, l in enumerate(lines):
-        m = re.match(r"^\s*\[([^\]]+)\]\s*$", l)
-        if m:
-            if start is not None:
-                return start, i
-            if m.group(1).strip() == section:
-                start = i
-    return (start, len(lines)) if start is not None else (None, None)
-
-
-def get(text, section, key):
-    lines = split(text)
-    a, b = section_range(lines, section)
-    if a is None:
-        return None
-    for l in lines[a + 1:b]:
-        m = re.match(r"^\s*%s\s*=\s*(.*?)\s*$" % re.escape(key), l)
-        if m:
-            return re.split(r"\s+#", m.group(1), maxsplit=1)[0].strip()
-    return None
-
-
-def set_value(text, section, key, value):
-    if "\n" in value or "\r" in value:
-        raise ValueError("el valor no puede tener saltos de linea")
-    lines = split(text)
-    if lines and not lines[-1].endswith("\n"):
-        lines[-1] += "\n"
-    a, b = section_range(lines, section)
-    new = "%s = %s\n" % (key, value)
-    if a is None:                                   # seccion nueva al final
-        if lines and lines[-1].strip():
-            lines.append("\n")
-        lines += ["[%s]\n" % section, new]
-        return "".join(lines)
-    active = re.compile(r"^\s*%s\s*=" % re.escape(key))
-    commented = re.compile(r"^\s*[#;]\s*%s\s*=" % re.escape(key))
-    for i in range(a + 1, b):
-        if active.match(lines[i]):
-            indent = re.match(r"^\s*", lines[i]).group(0)
-            lines[i] = indent + new
-            return "".join(lines)
-    for i in range(a + 1, b):                       # solo habia un ejemplo comentado: la linea activa va justo debajo
-        if commented.match(lines[i]):
-            lines.insert(i + 1, new)
-            return "".join(lines)
-    end = b
-    while end > a + 1 and not lines[end - 1].strip():   # antes de las lineas en blanco finales de la seccion
-        end -= 1
-    lines.insert(end, new)
-    return "".join(lines)
 
 
 def main(argv):
@@ -87,13 +37,7 @@ def main(argv):
             return 1
         print(v)
         return 0
-    out = set_value(text, argv[2], argv[3], argv[4])
-    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(PATH) or ".")
-    with os.fdopen(fd, "w", encoding="utf-8") as f:
-        f.write(out)
-    if os.path.exists(PATH):
-        shutil.copymode(PATH, tmp)
-    os.replace(tmp, PATH)
+    confedit.write_atomic(PATH, set_value(text, argv[2], argv[3], argv[4]))
     return 0
 
 
