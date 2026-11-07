@@ -21,3 +21,8 @@ labels: bug
 
 ```
 ```
+
+**Tu configuración** (`pcpi-config show`; las contraseñas salen como `******`, pero revisa que no haya nada privado)
+
+```
+```
