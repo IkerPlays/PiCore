@@ -5,6 +5,10 @@
 
 
 
+## Voz: dado y moneda
+
+- «Tira un dado» y «cara o cruz». Probado con tests; no en una Pi real.
+
 ## Voz: cuántos días faltan
 
 - «Cuánto falta para Navidad» (también Nochevieja, Reyes, Año Nuevo y el verano). Probado con tests; no en una Pi real.

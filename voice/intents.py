@@ -184,6 +184,10 @@ def parse(text):
         m = re.search(r"(navidad|ano nuevo|nochevieja|reyes|verano)", t)
         if m:
             return Intent("days_until", m.group(1))
+    if has("tira un dado", "lanza un dado", "tirame un dado", "tira el dado", "lanza el dado"):
+        return Intent("random", "dado")
+    if has("cara o cruz", "cara o cruces", "tira una moneda", "lanza una moneda"):
+        return Intent("random", "moneda")
     if has("calendario", "agenda", "que tengo", "tengo algo", "mis eventos", "proximo evento", "siguiente evento", "proxima cita", "tengo hoy", "tengo manana"):
         return Intent("calendar", "next" if has("proximo evento", "siguiente evento", "proxima cita") else "tomorrow" if has("manana") else "today")
     if has("temporizador", "cuenta atras", "cuentaatras"):
@@ -401,6 +405,15 @@ def say_days_until(which, today):
     if n == 0:
         return "Hoy es %s" % nombre
     return "Falta 1 día para %s" % nombre if n == 1 else "Faltan %d días para %s" % (n, nombre)
+
+
+def say_random(kind, rnd=None):
+    """Dado de 6 caras o moneda. rnd: un random.Random (para los tests)."""
+    import random
+    r = rnd or random
+    if kind == "moneda":
+        return "Ha salido " + r.choice(["cara", "cruz"])
+    return "Ha salido el %d" % r.randint(1, 6)
 
 
 def say_date(now):

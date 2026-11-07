@@ -106,6 +106,12 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.say_days_until("navidad", _dt.date(2026, 12, 25)), "Hoy es la Navidad")
         self.assertEqual(i.say_days_until("navidad", _dt.date(2026, 12, 26)), "Faltan 364 días para la Navidad")
         self.assertEqual(i.say_days_until("reyes", _dt.date(2026, 12, 31)), "Faltan 6 días para los Reyes")
+        self.assertEqual(P("tira un dado"), ("random", "dado"))
+        self.assertEqual(P("cara o cruz"), ("random", "moneda"))
+        import random as _r
+        vistos = {i.say_random("dado", _r.Random(n)) for n in range(60)}
+        self.assertEqual(vistos, {"Ha salido el %d" % k for k in range(1, 7)})
+        self.assertEqual({i.say_random("moneda", _r.Random(n)) for n in range(20)}, {"Ha salido cara", "Ha salido cruz"})
         self.assertEqual(P("activa el salvapantallas"), ("screensaver", True))
         self.assertEqual(P("desactiva el salvapantallas"), ("screensaver", False))
         self.assertEqual(P("sube el brillo"), ("brightness", "+20"))
