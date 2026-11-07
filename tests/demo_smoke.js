@@ -78,6 +78,15 @@ const check = (name, ok, extra) => results.push({ name, ok: !!ok, extra });
   check('voz: tomar nota', await say('toma nota comprar pan') === 'Anotado');
   check('voz: lista de la compra', /lista de la compra/.test(await say('añade leche a la lista de la compra')));
   check('voz: el tiempo de mañana', /^Mañana habrá una máxima/.test(await say('qué tiempo hará mañana')));
+  // todo lo que el tutorial dice que puedes pedir lo entiende tambien el simulador (si no, la demo contradice a la documentacion)
+  {
+    const t = require('fs').readFileSync(require('path').join(__dirname, '..', 'docs', 'TUTORIAL.md'), 'utf8'), ini = t.indexOf('#### Qué puedes pedir'), sec = t.slice(ini, t.indexOf('####', ini + 10));
+    const frag = new Set(['en Nueva York', 'en Londres', 'de treinta segundos']), frases = [];
+    for (const l of sec.split('\n')) { if (!l.startsWith('|') || l.startsWith('|---')) continue; for (const m of l.split('|')[1].matchAll(/«([^»]+)»/g)) if (!/[…\/]/.test(m[1]) && !frag.has(m[1]) && !/^modo /i.test(m[1])) frases.push(m[1]); }       // «modo ...» cambia de pagina: se prueba aparte
+    const malas = [];
+    for (const f of frases) { const r = await say(f); if (/No te he entendido|Dime algo/.test(String(r))) malas.push(f); }
+    check('el simulador entiende todas las frases del tutorial (' + frases.length + ')', frases.length > 55 && malas.length === 0, JSON.stringify(malas));
+  }
   check('voz: lo que no entiende no rompe nada', /No te he entendido/.test(await say('blablabla')));
 
   await page.request.get(base + '/').catch(() => {});

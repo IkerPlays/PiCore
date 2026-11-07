@@ -196,7 +196,7 @@
     }
     return n;
   }
-  const norm = s => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const norm = s => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/-/g, " ");
   const title = t => (t.split("\n").find(l => l.trim()) || "Nota sin título").trim().slice(0, 60);
   const tagsOf = t => { const out = []; for (const m of t.matchAll(/(?<![\w#&/])#([^\W\d_][\w-]{0,29})/g)) { const g = norm(m[1]).replace(/^-+|-+$/g, ""); if (g && !out.includes(g)) out.push(g); } return out.slice(0, 20); };
   const listNotes = () => notes().slice().sort((a, b) => (!!b.pinned - !!a.pinned) || (b.updated - a.updated)).map(n => ({ id: n.id, title: title(n.text), updated: n.updated, tags: tagsOf(n.text), pinned: n.pinned === true }));
@@ -524,6 +524,32 @@
       const label = r.label || (r.kind === "alarm" ? "Alarma" : "");
       S.timers = S.timers.filter(x => x !== r); S.timers.push({ id: rid(8), kind: "timer", label, due: Date.now() + 300000 }); LS.set("timers", S.timers); return "Pospuesto cinco minutos";
     }
+    if (has("avisame", "recuerdame") && duration(t)) {
+      const sec = duration(t), m2 = /(?:minutos?|segundos?|horas?)\s+(?:de que |que |para |a |de )?(.{2,40})$/.exec(String(text).toLowerCase().replace(/[\s.,!?¡¿]+$/, "")), label = m2 && !duration(norm(m2[1])) ? m2[1].trim() : "";
+      S.timers.push({ id: rid(8), kind: "timer", label, due: Date.now() + sec * 1000 }); LS.set("timers", S.timers); return "Temporizador de " + sayDuration(sec) + (label ? " para " + label : "") + " en marcha";
+    }
+    if (has("ponle", "ponme") && has("mas") && !has("volumen", "brillo", "musica") && duration(t)) {
+      const c = S.timers.filter(x => x.kind === "timer" && Date.now() < x.due).sort((x, y) => x.due - y.due)[0];
+      if (!c) return "No hay ningún temporizador en marcha";
+      c.due += duration(t) * 1000; LS.set("timers", S.timers); return "Añadido " + sayDuration(duration(t)) + " al temporizador";
+    }
+    if (has("cuantas notas", "cuantos temporizadores")) {
+      const k = has("notas") ? notes().length : S.timers.filter(x => x.kind === "timer").length, w = has("notas") ? ["nota", "notas", "una"] : ["temporizador", "temporizadores", "un"];
+      return k === 0 ? (has("notas") ? "No tienes ninguna nota" : "No tienes ningún temporizador") : "Tienes " + (k === 1 ? w[2] : k) + " " + (k === 1 ? w[0] : w[1]);
+    }
+    if (has("nota") && has("lee", "leeme", "dime", "que pone", "cual es") && has("ultima", "reciente", "anterior")) {
+      const all = notes().slice().sort((a, b) => b.updated - a.updated); if (!all.length) return "No tienes ninguna nota";
+      const tx = all[0].text.split(/\s+/).join(" "); return "Tu última nota dice: " + (tx.length > 300 ? tx.slice(0, 300) + "…" : tx);
+    }
+    if (has("proximo evento", "siguiente evento", "proxima cita")) { const ev = calendar().events[0]; return "Tu próximo evento es " + ev.title + ", hoy a las " + ev.time.replace(":", " y "); }
+    if (has("cuanto falta para", "dias para") && /navidad|nochevieja|reyes|ano nuevo|verano/.test(t)) {
+      const M = { navidad: [11, 25, "la Navidad"], nochevieja: [11, 31, "Nochevieja"], reyes: [0, 6, "los Reyes"], "ano nuevo": [0, 1, "Año Nuevo"], verano: [5, 21, "el verano"] }, k = Object.keys(M).find(x => t.includes(x)), now2 = new Date(), t0 = new Date(now2.getFullYear(), now2.getMonth(), now2.getDate());
+      let d = new Date(t0.getFullYear(), M[k][0], M[k][1]); if (d < t0) d = new Date(t0.getFullYear() + 1, M[k][0], M[k][1]);
+      const n = Math.round((d - t0) / 864e5); return n === 0 ? "Hoy es " + M[k][2] : n === 1 ? "Falta 1 día para " + M[k][2] : "Faltan " + n + " días para " + M[k][2];
+    }
+    if (has("repite", "que has dicho") && !has("cancion", "musica")) return S.voice && S.voice.reply ? S.voice.reply : "Todavía no he dicho nada";
+    if (has("vigilancia", "movimiento")) { const on = !has("desactiva", "apaga", "quita", "deja de"); S.motion = on; LS.set("motion", on); return on ? "Vigilancia activada" : "Vigilancia desactivada"; }
+    if (has("silencia", "silencio", "mute")) { S.audio.muted = !S.audio.muted; LS.set("audio", S.audio); return S.audio.muted ? "Silenciado" : "Sonido activado"; }
     if (has("que puedes hacer", "que sabes hacer", "ayuda", "que comandos")) return "Puedes pedirme la hora, el tiempo, temporizadores y alarmas, la música, el volumen y el brillo, cambiar de modo, tomar notas o decirte cómo está la Pi.";
     if (has("gracias")) return "De nada";
     if (["hola", "buenas", "buenos dias", "buenas tardes", "buenas noches", "hola pi"].includes(t)) return "Hola, dime";

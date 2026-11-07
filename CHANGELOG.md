@@ -6,6 +6,10 @@
 
 
 
+## El simulador entiende todo lo que dice el tutorial
+
+- Le faltaban 17 de las ~70 frases de la tabla «Qué puedes pedir» (Pi-hole con guion, silenciar, vigilancia, cuántas notas, leer la última nota, próximo evento, cuánto falta para Navidad, «repite», «avísame en…», «ponle un minuto más»). Añadidas, y el test de navegador de la demo comprueba ahora todas las frases del tutorial (salvo las de «modo…», que cambian de página). Sigue siendo una simulación con datos de ejemplo.
+
 ## Ejemplos de voz de la pantalla y la web: todos se entienden
 
 - La lista de la hoja Sistema decía «pausa» y «siguiente», que el asistente no entiende solos; ahora dice «pausa la música» y «siguiente canción». Un test comprueba todos los ejemplos de la hoja Sistema y de la portada.
