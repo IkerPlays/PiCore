@@ -23,6 +23,85 @@ def title_of(text):
     return "(sin título)"
 
 
+TAG_RE = re.compile(r"(?<![\w#&/])#([^\W\d_][\w-]{0,29})")
+
+
+def tags_of(text):
+    """Etiquetas de una nota: las palabras que empiezan por # («#compra»). Sin mayusculas ni tildes, sin repetir."""
+    seen = []
+    for m in TAG_RE.finditer(text or ""):
+        t = norm(m.group(1)).strip("-")
+        if t and t not in seen:
+            seen.append(t)
+    return seen[:20]
+
+
+# ------------------------------------------------------------------ marcadores (accesos directos del modo Iker)
+MAX_BOOKMARKS = 40
+
+
+def bookmarks_file():
+    return Path(os.environ.get("PCPI_BOOKMARKS", "/var/lib/pcpi/bookmarks.json"))
+
+
+def load_bookmarks(path=None):
+    try:
+        d = json.loads(Path(path or bookmarks_file()).read_text())
+        return [b for b in d if isinstance(b, dict) and isinstance(b.get("url"), str) and isinstance(b.get("title"), str)][:MAX_BOOKMARKS]
+    except (OSError, ValueError, TypeError):
+        return []
+
+
+def clean_url(url):
+    """Solo http(s) con nombre de sitio; sin espacios ni caracteres de control (nada de javascript:, file: ni data:)."""
+    from urllib.parse import urlsplit
+    u = str(url).strip()
+    if not u or len(u) > 500 or re.search(r"[\s\x00-\x1f]", u):
+        raise ValueError("enlace invalido")
+    if "://" not in u:
+        if re.match(r"^[a-z][a-z0-9+.-]*:(?!\d)", u, re.I):          # javascript:, data:, mailto:... (localhost:8080 si vale)
+            raise ValueError("solo se admiten enlaces http o https")
+        u = "https://" + u
+    p = urlsplit(u)
+    try:
+        p.port
+    except ValueError:
+        raise ValueError("enlace invalido")
+    if p.scheme not in ("http", "https") or not p.hostname:
+        raise ValueError("solo se admiten enlaces http o https")
+    return u
+
+
+def edit_bookmarks(body, path=None):
+    """Aplica {action: add, title, url} | {action: delete, id}. Devuelve la lista nueva. Escritura atomica."""
+    f = Path(path or bookmarks_file())
+    items = load_bookmarks(f)
+    act = body.get("action")
+    if act == "add":
+        url = clean_url(body.get("url", ""))
+        title = " ".join(str(body.get("title") or "").split())[:40] or (urlsplit_host(url))
+        if len(items) >= MAX_BOOKMARKS:
+            raise ValueError("ya hay demasiados marcadores")
+        items = [b for b in items if b["url"] != url]
+        items.append({"id": os.urandom(4).hex(), "title": title, "url": url})
+    elif act == "delete":
+        items = [b for b in items if b.get("id") != body.get("id")]
+    else:
+        raise ValueError("accion invalida")
+    f.parent.mkdir(parents=True, exist_ok=True)
+    tmp = f.with_suffix(".tmp")
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w") as fh:
+        fh.write(json.dumps(items))
+    os.replace(tmp, f)
+    return items
+
+
+def urlsplit_host(url):
+    from urllib.parse import urlsplit
+    return (urlsplit(url).hostname or "")[:40].removeprefix("www.")
+
+
 def _read(f):
     try:
         d = json.loads(f.read_text())
@@ -45,7 +124,7 @@ def search(notes_dir, query, limit=100):
             pos = n.find(words[0])
             a = max(0, pos - 30)
             snippet = " ".join(text[a:a + 90].split())
-            out.append({"id": f.stem, "title": title_of(text), "updated": updated, "snippet": snippet})
+            out.append({"id": f.stem, "title": title_of(text), "updated": updated, "snippet": snippet, "tags": tags_of(text)})
     out.sort(key=lambda x: x["updated"], reverse=True)
     return out[:limit]
 

@@ -9,7 +9,7 @@
   @media (prefers-color-scheme: dark) { :root { --bg:#14161b; --side:#0f1115; --card:#1a1d24; --fg:#f2f4f8; --dim:#8b93a3; --line:#2a2f39; --acc:#7aa7ff; --acc-fg:#07101f; } }
   * { box-sizing:border-box; margin:0; }
   html,body { height:100%; background:var(--bg); color:var(--fg); font-family:system-ui,"Segoe UI",sans-serif; }
-  body { display:grid; grid-template-columns:270px 1fr; grid-template-rows:56px 1fr; }
+  body { display:grid; grid-template-columns:270px 1fr; grid-template-rows:56px auto 1fr; }
   header { grid-column:1 / span 2; display:flex; align-items:center; gap:8px; padding:0 12px; background:var(--side); border-bottom:1px solid var(--line); }
   header .title { font-weight:700; font-size:18px; margin-right:auto; }
   button { font:inherit; font-size:16px; border:1px solid var(--line); background:var(--card); color:var(--fg); border-radius:12px; padding:9px 14px; cursor:pointer; }
@@ -26,6 +26,16 @@
   aside .item .snip { display:block; font-size:13px; color:var(--dim); margin-top:3px; white-space:normal; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
   mark { background:#ffd54a66; color:inherit; border-radius:3px; }
   aside .empty { color:var(--dim); padding:16px 8px; font-size:15px; line-height:1.4; }
+  #tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  #tags button { font-size:14px; padding:5px 10px; border-radius:999px; }
+  #tags button.on { background:var(--acc); color:var(--acc-fg); border-color:var(--acc); }
+  #marks { grid-column:1 / span 2; display:flex; gap:8px; align-items:center; padding:6px 12px; background:var(--side); border-bottom:1px solid var(--line); overflow-x:auto; }
+  #marks > span { color:var(--dim); font-size:14px; }
+  #marks .mk { display:inline-flex; align-items:center; white-space:nowrap; border:1px solid var(--line); border-radius:999px; background:var(--card); }
+  #marks .mk a { color:var(--fg); text-decoration:none; padding:6px 6px 6px 14px; font-size:15px; }
+  #marks .mk button { border:0; background:none; padding:6px 10px 6px 4px; color:var(--dim); font-size:14px; }
+  #mform { display:none; gap:6px; } #mform.on { display:flex; }
+  #mform input { font:inherit; font-size:15px; padding:6px 10px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--fg); width:170px; }
   main { display:flex; flex-direction:column; min-height:0; }
   textarea { flex:1; width:100%; border:0; outline:0; resize:none; padding:22px 28px; font:20px/1.55 Georgia,"Times New Roman",serif; background:var(--card); color:var(--fg); }
   footer { display:flex; gap:16px; padding:6px 16px; font-size:13px; color:var(--dim); background:var(--side); border-top:1px solid var(--line); }
@@ -39,10 +49,15 @@
   <button id="save" class="primary">Guardar</button>
   <button id="del" class="danger">Borrar</button>
   <button id="usb" title="Copiar todas las notas a un USB como archivos .txt">📤 USB</button>
+  <button id="pdf" title="Abrir esta nota como PDF para imprimirla o guardarla">PDF</button>
   <button id="web">Internet</button>
   <button id="exit">Salir</button>
 </header>
-<aside><input id="q" type="search" placeholder="🔍 Buscar en las notas…" autocomplete="off"><div id="list"></div></aside>
+<div id="marks"><span>Marcadores</span><span id="mlist"></span>
+  <button id="madd" title="Añadir un acceso directo a una web">+ Añadir</button>
+  <span id="mform"><input id="mt" placeholder="Nombre" maxlength="40" autocomplete="off"><input id="mu" placeholder="direccion.com" autocomplete="off"><button id="msave" class="primary">Guardar</button></span>
+</div>
+<aside><input id="q" type="search" placeholder="🔍 Buscar en las notas…" autocomplete="off"><div id="tags"></div><div id="list"></div></aside>
 <main>
   <textarea id="text" placeholder="Escribe aquí…  (se guarda solo)" spellcheck="true" autofocus></textarea>
   <footer><span id="status">Lista</span><span id="count"></span><span style="margin-left:auto">Ctrl+S guardar · Ctrl+N nueva · Internet se abre en una pestaña nueva</span></footer>
@@ -87,7 +102,9 @@ let query = "", searchTimer = 0;
 $("q").addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => { query = $("q").value.trim(); refresh(); }, 200); });
 
 async function refresh() {
-  const notes = await api("/api/notes" + (query ? "?q=" + encodeURIComponent(query) : ""));
+  let notes = await api("/api/notes" + (query ? "?q=" + encodeURIComponent(query) : ""));
+  paintTags();
+  if (tagSel) notes = notes.filter(n => (n.tags || []).includes(tagSel));
   const l = $("list"); l.innerHTML = "";
   const words = query.split(/\s+/).filter(Boolean);
   if (!notes.length) l.innerHTML = query ? "" : '<div class="empty">Aún no hay notas.<br>Pulsa «Nueva» y empieza a escribir.</div>';
@@ -103,6 +120,42 @@ async function refresh() {
     l.append(d);
   }
 }
+
+/* etiquetas: cualquier palabra con # en el texto (#compra) es una etiqueta; tocarla filtra la lista */
+let tagSel = "";
+async function paintTags() {
+  let tags = [];
+  try { tags = await api("/api/notes/tags"); } catch (e) {}
+  if (tagSel && !tags.some(t => t.tag === tagSel)) tagSel = "";
+  const box = $("tags"); box.textContent = "";
+  for (const t of tags) {
+    const b = document.createElement("button"); b.textContent = "#" + t.tag + " " + t.count; if (t.tag === tagSel) b.className = "on";
+    b.onclick = () => { tagSel = tagSel === t.tag ? "" : t.tag; refresh(); };
+    box.append(b);
+  }
+}
+
+/* marcadores: accesos directos a webs, se abren en una pestaña nueva */
+async function paintMarks() {
+  let items = [];
+  try { items = await api("/api/bookmarks"); } catch (e) {}
+  const box = $("mlist"); box.textContent = "";
+  for (const m of items) {
+    const w = document.createElement("span"); w.className = "mk";
+    const a = document.createElement("a"); a.textContent = m.title; a.href = m.url; a.target = "_blank"; a.rel = "noopener noreferrer";
+    const x = document.createElement("button"); x.textContent = "✕"; x.title = "Quitar"; x.setAttribute("aria-label", "Quitar " + m.title);
+    x.onclick = async () => { await api("/api/bookmarks", {action:"delete", id:m.id}); paintMarks(); };
+    w.append(a, x); box.append(w, " ");
+  }
+}
+$("madd").onclick = () => { $("mform").classList.toggle("on"); if ($("mform").classList.contains("on")) $("mu").focus(); };
+$("msave").onclick = async () => {
+  const r = await fetch("/api/bookmarks", {method:"POST", headers:{"X-PCPI":"1"}, body:JSON.stringify({action:"add", title:$("mt").value, url:$("mu").value})});
+  if (r.ok) { $("mt").value = ""; $("mu").value = ""; $("mform").classList.remove("on"); paintMarks(); setStatus("Marcador guardado", "ok"); }
+  else setStatus((await r.json()).error === "peticion invalida" ? "Esa dirección no vale (usa http o https)" : "No se pudo guardar", "err");
+};
+$("mu").addEventListener("keydown", e => { if (e.key === "Enter") $("msave").click(); });
+$("pdf").onclick = async () => { await save(); if (cur) window.open("/api/notes/" + cur + ".pdf", "_blank"); else setStatus("Guarda la nota primero", "err"); };
 
 async function save() {
   clearTimeout(timer);
@@ -159,7 +212,7 @@ document.addEventListener("keydown", e => {
   if (e.ctrlKey && e.key === "n") { e.preventDefault(); openNote(null); }
 });
 window.addEventListener("beforeunload", () => { if (dirty) save(); });
-refresh(); counts();
+refresh(); counts(); paintMarks();
 /* latido: si el navegador se cuelga o se queda en blanco, esto se para y el vigilante lo relanza */
 setInterval(() => fetch("/api/alive").catch(() => {}), 5000); fetch("/api/alive").catch(() => {});
 </script>

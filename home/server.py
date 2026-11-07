@@ -31,6 +31,7 @@ import llm
 import motion
 import netmgr
 import notes_tools
+import pdf
 import pcpiconf
 import timers
 
@@ -117,7 +118,7 @@ def list_notes():
     for f in notes_dir().glob("*.json"):
         try:
             d = json.loads(f.read_text())
-            out.append({"id": f.stem, "title": _note_title(d["text"]), "updated": d["updated"]})
+            out.append({"id": f.stem, "title": _note_title(d["text"]), "updated": d["updated"], "tags": notes_tools.tags_of(d["text"])})
         except (OSError, ValueError, KeyError):
             continue
     return sorted(out, key=lambda n: n["updated"], reverse=True)
@@ -725,6 +726,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, {"mode": get_mode()})
         if path == "/api/notes" or path.startswith("/api/notes/"):
             return self._notes_get(path)
+        if path == "/api/bookmarks":
+            if not self._local():
+                return
+            return self._send(200, notes_tools.load_bookmarks())
         if path in ("/api/camera/stream", "/api/camera/snapshot.jpg"):
             return self._camera(path.endswith(".jpg"))
         if path == "/api/alive":
@@ -833,8 +838,21 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, notes_tools.search(notes_dir(), q) if q.strip() else list_notes())
         if path == "/api/notes/usb":
             return self._send(200, {"usb": notes_tools.usb_mountpoints()})
+        if path == "/api/notes/tags":
+            counts = {}
+            for n in list_notes():
+                for t in n["tags"]:
+                    counts[t] = counts.get(t, 0) + 1
+            return self._send(200, [{"tag": t, "count": c} for t, c in sorted(counts.items(), key=lambda x: (-x[1], x[0]))])
+        last = path.rsplit("/", 1)[1]
+        if last.endswith(".pdf"):
+            try:
+                n = read_note(last[:-4])
+            except KeyError:
+                return self._send(404, {"error": "nota no encontrada"})
+            return self._send(200, pdf.note_pdf(_note_title(n["text"]), n["text"], n["updated"]), "application/pdf")
         try:
-            return self._send(200, read_note(path.rsplit("/", 1)[1]))
+            return self._send(200, read_note(last))
         except KeyError:
             return self._send(404, {"error": "nota no encontrada"})
 
@@ -900,7 +918,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         if not self._host_ok():
             return self._send(403, {"error": "host no permitido"})
-        paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/notes/export", "/api/loaded",
+        paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/notes/export", "/api/bookmarks", "/api/loaded",
                  "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display", "/api/motion", "/api/timers", "/api/ask", "/api/system")
         if self.path not in paths or self.headers.get("X-PCPI") != "1":
             return self._send(403, {"error": "prohibido"})
@@ -959,6 +977,8 @@ class Handler(BaseHTTPRequestHandler):
                 except ValueError as e:
                     return self._send(400, {"error": str(e)})
                 return self._send(200, {"ok": True, "path": path_, "count": n})
+            if self.path == "/api/bookmarks":
+                return self._send(200, notes_tools.edit_bookmarks(body))
             if self.path == "/api/notes/delete":
                 delete_note(body["id"])
                 return self._send(200, {"ok": True})

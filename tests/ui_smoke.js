@@ -292,6 +292,38 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('exportar sin USB avisa con claridad', (await page.textContent('#status')).includes('ningún USB'), await page.textContent('#status'));
   await page.locator('#list .item').first().click(); await page.click('#del'); await page.click('#del'); await sleep(400);
 
+  // etiquetas, PDF y marcadores
+  await page.click('#new');
+  await page.fill('#text', 'Lista de la compra #super #casa\nleche y pan');
+  await page.waitForFunction(() => document.getElementById('status').textContent.includes('Guardado'), null, { timeout: 6000 }).catch(() => {});
+  await page.waitForFunction(() => document.querySelectorAll('#tags button').length >= 2, null, { timeout: 6000 }).catch(() => {});
+  check('las etiquetas # aparecen como botones', (await page.locator('#tags button').count()) >= 2, await page.textContent('#tags'));
+  await page.locator('#tags button', { hasText: '#super' }).click();
+  await sleep(500);
+  check('tocar una etiqueta filtra las notas', (await page.locator('#list .item').count()) === 1);
+  await page.locator('#tags button', { hasText: '#super' }).click();
+  await sleep(400);
+  await page.evaluate(() => { window.__opened = null; window.open = u => { window.__opened = u; return null; }; });   // el Chromium sin pantalla descarga los PDF: solo miramos la direccion
+  await page.click('#pdf');
+  await sleep(500);
+  const opened = await page.evaluate(() => window.__opened);
+  check('el boton PDF abre el PDF de la nota', /^\/api\/notes\/[0-9a-f]{16}\.pdf$/.test(opened || ''), opened);
+  const pdfResp = await page.request.get(base + opened);
+  check('ese enlace sirve un PDF de verdad', pdfResp.ok() && (pdfResp.headers()['content-type'] || '') === 'application/pdf' && (await pdfResp.body()).slice(0, 5).toString() === '%PDF-');
+  await page.click('#madd');
+  await page.fill('#mt', 'Wiki'); await page.fill('#mu', 'es.wikipedia.org');
+  await page.click('#msave');
+  await page.waitForSelector('#mlist .mk', { timeout: 5000 }).catch(() => {});
+  check('un marcador nuevo sale en la barra', (await page.locator('#mlist .mk a').first().getAttribute('href')) === 'https://es.wikipedia.org/' || (await page.locator('#mlist .mk a').first().getAttribute('href')) === 'https://es.wikipedia.org');
+  await page.click('#madd'); await page.fill('#mu', 'javascript:alert(1)'); await page.click('#msave');
+  await sleep(400);
+  check('un marcador peligroso se rechaza', (await page.locator('#mlist .mk').count()) === 1 && (await page.textContent('#status')).includes('no vale'), await page.textContent('#status'));
+  await page.fill('#mu', ''); await page.click('#madd');
+  await page.click('#mlist .mk button');
+  await sleep(500);
+  check('quitar un marcador lo borra', (await page.locator('#mlist .mk').count()) === 0);
+  await page.locator('#list .item').first().click(); await page.click('#del'); await page.click('#del'); await sleep(400);
+
   // una nota vacia nueva no se guarda
   await page.click('#new');
   await sleep(1500);

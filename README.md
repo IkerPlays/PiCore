@@ -75,7 +75,7 @@ La wifi de casa va en la microSD (Imager). Para otra red, toca el icono de Wi-Fi
 - **IA local opcional** (`./install.sh --ai`: Ollama + Qwen, sin internet, con datos reales de la Pi; ver el [tutorial 7.6](docs/TUTORIAL.md#76-ia-local-con-ollama--qwen-opcional) para lo que cabe de verdad en la Pi 5).
 - **Whisper** (reconocimiento de voz sin conexión, el modelo se descarga al instalar) para entender mucho mejor las órdenes.
 - **Batería** (🔋): solo si tienes un UPS/HAT con medidor o un comando propio (la Pi 5 no mide la batería).
-- **Modo Iker**: buscar en las notas, copias automáticas y exportar a USB (📤).
+- **Modo Iker**: buscar en las notas, **etiquetas** (`#compra`), **exportar a PDF**, **marcadores** de webs, copias automáticas y exportar a USB (📤).
 - **`pcpi-backup`** (copia de todo lo tuyo en un archivo) y **`pcpi-update`** (actualiza y reinstala con tus mismas opciones).
 - **Autorreparación**: si Chromium se cae o se queda en blanco, se relanza solo por la pantalla de Carga.
 
