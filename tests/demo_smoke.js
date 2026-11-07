@@ -58,16 +58,6 @@ const check = (name, ok, extra) => results.push({ name, ok: !!ok, extra });
   check('un temporizador cuenta atras', /\d\d:\d\d/.test(await page.textContent('#timer-txt')));
   await page.click('#t-close'); await sleep(300);
 
-  // voz simulada: lo que escribes lo entiende la «Pi» (si esto se rompe, el simulador contesta cosas absurdas)
-  const say = t => page.evaluate(x => window.PCPI_DEMO.say(x), t);
-  check('voz: la hora', /^Son las \d{1,2}:\d\d$/.test(await say('qué hora es')));
-  check('voz: temporizador con nombre', /para pasta/.test(await say('pon un temporizador de diez minutos para la pasta')));
-  check('voz: alargar el temporizador', /^Añadido 1 minuto/.test((await say('añade un minuto al temporizador')).replace('Añadido un minuto', 'Añadido 1 minuto')));
-  check('voz: tomar nota', await say('toma nota comprar pan') === 'Anotado');
-  check('voz: lista de la compra', /lista de la compra/.test(await say('añade leche a la lista de la compra')));
-  check('voz: el tiempo de mañana', /^Mañana habrá una máxima/.test(await say('qué tiempo hará mañana')));
-  check('voz: lo que no entiende no rompe nada', /No te he entendido/.test(await say('blablabla')));
-
   // cambio de modo: Casa -> carga -> Iker, sin servidor
   await page.click('button[data-mode="iker"]');
   await page.waitForURL('**/iker', { timeout: 20000 }).catch(() => {});
@@ -79,6 +69,17 @@ const check = (name, ok, extra) => results.push({ name, ok: !!ok, extra });
   await page.reload(); await sleep(700);
   check('las notas se guardan en el navegador (sobreviven a recargar)', (await page.locator('#list .item').count()) === 3);
   check('las etiquetas funcionan', (await page.locator('#tags button').count()) >= 2);
+
+  // voz simulada: lo que escribes lo entiende la «Pi» (si esto se rompe, el simulador contesta cosas absurdas)
+  const say = t => page.evaluate(x => window.PCPI_DEMO.say(x), t);
+  check('voz: la hora', /^Son las \d{1,2}:\d\d$/.test(await say('qué hora es')));
+  check('voz: temporizador con nombre', /para pasta/.test(await say('pon un temporizador de diez minutos para la pasta')));
+  check('voz: alargar el temporizador', /^Añadido 1 minuto/.test((await say('añade un minuto al temporizador')).replace('Añadido un minuto', 'Añadido 1 minuto')));
+  check('voz: tomar nota', await say('toma nota comprar pan') === 'Anotado');
+  check('voz: lista de la compra', /lista de la compra/.test(await say('añade leche a la lista de la compra')));
+  check('voz: el tiempo de mañana', /^Mañana habrá una máxima/.test(await say('qué tiempo hará mañana')));
+  check('voz: lo que no entiende no rompe nada', /No te he entendido/.test(await say('blablabla')));
+
   await page.request.get(base + '/').catch(() => {});
 
   // Modo Dev: consola de mentira
