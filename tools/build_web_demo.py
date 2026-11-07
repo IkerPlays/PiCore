@@ -115,8 +115,14 @@ def build(out):
             html = html.replace('{home: "/", iker:', '{home: "/app", iker:', 1)
         (out / dest).write_text(html, encoding="utf-8")
     copy_media(out)
-    (out / "404.html").write_text('<!doctype html><meta charset="utf-8"><title>No encontrado</title><body style="font-family:system-ui;padding:40px">'
-                                  '<h1>No encontrado</h1><p><a href="/">Volver a la demo de PiCore</a></p>', encoding="utf-8")
+    (out / "404.html").write_text(
+        '<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">'
+        '<title>No encontrado · PiCore</title><link rel="icon" href="/favicon.svg" type="image/svg+xml">'
+        '<style>:root{color-scheme:dark light}body{margin:0;min-height:100vh;display:grid;place-items:center;font:17px/1.6 system-ui,sans-serif;background:#07090e;color:#f4f6fa;text-align:center;padding:24px}'
+        '@media (prefers-color-scheme:light){body{background:#f4efe5;color:#221f1a}}h1{font-size:clamp(34px,8vw,64px);margin:0 0 8px;letter-spacing:-.02em}p{margin:6px 0 22px;opacity:.75}'
+        'a{display:inline-block;margin:4px;padding:11px 20px;border-radius:99px;background:#7cabff;color:#06101f;text-decoration:none;font-weight:600}a.g{background:transparent;color:inherit;border:1px solid #8884}</style>'
+        '<body><main><h1>No encuentro esa página</h1><p>Puede que el enlace esté mal escrito o que la página se haya movido.</p>'
+        '<a href="/">Ir al inicio</a><a class="g" href="/simulador">Probar el simulador</a></main></body></html>', encoding="utf-8")
     (out / "_headers").write_text("/*\n  Content-Security-Policy: %s\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: no-referrer\n"
                                   "  X-Frame-Options: SAMEORIGIN\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n/static/*\n  Cache-Control: public, max-age=300\n/assets/*\n  Cache-Control: public, max-age=86400\n/img/*\n  Cache-Control: public, max-age=86400\n" % CSP,
                                   encoding="utf-8")

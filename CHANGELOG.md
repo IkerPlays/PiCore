@@ -5,6 +5,10 @@
 
 
 
+## Web: página 404 con estilo
+
+- La página de «no encontrado» de la web tiene el mismo estilo (claro/oscuro), es adaptable al móvil y enlaza al inicio y al simulador.
+
 ## Voz: alarmas diarias
 
 - «Despiértame todos los días a las siete y media» crea una alarma diaria (el servidor ya las soportaba; faltaba poder pedirlas por voz). Probado con tests; no en una Pi real.
