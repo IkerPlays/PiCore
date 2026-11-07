@@ -172,6 +172,10 @@ def parse(text):
         return Intent("uptime", None)
     if has("a que wifi", "que wifi", "a que red", "que red", "tengo internet", "hay internet", "estoy conectad", "estamos conectad"):
         return Intent("net_info", None)
+    if has("avisame", "recuerdame", "avisa me", "recuerda me") and (secs_r := parse_duration(words)):
+        m = re.search(r"(?:minutos?|segundos?|horas?)\s+(?:de que |que |para |a |de )?(.{2,40})$", str(text).lower().strip(" .,!?¡¿"))
+        label = m.group(1).strip() if m and not parse_duration(norm(m.group(1)).split()) else ""
+        return Intent("timer_set", (secs_r, label) if label else secs_r)
     if has("calendario", "agenda", "que tengo", "tengo algo", "mis eventos", "proximo evento", "siguiente evento", "proxima cita", "tengo hoy", "tengo manana"):
         return Intent("calendar", "next" if has("proximo evento", "siguiente evento", "proxima cita") else "tomorrow" if has("manana") else "today")
     if has("temporizador", "cuenta atras", "cuentaatras"):

@@ -5,6 +5,10 @@
 
 
 
+## Voz: «avísame en…» y «recuérdame en…»
+
+- «Avísame en veinte minutos» y «recuérdame en diez minutos sacar la pizza» crean un temporizador (con nombre si lo dices). Probado con tests; no en una Pi real.
+
 ## pcpi-doctor: comprueba que los ajustes de la pantalla se pueden guardar
 
 - Avisa si `pcpi.conf` no es escribible por tu usuario (la ciudad, Pi-hole y los ajustes de la hoja Sistema no se guardarían) y dice cómo arreglarlo.
