@@ -5,6 +5,10 @@
 
 
 
+## MP3 Player: repetir
+
+- Botón «Repetir todo / Repetir una / Sin repetir» (se recuerda). Con «Sin repetir» la música se para al acabar la última canción. Comprobado en navegador sin pantalla con el simulador.
+
 ## Simulador: atajos de teclado
 
 - `1` `2` `3` cambian de modo, `T` abre la visita guiada y `V` lleva el cursor a la barra de voz (no actúan si estás escribiendo). Comprobado en navegador sin pantalla.

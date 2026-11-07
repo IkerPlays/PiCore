@@ -430,7 +430,7 @@
     <div class="mxrow"><button id="mx-usb" title="Copiar las canciones de un USB a la Pi">Importar de un USB</button><button id="mx-refresh">Actualizar</button><span id="mx-count" class="mxnote" style="margin:0;align-self:center"></span></div>
     <div class="mxerr" id="mx-merr"></div>
     <div id="mxlist"></div>
-    <div class="mxbar"><button id="mx-shuf" aria-label="Aleatorio" title="Aleatorio">Aleatorio</button><button id="mx-sleep" aria-label="Apagar la música en un rato" title="Apagar la música en un rato">Dormir</button><button id="mx-p" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.5v14H6zM20 5v14L9.5 12z"/></svg></button><button id="mx-pp" aria-label="Reproducir o pausar"><svg id="mx-pp-ic" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button><button id="mx-n" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 5H18v14h-2.5zM4 5v14l10.5-7z"/></svg></button><input type="range" id="mx-seek" min="0" max="1000" value="0" aria-label="Posición"><output id="mx-time">0:00 / 0:00</output><input type="range" id="mx-vol" min="0" max="100" value="100" aria-label="Volumen de Musix" title="Volumen de Musix" style="max-width:110px"></div>
+    <div class="mxbar"><button id="mx-shuf" aria-label="Aleatorio" title="Aleatorio">Aleatorio</button><button id="mx-rep" aria-label="Repetir" title="Repetir: todo, una canción o nada">Repetir todo</button><button id="mx-sleep" aria-label="Apagar la música en un rato" title="Apagar la música en un rato">Dormir</button><button id="mx-p" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.5v14H6zM20 5v14L9.5 12z"/></svg></button><button id="mx-pp" aria-label="Reproducir o pausar"><svg id="mx-pp-ic" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button><button id="mx-n" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 5H18v14h-2.5zM4 5v14l10.5-7z"/></svg></button><input type="range" id="mx-seek" min="0" max="1000" value="0" aria-label="Posición"><output id="mx-time">0:00 / 0:00</output><input type="range" id="mx-vol" min="0" max="100" value="100" aria-label="Volumen de Musix" title="Volumen de Musix" style="max-width:110px"></div>
   </div>
   <div class="mxview" id="mx-dy">
     <div class="mxrow"><input id="dyq" placeholder="Título de la canción o artista" autocomplete="off" spellcheck="false"><button id="dygo" class="primary">Buscar</button></div>
@@ -783,7 +783,17 @@ function mxToggle() {
 }
 mxAudio.addEventListener("play", () => { mxPaintPlay(); mxNow("playing"); });
 mxAudio.addEventListener("pause", () => { mxPaintPlay(); mxNow(mxAudio.ended ? "stopped" : "paused"); });
-mxAudio.addEventListener("ended", mxNext);
+let mxRep = "all";
+try { mxRep = ["all", "one", "off"].includes(localStorage.getItem("pcpi-mx-rep")) ? localStorage.getItem("pcpi-mx-rep") : "all"; } catch (e) {}
+const REP_TXT = {all: "Repetir todo", one: "Repetir una", off: "Sin repetir"};
+function paintRep() { $("mx-rep").textContent = REP_TXT[mxRep]; $("mx-rep").classList.toggle("on", mxRep !== "all"); }
+$("mx-rep").onclick = () => { mxRep = {all: "one", one: "off", off: "all"}[mxRep]; try { localStorage.setItem("pcpi-mx-rep", mxRep); } catch (e) {} paintRep(); };
+paintRep();
+mxAudio.addEventListener("ended", () => {
+  if (mxRep === "one") { mxAudio.currentTime = 0; mxAudio.play().catch(() => {}); return; }
+  if (mxRep === "off" && !mxShuffle && mxCur >= mxTracks.length - 1) return;            // ultima canción: se queda parado
+  mxNext();
+});
 mxAudio.addEventListener("error", () => { if (mxAudio.getAttribute("src")) { mxErr("mx-merr", "No se pudo reproducir esa canción"); setTimeout(() => { mxErr("mx-merr", ""); mxNext(); }, 1500); } });
 mxAudio.addEventListener("timeupdate", () => {
   const d = mxAudio.duration; $("mx-time").textContent = fmtT(mxAudio.currentTime) + " / " + fmtT(d);
