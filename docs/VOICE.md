@@ -9,7 +9,7 @@ micro ─► openWakeWord ──(palabra)──► pitido ─► Whisper (o Vosk
 ```
 
 - **Detector dedicado ([openWakeWord](https://github.com/dscripka/openWakeWord)):** es una red pequeña entrenada solo para la palabra de activación. Mide en tiempo real con muy poca CPU (~3 ms por cada 80 ms de audio en un PC). Antes se usaba Vosk transcribiendo todo el rato, que gastaba más y se equivocaba más.
-- **Whisper** (modelo pequeño descargado al instalar con `--voice`) escribe lo que dices tras la palabra y se le da una pista con las órdenes que conoce (`PROMPT` en `voice/stt.py`). Si Whisper no está disponible, se usa **Vosk** como respaldo (el log dice «Whisper no disponible: uso Vosk»). Ambos solo trabajan unos segundos tras la palabra.
+- **Whisper** (modelo `base`, descargado al instalar con `--voice`; se cambia en `whisper_model`) escribe lo que dices tras la palabra y se le da una pista con las órdenes que conoce (`PROMPT` en `voice/stt.py`). Si Whisper no está disponible, se usa **Vosk** como respaldo (el log dice «Whisper no disponible: uso Vosk»). Ambos solo trabajan unos segundos tras la palabra.
 - El texto se convierte en una acción en `voice/intents.py` y se ejecuta en `voice/assistant.py` llamando a la API local de la Pi; para añadir una orden nueva, sigue la receta de [CONTRIBUTING.md](../CONTRIBUTING.md#receta-añadir-una-orden-de-voz).
 - Uso: di la palabra → suena un **pitido** → di la orden («qué hora es», «modo casa», «pausa el Pi-hole diez minutos»...). La lista de órdenes está en el [README](../README.md#voz).
 
