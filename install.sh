@@ -208,5 +208,6 @@ printf '\n\033[1mInstalacion terminada.\033[0m  Siguiente:\n'
 echo "  1) Reinicia:            sudo reboot"
 echo "  2) Comprueba todo:      pcpi-doctor"
 echo "  3) Configura:           pcpi-setup      (ciudad, Pi-hole, microfono, mini pantalla)"
+echo "     (o desde la pantalla: la ciudad, la contraseña de Pi-hole, el salvapantallas y el modo noche se ponen tocando)"
 echo "  4) Cambia de modo:      pcpi-mode home | iker | desktop"
 echo "  Luego:  pcpi-update (actualizar), pcpi-backup create (copia de seguridad), pcpi-wifi list (wifi)"
