@@ -84,7 +84,7 @@ const check = (name, ok, extra) => results.push({ name, ok: !!ok, extra });
     const frag = new Set(['en Nueva York', 'en Londres', 'de treinta segundos']), frases = [];
     for (const l of sec.split('\n')) { if (!l.startsWith('|') || l.startsWith('|---')) continue; for (const m of l.split('|')[1].matchAll(/«([^»]+)»/g)) if (!/[…\/]/.test(m[1]) && !frag.has(m[1]) && !/^modo /i.test(m[1])) frases.push(m[1]); }       // «modo ...» cambia de pagina: se prueba aparte
     const malas = [];
-    for (const f of frases) { const r = await say(f); if (/No te he entendido|Dime algo/.test(String(r))) malas.push(f); }
+    for (const f of frases) { const r = await say(f); if (/No te he entendido|Dime algo|No he entendido/.test(String(r))) malas.push(f + ' -> ' + r); }
     check('el simulador entiende todas las frases del tutorial (' + frases.length + ')', frases.length > 55 && malas.length === 0, JSON.stringify(malas));
   }
   check('voz: lo que no entiende no rompe nada', /No te he entendido/.test(await say('blablabla')));

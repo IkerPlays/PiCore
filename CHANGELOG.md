@@ -6,6 +6,10 @@
 
 
 
+## Simulador: horas con letras, recordatorios y 4 frases más; test más estricto
+
+- El test de la demo daba por buenas respuestas del tipo «No he entendido la hora»; ahora las cuenta como fallo y salieron 7 frases del tutorial mal entendidas. Arreglado en el simulador: «a las siete y media» / «ocho menos cuarto» / «de la tarde», recordatorios con nombre, «el volumen a la mitad», «volumen al máximo», «cuánto queda del temporizador» y «para la alarma».
+
 ## Voz: recordatorios a una hora
 
 - «Recuérdame a las seis de la tarde que saque la basura» o «avísame a las siete y media para llamar a mamá» crean una alarma con nombre. Hace falta decir «que», «para» o «de» antes de lo que quieres recordar. Probado con tests; no en una Pi real.

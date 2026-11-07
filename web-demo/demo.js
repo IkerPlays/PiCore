@@ -564,16 +564,34 @@
       if (!c) return "No hay ningún temporizador en marcha";
       c.due += sec * 1000; LS.set("timers", S.timers); return "Añadido " + sayDuration(sec) + " al temporizador";
     }
+    if ((has("cuanto queda", "cuanto falta") && !has("navidad", "nochevieja", "reyes", "ano nuevo", "verano")) || has("queda del temporizador")) {
+      const c = S.timers.filter(x => Date.now() < x.due).sort((x, y) => x.due - y.due)[0]; if (!c) return "No hay ningún temporizador en marcha";
+      return "Quedan " + sayDuration(Math.max(1, Math.round((c.due - Date.now()) / 1000)));
+    }
+    if (has("para la alarma", "silencia la alarma", "para el temporizador", "silencia el temporizador") && !has("pon", "programa")) {
+      const k = S.timers.filter(x => Date.now() >= x.due).length; S.timers = S.timers.filter(x => Date.now() < x.due); LS.set("timers", S.timers); return k ? "Parado" : "No hay nada sonando";
+    }
     if (has("temporizador", "cuenta atras")) {
       if (has("cancela", "quita", "borra")) { S.timers = S.timers.filter(x => x.kind !== "timer"); LS.set("timers", S.timers); return "Temporizadores cancelados"; }
       const sec = duration(t); if (!sec) return "No he entendido cuánto tiempo. Prueba: pon un temporizador de diez minutos";
       const lm = /\bpara (?:el |la |los |las |mi |mis |un |una )?([a-záéíóúñü]+(?: [a-záéíóúñü]+){0,2})$/.exec(String(text).toLowerCase().replace(/[\s.,!?¡¿]+$/, "")), label = lm && !duration(norm(lm[1])) ? lm[1].slice(0, 40) : "";
       S.timers.push({ id: rid(8), kind: "timer", label, due: Date.now() + sec * 1000 }); LS.set("timers", S.timers); return "Temporizador de " + sayDuration(sec) + (label ? " para " + label : "") + " en marcha";
     }
-    if (has("despiertame", "alarma")) {
-      const m = /a las (\d{1,2})(?:[:\s](\d{2}))?(?: y media)?/.exec(t); if (!m) return "No he entendido la hora. Prueba: despiértame a las siete y media";
-      let h = +m[1], mi = m[2] ? +m[2] : /y media/.test(t) ? 30 : 0; const d = new Date(); d.setHours(h, mi, 0, 0); if (d <= now) d.setDate(d.getDate() + 1);
-      S.timers.push({ id: rid(8), kind: "alarm", label: "", due: d.getTime(), hour: h, minute: mi }); LS.set("timers", S.timers); return "Alarma a las " + pad(h) + ":" + pad(mi);
+    /* alarmas y recordatorios: «a las siete y media», «a las 7:30», «a las ocho menos cuarto», «de la tarde» */
+    const clock = () => {
+      const m = /\ba las (\d{1,2}|[a-z]+)(?:[:\s](\d{2}))?(?: (y media|y cuarto|menos cuarto))?/.exec(t); if (!m) return null;
+      let h = /^\d+$/.test(m[1]) ? +m[1] : WORDS[m[1]]; if (h == null || h > 24) return null;
+      let mi = m[2] ? +m[2] : m[3] === "y media" ? 30 : m[3] === "y cuarto" ? 15 : 0; if (m[3] === "menos cuarto") { h = (h + 23) % 24; mi = 45; }
+      if (/\b(tarde|noche)\b/.test(t) && h >= 1 && h <= 11) h += 12;
+      return [h % 24, mi];
+    };
+    if (has("despiertame", "alarma") || (has("recuerdame", "avisame") && !duration(t) && /\ba las /.test(t))) {
+      const c = clock(); if (!c) return "No he entendido la hora. Prueba: despiértame a las siete y media";
+      const [h, mi] = c, d = new Date(); d.setHours(h, mi, 0, 0); if (d <= now) d.setDate(d.getDate() + 1);
+      const daily = has("todos los dias", "cada dia", "diaria", "a diario");
+      const t2 = String(text).toLowerCase().replace(/\bde la (?:mañana|manana|tarde|noche|madrugada)\b/g, "").replace(/[\s.,!?¡¿]+$/, ""), lm = has("recuerdame", "avisame") ? /\ba las [^,]*?\b(?:que|para|de)\s+(.{2,40})$/.exec(t2) : null, label = lm ? lm[1].trim() : "";
+      S.timers.push({ id: rid(8), kind: "alarm", label, due: d.getTime(), hour: h, minute: mi, daily }); LS.set("timers", S.timers);
+      return "Alarma a las " + pad(h) + ":" + pad(mi) + (daily ? ", todos los días" : "") + (label ? " para " + label : "");
     }
     if (has("que hora", "dime la hora")) return "Son las " + pad(now.getHours()) + ":" + pad(now.getMinutes());
     if (has("que dia", "que fecha")) return "Hoy es " + now.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
@@ -594,6 +612,7 @@
       if (cmd) { S.music = { seq: S.music.seq + 1, cmd, arg: null }; return { pause: "Música en pausa", play: "Seguimos con la música", next: "Siguiente canción", previous: "Canción anterior" }[cmd]; }
     }
     if (has("volumen")) {
+      if (has("mitad", "maximo", "a tope")) { S.audio.volume = has("mitad") ? 50 : 100; S.audio.muted = false; LS.set("audio", S.audio); return "Volumen al " + S.audio.volume + " por ciento"; }
       if (has("sube", "mas alto")) S.audio.volume = Math.min(100, S.audio.volume + 15); else if (has("baja", "mas bajo")) S.audio.volume = Math.max(0, S.audio.volume - 15);
       else { const m = /(\d+|[a-z]+)\s*(?:por ciento)?$/.exec(t); const n = m ? (/^\d+$/.test(m[1]) ? +m[1] : WORDS[m[1]]) : null; if (n == null) return "No he entendido el volumen"; S.audio.volume = Math.min(100, n); }
       S.audio.muted = false; LS.set("audio", S.audio); return "Volumen al " + S.audio.volume + " por ciento";
