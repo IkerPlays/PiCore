@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import os
 import unittest
 from pathlib import Path
 
@@ -216,3 +217,21 @@ class SintaxisJs(unittest.TestCase):
         for f in ("web-demo/demo.js", "home/web/static/osk.js", "home/web/static/online.js"):
             r = subprocess.run([node, "--check", str(ROOT / f)], capture_output=True, text=True)
             self.assertEqual(r.returncode, 0, f + "\n" + r.stderr)
+
+    def test_los_scripts_en_linea_de_las_paginas_son_validos(self):
+        import re
+        import shutil
+        import subprocess
+        import tempfile
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("no hay node")
+        for f in sorted((ROOT / "home" / "web").glob("*.html")) + sorted((ROOT / "web-demo").glob("*.html")):
+            for n, code in enumerate(re.findall(r"<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>", f.read_text(encoding="utf-8"), re.S)):
+                if not code.strip():
+                    continue
+                with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False, encoding="utf-8") as t:
+                    t.write(code)
+                r = subprocess.run([node, "--check", t.name], capture_output=True, text=True)
+                os.unlink(t.name)
+                self.assertEqual(r.returncode, 0, "%s (script %d)\n%s" % (f.name, n, r.stderr))
