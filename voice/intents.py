@@ -267,6 +267,8 @@ def parse(text):
             return Intent("camera_hide", None)
         if has("muestra", "ensena", "abre", "enciende", "ver ", "pon", "activa"):
             return Intent("camera_show", None)
+    if has("tiempo", "temperatura", "llover", "llovera", "llueve", "hace frio", "hace calor", "hara") and has("manana", "pasado manana"):
+        return Intent("weather", 2 if has("pasado manana") else 1)
     if has("tiempo", "temperatura", "llover", "llueve", "hace frio", "hace calor"):
         return Intent("weather", None)
     if has("que hora", "la hora", "hora es"):
@@ -347,6 +349,21 @@ def say_weather(w):
         txt += ". Puede llover %s, con un %d por ciento de probabilidad" % (when, ra["prob"])
     elif w.get("rain") is not None and w["rain"] >= 50:
         txt += ". Hoy hay un %d por ciento de probabilidad de lluvia" % w["rain"]
+    return txt
+
+
+def say_weather_day(w, offset):
+    """Prevision de manana (offset 1) o pasado manana (2) a partir de w['days']."""
+    if not w or not w.get("ok"):
+        return "No tengo el tiempo configurado"
+    days = w.get("days") or []
+    if len(days) < offset:                       # w["days"] empieza mañana (hoy no está)
+        return "No tengo la previsión de ese día"
+    d = days[offset - 1]
+    name = "Mañana" if offset == 1 else "Pasado mañana"
+    txt = "%s habrá una máxima de %d grados y una mínima de %d, con el cielo %s" % (name, round(d["tmax"]), round(d["tmin"]), WMO.get(d.get("code"), "variable"))
+    if d.get("rain") is not None and d["rain"] >= 30:
+        txt += ", y un %d por ciento de probabilidad de lluvia" % d["rain"]
     return txt
 
 

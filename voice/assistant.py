@@ -117,7 +117,8 @@ def execute(cfg, intent):
             return intents.say_date(now)
         if n == "weather":
             with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
-                return intents.say_weather(json.load(r).get("weather"))
+                w = json.load(r).get("weather")
+            return intents.say_weather_day(w, a) if a else intents.say_weather(w)
         if n == "mode":
             api(cfg, "/api/mode", {"mode": a})
             return "Cambiando a modo " + {"home": "casa", "iker": "iker", "desktop": "escritorio", "dev": "desarrollador"}[a]

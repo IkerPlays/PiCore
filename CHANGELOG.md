@@ -5,6 +5,10 @@
 
 
 
+## Voz: el tiempo de mañana
+
+- «Qué tiempo hará mañana» / «pasado mañana» dicen máxima, mínima, cielo y lluvia del día. Probado con tests; no en una Pi real.
+
 ## Voz: lista de la compra y tareas
 
 - «Añade leche a la lista de la compra» añade una línea a la nota «Lista de la compra» (la crea si no existe); lo mismo con «lista de tareas». Probado con tests; no en una Pi real.

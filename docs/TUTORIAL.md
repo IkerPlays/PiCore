@@ -591,6 +591,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «toma nota comprar leche» · «apunta que mañana llamo al dentista» · «anota: revisar el router» | Guarda una nota nueva (la verás en el modo Iker) |
 | «añade leche a la lista de la compra» · «añade llamar al dentista a la lista de tareas» | Añade una línea a la nota «Lista de la compra» (o «Tareas»); si no existe, la crea |
 | «lee mi última nota» · «qué pone en la nota más reciente» | Te lee en voz alta la nota más reciente (hasta 300 caracteres) |
+| «qué tiempo hará mañana» · «va a llover pasado mañana» | Máxima, mínima, cielo y probabilidad de lluvia de ese día |
 | «a qué wifi estoy conectado» · «tengo internet» | Te dice la red a la que estás conectada y si hay internet |
 | «cuánto espacio libre queda» · «cuánta memoria libre hay» · «qué temperatura tiene la Pi» · «cómo está la Pi» | Te dice el espacio de la tarjeta, la memoria libre y/o la temperatura del procesador |
 | «activa el salvapantallas» · «desactiva el salvapantallas» | Enciende o apaga el salvapantallas / marco de fotos |

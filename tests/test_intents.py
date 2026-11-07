@@ -70,6 +70,13 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(P("añade leche a la lista de la compra"), ("list_add", ("leche", "Lista de la compra")))
         self.assertEqual(P("apunta pan integral en la lista"), ("list_add", ("pan integral", "Lista de la compra")))
         self.assertEqual(P("añade llamar al dentista a la lista de tareas"), ("list_add", ("llamar al dentista", "Tareas")))
+        self.assertEqual(P("qué tiempo hará mañana"), ("weather", 1))
+        self.assertEqual(P("va a llover pasado mañana"), ("weather", 2))
+        self.assertEqual(P("qué tiempo hace"), ("weather", None))
+        wk = {"ok": True, "days": [{"tmax": 21.4, "tmin": 16, "rain": 60, "code": 61}]}
+        self.assertIn("Mañana habrá una máxima de 21 grados y una mínima de 16", i.say_weather_day(wk, 1))
+        self.assertIn("60 por ciento de probabilidad de lluvia", i.say_weather_day(wk, 1))
+        self.assertEqual(i.say_weather_day(wk, 2), "No tengo la previsión de ese día")
         self.assertEqual(P("activa el salvapantallas"), ("screensaver", True))
         self.assertEqual(P("desactiva el salvapantallas"), ("screensaver", False))
         self.assertEqual(P("sube el brillo"), ("brightness", "+20"))
