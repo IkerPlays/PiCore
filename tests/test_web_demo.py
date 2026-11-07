@@ -227,8 +227,12 @@ class SintaxisJs(unittest.TestCase):
         if not node:
             self.skipTest("no hay node")
         for f in sorted((ROOT / "home" / "web").glob("*.html")) + sorted((ROOT / "web-demo").glob("*.html")):
-            for n, code in enumerate(re.findall(r"<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>", f.read_text(encoding="utf-8"), re.S)):
+            for n, (attrs, code) in enumerate(re.findall(r"<script(?![^>]*\bsrc=)([^>]*)>(.*?)</script>", f.read_text(encoding="utf-8"), re.S)):
                 if not code.strip():
+                    continue
+                if "ld+json" in attrs:                                  # datos estructurados: tiene que ser JSON valido, no JavaScript
+                    import json
+                    json.loads(code)
                     continue
                 with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False, encoding="utf-8") as t:
                     t.write(code)

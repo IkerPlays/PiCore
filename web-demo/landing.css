@@ -93,3 +93,5 @@ details p { color:var(--dim); padding-bottom:18px; margin-top:-4px; }
 .final .cta { justify-content:center; }
 footer { padding:44px 0 60px; color:var(--dim); font-size:14.5px; border-top:1px solid var(--hair); } footer .wrap { display:flex; flex-wrap:wrap; gap:18px 32px; justify-content:space-between; } footer nav { display:flex; flex-wrap:wrap; gap:6px 22px; }
 @media (prefers-reduced-motion:reduce) { * { transition:none !important; scroll-behavior:auto !important; } }
+
+.skip { position:absolute; left:12px; top:-60px; z-index:100; padding:10px 16px; border-radius:10px; background:var(--acc); color:#fff; font-weight:600; transition:top .15s; } .skip:focus { top:10px; }
