@@ -41,6 +41,24 @@ class ContrasteDeLaPortada(unittest.TestCase):
                 c = contraste(t[texto], t[fondo])
                 self.assertGreaterEqual(c, minimo, "tema %s: --%s sobre --%s tiene contraste %.2f (minimo %s)" % (nombre, texto, fondo, c, minimo))
 
+    def test_tema_claro_de_la_pantalla_de_la_pi(self):
+        """Casa (index.html) y Iker en tema claro: el texto secundario y los colores de estado se leen (WCAG AA, 4,5)."""
+        raiz = Path(__file__).resolve().parent.parent / "home" / "web"
+        casa = (raiz / "index.html").read_text(encoding="utf-8")
+        oscuro = variables(re.search(r"^\s*:root \{(.*?)\}", casa, re.S | re.M).group(1))
+        claro = dict(oscuro)
+        claro.update(variables(re.search(r"html\[data-theme=light\] \{(.*?)\}", casa, re.S).group(1)))
+        for nombre, t in (("oscuro", oscuro), ("claro", claro)):
+            for texto in ("fg", "dim", "ok", "bad", "warn", "acc"):
+                for fondo in ("bg", "card"):
+                    c = contraste(t[texto], t[fondo])
+                    self.assertGreaterEqual(c, 4.5, "Casa, tema %s: --%s sobre --%s = %.2f" % (nombre, texto, fondo, c))
+            self.assertGreaterEqual(contraste(t["acc-fg"], t["acc"]), 4.5, "boton principal, tema " + nombre)
+        iker = variables(re.search(r":root \{(.*?)\}", (raiz / "iker.html").read_text(encoding="utf-8"), re.S).group(1))
+        for texto in ("fg", "dim", "bad", "ok", "acc"):
+            for fondo in ("bg", "card"):
+                self.assertGreaterEqual(contraste(iker[texto], iker[fondo]), 4.5, "Iker: --%s sobre --%s" % (texto, fondo))
+
     def test_el_calculo_es_correcto(self):
         self.assertAlmostEqual(contraste("#000000", "#ffffff"), 21.0, places=1)
         self.assertAlmostEqual(contraste("#777777", "#ffffff"), 4.48, places=1)
