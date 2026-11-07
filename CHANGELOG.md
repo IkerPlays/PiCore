@@ -5,6 +5,10 @@
 
 
 
+## Crear alarmas desde la pantalla
+
+- El panel de temporizadores tiene «Nueva alarma»: hora y minutos (de 5 en 5) con botones, interruptor «cada día» y «Crear». Antes solo se podían crear por voz. Probado en el test de interfaz (contra el servidor real) y en el simulador.
+
 ## Visita guiada: paso nuevo sobre los ajustes
 
 - La visita pasa a tener 13 pasos: el nuevo abre la hoja Sistema y baja a los ajustes (salvapantallas y noche) y a la lista de órdenes de voz. Comprobado en navegador sin pantalla (captura revisada).

@@ -313,7 +313,7 @@
       const now = Date.now();
       if (body.action === "timer") { const s = +body.seconds; if (!(s >= 1 && s <= 86400)) return ERR("tiempo invalido"); S.timers.push({ id: rid(8), kind: "timer", label: String(body.label || "").slice(0, 40), due: now + s * 1000 }); }
       else if (body.action === "extend") { const s = +body.seconds; const c = S.timers.filter(t => t.kind === "timer" && now < t.due && (!body.id || t.id === body.id)).sort((x, y) => x.due - y.due)[0]; if (!(s >= 1 && s <= 172800)) return ERR("tiempo invalido"); if (!c) return ERR("No hay ningun temporizador en marcha"); c.due += s * 1000; }
-      else if (body.action === "alarm") { const d = new Date(); d.setHours(+body.hour, +body.minute, 0, 0); if (d.getTime() <= now) d.setDate(d.getDate() + 1); S.timers.push({ id: rid(8), kind: "alarm", label: String(body.label || ""), due: d.getTime(), hour: +body.hour, minute: +body.minute }); }
+      else if (body.action === "alarm") { const d = new Date(); d.setHours(+body.hour, +body.minute, 0, 0); if (d.getTime() <= now) d.setDate(d.getDate() + 1); S.timers.push({ id: rid(8), kind: "alarm", label: String(body.label || ""), due: d.getTime(), hour: +body.hour, minute: +body.minute, daily: body.daily === true }); }
       else if (body.action === "cancel") S.timers = S.timers.filter(t => body.id && t.id !== body.id);
       else if (body.action === "dismiss") S.timers = S.timers.filter(t => now < t.due);
       else return ERR("accion invalida");

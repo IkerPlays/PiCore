@@ -238,6 +238,12 @@
   .trow .tt { flex:1; min-width:0; } .trow small { color:var(--dim); display:block; font-size:13px; }
   .trow b { font-size:26px; font-variant-numeric:tabular-nums; }
   .trow button { padding:8px 14px; font-size:15px; }
+  #newalarm { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  #newalarm .st { display:flex; align-items:center; gap:4px; } #newalarm .st b { min-width:44px; text-align:center; font-size:22px; font-variant-numeric:tabular-nums; }
+  #newalarm .st button { width:44px; height:44px; padding:0; font-size:22px; line-height:1; border-radius:12px; }
+  #newalarm .tg { width:58px; height:34px; padding:0; border-radius:99px; position:relative; margin-left:auto; } #newalarm .tg::after { content:""; position:absolute; top:3px; left:3px; width:26px; height:26px; border-radius:50%; background:var(--fg); opacity:.55; transition:transform .25s var(--ease), opacity .25s; }
+  #newalarm .tg[aria-checked="true"] { background:var(--acc); border-color:var(--acc); } #newalarm .tg[aria-checked="true"]::after { transform:translateX(24px); opacity:1; background:#fff; }
+  #al-go { padding:10px 22px; }
   .presets { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:12px; }
   .presets button { padding:14px 0; font-size:17px; }
   #tring { position:fixed; inset:0; z-index:50; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; background:var(--acc); color:var(--acc-fg);
@@ -400,6 +406,13 @@
   <div id="t-list"></div>
   <div class="dim" style="font-size:14px;margin:6px 2px">Nuevo temporizador (o dilo: «pon un temporizador de diez minutos»)</div>
   <div class="presets"><button data-s="60">1 min</button><button data-s="300">5 min</button><button data-s="600">10 min</button><button data-s="1800">30 min</button></div>
+  <div class="dim" style="font-size:14px;margin:16px 2px 6px">Nueva alarma (o dilo: «despiértame a las siete y media»)</div>
+  <div id="newalarm">
+    <div class="st"><button id="al-h-dn" aria-label="Una hora menos">-</button><b id="al-h">07</b><button id="al-h-up" aria-label="Una hora más">+</button></div><span class="dim">:</span>
+    <div class="st"><button id="al-m-dn" aria-label="Cinco minutos menos">-</button><b id="al-m">30</b><button id="al-m-up" aria-label="Cinco minutos más">+</button></div>
+    <button id="al-daily" role="switch" aria-checked="false" class="tg" aria-label="Repetir cada día"></button><span class="dim" style="font-size:14px">cada día</span>
+    <button id="al-go" class="primary">Crear</button>
+  </div>
 </section>
 <div id="tring"><div class="sub" id="tring-sub">Temporizador</div><div class="big" id="tring-big"></div><button id="tring-stop">Parar</button></div>
 <button id="motion" hidden>Movimiento detectado!<small id="motion-t"></small></button>
@@ -1170,6 +1183,13 @@ function renderTimers() {
 $("chip-timer").onclick = () => { renderTimers(); $("scrim").classList.add("on"); $("tpanel").classList.add("on"); };
 function closeTimers() { $("tpanel").classList.remove("on"); if (!$("sheet").classList.contains("on") && !$("bpanel").classList.contains("on")) $("scrim").classList.remove("on"); }
 $("t-close").onclick = closeTimers;
+let alH = 7, alM = 30;
+const paintAl = () => { $("al-h").textContent = pad2(alH); $("al-m").textContent = pad2(alM); };
+$("al-h-dn").onclick = () => { alH = (alH + 23) % 24; paintAl(); }; $("al-h-up").onclick = () => { alH = (alH + 1) % 24; paintAl(); };
+$("al-m-dn").onclick = () => { alM = (alM + 55) % 60; paintAl(); }; $("al-m-up").onclick = () => { alM = (alM + 5) % 60; paintAl(); };
+$("al-daily").onclick = () => $("al-daily").setAttribute("aria-checked", $("al-daily").getAttribute("aria-checked") === "true" ? "false" : "true");
+$("al-go").onclick = async () => { await post("/api/timers", {action:"alarm", hour:alH, minute:alM, daily:$("al-daily").getAttribute("aria-checked") === "true"}); refresh(); };
+paintAl();
 document.querySelectorAll("#tpanel .presets button").forEach(b => b.onclick = async () => { await post("/api/timers", {action:"timer", seconds:+b.dataset.s}); refresh(); });
 $("tring-stop").onclick = async () => { await post("/api/timers", {action:"dismiss"}); $("tring").classList.remove("on"); clearInterval(beepTimer); refresh(); };
 

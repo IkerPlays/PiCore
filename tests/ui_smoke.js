@@ -346,6 +346,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.click('#t-list button:has-text("Cancelar")');
   await sleep(1200);
   check('Cancelar lo quita', (await page.textContent('#timer-txt')).includes('Temporizador'));
+                                                                                              // alarma desde la pantalla (hora +1, cada dia); el panel sigue abierto
+  await page.click('#al-h-up'); await page.click('#al-daily'); await page.click('#al-go'); await sleep(1500);
+  check('crear una alarma desde la pantalla', /Alarma \d\d:30 · cada día/.test(await page.textContent('#t-list')), await page.textContent('#t-list'));
+  await page.click('#t-list button:has-text("Cancelar")'); await sleep(1000);
   // suena: un temporizador de 1 s vence y sale la pantalla de aviso
   await page.request.post(base + '/api/timers', { headers: { 'X-PCPI': '1' }, data: { action: 'timer', seconds: 1, label: 'pasta' } });
   await page.click('#t-close');
