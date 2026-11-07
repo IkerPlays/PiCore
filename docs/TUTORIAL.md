@@ -585,6 +585,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «activa el Pi-hole» | Lo vuelve a activar |
 | «sube el volumen» · «baja el volumen» | ±10 % |
 | «volumen al cincuenta» | Pone el volumen a ese número (0–100) |
+| «el volumen a la mitad» · «volumen al máximo» · «el brillo a la mitad» | Atajos para el 50 % y el 100 % |
 | «silencia» | Silencia o reactiva el sonido |
 | «sube el brillo» · «baja el brillo» | ±20 % (nunca por debajo del 10 %) |
 | «brillo al cincuenta» · «brillo al máximo» · «brillo automático» | Pone el brillo a ese número, o vuelve al modo automático |

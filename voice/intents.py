@@ -233,6 +233,10 @@ def parse(text):
     if has("volumen", "silencia", "silencio", "mute"):
         if has("silencia", "silencio", "mute"):
             return Intent("volume", "mute")
+        if has("mitad"):
+            return Intent("volume", "50")
+        if has("maximo", "al maximo", "a tope"):
+            return Intent("volume", "100")
         n = find_number(words)
         if n is not None and not has("sube", "baja", "mas", "menos"):
             return Intent("volume", "%d" % min(n, 100))
@@ -257,6 +261,8 @@ def parse(text):
             return Intent("brightness", "100")
         if has("minimo"):
             return Intent("brightness", "10")
+        if has("mitad"):
+            return Intent("brightness", "50")
         n = find_number(words)
         if n is not None and not has("sube", "baja", "mas", "menos"):
             return Intent("brightness", "%d" % max(10, min(n, 100)))

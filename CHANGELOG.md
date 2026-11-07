@@ -5,6 +5,10 @@
 
 
 
+## Voz: «a la mitad» y «al máximo»
+
+- «El volumen a la mitad», «volumen al máximo» y «el brillo a la mitad» funcionan como atajos. Probado con tests; no en una Pi real.
+
 ## Voz: qué suena
 
 - «Qué suena» / «cómo se llama esta canción» dicen el título (y el artista si lo hay) de lo que reproduce Musix. Probado con tests; no en una Pi real.
