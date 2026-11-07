@@ -501,6 +501,7 @@
     if (!t) return "Dime algo, por ejemplo: qué hora es";
     const nm = /^(?:por favor )?(?:toma nota|apunta|anota|apuntame|anotame|guarda una nota)(?: de| que| lo siguiente)?[ :,]+(.{2,400})$/i.exec(String(text).replace(/^(oye pi|hey jarvis|ok pi)[,\s]*/i, "").trim().replace(/[\s.!?¡¿]+$/, ""));
     if (nm) { const all = notes(); all.push({ id: rid(16), text: nm[1].trim(), updated: Date.now() / 1000, pinned: false }); LS.set("notes", all); return "Anotado"; }
+    if (has("a que wifi", "que wifi", "a que red", "tengo internet", "hay internet", "estoy conectad")) return S.wifi.active ? "Estoy conectada a la wifi " + S.wifi.active + " y hay internet" : "No estoy conectada a ninguna red";
     if (has("que puedes hacer", "que sabes hacer", "ayuda", "que comandos")) return "Puedes pedirme la hora, el tiempo, temporizadores y alarmas, la música, el volumen y el brillo, cambiar de modo, tomar notas o decirte cómo está la Pi.";
     if (has("gracias")) return "De nada";
     if (["hola", "buenas", "buenos dias", "buenas tardes", "buenas noches", "hola pi"].includes(t)) return "Hola, dime";
