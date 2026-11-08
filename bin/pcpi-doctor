@@ -119,6 +119,16 @@ if command -v nmcli >/dev/null; then
   ok "NetworkManager (nmcli) disponible"
   id -nG | grep -qw netdev && ok "usuario en el grupo netdev (puede cambiar de wifi)" || warn "tu usuario no esta en el grupo netdev: sudo usermod -aG netdev \$USER y reinicia"
   pcpi-wifi status 2>/dev/null | sed 's/^/      /' || true
+  if command -v iw >/dev/null; then
+    case "$(iw reg get 2>/dev/null | sed -n 's/^country \([A-Z0-9][A-Z0-9]\).*/\1/p' | head -1)" in
+      00) warn "el pais de la wifi no esta puesto (00): algunas redes de 5 GHz no se ven. sudo raspi-config -> Localisation Options -> WLAN Country";;
+      "") ;;
+      *) ok "pais de la wifi: $(iw reg get 2>/dev/null | sed -n 's/^country \([A-Z0-9][A-Z0-9]\).*/\1/p' | head -1)";;
+    esac
+  fi
+  if command -v rfkill >/dev/null && rfkill list wifi 2>/dev/null | grep -q "Soft blocked: yes"; then
+    warn "la wifi esta bloqueada por software (rfkill): sudo rfkill unblock wifi (suele pasar si no hay pais de wifi puesto)"
+  fi
 else warn "sin NetworkManager: el panel de Wi-Fi no estara disponible"; fi
 n_intro="$(find /opt/pcpi/extra-assets/start -maxdepth 1 -type f \( -name 'Inicio.mp4' -o -name 'Inicio[1-4].mp4' \) 2>/dev/null | wc -l)"
 [ "$n_intro" -gt 0 ] && ok "$n_intro video(s) de inicio en extra-assets/start (Inicio1..Inicio4.mp4)" \

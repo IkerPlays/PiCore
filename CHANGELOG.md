@@ -42,6 +42,10 @@
 
 - En la sección «Más adelante: batería y SSD», con su límite: sin medida de batería no hace nada.
 
+## pcpi-doctor: país de la wifi y bloqueo por software
+
+- Una Pi recién instalada sin país de wifi (`00`) o con la wifi bloqueada por `rfkill` no ve redes de 5 GHz o ninguna. El doctor lo avisa con el comando para arreglarlo. Sin probar en una Pi real (en este equipo no hay `iw`).
+
 ## pcpi-session: relanza el navegador de Casa si «engorda» demasiado
 
 - Chromium en kiosco durante semanas puede acumular memoria. Cada ~10 minutos (builtins + un `pgrep`) se suma el `VmRSS` de sus procesos; si pasa de `PCPI_BROWSER_MEM_MB` (2500 por defecto, 0 = nunca) se relanza **de madrugada (3 a 6 h)**, o ya mismo si dobla el límite. Solo en modo Casa y con la pantalla en marcha. La suma se prueba con un `/proc` falso; el «Pi virtual» sigue pasando. No he medido el consumo real de Chromium en una Pi, así que el límite es una estimación.
