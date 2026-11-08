@@ -37,6 +37,18 @@ const check = (nombre, ok, extra) => resultados.push({ nombre, ok: !!ok, extra }
   const s2 = await ctx.newPage();
   await s2.goto(base + '/simulador?say=' + encodeURIComponent('cuánto es 12 por 5')); await s2.waitForTimeout(5000);
   check('?say= ejecuta la orden al abrir', /Son 60/.test(await s2.textContent('#reply')), await s2.textContent('#reply'));
+  // --- la voz abre y cierra hojas de Casa (canal /api/ui)
+  const c = await ctx.newPage();
+  c.on('pageerror', e => errores.push('casa: ' + e.message));
+  await c.goto(base + '/app?bare=1'); await c.waitForTimeout(2500);
+  for (const [frase, panel] of [['abre el tiempo', 'wpanel'], ['abre los temporizadores', 'tpanel'], ['abre musix', 'mxpanel']]) {
+    await c.evaluate(f => window.PCPI_DEMO.say(f), frase);
+    const abre = await c.waitForFunction(id => document.getElementById(id).classList.contains('on'), panel, { timeout: 9000 }).then(() => true).catch(() => false);
+    check('la voz abre la hoja: ' + frase, abre);
+    await c.evaluate(() => window.PCPI_DEMO.say('cierra esto'));
+    const cierra = await c.waitForFunction(id => !document.getElementById(id).classList.contains('on'), panel, { timeout: 9000 }).then(() => true).catch(() => false);
+    check('«cierra esto» la cierra (' + panel + ')', cierra);
+  }
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '));
   await browser.close();
   for (const r of resultados) console.log((r.ok ? 'OK   ' : 'FAIL ') + r.nombre + (r.ok ? '' : '  -> ' + r.extra));
