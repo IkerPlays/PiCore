@@ -6,6 +6,10 @@
 
 
 
+## Herramienta para regenerar las capturas
+
+- `make capturas` construye la demo, hace las capturas con Chromium (1024x600) y reescribe las imágenes de la web y de la documentación. Necesita Playwright y Pillow. Las imágenes de la demo son simuladas, no de una Pi real.
+
 ## Voz: «apaga la pantalla»
 
 - Baja el brillo al mínimo (10 %); no la apaga del todo. Probado con tests; no en una Pi real.

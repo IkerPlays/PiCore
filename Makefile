@@ -1,4 +1,4 @@
-.PHONY: test rapido emulate demo lint mini-preview
+.PHONY: test rapido emulate demo lint mini-preview capturas
 test:        ## Ejecuta todos los tests
 	python3 -m unittest discover tests -v
 rapido:      ## Tests que no abren navegador: ~3 min en vez de ~8 (627 tests)
@@ -7,6 +7,8 @@ emulate:     ## Arranca el emulador en http://127.0.0.1:8080 (escribe ordenes de
 	python3 tools/emulate.py
 demo:        ## Demo web en http://127.0.0.1:8081 (la misma que se despliega en Netlify; sin Python en el servidor)
 	python3 tools/serve_web_demo.py
+capturas:    ## Regenera las imagenes de la web y de la documentacion desde la demo (node + Playwright + Pillow)
+	python3 tools/capturas.py
 lint:        ## Comprueba los scripts de shell y Python
 	./tools/lint-shell.sh
 	python3 -m py_compile home/*.py voice/*.py stats/*.py tools/*.py training/*.py bin/pcpi-wifi bin/pcpi-backup bin/pcpi-update bin/pcpi-config
