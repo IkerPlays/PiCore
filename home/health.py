@@ -45,6 +45,19 @@ def disk_info(disk=shutil.disk_usage, path="/"):
         return None
 
 
+def clock_state(run=subprocess.run, now=None):
+    """Reloj de la Pi: {synced: True/False/None, year, plausible}. La Pi 5 no tiene pila de reloj: sin internet tras un corte de luz la hora puede ser falsa,
+    y los temporizadores, las alarmas y el calendario dependen de ella. synced=None si no se puede saber (sin timedatectl)."""
+    year = time.gmtime(now if now is not None else time.time()).tm_year
+    synced = None
+    try:
+        out = run(["timedatectl", "show", "-p", "NTPSynchronized", "--value"], capture_output=True, text=True, timeout=2).stdout.strip()
+        synced = {"yes": True, "no": False}.get(out)
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    return {"synced": synced, "year": year, "plausible": year >= 2024}
+
+
 def update_state(path=None):
     """Resultado de la ultima comprobacion de `pcpi-update --check` (la hace pcpi-session): {available, behind, checked}."""
     path = path or os.path.join(run_dir(), "update")
@@ -125,6 +138,11 @@ def checks(status, disk=None, mem=None, thr=None):
     ph = status.get("pihole") or {}
     if ph and not ph.get("ok"):
         out.append({"level": "warn", "text": "Pi-hole no responde (¿contraseña o servicio?).", "action": "pihole"})
+    ck = status.get("clock") or {}
+    if ck.get("plausible") is False:
+        out.append({"level": "bad", "text": "La hora de la Pi parece falsa (año %s): las alarmas y los temporizadores fallarían. Conéctala a internet un momento." % ck.get("year"), "action": "wifi"})
+    elif ck.get("synced") is False:
+        out.append({"level": "info", "text": "La hora de la Pi no está sincronizada con internet todavía; si acaba de encenderse, se arreglará sola.", "action": "wifi"})
     ai = status.get("ai") or {}
     if ai.get("enabled") and ai.get("reachable") is False:
         out.append({"level": "warn", "text": "La IA está activada pero Ollama no responde."})

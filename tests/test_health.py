@@ -37,6 +37,23 @@ class ChecksTest(unittest.TestCase):
         r = lv({"update": {"available": False}})
         self.assertEqual([x["level"] for x in r], ["ok"])
 
+    def test_clock_without_battery_is_reported(self):
+        self.assertEqual([x["level"] for x in lv({"update": {"available": False}, "clock": {"plausible": True, "synced": True, "year": 2026}})], ["ok"])
+        bad = lv({"update": {"available": False}, "clock": {"plausible": False, "synced": False, "year": 1970}})
+        self.assertEqual((bad[0]["level"], bad[0]["action"]), ("bad", "wifi"))
+        self.assertIn("1970", bad[0]["text"])
+        info = lv({"update": {"available": False}, "clock": {"plausible": True, "synced": False, "year": 2026}})
+        self.assertEqual(info[0]["level"], "info")
+
+    def test_clock_state_reads_timedatectl_and_survives_its_absence(self):
+        class R:
+            def __init__(self, s): self.stdout = s
+        self.assertEqual(health.clock_state(run=lambda *a, **k: R("yes\n"), now=1_800_000_000)["synced"], True)
+        self.assertEqual(health.clock_state(run=lambda *a, **k: R("no\n"), now=1_800_000_000)["synced"], False)
+        self.assertFalse(health.clock_state(run=lambda *a, **k: R("no\n"), now=0)["plausible"])
+        def sin(*a, **k): raise OSError("no hay timedatectl")
+        self.assertIsNone(health.clock_state(run=sin, now=1_800_000_000)["synced"])
+
     def test_disk_levels(self):
         self.assertEqual(lv({"update": {}}, disk={"free_gb": 2.0})[0]["level"], "warn")
         self.assertEqual(lv({"update": {}}, disk={"free_gb": 0.4})[0]["level"], "bad")

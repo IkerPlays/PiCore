@@ -38,6 +38,14 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## pcpi-doctor: sección «Reloj»
+
+- Dice si el año es imposible (hora falsa, error) o si la hora no está sincronizada (aviso), con la misma lógica que la hoja Sistema.
+
+## Pi: aviso si la hora no es de fiar (la Pi 5 no tiene pila de reloj)
+
+- La hoja Sistema avisa si el año es anterior a 2024 (hora falsa: mal para alarmas, temporizadores y calendario; nivel «mal») o si `timedatectl` dice que no está sincronizada con internet (solo informa). No he podido probarlo en una Pi real; el test usa un `timedatectl` falso.
+
 ## README y Novedades: la voz que abre hojas y pone canciones
 
 - Las frases nuevas pasan por el test que comprueba que el asistente las entiende.

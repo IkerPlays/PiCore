@@ -74,6 +74,17 @@ if command -v vcgencmd >/dev/null; then
   ok "$(vcgencmd measure_temp)"
 else warn "vcgencmd no existe (¿no es una Raspberry Pi?)"; fi
 
+echo "Reloj (la Pi 5 no tiene pila: sin internet tras un corte de luz la hora puede ser falsa)"
+yr="$(date +%Y)"
+if [ "$yr" -lt 2024 ]; then bad "el reloj dice $(date '+%d/%m/%Y'): es falso. Conectala a internet un momento (alarmas y temporizadores dependen de esto)"
+elif command -v timedatectl >/dev/null; then
+  case "$(timedatectl show -p NTPSynchronized --value 2>/dev/null)" in
+    yes) ok "hora sincronizada con internet ($(date '+%d/%m/%Y %H:%M'))";;
+    no) warn "la hora no esta sincronizada con internet (si acabas de encender la Pi y hay wifi, se arregla sola)";;
+    *) ok "hora: $(date '+%d/%m/%Y %H:%M') (no puedo comprobar si esta sincronizada)";;
+  esac
+else ok "hora: $(date '+%d/%m/%Y %H:%M')"; fi
+
 echo "Audio"
 if command -v pcpi-sound >/dev/null; then
   if snd="$(pcpi-sound status 2>/dev/null)"; then
