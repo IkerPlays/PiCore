@@ -51,7 +51,10 @@ class TimerStore:
         try:
             self.path.parent.mkdir(parents=True, exist_ok=True)
             tmp = self.path.with_suffix(".tmp")
-            tmp.write_text(json.dumps(self.items))
+            with open(tmp, "w") as fh:
+                fh.write(json.dumps(self.items))
+                fh.flush()
+                os.fsync(fh.fileno())                               # a disco antes de renombrar: sobrevive a un corte de luz
             os.replace(tmp, self.path)
         except OSError:
             pass

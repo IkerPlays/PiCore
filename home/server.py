@@ -163,6 +163,8 @@ def save_note(nid, text, pinned=None):
     fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     with os.fdopen(fd, "w") as fh:
         fh.write(json.dumps({"text": text, "updated": time.time(), "pinned": bool(pinned)}))
+        fh.flush()
+        os.fsync(fh.fileno())                                       # a disco antes de renombrar: un corte de luz no deja la nota vacia
     os.replace(tmp, f)
     return nid
 

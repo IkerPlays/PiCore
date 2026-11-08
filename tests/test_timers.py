@@ -135,6 +135,18 @@ class StoreTest(unittest.TestCase):
         c.t += 60 + 300                                                   # 5 minutos tarde (servidor ocupado): aun suena
         self.assertEqual(len(s.tick()), 1)
 
+    def test_saving_forces_the_data_to_disk_before_renaming(self):
+        llamadas = []
+        real = os.fsync
+        os.fsync = lambda fd: (llamadas.append(fd), real(fd))[1]
+        try:
+            s, f = store()
+            s.add_timer(60, "x")
+        finally:
+            os.fsync = real
+        self.assertTrue(llamadas)
+        self.assertEqual(len(json.loads(f.read_text())), 1)
+
     def test_alarm_next_occurrence(self):
         now = time.mktime((2026, 11, 6, 10, 0, 0, 0, 0, -1))
         nxt = timers.next_occurrence(7, 30, now)

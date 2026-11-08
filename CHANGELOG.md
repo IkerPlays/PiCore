@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Notas y temporizadores: se fuerzan a disco antes de renombrar (`fsync`)
+
+- Con un corte de luz entre escribir y renombrar, el archivo podía quedar vacío. Ahora `save_note` y el guardado de temporizadores hacen `fsync` antes de `os.replace`. Un test comprueba la llamada; no he simulado un corte de luz real.
+
 ## Zona horaria UTC: la hoja Sistema y `pcpi-doctor` lo avisan
 
 - Una Pi sin zona horaria elegida va en UTC y las alarmas sonarían desfasadas respecto a tu hora. Se avisa (solo información en la hoja Sistema; aviso en el doctor) con la forma de cambiarla. Sin probar en una Pi real.
