@@ -305,6 +305,14 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.say_convert(10, "centimetros", "pulgadas"), "10 centimetros son 3 coma 9 pulgadas")
         self.assertEqual(i.parse("pasa 4 litros a galones").arg, (4, "litros", "galones"))
 
+    def test_cuanto_falta_para_dias_y_fechas(self):
+        hoy = datetime.date(2026, 11, 8)                       # domingo
+        self.assertEqual(i.say_days_until(i.parse("cuanto falta para el viernes").arg, hoy), "Faltan 5 días para el viernes")
+        self.assertEqual(i.say_days_until(i.parse("cuanto falta para el fin de semana").arg, hoy), "Faltan 6 días para el sábado (el fin de semana)")
+        self.assertEqual(i.say_days_until(i.parse("cuanto falta para el 25 de diciembre").arg, hoy), "Faltan 47 días para el 25 de diciembre")
+        self.assertEqual(i.say_days_until(i.parse("cuanto falta para el domingo").arg, hoy), "Es hoy: el domingo")
+        self.assertEqual(i.parse("cuanto falta para navidad").arg, "navidad")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

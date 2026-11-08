@@ -313,6 +313,15 @@ def parse(text):
         m = re.search(r"(navidad|ano nuevo|nochevieja|reyes|verano)", t)
         if m:
             return Intent("days_until", m.group(1))
+        dias = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"]
+        m = re.search(r"\b(lunes|martes|miercoles|jueves|viernes|sabado|domingo)\b", t)
+        if m:
+            return Intent("days_until", ("weekday", dias.index(m.group(1))))
+        if has("fin de semana"):
+            return Intent("days_until", ("weekday", 5))
+        m = re.search(r"el (\d{1,2}) de (\w+)", t)
+        if m and m.group(2) in [norm(x) for x in MESES] and 1 <= int(m.group(1)) <= 31:
+            return Intent("days_until", ("date", int(m.group(1)), [norm(x) for x in MESES].index(m.group(2)) + 1))
     if has("tira un dado", "lanza un dado", "tirame un dado", "tira el dado", "lanza el dado"):
         return Intent("random", "dado")
     if has("numero al azar", "numero aleatorio", "numero entre"):
@@ -649,6 +658,21 @@ def say_now_playing(np):
 def say_days_until(which, today):
     """Dias que faltan para una fecha fija (navidad, nochevieja, reyes...). today: datetime.date."""
     import datetime
+    if isinstance(which, tuple):
+        if which[0] == "weekday":
+            n = (which[1] - today.weekday()) % 7
+            nombre = "el " + DIAS[which[1]] + (" (el fin de semana)" if which[1] == 5 else "")
+        else:
+            try:
+                d = datetime.date(today.year, which[2], which[1])
+                if d < today:
+                    d = datetime.date(today.year + 1, which[2], which[1])
+            except ValueError:
+                return "Ese día no existe"
+            n, nombre = (d - today).days, "el %d de %s" % (which[1], MESES[which[2] - 1])
+        if n == 0:
+            return "Es hoy: %s" % nombre
+        return "Falta 1 día para %s" % nombre if n == 1 else "Faltan %d días para %s" % (n, nombre)
     mm = {"navidad": (12, 25, "la Navidad"), "nochevieja": (12, 31, "Nochevieja"), "ano nuevo": (1, 1, "Año Nuevo"), "reyes": (1, 6, "los Reyes"), "verano": (6, 21, "el verano")}
     if which not in mm:
         return "No sé esa fecha"

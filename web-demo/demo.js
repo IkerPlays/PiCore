@@ -609,6 +609,18 @@
       let d = new Date(t0.getFullYear(), M[k][0], M[k][1]); if (d < t0) d = new Date(t0.getFullYear() + 1, M[k][0], M[k][1]);
       const n = Math.round((d - t0) / 864e5); return n === 0 ? "Hoy es " + M[k][2] : n === 1 ? "Falta 1 día para " + M[k][2] : "Faltan " + n + " días para " + M[k][2];
     }
+    if (has("cuanto falta para", "cuantos dias faltan para", "dias para")) {
+      const DS = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"], MS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+      const hoy = new Date(now.getFullYear(), now.getMonth(), now.getDate()), dw = /\b(lunes|martes|miercoles|jueves|viernes|sabado|domingo)\b/.exec(t), fd = /el (\d{1,2}) de (\w+)/.exec(t);
+      let n = null, nombre = "";
+      if (dw || has("fin de semana")) { const w = dw ? DS.indexOf(dw[1]) : 5; n = (w - ((hoy.getDay() + 6) % 7) + 7) % 7; nombre = "el " + DS[w] + (dw ? "" : " (el fin de semana)"); }
+      else if (fd && MS.includes(fd[2])) {
+        let d = new Date(hoy.getFullYear(), MS.indexOf(fd[2]), +fd[1]); if (d.getMonth() !== MS.indexOf(fd[2])) return "Ese día no existe";
+        if (d < hoy) d = new Date(hoy.getFullYear() + 1, MS.indexOf(fd[2]), +fd[1]);
+        n = Math.round((d - hoy) / 864e5); nombre = "el " + fd[1] + " de " + fd[2];
+      }
+      if (n !== null) return n === 0 ? "Es hoy: " + nombre : n === 1 ? "Falta 1 día para " + nombre : "Faltan " + n + " días para " + nombre;
+    }
     if (has("repite", "que has dicho") && !has("cancion", "musica")) return S.voice && S.voice.reply ? S.voice.reply : "Todavía no he dicho nada";
     if (has("vigilancia", "movimiento")) { const on = !has("desactiva", "apaga", "quita", "deja de"); S.motion = on; LS.set("motion", on); return on ? "Vigilancia activada" : "Vigilancia desactivada"; }
     if (has("silencia", "silencio", "mute", "quita el sonido", "sin sonido")) { S.audio.muted = !S.audio.muted; LS.set("audio", S.audio); return S.audio.muted ? "Silenciado" : "Sonido activado"; }

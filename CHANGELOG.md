@@ -6,6 +6,10 @@
 
 
 
+## Voz: cuánto falta para el viernes, el fin de semana o una fecha
+
+- Además de Navidad, Nochevieja, Reyes, Año Nuevo y el verano. También en el simulador.
+
 ## Voz: centímetros y pulgadas, litros y galones
 
 - Se suman a las conversiones de kilómetros, kilos, metros y grados. También en el simulador.
