@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Voz: fechas relativas, días que quedan del mes y semana del año
+
+- «Qué fecha será dentro de una semana», «qué día fue hace dos semanas» (también meses, con calendario real), «cuántos días quedan de este mes», «en qué semana estamos». En el simulador, solo con cifras.
+
 ## Capturas regeneradas con `make capturas`
 
 - Las imágenes de la web y de la documentación reflejan la interfaz actual: barra de Iker con iconos, tema coherente y «Amanece / Anochece» en la hoja del Tiempo. Siguen siendo capturas de la demo simulada.

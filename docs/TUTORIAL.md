@@ -600,6 +600,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «deletrea hola» · «repite después de mí buenos días» | Dice la palabra letra a letra o repite lo que le digas |
 | «qué día fue ayer» | Dice el día de la semana y la fecha de ayer |
 | «cuánto falta para el viernes» · «cuánto falta para el fin de semana» · «cuánto falta para el 25 de diciembre» | Cuenta los días que faltan |
+| «qué fecha será dentro de una semana» · «qué día fue hace dos semanas» · «cuántos días quedan de este mes» · «en qué semana estamos» | Fechas relativas, días que quedan del mes y semana del año |
 | «en qué año estamos» · «qué mes es» · «qué día cae el 25 de diciembre» | Año, mes y día de la semana de una fecha (la próxima vez que llega) |
 | «qué notas tengo» | Dice los títulos de tus tres notas más recientes (las fijadas, primero) |
 | «qué tengo el viernes» · «qué tengo pasado mañana» | Mira el calendario de ese día (solo los próximos eventos que carga la Pi) |

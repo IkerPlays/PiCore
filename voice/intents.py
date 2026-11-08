@@ -390,6 +390,20 @@ def parse(text):
     m = re.search(r"que dia (?:de la semana )?(?:cae|es) el (\d{1,2}) de (\w+)", t)
     if m and m.group(2) in [norm(x) for x in MESES] and 1 <= int(m.group(1)) <= 31:
         return Intent("date_part", ("day", int(m.group(1)), [norm(x) for x in MESES].index(m.group(2)) + 1))
+    m = re.search(r"que (?:fecha|dia) (sera|era|fue|seria) (dentro de|hace) (.+?) (dia|dias|semana|semanas|mes|meses)$", t)
+    if m:
+        n = find_number(m.group(3).split())
+        if n is not None and 0 < n <= 3650:
+            signo = 1 if m.group(2) == "dentro de" else -1
+            if m.group(4).startswith("mes"):
+                return Intent("date_part", ("offset", signo * n, "m"))
+            return Intent("date_part", ("offset", signo * n * (7 if m.group(4).startswith("semana") else 1), "d"))
+    if has("cuantos dias quedan de este mes", "cuantos dias quedan este mes", "cuantos dias le quedan al mes"):
+        return Intent("date_part", ("monthleft",))
+    if has("cuantos dias tiene este mes"):
+        return Intent("date_part", ("monthdays",))
+    if has("en que semana estamos", "que semana es"):
+        return Intent("date_part", ("week",))
     if has("que dia fue ayer", "que dia era ayer", "que fue ayer"):
         return Intent("date_part", ("ago", 1))
     if has("que dia de la semana", "que dia es manana", "que dia sera manana", "que dia cae"):
@@ -847,6 +861,21 @@ def say_date_part(now, what):
         return "Estamos en %d" % now.year
     if what == "month":
         return "Estamos en %s" % MESES[now.month - 1]
+    if what[0] == "week":
+        return "Estamos en la semana %d del año" % now.isocalendar()[1]
+    if what[0] in ("monthleft", "monthdays"):
+        import calendar
+        total = calendar.monthrange(now.year, now.month)[1]
+        return "Este mes tiene %d días" % total if what[0] == "monthdays" else ("Hoy es el último día del mes" if total == now.day else "Quedan %d días de %s" % (total - now.day, MESES[now.month - 1]))
+    if what[0] == "offset":
+        if what[2] == "m":                                         # meses de calendario, no de 30 dias
+            import calendar
+            mes0 = now.year * 12 + now.month - 1 + what[1]
+            y, mm = divmod(mes0, 12)
+            f = now.replace(year=y, month=mm + 1, day=min(now.day, calendar.monthrange(y, mm + 1)[1]))
+        else:
+            f = now + datetime.timedelta(days=what[1])
+        return "%s %s %d de %s" % ("Será el" if what[1] > 0 else "Fue el", DIAS[f.weekday()], f.day, MESES[f.month - 1])
     if what[0] == "ago":
         f = now - datetime.timedelta(days=what[1])
         return "Ayer fue %s %d de %s" % (DIAS[f.weekday()], f.day, MESES[f.month - 1])

@@ -406,6 +406,16 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.say_calc(*i.parse("cuanto es doscientos por tres").arg), "Son 600")
         self.assertEqual(i.parse("dime un numero al azar entre cien y mil").arg, ("numero", 100, 1000))
 
+    def test_fechas_relativas(self):
+        hoy = datetime.datetime(2026, 11, 8)
+        for frase, esperado in (("que fecha sera dentro de una semana", "Será el domingo 15 de noviembre"),
+                                ("que dia fue hace dos semanas", "Fue el domingo 25 de octubre"),
+                                ("que fecha sera dentro de 2 meses", "Será el viernes 8 de enero"),
+                                ("cuantos dias quedan de este mes", "Quedan 22 días de noviembre"),
+                                ("en que semana estamos", "Estamos en la semana 45 del año")):
+            self.assertEqual(i.say_date_part(hoy, i.parse(frase).arg), esperado, frase)
+        self.assertEqual(i.say_date_part(datetime.datetime(2026, 1, 31), ("offset", 1, "m")), "Será el sábado 28 de febrero")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

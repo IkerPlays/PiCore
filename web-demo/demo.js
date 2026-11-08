@@ -703,6 +703,19 @@
     if (has("que hora", "dime la hora")) return "Son las " + pad(now.getHours()) + ":" + pad(now.getMinutes());
     if (has("que ano es", "en que ano estamos", "que ano estamos")) return "Estamos en " + now.getFullYear();
     if (has("que mes es", "en que mes estamos", "que mes estamos")) return "Estamos en " + now.toLocaleDateString("es-ES", { month: "long" });
+    const fr = /que (?:fecha|dia) (sera|era|fue|seria) (dentro de|hace) (\w+) (dia|dias|semana|semanas|mes|meses)$/.exec(t);
+    if (fr) {
+      const n = /^\d+$/.test(fr[3]) ? +fr[3] : WORDS[fr[3]] || (fr[3] === "una" ? 1 : null), sg = fr[2] === "dentro de" ? 1 : -1;
+      if (n > 0 && n <= 3650) {
+        const f = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        if (fr[4].startsWith("mes")) { const d0 = f.getDate(); f.setDate(1); f.setMonth(f.getMonth() + sg * n); f.setDate(Math.min(d0, new Date(f.getFullYear(), f.getMonth() + 1, 0).getDate())); }
+        else f.setDate(f.getDate() + sg * n * (fr[4].startsWith("semana") ? 7 : 1));
+        return (sg > 0 ? "Será el " : "Fue el ") + f.toLocaleDateString("es-ES", { weekday: "long" }) + " " + f.getDate() + " de " + f.toLocaleDateString("es-ES", { month: "long" });
+      }
+    }
+    if (has("cuantos dias quedan de este mes", "cuantos dias quedan este mes", "cuantos dias le quedan al mes")) { const tot = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(); return tot === now.getDate() ? "Hoy es el último día del mes" : "Quedan " + (tot - now.getDate()) + " días de " + now.toLocaleDateString("es-ES", { month: "long" }); }
+    if (has("cuantos dias tiene este mes")) return "Este mes tiene " + new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() + " días";
+    if (has("en que semana estamos", "que semana es")) { const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())); const dn = d.getUTCDay() || 7; d.setUTCDate(d.getUTCDate() + 4 - dn); const y0 = new Date(Date.UTC(d.getUTCFullYear(), 0, 1)); return "Estamos en la semana " + Math.ceil(((d - y0) / 864e5 + 1) / 7) + " del año"; }
     if (has("que dia fue ayer", "que dia era ayer", "que fue ayer")) return "Ayer fue " + new Date(now.getTime() - 864e5).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" }).replace(/^([^,]+), (\d+) de/, "$1 $2 de");
     const dm = /que dia (?:de la semana )?(?:cae|es) el (\d{1,2}) de (\w+)/.exec(t);
     if (dm) {
