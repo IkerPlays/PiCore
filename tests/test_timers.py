@@ -232,7 +232,7 @@ class IntentTest(unittest.TestCase):
         P = i.parse
         self.assertEqual(P("activa la vigilancia de la camara"), ("motion", True))
         self.assertEqual(P("muestra la camara"), ("camera_show", None))
-        self.assertIsNone(P("temporizador"))                      # sin duracion: no inventa nada
+        self.assertEqual(P("temporizador").name, "chat")            # sin duracion: no inventa un tiempo, pregunta de cuanto
         self.assertIsNone(P("pon una alarma"))                    # sin hora
 
     def test_say_duration(self):
