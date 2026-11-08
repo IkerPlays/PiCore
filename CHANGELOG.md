@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Docs: VOICE.md explica `pcpi-frase`
+
+- Sección «Probar una frase sin micrófono» con dos ejemplos.
+
 ## Herramienta `pcpi-frase`: qué orden entendería la Pi con una frase
 
 - `pcpi-frase "sube el volumen y pon música"` imprime la orden (o órdenes) que entendería, sin ejecutar nada. Sirve para depurar la voz sin micrófono; sin argumentos lee frases de la entrada. Se instala con el resto de `bin/`.

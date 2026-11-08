@@ -13,6 +13,15 @@ micro ─► openWakeWord ──(palabra)──► pitido ─► Whisper (o Vosk
 - El texto se convierte en una acción en `voice/intents.py` y se ejecuta en `voice/assistant.py` llamando a la API local de la Pi; para añadir una orden nueva, sigue la receta de [CONTRIBUTING.md](../CONTRIBUTING.md#receta-añadir-una-orden-de-voz).
 - Uso: di la palabra → suena un **pitido** → di la orden («qué hora es», «modo casa», «pausa el Pi-hole diez minutos»...). La lista de órdenes está en el [README](../README.md#voz).
 
+## Probar una frase sin micrófono
+
+```bash
+pcpi-frase "sube el volumen y pon música"
+pcpi-frase "qué hora será dentro de veinte minutos"
+```
+
+Dice qué orden (o órdenes) entendería la Pi, **sin ejecutar nada**. Si no la entiende, lo dice (en ese caso, con la IA local activada, la frase iría a la IA).
+
 ## Qué no hace la voz (a propósito)
 
 Para que una frase suelta no cambie cosas sin querer, `voice/intents.py` aplica estas reglas **antes** de buscar la orden:
