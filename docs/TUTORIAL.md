@@ -599,6 +599,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «cuántas alarmas tengo» | Cuenta las alarmas (igual que «cuántas notas tengo» y «cuántos temporizadores») |
 | «qué versión tienes» | Dice la versión de PiCore instalada |
 | «cuánta batería queda» | Dice el porcentaje y si se está cargando (solo si la Pi tiene batería) |
+| «a qué hora amanece» · «a qué hora anochece» | Dice la hora de salida y puesta del sol de hoy (datos de Open-Meteo, como el tiempo) |
 | «cuéntame un chiste» | Cuenta uno de una lista corta guardada en la Pi (funciona sin internet) |
 | «qué hora será dentro de veinte minutos» | Suma el tiempo a la hora actual y te dice a qué hora será |
 | «cuánto es el 20 por ciento de 50» | Calcula porcentajes |

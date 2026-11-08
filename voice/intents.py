@@ -419,6 +419,8 @@ def parse(text):
             return Intent("camera_hide", None)
         if has("muestra", "ensena", "abre", "enciende", "ver ", "pon", "activa"):
             return Intent("camera_show", None)
+    if has("amanece", "sale el sol", "salida del sol", "anochece", "se pone el sol", "puesta de sol", "atardece"):
+        return Intent("sun", "rise" if has("amanece", "sale el sol", "salida del sol") else "set")
     if has("tiempo", "temperatura", "llover", "llovera", "llueve", "hace frio", "hace calor", "hara") and has("manana", "pasado manana"):
         return Intent("weather", 2 if has("pasado manana") else 1)
     if has("tiempo", "temperatura", "llover", "llueve", "hace frio", "hace calor"):
@@ -636,6 +638,14 @@ def say_date_part(now, what):
 
 def say_date(now):
     return "Hoy es %s %d de %s" % (DIAS[now.weekday()], now.day, MESES[now.month - 1])
+
+
+def say_sun(w, which):
+    h = (w or {}).get("sunrise" if which == "rise" else "sunset")
+    if not h:
+        return "No sé a qué hora %s el sol" % ("sale" if which == "rise" else "se pone")
+    hh, mm = int(h[:2]), int(h[3:5])
+    return "%s a las %d y %d" % ("El sol sale" if which == "rise" else "El sol se pone", hh, mm) if mm else "%s a las %d en punto" % ("El sol sale" if which == "rise" else "El sol se pone", hh)
 
 
 def say_weather(w):

@@ -222,6 +222,13 @@ class IntentTest(unittest.TestCase):
         self.assertIn("conecta el cargador", i.say_battery({"available": True, "percent": 4, "critical": True}))
         self.assertEqual(i.say_battery({"available": False}), "No tengo batería conectada")
 
+    def test_sol(self):
+        self.assertEqual(i.parse("a que hora amanece").arg, "rise")
+        self.assertEqual(i.parse("a que hora anochece").arg, "set")
+        self.assertEqual(i.say_sun({"sunrise": "07:42"}, "rise"), "El sol sale a las 7 y 42")
+        self.assertEqual(i.say_sun({"sunset": "18:00"}, "set"), "El sol se pone a las 18 en punto")
+        self.assertEqual(i.say_sun({}, "rise"), "No sé a qué hora sale el sol")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

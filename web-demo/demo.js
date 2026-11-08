@@ -133,7 +133,7 @@
     const h0 = new Date().getHours(), codes = [1, 61, 61, 61, 1, 1, 1, 1, 1, 1, 1, 1];
     const hourly = codes.map((c, i) => ({ h: pad((h0 + i) % 24) + ":00", temp: Math.round((21.5 + 2.6 * Math.sin((i - 3) / 3.8)) * 10) / 10, rain: c === 61 ? 70 : 10, code: c }));
     const days = [[25, 18, 70, 61], [23, 17, 20, 2], [22, 16, 5, 2], [24, 17, 0, 0], [24, 18, 10, 1]].map((d, i) => ({ date: dayStr(i + 1), tmax: d[0], tmin: d[1], rain: d[2], code: d[3] }));
-    return { ok: true, city: LS.get("city", "Las Palmas de Gran Canaria"), temp: 21.4, code: 1, tmax: 24.1, tmin: 17.6, rain: 10, hourly, days, rain_alert: { in_hours: 1, prob: 70 } };
+    return { ok: true, city: LS.get("city", "Las Palmas de Gran Canaria"), temp: 21.4, code: 1, tmax: 24.1, tmin: 17.6, rain: 10, sunrise: "07:42", sunset: "18:21", hourly, days, rain_alert: { in_hours: 1, prob: 70 } };
   }
   function calendar() {
     const d = new Date(Date.now() + 3 * 3600e3);
@@ -641,6 +641,10 @@
     if (has("que hora sera dentro de", "que hora seran dentro de", "que hora sera en")) {
       const sec = duration(t.replace(/^.*(dentro de|sera en) /, ""));
       if (sec) { const d = new Date(Date.now() + sec * 1000); return "Serán las " + pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+    }
+    if (has("amanece", "sale el sol", "salida del sol", "anochece", "se pone el sol", "puesta de sol", "atardece")) {
+      const sal = has("amanece", "sale el sol", "salida del sol"), h = (sal ? "07:42" : "18:21").split(":");
+      return (sal ? "El sol sale" : "El sol se pone") + " a las " + (+h[0]) + " y " + (+h[1]);
     }
     if (has("que hora", "dime la hora")) return "Son las " + pad(now.getHours()) + ":" + pad(now.getMinutes());
     if (has("que ano es", "en que ano estamos", "que ano estamos")) return "Estamos en " + now.getFullYear();

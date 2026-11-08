@@ -300,7 +300,7 @@ def weather(cp):
         d = http_json(
             "%s?latitude=%s&longitude=%s&current=temperature_2m,weather_code"
             "&hourly=temperature_2m,precipitation_probability,weather_code"
-            "&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code&timezone=auto&forecast_days=6"
+            "&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code,sunrise,sunset&timezone=auto&forecast_days=6"
             % (base, lat, lon),
             timeout=4,
         )
@@ -309,7 +309,8 @@ def weather(cp):
         first = lambda k: (day.get(k) or [None])[0]
         out = {"ok": True, "temp": cur["temperature_2m"], "code": cur["weather_code"],
                "tmax": first("temperature_2m_max"), "tmin": first("temperature_2m_min"),
-               "rain": first("precipitation_probability_max")}
+               "rain": first("precipitation_probability_max"),
+               "sunrise": str(first("sunrise") or "")[11:16] or None, "sunset": str(first("sunset") or "")[11:16] or None}
         out["city"] = geocode.clean_name(cp.get("weather", "city", fallback=""))
         out["hourly"] = weather_hours(d, cur.get("time"))
         out["days"] = weather_days(day)

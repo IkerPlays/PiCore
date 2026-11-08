@@ -197,7 +197,8 @@ class ServerTest(unittest.TestCase):
                            "precipitation_probability": [80 if t[11:13] in rain_hours else 5 for t in times],
                            "weather_code": [61 if t[11:13] in rain_hours else 1 for t in times]},
                 "daily": {"time": ["2026-11-06", "2026-11-07", "2026-11-08"], "temperature_2m_max": [24, 25, 26], "temperature_2m_min": [17, 18, 19],
-                          "precipitation_probability_max": [10, 70, 30], "weather_code": [1, 61, 2]}}
+                          "precipitation_probability_max": [10, 70, 30], "weather_code": [1, 61, 2],
+                          "sunrise": ["2026-11-06T07:42", "2026-11-07T07:43"], "sunset": ["2026-11-06T18:21", "2026-11-07T18:20"]}}
 
     def test_weather_hours_days_and_rain_alert(self):
         import configparser
@@ -211,6 +212,7 @@ class ServerTest(unittest.TestCase):
             server.http_json = real
         self.assertEqual([x["h"] for x in w["hourly"]][:3], ["14:00", "15:00", "16:00"])          # empieza en la hora actual
         self.assertEqual(len(w["hourly"]), 12)
+        self.assertEqual((w["sunrise"], w["sunset"]), ("07:42", "18:21"))
         self.assertEqual(w["hourly"][0]["temp"], 12)
         self.assertEqual([d["date"] for d in w["days"]], ["2026-11-07", "2026-11-08"])           # sin «hoy»
         self.assertEqual(w["days"][0]["rain"], 70)

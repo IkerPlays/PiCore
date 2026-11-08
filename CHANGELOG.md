@@ -6,6 +6,10 @@
 
 
 
+## Voz: a qué hora amanece y anochece
+
+- El servidor pide también `sunrise` y `sunset` a Open-Meteo (la misma llamada del tiempo) y la voz los dice. Antes «a qué hora amanece» se entendía como «qué hora es». En el simulador son horas de ejemplo.
+
 ## Voz: cuánta batería queda
 
 - Antes «cuánto queda de batería» se entendía como «cuánto queda del temporizador». Ahora dice el porcentaje y si se está cargando (o que no hay batería). El simulador da un dato de ejemplo.
