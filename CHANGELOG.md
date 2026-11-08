@@ -6,6 +6,10 @@
 
 
 
+## Voz: el tiempo de otra ciudad ya no se contesta con el de la tuya
+
+- «Qué tiempo hace en Madrid» daba el tiempo de la ciudad elegida como si fuera el de Madrid. Ahora lo dice: solo hay el de la ciudad de la pantalla. Además «necesito un paraguas» y «hay riesgo de lluvia» dan el tiempo, «a cuántos estamos» da la fecha y «tengo reuniones hoy» mira el calendario.
+
 ## Voz: temporizadores con nombre «…para la pizza de 12 minutos», «cuánto le queda…» y «ponme un temporizador»
 
 - El nombre se perdía cuando iba antes de la duración; «cuánto le queda al temporizador de la pasta» no se entendía; y «ponme un temporizador» sin tiempo ahora pregunta de cuánto.

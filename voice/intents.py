@@ -352,7 +352,7 @@ def parse(text):
         return Intent("date_tomorrow" if has("manana") else "date", None)
     if has("pon la pantalla en negro", "apaga la pantalla", "oscurece la pantalla"):
         return Intent("brightness", "10")
-    if has("calendario", "agenda", "que tengo", "tengo algo", "mis eventos", "proximo evento", "siguiente evento", "proxima cita", "tengo hoy", "tengo manana"):
+    if has("calendario", "agenda", "que tengo", "tengo algo", "mis eventos", "proximo evento", "siguiente evento", "proxima cita", "tengo hoy", "tengo manana", "reuniones", "citas hoy"):
         return Intent("calendar", "next" if has("proximo evento", "siguiente evento", "proxima cita") else "tomorrow" if has("manana") else "today")
     if has("temporizador", "cuenta atras", "cuentaatras"):
         if has("anade", "sumale", "mas tiempo", "alarga", "amplia", "extiende") or (has("ponle") and has("mas")):
@@ -477,6 +477,12 @@ def parse(text):
             return Intent("camera_show", None)
     if has("amanece", "sale el sol", "salida del sol", "anochece", "se pone el sol", "puesta de sol", "atardece"):
         return Intent("sun", "rise" if has("amanece", "sale el sol", "salida del sol") else "set")
+    if has("tiempo", "temperatura", "llover", "llueve", "hace frio", "hace calor") and not has("que hora", "temporizador"):
+        for k, (tz, nombre) in CITY_TZ.items():
+            if re.search(r"\ben %s\b" % k, t) and k not in ("canarias",):
+                return Intent("chat", "Solo tengo el tiempo de la ciudad que elegiste en la pantalla, no el de %s" % nombre)
+    if has("paraguas", "riesgo de lluvia", "probabilidad de lluvia", "va a llover", "llovera") and not has("manana"):
+        return Intent("weather", None)
     if has("tiempo", "temperatura", "llover", "llovera", "llueve", "hace frio", "hace calor", "hara") and has("manana", "pasado manana"):
         return Intent("weather", 2 if has("pasado manana") else 1)
     if has("tiempo", "temperatura", "llover", "llueve", "hace frio", "hace calor"):
@@ -502,7 +508,7 @@ def parse(text):
         return Intent("date_part", "year")
     if has("que mes es", "en que mes estamos", "que mes estamos"):
         return Intent("date_part", "month")
-    if has("que dia", "fecha", "a cuanto estamos"):
+    if has("que dia", "fecha", "a cuanto estamos", "a cuantos estamos"):
         return Intent("date", None)
     return None
 

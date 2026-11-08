@@ -320,6 +320,16 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.parse("ponme un temporizador").name, "chat")
         self.assertEqual(i.parse("pon un temporizador de diez minutos").arg, 600)
 
+    def test_tiempo_de_otra_ciudad(self):
+        x = i.parse("que tiempo hace en madrid")
+        self.assertEqual(x.name, "chat")
+        self.assertIn("Madrid", x.arg)
+        self.assertEqual(i.parse("que tiempo hace").name, "weather")
+        self.assertEqual(i.parse("necesito un paraguas").name, "weather")
+        self.assertEqual(i.parse("a cuantos estamos").name, "date")
+        self.assertEqual(i.parse("tengo reuniones hoy").name, "calendar")
+        self.assertEqual(i.parse("que hora es en madrid").name, "time_in")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)
