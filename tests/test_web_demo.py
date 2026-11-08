@@ -41,7 +41,7 @@ class LandingTest(unittest.TestCase):
             self.assertIn(tag, self.html)
         self.assertNotIn("noindex", self.html)
         self.assertIn("Sitemap:", (self.out / "robots.txt").read_text())
-        mf = json.loads((self.out / "manifest.webmanifest").read_text())
+        mf = __import__("json").loads((self.out / "manifest.webmanifest").read_text())
         self.assertEqual((mf["display"], mf["start_url"]), ("standalone", "/simulador"))
         for pagina in ("index.html", "simulador.html"):
             self.assertIn('rel="manifest"', (self.out / pagina).read_text())
