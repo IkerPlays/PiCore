@@ -6,6 +6,10 @@
 
 
 
+## Voz: cuántos días tiene un mes
+
+- «Cuántos días tiene febrero» (cuenta los bisiestos del año actual). También en el simulador.
+
 ## Voz: año, mes y día de la semana de una fecha
 
 - «En qué año estamos», «qué mes es», «qué día cae el 25 de diciembre» (la próxima vez que llega esa fecha). También en el simulador.

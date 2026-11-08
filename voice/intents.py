@@ -235,6 +235,12 @@ def parse(text):
         return Intent("sys_info", "temp" if not has("como esta", "estado") else "all")
     if has("que puedes hacer", "que sabes hacer", "ayuda", "que te puedo pedir", "que comandos"):
         return Intent("help", None)
+    m = re.search(r"cuantos dias tiene (?:el mes de |el mes |)(\w+)", t)
+    if m and m.group(1) in [norm(x) for x in MESES]:
+        import calendar
+        n = [norm(x) for x in MESES].index(m.group(1)) + 1
+        d = calendar.monthrange(datetime.date.today().year, n)[1]
+        return Intent("chat", "%s tiene %d días" % (m.group(1).capitalize(), d))
     for frases, resp in RESPUESTAS:
         if has(*frases):
             return Intent("chat", resp)

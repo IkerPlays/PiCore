@@ -193,6 +193,10 @@ class IntentTest(unittest.TestCase):
         self.assertIn("año que viene", i.say_date_part(hoy, i.parse("que dia cae el 1 de enero").arg))
         self.assertEqual(i.say_date_part(hoy, i.parse("que dia cae el 31 de febrero").arg), "Ese día no existe")
 
+    def test_dias_del_mes(self):
+        self.assertIn("días", i.parse("cuantos dias tiene febrero").arg)
+        self.assertEqual(i.parse("cuantos dias tiene marzo").arg, "Marzo tiene 31 días")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

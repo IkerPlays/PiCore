@@ -524,6 +524,11 @@
         return "En " + CT[k][1] + " " + (h === 1 ? "es la una" : "son las " + h) + (m ? " y " + m : " en punto");
       }
     }
+    const dt = /cuantos dias tiene (?:el mes de |el mes |)(\w+)/.exec(t);
+    if (dt) {
+      const MS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"], k = MS.indexOf(dt[1]);
+      if (k >= 0) return dt[1][0].toUpperCase() + dt[1].slice(1) + " tiene " + new Date(now.getFullYear(), k + 1, 0).getDate() + " días";
+    }
     for (const [fr, resp] of RESPUESTAS) if (has(...fr)) return resp;
     if (has("chiste", "hazme reir", "algo gracioso")) { const J = ["¿Qué le dice un cero a un ocho? Bonito cinturón", "¿Por qué los pájaros vuelan hacia el sur? Porque andando tardarían mucho", "¿Qué hace una abeja en el gimnasio? Zum-ba", "¿Cómo se llama el campeón de buceo japonés? Tokofondo", "¿Qué le dice un semáforo a otro? No me mires, que me pongo rojo", "¿Qué hace un perro con un taladro? Taladrando", "Mi ordenador no me hace caso, pero yo a él tampoco"]; return J[Math.floor(Math.random() * J.length)]; }
     const cv = /^(?:pasa|convierte) (\d+) (kilometros|millas|kilos|libras|metros|pies|grados|fahrenheit) a (kilometros|millas|kilos|libras|metros|pies|grados|fahrenheit)$/.exec(t) || (m => m && [m[0], m[2], m[3], m[1]])(/^cuant[oa]s (kilometros|millas|kilos|libras|metros|pies|grados|fahrenheit) son (\d+) (kilometros|millas|kilos|libras|metros|pies|grados|fahrenheit)$/.exec(t));
