@@ -599,6 +599,7 @@
     if (has("gracias")) return "De nada";
     if (["hola", "buenas", "buenos dias", "buenas tardes", "buenas noches", "hola pi"].includes(t)) return "Hola, dime";
     if (has("cuanto llevas encendida", "cuanto tiempo llevas encendida")) { const mn = Math.max(1, Math.round((Date.now() - T0) / 60000)); return "Llevo encendida " + mn + (mn === 1 ? " minuto" : " minutos"); }
+    if (has("que version", "version de picore", "version tienes")) return "Tengo PiCore versión demo (esto es una demostración)";
     if (has("espacio libre", "cuanto espacio")) return "Quedan 21 coma 4 gigas libres en la tarjeta, el 33 por ciento ocupado (datos de ejemplo)";
     if (has("memoria libre", "cuanta memoria")) return "Hay 5120 megas de memoria libres (datos de ejemplo)";
     if (has("temperatura de la pi", "temperatura tiene la pi", "como esta la pi", "estado de la pi")) return "El procesador está a 46 grados (dato de ejemplo)";

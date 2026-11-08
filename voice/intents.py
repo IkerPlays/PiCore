@@ -229,6 +229,8 @@ def parse(text):
         return Intent("note_read", None)
     if re.search(r"\b(lee|leeme|que hay en|que tengo en|dime) (?:la |mi |mis )?(?:lista|tareas|pendientes)", t) and not has("anade", "añade", "apunta"):
         return Intent("list_read", "Tareas" if has("tareas", "pendientes") else "Lista de la compra")
+    if has("que version", "version de picore", "version tienes", "version tiene la pi"):
+        return Intent("sys_info", "version")
     if has("espacio libre", "cuanto espacio", "espacio en la tarjeta", "espacio en el disco", "espacio queda"):
         return Intent("sys_info", "disk")
     if has("memoria libre", "cuanta memoria", "memoria ram", "memoria queda"):
@@ -486,6 +488,9 @@ def say_system(kind, st):
     sysd = (st or {}).get("system") or {}
     disk, mem, temp = sysd.get("disk"), sysd.get("mem_avail_mb"), (st or {}).get("cpu_temp")
     parts = []
+    if kind == "version":
+        v = (st or {}).get("version")
+        return "Tengo PiCore versión %s" % v if v and v != "?" else "No sé qué versión tengo"
     if kind in ("disk", "all"):
         parts.append("Quedan %s gigas libres en la tarjeta, el %d por ciento ocupado" % (str(disk["free_gb"]).replace(".", " coma "), disk["pct"]) if disk else "No sé cuánto espacio queda")
     if kind in ("mem", "all"):

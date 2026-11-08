@@ -6,6 +6,10 @@
 
 
 
+## Voz: qué versión tienes
+
+- Dice la versión de PiCore que lee de `/api/status` (la que escribe `install.sh`). En el simulador contesta «demo».
+
 ## Voz: cuántas alarmas tengo
 
 - Se une a «cuántas notas» y «cuántos temporizadores». También en el simulador.

@@ -208,6 +208,12 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.say_list("Lista de la compra", "Lista de la compra\n- leche\n- pan\n#compra"), "En la lista de la compra: leche, pan")
         self.assertEqual(i.say_list("Tareas", "Tareas\n"), "No tienes nada en tus tareas")
 
+    def test_version(self):
+        x = i.parse("que version tienes")
+        self.assertEqual((x.name, x.arg), ("sys_info", "version"))
+        self.assertEqual(i.say_system("version", {"version": "1.2.3"}), "Tengo PiCore versión 1.2.3")
+        self.assertEqual(i.say_system("version", {}), "No sé qué versión tengo")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)
