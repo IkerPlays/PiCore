@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Temporizadores y alarmas: lo que venció hace más de 10 minutos ya no suena
+
+- Si la Pi estaba apagada (o el reloj se corrigió tras arrancar sin internet), una alarma de las 7 sonaba a las 9 y un temporizador de pasta sonaba horas tarde. Ahora, si lo vencido lleva más de 10 minutos, se descarta (una alarma diaria se reprograma para su próxima hora). Sin probar en una Pi real; los tests usan un reloj falso.
+
 ## pcpi-doctor: sección «Reloj»
 
 - Dice si el año es imposible (hora falsa, error) o si la hora no está sincronizada (aviso), con la misma lógica que la hoja Sistema.

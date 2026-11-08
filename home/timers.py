@@ -17,6 +17,7 @@ from pathlib import Path
 MAX_TIMERS = 20
 MAX_SECONDS = 48 * 3600
 RING_MAX_S = 120               # si nadie lo para, deja de sonar a los 2 minutos
+LATE_S = 600                   # lo que venció hace más de 10 min (Pi apagada o reloj corregido) ya no suena: llegaría tarde y sería un susto
 
 
 def state_file():
@@ -141,6 +142,12 @@ class TimerStore:
                             t["due"], t["ringing_since"] = next_occurrence(t["hour"], t["minute"], now + 60), None
                             self.items.append(t)
                         changed = True
+                elif now >= t["due"] and now - t["due"] > LATE_S:
+                    self.items.remove(t)                       # se perdió el momento: una diaria pasa a mañana, las demás se descartan
+                    if t["kind"] == "alarm" and t.get("daily"):
+                        t["due"] = next_occurrence(t["hour"], t["minute"], now)
+                        self.items.append(t)
+                    changed = True
                 elif now >= t["due"]:
                     t["ringing_since"] = now
                     fired.append(dict(t))

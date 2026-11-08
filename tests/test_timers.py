@@ -114,6 +114,27 @@ class StoreTest(unittest.TestCase):
         f.write_text('[1, "a", {"id": "x"}]')
         self.assertEqual(timers.TimerStore(f).snapshot(), [])
 
+    def test_what_expired_long_ago_does_not_ring(self):
+        """Pi apagada o reloj corregido: una alarma de las 7 no suena a las 9; un temporizador viejo se descarta; una diaria pasa a mañana."""
+        c = Clock(time.mktime((2026, 11, 6, 6, 0, 0, 0, 0, -1)))
+        s, _ = store(c)
+        s.add_timer(600, "pasta")
+        s.add_alarm(7, 0, "una vez")
+        s.add_alarm(7, 0, "diaria", daily=True)
+        c.t = time.mktime((2026, 11, 6, 9, 0, 0, 0, 0, -1))              # arranca dos horas tarde
+        self.assertEqual(s.tick(), [])                                    # nada suena
+        snap = s.snapshot()
+        self.assertEqual([x["label"] for x in snap], ["diaria"])          # solo queda la diaria, para mañana
+        self.assertEqual(time.localtime(snap[0]["due"]).tm_mday, 7)
+        self.assertFalse(s.ringing())
+
+    def test_something_a_few_minutes_late_still_rings(self):
+        c = Clock(time.mktime((2026, 11, 6, 6, 59, 0, 0, 0, -1)))
+        s, _ = store(c)
+        s.add_alarm(7, 0, "ahora")
+        c.t += 60 + 300                                                   # 5 minutos tarde (servidor ocupado): aun suena
+        self.assertEqual(len(s.tick()), 1)
+
     def test_alarm_next_occurrence(self):
         now = time.mktime((2026, 11, 6, 10, 0, 0, 0, 0, -1))
         nxt = timers.next_occurrence(7, 30, now)
