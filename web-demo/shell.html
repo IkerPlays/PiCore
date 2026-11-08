@@ -23,6 +23,8 @@
   button:hover, a.b:hover { border-color:#7cabff; } button.on { background:#7cabff; color:#06101f; border-color:#7cabff; }
   #stage { position:absolute; left:0; right:0; top:56px; bottom:100px; overflow:hidden; }
   #dev { position:absolute; left:50%; top:50%; width:1024px; height:600px; border-radius:22px; background:#000; box-shadow:0 0 0 10px #0d1017, 0 0 0 11px #2b3342, 0 30px 90px #000c; overflow:hidden; transform-origin:center center; }
+  #dev { animation:devin .8s cubic-bezier(.2,.8,.2,1) both; } @keyframes devin { from { opacity:0; filter:blur(8px); } to { opacity:1; filter:none; } }
+  @media (prefers-reduced-motion:reduce) { #dev, #keys:not([hidden]) { animation:none !important; } }
   #dev iframe { width:1024px; height:600px; border:0; display:block; background:#000; }
   #bar { position:absolute; left:50%; bottom:34px; transform:translateX(-50%); width:min(860px, calc(100% - 24px)); display:flex; flex-direction:column; gap:6px; }
   #say { display:flex; gap:8px; } #say input { flex:1; min-width:0; font:inherit; font-size:15px; padding:10px 16px; border-radius:99px; border:1px solid #ffffff26; background:#ffffff0d; color:#e9eef7; outline:0; } #say input:focus { border-color:#7cabff; box-shadow:0 0 0 3px #7cabff33; } #say button { padding:9px 18px; }

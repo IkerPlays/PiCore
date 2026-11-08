@@ -6,6 +6,10 @@
 
 
 
+## Simulador: el dispositivo aparece con un desenfoque suave
+
+- Solo cambia la opacidad y el desenfoque (no toca el escalado de la carcasa) y se apaga con «reducir movimiento».
+
 ## Voz: cuenta hasta N
 
 - «Cuenta hasta diez» dice 1, 2, 3… hasta veinte como máximo. También en el simulador.
