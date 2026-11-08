@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Voz (honestidad): cancelar alarmas dice cuántas quita y las excepciones se rechazan
+
+- «Quita la alarma de las siete» quita todas las alarmas (la voz no distingue cuál) y ahora lo dice («He cancelado las 3 alarmas (la voz quita todas)»). «Despiértame a las siete todos los días menos los domingos» se guardaba como diaria sin avisar; ahora contesta que solo sabe alarmas de un día o diarias.
+
 ## Voz: la mitad, el doble y el triple de un número
 
 - «Cuánto es la mitad de 50», «el doble de 8», «el triple de 7». También en el simulador.

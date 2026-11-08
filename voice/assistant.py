@@ -314,8 +314,14 @@ def execute(cfg, intent):
             base = "Alarma a las %d y %02d" % (a[0], a[1]) if a[1] else "Alarma a las %d en punto" % a[0]
             return base + (", todos los días" if daily else "") + (" para " + label if label else "")
         if n in ("timer_cancel", "alarm_cancel"):
-            api(cfg, "/api/timers", {"action": "cancel", "kind": "timer" if n == "timer_cancel" else "alarm"})
-            return "Temporizador cancelado" if n == "timer_cancel" else "Alarma cancelada"
+            kind = "timer" if n == "timer_cancel" else "alarm"
+            try:
+                with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
+                    k = len([t for t in (json.load(r).get("timers") or []) if t.get("kind") == kind])
+            except (urllib.error.URLError, ValueError):
+                k = None
+            api(cfg, "/api/timers", {"action": "cancel", "kind": kind})
+            return intents.say_cancelled(kind, k)
         if n == "timers_stop":
             api(cfg, "/api/timers", {"action": "dismiss"})
             return "Hecho"

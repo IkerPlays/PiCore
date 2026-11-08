@@ -286,6 +286,12 @@ class ExecuteApiIntentsTest(unittest.TestCase):
         self.notes = [{"id": "a", "title": "Compra", "updated": 1}]
         self.assertIn("He encontrado una nota con leche", assistant.execute(self.cfg, ("note_search", "leche")))
 
+    def test_cancel_says_how_many(self):
+        self.status["timers"] = [{"kind": "alarm"}, {"kind": "alarm"}, {"kind": "timer"}]
+        self.assertEqual(assistant.execute(self.cfg, ("alarm_cancel", None)), "He cancelado las 2 alarmas (la voz quita todas)")
+        self.status["timers"] = []
+        self.assertEqual(assistant.execute(self.cfg, ("alarm_cancel", None)), "No tenías ninguna alarma")
+
     def test_alarm_with_a_name_by_voice(self):
         self.assertEqual(assistant.execute(self.cfg, ("alarm_set", (18, 0, False, "saque la basura"))), "Alarma a las 18 en punto para saque la basura")
         self.assertEqual(self.posts[-1][1], {"action": "alarm", "hour": 18, "minute": 0, "label": "saque la basura"})
@@ -331,6 +337,7 @@ class ExecuteApiIntentsTest(unittest.TestCase):
         self.assertEqual(assistant.execute(self.cfg, ("alarm_set", (7, 30))), "Alarma a las 7 y 30")
         self.assertEqual(self.posts[-1][1], {"action": "alarm", "hour": 7, "minute": 30})
         self.assertEqual(assistant.execute(self.cfg, ("alarm_set", (7, 0))), "Alarma a las 7 en punto")
+        self.status["timers"] = [{"kind": "timer"}]
         self.assertEqual(assistant.execute(self.cfg, ("timer_cancel", None)), "Temporizador cancelado")
         self.assertEqual(self.posts[-1][1], {"action": "cancel", "kind": "timer"})
         self.assertEqual(assistant.execute(self.cfg, ("timers_stop", None)), "Hecho")

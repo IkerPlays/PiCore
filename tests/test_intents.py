@@ -381,6 +381,17 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.say_calc(*i.parse("cuanto es el doble de 8").arg), "El doble de 8 es 16")
         self.assertEqual(i.say_calc(*i.parse("cuanto es el triple de 7").arg), "El triple de 7 es 21")
 
+    def test_cancelar_dice_cuantas_quita(self):
+        self.assertEqual(i.say_cancelled("alarm", 1), "Alarma cancelada")
+        self.assertEqual(i.say_cancelled("alarm", 3), "He cancelado las 3 alarmas (la voz quita todas)")
+        self.assertEqual(i.say_cancelled("alarm", 0), "No tenías ninguna alarma")
+        self.assertEqual(i.say_cancelled("timer", 0), "No tenías ningún temporizador")
+
+    def test_alarma_con_excepciones_se_rechaza(self):
+        x = i.parse("despiertame a las 7 todos los dias menos los domingos")
+        self.assertEqual(x.name, "chat")
+        self.assertEqual(i.parse("despiertame a las 7 todos los dias").name, "alarm_set")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

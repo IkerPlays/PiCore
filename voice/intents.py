@@ -312,6 +312,8 @@ def parse(text):
         return Intent("timer_set", secs_d)                       # «despiertame en una hora», «pon la alarma para dentro de una hora»
     if has("alarma") and has("a que hora suena", "a que hora esta", "cuando suena", "cual es mi alarma", "proxima alarma"):
         return Intent("alarm_query", None)
+    if has("despiertame", "alarma", "avisame", "recuerdame") and has("menos los", "excepto", "salvo", "menos el ") and parse_clock(words):
+        return Intent("chat", "Solo sé alarmas de un día o todos los días, no con excepciones. Díme una de las dos")
     if has("avisame", "recuerdame", "avisa me", "recuerda me") and not parse_duration(words) and (clock_r := parse_clock(words)):
         t2 = re.sub(r"\bde la (?:mañana|manana|tarde|noche|madrugada)\b", "", str(text).lower().strip(" .,!?¡¿"))
         m = re.search(r"\ba las [^,]*?\b(?:que|para|de)\s+(.{2,40})$", t2)
@@ -614,6 +616,18 @@ def say_notes_found(q, found, recent=False):
         return "No he encontrado ninguna nota con %s" % q
     titulos = ", ".join(str(f.get("title") or "sin título") for f in found[:3]) + (" y %d más" % (len(found) - 3) if len(found) > 3 else "")
     return ("He encontrado una nota con %s: %s" if len(found) == 1 else "He encontrado %d notas con %%s: %%s" % len(found)) % (q, titulos)
+
+
+def say_cancelled(kind, k):
+    """Dice cuantas se han quitado: la voz quita TODAS las de ese tipo (no distingue «la de las siete»)."""
+    una, uno, varias = ("una alarma", "alarma", "alarmas") if kind == "alarm" else ("un temporizador", "temporizador", "temporizadores")
+    if k == 0:
+        return "No tenías ninguna %s" % uno if kind == "alarm" else "No tenías ningún %s" % uno
+    if k == 1:
+        return ("Alarma cancelada" if kind == "alarm" else "Temporizador cancelado")
+    if k is None:
+        return "Cancelados todos los " + varias if kind == "timer" else "Canceladas todas las " + varias
+    return "He cancelado las %d %s (la voz quita todas)" % (k, varias)
 
 
 def say_alarm(timers):
