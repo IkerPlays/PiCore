@@ -31,18 +31,47 @@ def norm(text):
     return " ".join(re.sub(r"[^a-z0-9 ]+", " ", t).split())
 
 
+CENTENAS = {"doscientos": 200, "doscientas": 200, "trescientos": 300, "trescientas": 300, "cuatrocientos": 400, "cuatrocientas": 400,
+            "quinientos": 500, "quinientas": 500, "seiscientos": 600, "seiscientas": 600, "setecientos": 700, "setecientas": 700,
+            "ochocientos": 800, "ochocientas": 800, "novecientos": 900, "novecientas": 900}
+
+
+def _grupo(words, i):
+    """Un grupo de 0 a 999 que empieza en words[i]: (valor, palabras usadas) o (None, 0). «ciento veinte», «treinta y cinco», «doscientos»..."""
+    n, usadas = 0, 0
+    w = words[i] if i < len(words) else ""
+    if w in CENTENAS or w in ("ciento", "cien"):
+        n, usadas = (100 if w in ("ciento", "cien") else CENTENAS[w]), 1
+        w = words[i + 1] if i + 1 < len(words) else ""
+        if usadas == 1 and w not in UNIDADES and w not in DECENAS:
+            return n, usadas
+        if w == "cien" or w == "ciento":
+            return n, usadas
+    if w in DECENAS and w not in ("cien", "ciento"):
+        n += DECENAS[w]; usadas += 1
+        if i + usadas + 1 < len(words) and words[i + usadas] == "y" and words[i + usadas + 1] in UNIDADES and UNIDADES[words[i + usadas + 1]] < 10:
+            n += UNIDADES[words[i + usadas + 1]]; usadas += 2
+        return n, usadas
+    if w in UNIDADES:
+        return n + UNIDADES[w], usadas + 1
+    return (n, usadas) if usadas else (None, 0)
+
+
 def find_number(words):
-    """Primer numero (cifras o palabras: 'treinta y cinco') que aparezca en la lista."""
+    """Primer numero (cifras o palabras: «treinta y cinco», «ciento veinte», «dos mil») que aparezca en la lista."""
     for i, w in enumerate(words):
         if w.isdigit():
             return int(w)
-        if w in DECENAS:
-            n = DECENAS[w]
-            if i + 2 < len(words) and words[i + 1] == "y" and words[i + 2] in UNIDADES and n < 100:
-                n += UNIDADES[words[i + 2]]
-            return n
-        if w in UNIDADES:
-            return UNIDADES[w]
+        if w == "mil":
+            return 1000
+        n, u = _grupo(words, i)
+        if n is None:
+            continue
+        if i + u < len(words) and words[i + u] == "mil":                # «dos mil», «ciento veinte mil»
+            total, resto = n * 1000, i + u + 1
+            m, _ = _grupo(words, resto)
+            return total + (m or 0)
+        return n
     return None
 
 

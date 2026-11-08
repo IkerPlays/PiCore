@@ -399,6 +399,13 @@ class IntentTest(unittest.TestCase):
         self.assertIsNone(i.find_track(pistas, "marea"))
         self.assertEqual(i.parse("pon la musica").arg, "play")
 
+    def test_numeros_grandes_con_palabras(self):
+        for texto, valor in (("treinta y cinco", 35), ("ciento veinte", 120), ("doscientos cincuenta y dos", 252), ("dos mil", 2000),
+                             ("tres mil quinientos", 3500), ("mil", 1000), ("cien", 100), ("veinte treinta", 20), ("siete y media", 7)):
+            self.assertEqual(i.find_number(texto.split()), valor, texto)
+        self.assertEqual(i.say_calc(*i.parse("cuanto es doscientos por tres").arg), "Son 600")
+        self.assertEqual(i.parse("dime un numero al azar entre cien y mil").arg, ("numero", 100, 1000))
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)
