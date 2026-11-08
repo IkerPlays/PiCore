@@ -6,6 +6,10 @@
 
 
 
+## Voz: qué brillo tengo
+
+- Dice el brillo efectivo (el de noche si toca) y si está en automático. También en el simulador.
+
 ## Accesibilidad: nombre para el deslizador de brillo y el explorador de la API
 
 - El deslizador de brillo, el selector GET/POST y la ruta de la API del modo Dev no tenían nombre para un lector de pantalla.

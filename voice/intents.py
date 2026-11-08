@@ -343,6 +343,8 @@ def parse(text):
         if secs:
             label = timer_label(text)
             return Intent("timer_set", (secs, label) if label else secs)
+    if has("brillo") and has("que brillo", "cuanto brillo", "nivel de brillo", "como esta el brillo"):
+        return Intent("brightness_query", None)
     if has("bateria") and has("cuanto", "cuanta", "nivel", "como esta", "esta cargando", "cargando"):
         return Intent("battery", None)
     if has("cuanto queda", "cuanto falta") and not has("camara"):
@@ -505,6 +507,14 @@ def say_time(now):
     if m == 0:
         return art + " en punto"
     return "%s y %d" % (art, m)
+
+
+def say_brightness(d):
+    """«El brillo está al 40 por ciento» a partir del campo display de /api/status."""
+    if not d or not isinstance(d.get("effective"), (int, float)):
+        return "No sé qué brillo tengo"
+    txt = "El brillo está al %d por ciento" % round(d["effective"])
+    return txt + (", en automático" if d.get("auto") else "")
 
 
 def say_battery(b):

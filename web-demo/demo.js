@@ -624,6 +624,7 @@
       if (!c) return "No hay ningún temporizador en marcha";
       c.due += sec * 1000; LS.set("timers", S.timers); return "Añadido " + sayDuration(sec) + " al temporizador";
     }
+    if (has("brillo") && has("que brillo", "cuanto brillo", "nivel de brillo", "como esta el brillo")) { const d = displayInfo(); return "El brillo está al " + Math.round(d.effective) + " por ciento" + (d.auto ? ", en automático" : ""); }
     if (has("bateria") && has("cuanto", "cuanta", "nivel", "como esta", "cargando")) return "Tienes el 76 por ciento de batería (dato de ejemplo)";
     if ((has("cuanto queda", "cuanto falta") && !has("navidad", "nochevieja", "reyes", "ano nuevo", "verano")) || has("queda del temporizador")) {
       const c = S.timers.filter(x => Date.now() < x.due).sort((x, y) => x.due - y.due)[0]; if (!c) return "No hay ningún temporizador en marcha";

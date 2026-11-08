@@ -246,6 +246,9 @@ def execute(cfg, intent):
             return "Mañana es " + intents.say_date(datetime.datetime.now() + datetime.timedelta(days=1)).replace("Hoy es ", "")
         if n == "help":
             return intents.HELP_TEXT
+        if n == "brightness_query":
+            with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
+                return intents.say_brightness(json.load(r).get("display"))
         if n == "battery":
             with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
                 return intents.say_battery(json.load(r).get("battery"))

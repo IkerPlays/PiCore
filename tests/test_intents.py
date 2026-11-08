@@ -251,6 +251,12 @@ class IntentTest(unittest.TestCase):
         for f in ("quien canta esta cancion", "que esta sonando"):
             self.assertEqual(i.parse(f).name, "music_now", f)
 
+    def test_brillo(self):
+        self.assertEqual(i.parse("que brillo tengo").name, "brightness_query")
+        self.assertEqual(i.parse("sube el brillo").name, "brightness")
+        self.assertEqual(i.say_brightness({"effective": 40, "auto": True}), "El brillo está al 40 por ciento, en automático")
+        self.assertEqual(i.say_brightness(None), "No sé qué brillo tengo")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

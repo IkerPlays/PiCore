@@ -600,6 +600,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «lee la lista de la compra» · «qué hay en mis tareas» | Lee en voz alta lo que hay en la lista (hasta 12 elementos) |
 | «cuántas alarmas tengo» | Cuenta las alarmas (igual que «cuántas notas tengo» y «cuántos temporizadores») |
 | «qué versión tienes» | Dice la versión de PiCore instalada |
+| «qué brillo tengo» | Dice el brillo actual (y si está en automático) |
 | «cuánta batería queda» | Dice el porcentaje y si se está cargando (solo si la Pi tiene batería) |
 | «a qué hora amanece» · «a qué hora anochece» | Dice la hora de salida y puesta del sol de hoy (datos de Open-Meteo, como el tiempo) |
 | «cuéntame un chiste» | Cuenta uno de una lista corta guardada en la Pi (funciona sin internet) |

@@ -250,6 +250,10 @@ class ExecuteApiIntentsTest(unittest.TestCase):
         self.assertEqual(assistant.execute(self.cfg, ("count", "alarms")), "No tienes ninguna alarma")
         self.assertEqual(assistant.execute(self.cfg, ("count", "timers")), "No tienes ningún temporizador")
 
+    def test_brightness_query_by_voice(self):
+        self.status["display"] = {"effective": 70, "auto": False}
+        self.assertEqual(assistant.execute(self.cfg, ("brightness_query", None)), "El brillo está al 70 por ciento")
+
     def test_battery_by_voice(self):
         self.status["battery"] = {"available": True, "percent": 50, "charging": False}
         self.assertEqual(assistant.execute(self.cfg, ("battery", None)), "Tienes el 50 por ciento de batería")
