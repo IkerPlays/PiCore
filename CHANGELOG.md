@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## README y Novedades: la voz que abre hojas y pone canciones
+
+- Las frases nuevas pasan por el test que comprueba que el asistente las entiende.
+
 ## Test: la voz abre y cierra de verdad las hojas de Casa
 
 - En `shell_smoke.js`: «abre el tiempo», «abre los temporizadores» y «abre Musix» abren su hoja, y «cierra esto» la cierra.

@@ -20,6 +20,7 @@ Además de la hora, el tiempo, los modos, la música y el brillo, ahora entiende
 - **Otras:** «repite», «qué puedes hacer», «tira un dado», «cara o cruz», «dime un número al azar entre 1 y 10», «cuéntame un chiste», «deletrea hola».
 - **Cuentas y unidades:** «cuánto es 12 por 5», «el 20 por ciento de 50», «cuántos kilómetros son 10 millas», «pasa 20 grados a fahrenheit».
 - **Fechas:** «qué hora será dentro de veinte minutos», «en qué año estamos», «qué día cae el 25 de diciembre», «cuántos días tiene febrero».
+- **La voz maneja la pantalla:** «abre el tiempo», «abre los temporizadores», «abre Musix», «cierra esto», «pon la canción Aurora», «pon el modo aleatorio».
 - **Cortesía:** «cómo te llamas», «me oyes», «buenas noches».
 
 La lista completa está en el [tutorial](TUTORIAL.md#qué-puedes-pedir). La palabra de activación por defecto es «Hey Jarvis».
