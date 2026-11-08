@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Voz: «abre las notas» y «abre la consola»
+
+- Pasan a modo Iker y a modo Dev. También en el simulador.
+
 ## Simulador: el botón del modo Escritorio se marca bien y la cabecera se desplaza si no cabe
 
 - Al abrir `/escritorio` la demo se declaraba en modo Casa y el botón resaltado era el equivocado. Además, por debajo de unos 1100 px los últimos botones (GitHub, Copiar enlace, Restablecer) quedaban cortados: ahora la cabecera se desplaza de lado.

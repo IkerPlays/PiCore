@@ -416,6 +416,11 @@ class IntentTest(unittest.TestCase):
             self.assertEqual(i.say_date_part(hoy, i.parse(frase).arg), esperado, frase)
         self.assertEqual(i.say_date_part(datetime.datetime(2026, 1, 31), ("offset", 1, "m")), "Será el sábado 28 de febrero")
 
+    def test_abre_las_notas_y_la_consola(self):
+        self.assertEqual(i.parse("abre las notas").arg, "iker")
+        self.assertEqual(i.parse("abre la consola").arg, "dev")
+        self.assertEqual(i.parse("abre la camara").name, "camera_show")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)
