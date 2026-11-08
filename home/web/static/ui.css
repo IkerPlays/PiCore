@@ -176,7 +176,8 @@ body.osk-open #cityp { padding-bottom:268px; }
 #phq input:focus { border-color:var(--acc); outline:0; box-shadow:0 0 0 3px color-mix(in srgb, var(--acc) 25%, transparent); } #phq button { padding:0 18px; border-radius:var(--r-md); }
 #pherr { color:var(--warn); font-size:14px; min-height:20px; margin-bottom:6px; }
 body.osk-open #php { padding-bottom:268px; }
-#wcity { min-height:40px; border-radius:99px; padding:0 14px; font-size:14px; }
+#wcity, #wpanel h3 #wcity { min-height:40px; width:auto; height:40px; border-radius:99px; padding:0 14px; font-size:14px; white-space:nowrap; margin-left:auto; margin-right:10px; }
+#wpanel h3 #w-title { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
 #weather .pick { font-size:18px; padding:10px 18px; border-radius:99px; }
 
 /* ---------- efectos (fx.js): destello al tocar, tarjetas con presion, cifras que no bailan ---------- */

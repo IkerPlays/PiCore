@@ -6,6 +6,10 @@
 
 
 
+## Hoja del Tiempo: «Cambiar ciudad» ya no se parte en dos líneas
+
+- Un selector de la cabecera le ponía 44 px de ancho (pensado para el botón redondo de cerrar). Ahora el botón se ajusta a su texto y el título largo se corta con puntos suspensivos.
+
 ## Hoja del Tiempo: amanece y anochece
 
 - Debajo de las próximas horas sale «Amanece 07:42» y «Anochece 18:21» (con iconos, sin emojis). Si la API no los da, no se muestra nada.
