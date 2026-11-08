@@ -46,7 +46,7 @@
   <section id="t-console" class="on">
     <div id="quick"></div>
     <div id="out"><span class="dim">Aquí salen los resultados. Cada orden se ejecuta con tus permisos normales, con un máximo de 120 s y sin entrada de teclado (nada de nano ni top: para eso, «Terminal real»).</span></div>
-    <div id="line"><span>$</span><input id="cmd" placeholder="escribe una orden y pulsa Intro  (flechas arriba y abajo: historial)" autocomplete="off" spellcheck="false" autocapitalize="off"><button id="run" class="primary"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg> Ejecutar</button><button id="clear"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> Limpiar</button></div>
+    <div id="line"><span>$</span><input id="cmd" placeholder="escribe una orden y pulsa Intro  (flechas arriba y abajo: historial)" autocomplete="off" spellcheck="false" autocapitalize="off"><button id="run" class="primary"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg> Ejecutar</button><button id="copyout" title="Copiar todo lo que sale en la consola"><svg class="ic" aria-hidden="true"><use href="#i-link"/></svg> Copiar</button><button id="clear"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> Limpiar</button></div>
     <div class="warn">Cuidado: esto es una consola de verdad con tu usuario. Puedes romper cosas; para deshacer una actualización mala, <code>pcpi-backup restore</code>.</div>
   </section>
   <section id="t-api">
@@ -108,6 +108,11 @@ async function runCmd() {
   busy = false;
 }
 $("run").onclick = runCmd; $("clear").onclick = () => { $("out").textContent = ""; };
+$("copyout").onclick = async () => {                       // copia la salida (para pegarla en una incidencia o en una nota)
+  const b = $("copyout"), old = b.lastChild.textContent;
+  try { await navigator.clipboard.writeText($("out").innerText); b.lastChild.textContent = " Copiado"; } catch (e) { b.lastChild.textContent = " Selecciona y copia"; }
+  setTimeout(() => { b.lastChild.textContent = old; }, 1600);
+};
 $("cmd").addEventListener("keydown", e => {
   if (e.key === "Enter") runCmd();
   else if (e.key === "ArrowUp" && hist.length) { hi = Math.max(0, hi - 1); $("cmd").value = hist[hi]; e.preventDefault(); }

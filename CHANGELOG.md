@@ -6,6 +6,10 @@
 
 
 
+## Modo Dev: botón «Copiar» en la consola
+
+- Copia todo lo que sale en la consola, para pegarlo en una incidencia o en una nota. Si el navegador no deja usar el portapapeles, avisa de que hay que seleccionar y copiar a mano.
+
 ## Hoja del Tiempo: «Cambiar ciudad» ya no se parte en dos líneas
 
 - Un selector de la cabecera le ponía 44 px de ancho (pensado para el botón redondo de cerrar). Ahora el botón se ajusta a su texto y el título largo se corta con puntos suspensivos.
