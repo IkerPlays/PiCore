@@ -6,6 +6,10 @@
 
 
 
+## Voz: cuántas alarmas tengo
+
+- Se une a «cuántas notas» y «cuántos temporizadores». También en el simulador.
+
 ## Voz: leer la lista de la compra o las tareas
 
 - «Lee la lista de la compra», «qué hay en mis tareas»: dice los elementos (hasta 12). Solo lee; no borra nada. También en el simulador.

@@ -576,9 +576,11 @@
       if (!c) return "No hay ningún temporizador en marcha";
       c.due += duration(t) * 1000; LS.set("timers", S.timers); return "Añadido " + sayDuration(duration(t)) + " al temporizador";
     }
-    if (has("cuantas notas", "cuantos temporizadores")) {
-      const k = has("notas") ? notes().length : S.timers.filter(x => x.kind === "timer").length, w = has("notas") ? ["nota", "notas", "una"] : ["temporizador", "temporizadores", "un"];
-      return k === 0 ? (has("notas") ? "No tienes ninguna nota" : "No tienes ningún temporizador") : "Tienes " + (k === 1 ? w[2] : k) + " " + (k === 1 ? w[0] : w[1]);
+    if (has("cuantas notas", "cuantos temporizadores", "cuantas alarmas")) {
+      const que = has("notas") ? "notes" : has("alarmas") ? "alarms" : "timers";
+      const k = que === "notes" ? notes().length : S.timers.filter(x => x.kind === (que === "alarms" ? "alarm" : "timer")).length;
+      const [una, uno, varios, nombre] = { notes: ["una", "nota", "notas", "ninguna nota"], alarms: ["una", "alarma", "alarmas", "ninguna alarma"], timers: ["un", "temporizador", "temporizadores", "ningún temporizador"] }[que];
+      return k === 0 ? "No tienes " + nombre : "Tienes " + (k === 1 ? una : k) + " " + (k === 1 ? uno : varios);
     }
     if (has("nota") && has("lee", "leeme", "dime", "que pone", "cual es") && has("ultima", "reciente", "anterior")) {
       const all = notes().slice().sort((a, b) => b.updated - a.updated); if (!all.length) return "No tienes ninguna nota";

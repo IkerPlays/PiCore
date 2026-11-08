@@ -596,6 +596,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «deletrea hola» · «repite después de mí buenos días» | Dice la palabra letra a letra o repite lo que le digas |
 | «en qué año estamos» · «qué mes es» · «qué día cae el 25 de diciembre» | Año, mes y día de la semana de una fecha (la próxima vez que llega) |
 | «lee la lista de la compra» · «qué hay en mis tareas» | Lee en voz alta lo que hay en la lista (hasta 12 elementos) |
+| «cuántas alarmas tengo» | Cuenta las alarmas (igual que «cuántas notas tengo» y «cuántos temporizadores») |
 | «cuéntame un chiste» | Cuenta uno de una lista corta guardada en la Pi (funciona sin internet) |
 | «qué hora será dentro de veinte minutos» | Suma el tiempo a la hora actual y te dice a qué hora será |
 | «cuánto es el 20 por ciento de 50» | Calcula porcentajes |

@@ -209,11 +209,12 @@ def execute(cfg, intent):
         if n == "count":
             with urllib.request.urlopen(cfg["api"] + ("/api/notes" if a == "notes" else "/api/status"), timeout=5) as r:
                 data = json.load(r)
-            k = len(data) if a == "notes" else len([t for t in (data.get("timers") or []) if t.get("kind") == "timer"])
-            noun = ("nota", "notas") if a == "notes" else ("temporizador", "temporizadores")
+            kind = {"timers": "timer", "alarms": "alarm"}.get(a)
+            k = len(data) if a == "notes" else len([t for t in (data.get("timers") or []) if t.get("kind") == kind])
+            una, noun = {"notes": ("una", ("nota", "notas")), "alarms": ("una", ("alarma", "alarmas")), "timers": ("un", ("temporizador", "temporizadores"))}[a]
             if k == 0:
-                return "No tienes ninguna nota" if a == "notes" else "No tienes ningún temporizador"
-            return "Tienes %s %s" % (("una" if a == "notes" else "un") if k == 1 else k, noun[0] if k == 1 else noun[1])
+                return "No tienes ninguna %s" % noun[0] if una == "una" else "No tienes ningún %s" % noun[0]
+            return "Tienes %s %s" % (una if k == 1 else k, noun[0] if k == 1 else noun[1])
         if n == "time_in":
             return intents.say_time_in(a[0], a[1], datetime.datetime.now(datetime.timezone.utc))
         if n == "days_until":

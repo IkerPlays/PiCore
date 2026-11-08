@@ -243,6 +243,13 @@ class ExecuteApiIntentsTest(unittest.TestCase):
         self.assertEqual(assistant.execute(self.cfg, ("list_read", "Lista de la compra")), "No tienes nada en la lista de la compra")
         self.assertEqual(assistant.execute(self.cfg, ("list_read", "Tareas")), "No tienes nada en tus tareas")
 
+    def test_count_alarms_by_voice(self):
+        self.status["timers"] = [{"kind": "alarm"}, {"kind": "timer"}]
+        self.assertEqual(assistant.execute(self.cfg, ("count", "alarms")), "Tienes una alarma")
+        self.status["timers"] = []
+        self.assertEqual(assistant.execute(self.cfg, ("count", "alarms")), "No tienes ninguna alarma")
+        self.assertEqual(assistant.execute(self.cfg, ("count", "timers")), "No tienes ningún temporizador")
+
     def test_alarm_with_a_name_by_voice(self):
         self.assertEqual(assistant.execute(self.cfg, ("alarm_set", (18, 0, False, "saque la basura"))), "Alarma a las 18 en punto para saque la basura")
         self.assertEqual(self.posts[-1][1], {"action": "alarm", "hour": 18, "minute": 0, "label": "saque la basura"})
