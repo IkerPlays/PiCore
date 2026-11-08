@@ -1227,9 +1227,17 @@ def music_post(body):
     act = body.get("action")
     cp = read_conf()
     if act == "cmd":
-        if body.get("cmd") not in ("play", "pause", "next", "previous", "sleep", "track"):
+        if body.get("cmd") not in ("play", "pause", "next", "previous", "sleep", "track", "shuffle", "repeat"):
             raise ValueError("orden invalida")
         arg = None
+        if body["cmd"] == "shuffle":                                # «pon el modo aleatorio» / «quita el aleatorio»
+            if not isinstance(body.get("on"), bool):
+                raise ValueError("indica on: true o false")
+            arg = body["on"]
+        if body["cmd"] == "repeat":                                 # «repite la cancion» (one), «repite todo» (all), «no repitas» (off)
+            if body.get("mode") not in ("all", "one", "off"):
+                raise ValueError("modo de repeticion invalido")
+            arg = body["mode"]
         if body["cmd"] == "track":                                  # «pon la cancion Aurora»: solo un id que exista en la carpeta
             arg = str(body.get("id") or "")
             if arg not in {t["id"] for t in musix.list_tracks()}:

@@ -277,6 +277,8 @@ def parse(text):
         return Intent("chat", "Eso está explicado en el tutorial y en «Qué puedo decirle a la Pi», en la hoja Sistema")
     if has("me gusta", "es genial", "es muy bueno", "que bonito", "que bueno es") and has("modo", "camara", "musica", "pihole", "pi hole", "pantalla", "vigilancia", "salvapantallas", "temporizador", "alarma"):
         return Intent("chat", "Me alegro")
+    if re.search(r"\bno repitas\b", t):                          # solo la musica se repite «en bucle»: «no repitas» la deja sin repetir
+        return Intent("music_mode", ("repeat", "off"))
     if re.search(r"\bno (?:me )?(?:pongas|pon|enciendas|actives|abras|muestres|apagues|pares|quites|desactives|subas|bajes|cambies|borres)\b", t):
         return Intent("chat", "Vale, lo dejo como está")             # una orden negada nunca se ejecuta
 
@@ -452,6 +454,12 @@ def parse(text):
             return Intent("alarm_set", clock + (True,) if has("todos los dias", "cada dia", "diaria", "a diario", "diariamente") else clock)
     if has("que suena", "que cancion es", "que cancion esta sonando", "que estoy escuchando", "como se llama esta cancion", "quien canta", "que esta sonando"):
         return Intent("music_now", None)
+    if has("aleatorio", "al azar") and has("musica", "canciones", "modo", "reproduccion", "el aleatorio", "quita", "desactiva") and not has("numero", "dado", "moneda"):
+        return Intent("music_mode", ("shuffle", not has("quita", "desactiva", "sin ", "apaga", "no ")))
+    if has("repite", "repetir", "repeticion", "bucle") and has("cancion", "tema", "musica", "bucle"):
+        if has("quita", "desactiva", "no repitas", "sin repetir", "sin bucle", "apaga"):
+            return Intent("music_mode", ("repeat", "off"))
+        return Intent("music_mode", ("repeat", "all" if has("todas", "todo", "toda la") else "one"))
     m = re.match(r"^(?:pon|ponme|reproduce) (?:la cancion|el tema|la musica de) (.{2,40})$", t)
     if m:
         return Intent("music_track", m.group(1).strip())

@@ -431,6 +431,16 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.parse("despiertame a las siete").name, "alarm_set")
         self.assertEqual(i.parse("que hora es").name, "time")
 
+    def test_aleatorio_y_repetir_de_la_musica(self):
+        self.assertEqual(i.parse("pon el modo aleatorio").arg, ("shuffle", True))
+        self.assertEqual(i.parse("quita el aleatorio").arg, ("shuffle", False))
+        self.assertEqual(i.parse("repite la cancion").arg, ("repeat", "one"))
+        self.assertEqual(i.parse("repite todas las canciones").arg, ("repeat", "all"))
+        self.assertEqual(i.parse("no repitas la cancion").arg, ("repeat", "off"))
+        self.assertEqual(i.parse("repite todo").name, "repeat")                           # repetir lo ultimo que dijo la Pi
+        self.assertEqual(i.parse("tira un dado").name, "random")
+        self.assertEqual(i.parse("dime un numero al azar").name, "random")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

@@ -303,6 +303,14 @@ class ApiTest(unittest.TestCase):
         for malo in ("0" * 12, "../../etc/passwd", "", None):
             self.assertEqual(self.req("/api/music", {"action": "cmd", "cmd": "track", "id": malo})[0], 400, malo)
 
+    def test_shuffle_and_repeat_commands_are_validated(self):
+        self.assertEqual(self.req("/api/music", {"action": "cmd", "cmd": "shuffle", "on": True})[0], 200)
+        m = json.loads(self.req("/api/status")[2])["music"]
+        self.assertEqual((m["cmd"], m["arg"]), ("shuffle", True))
+        self.assertEqual(self.req("/api/music", {"action": "cmd", "cmd": "repeat", "mode": "one"})[0], 200)
+        for malo in ({"cmd": "shuffle"}, {"cmd": "shuffle", "on": "si"}, {"cmd": "repeat", "mode": "siempre"}, {"cmd": "repeat"}):
+            self.assertEqual(self.req("/api/music", dict({"action": "cmd"}, **malo))[0], 400, malo)
+
     def test_sleep_timer_values(self):
         for ok in (0, 60, 1800, 43200):
             self.assertEqual(self.req("/api/music", {"action": "cmd", "cmd": "sleep", "seconds": ok})[0], 200, ok)

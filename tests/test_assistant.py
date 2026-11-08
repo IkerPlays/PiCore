@@ -291,6 +291,13 @@ class ExecuteApiIntentsTest(unittest.TestCase):
         self.assertEqual(self.posts[-1][1], {"action": "cmd", "cmd": "track", "id": "b" * 12})
         self.assertIn("No encuentro", assistant.execute(self.cfg, ("music_track", "jazz")))
 
+    def test_music_modes_by_voice(self):
+        self.assertEqual(assistant.execute(self.cfg, ("music_mode", ("shuffle", True))), "Modo aleatorio activado")
+        self.assertEqual(self.posts[-1][1], {"action": "cmd", "cmd": "shuffle", "on": True})
+        self.assertEqual(assistant.execute(self.cfg, ("music_mode", ("repeat", "one"))), "Repito la canción")
+        self.assertEqual(self.posts[-1][1], {"action": "cmd", "cmd": "repeat", "mode": "one"})
+        self.assertEqual(assistant.execute(self.cfg, ("music_mode", ("repeat", "off"))), "Sin repetir")
+
     def test_battery_by_voice(self):
         self.status["battery"] = {"available": True, "percent": 50, "charging": False}
         self.assertEqual(assistant.execute(self.cfg, ("battery", None)), "Tienes el 50 por ciento de batería")

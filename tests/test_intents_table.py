@@ -115,7 +115,7 @@ class TablaDeOrdenes(unittest.TestCase):
             self.assertTrue(r is None or hasattr(r, "name"), texto)
 
     def test_frases_sin_orden_no_hacen_nada(self):
-        for frase in ("", "blablabla", "repite esta canción", "me gusta el queso", "hoy fui al mercado"):
+        for frase in ("", "blablabla", "canta una cancion de cuna", "me gusta el queso", "hoy fui al mercado"):
             self.assertIsNone(intents.parse(frase), frase)
 
 

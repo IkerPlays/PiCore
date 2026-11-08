@@ -424,7 +424,7 @@
     if (p === "/api/music" && method === "GET") return J({ tracks: tracks(), seq: S.music.seq, cmd: S.music.cmd, arg: S.music.arg, embed: LS.get("embed", null), history: LS.get("history", []), search: false });
     if (p === "/api/music" && method === "POST") {
       const act = body.action;
-      if (act === "cmd") { if (!["play", "pause", "next", "previous", "sleep", "track"].includes(body.cmd)) return ERR("orden invalida"); if (body.cmd === "track" && !tracks().some(t => t.id === body.id)) return ERR("esa cancion no existe"); S.music = { seq: S.music.seq + 1, cmd: body.cmd, arg: body.cmd === "sleep" ? body.seconds : body.cmd === "track" ? body.id : null }; return J({ ok: true, seq: S.music.seq }); }
+      if (act === "cmd") { if (!["play", "pause", "next", "previous", "sleep", "track", "shuffle", "repeat"].includes(body.cmd)) return ERR("orden invalida"); if (body.cmd === "shuffle" && typeof body.on !== "boolean") return ERR("indica on: true o false"); if (body.cmd === "repeat" && !["all", "one", "off"].includes(body.mode)) return ERR("modo de repeticion invalido"); if (body.cmd === "track" && !tracks().some(t => t.id === body.id)) return ERR("esa cancion no existe"); S.music = { seq: S.music.seq + 1, cmd: body.cmd, arg: body.cmd === "sleep" ? body.seconds : body.cmd === "track" ? body.id : body.cmd === "shuffle" ? body.on : body.cmd === "repeat" ? body.mode : null }; return J({ ok: true, seq: S.music.seq }); }
       if (act === "now") { S.nowplaying = { state: body.state, title: String(body.title || "").slice(0, 120), artist: String(body.artist || "").slice(0, 80) }; return J({ ok: true }); }
       if (act === "embed") {
         if (!body.link) { LS.set("embed", null); return J({ ok: true, url: null, history: LS.get("history", []) }); }
@@ -766,6 +766,11 @@
     if (has("modo iker", "modo notas", "bloc")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "iker" }) }); return "Cambiando a modo iker"; }
     if (has("modo escritorio", "modo desktop", "ve al escritorio")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "desktop" }) }); return "Cambiando a modo escritorio"; }
     if (has("modo dev", "modo desarrollador", "modo consola")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "dev" }) }); return "Cambiando a modo desarrollador"; }
+    if (has("aleatorio", "al azar") && has("musica", "canciones", "modo", "reproduccion", "el aleatorio", "quita", "desactiva") && !has("numero", "dado", "moneda")) { const on = !has("quita", "desactiva", "sin ", "apaga", "no "); S.music = { seq: S.music.seq + 1, cmd: "shuffle", arg: on }; return on ? "Modo aleatorio activado" : "Modo aleatorio desactivado"; }
+    if (has("repite", "repetir", "repeticion", "bucle") && has("cancion", "tema", "musica", "bucle")) {
+      const off = has("quita", "desactiva", "no repitas", "sin repetir", "sin bucle", "apaga"), modo = off ? "off" : has("todas", "todo", "toda la") ? "all" : "one";
+      S.music = { seq: S.music.seq + 1, cmd: "repeat", arg: modo }; return { off: "Sin repetir", all: "Repito todas las canciones", one: "Repito la canción" }[modo];
+    }
     const mtk = /^(?:pon|ponme|reproduce) (?:la cancion|el tema|la musica de) (.{2,40})$/.exec(t);
     if (mtk) {
       const hits = tracks().filter(x => norm(x.title).includes(norm(mtk[1]))).sort((a, b) => a.title.length - b.title.length);
@@ -799,6 +804,7 @@
     if (t === "notas") return "Dime: toma nota, y lo que quieras apuntar";
     if (/^(?:para que sirve|que hace|que es el|que es la|que son|como (?:activo|pongo|uso|funciona|se activa|se pone|se usa)|por que)\b/.test(t)) return "Eso está explicado en el tutorial y en «Qué puedo decirle a la Pi», en la hoja Sistema";
     if (has("me gusta", "es genial", "es muy bueno", "que bonito", "que bueno es") && has("modo", "camara", "musica", "pihole", "pi hole", "pantalla", "vigilancia", "salvapantallas", "temporizador", "alarma")) return "Me alegro";
+    if (/\bno repitas\b/.test(t)) { S.music = { seq: S.music.seq + 1, cmd: "repeat", arg: "off" }; return "Sin repetir"; }
     if (/\bno (?:me )?(?:pongas|pon|enciendas|actives|abras|muestres|apagues|pares|quites|desactives|subas|bajes|cambies|borres)\b/.test(t)) return "Vale, lo dejo como está";
     if (/\besta(?:n)? (?:activ|encendid|apagad|desactivad|puest|conectad)/.test(t) && has("vigilancia", "camara", "salvapantallas", "pantalla", "musica")) return "Eso no lo sé decir por voz todavía: míralo en la pantalla";
     if (has("pihole", "pi hole", "bloqueador") && has("cuanto", "esta activo", "esta funcionando", "esta apagado", "porcentaje", "que tal")) return "Pi-hole ha bloqueado 326 de 1211 consultas, un 27 por ciento (datos de ejemplo)";

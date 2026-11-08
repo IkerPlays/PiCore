@@ -162,6 +162,14 @@ def execute(cfg, intent):
                 except ValueError:
                     return "No he podido controlar la música"
             return {"pause": "Música en pausa", "play": "Seguimos con la música", "next": "Siguiente canción", "previous": "Canción anterior"}[a]
+        if n == "music_mode":
+            kind, val = a
+            try:
+                api(cfg, "/api/music", {"action": "cmd", "cmd": kind, **({"on": val} if kind == "shuffle" else {"mode": val})})
+            except urllib.error.URLError:
+                return "No he podido cambiar el modo de la música"
+            return {"shuffle": {True: "Modo aleatorio activado", False: "Modo aleatorio desactivado"}.get(val),
+                    "repeat": {"one": "Repito la canción", "all": "Repito todas las canciones", "off": "Sin repetir"}.get(val)}[kind]
         if n == "music_track":
             try:
                 with urllib.request.urlopen(cfg["api"] + "/api/music", timeout=5) as r:

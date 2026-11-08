@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Voz: aleatorio y repetir canción en el MP3 Player
+
+- «Pon el modo aleatorio», «quita el aleatorio», «repite la canción», «repite todas las canciones», «no repitas». El servidor valida (`on` booleano; `mode` en all/one/off) y la pantalla aplica el cambio como si pulsaras los botones. También en el simulador.
+
 ## Modo Dev: orden rápida `pcpi-frase` (y la entiende la consola del simulador)
 
 - En el simulador no dice la orden entendida (eso es solo de la Pi real) sino qué contestaría la demo.

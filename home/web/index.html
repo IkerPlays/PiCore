@@ -888,6 +888,8 @@ function paintMusic(m) {
   else if (m.cmd === "next") { if (mxCur < 0) mxLoad().then(() => mxPlay(0)); else mxNext(); }
   else if (m.cmd === "previous") mxPrev();
   else if (m.cmd === "sleep") mxSetSleep(m.arg || 0);
+  else if (m.cmd === "shuffle") { mxShuffle = !!m.arg; $("mx-shuf").classList.toggle("on", mxShuffle); }
+  else if (m.cmd === "repeat" && ["all", "one", "off"].includes(m.arg)) { mxRep = m.arg; try { localStorage.setItem("pcpi-mx-rep", mxRep); } catch (e) {} paintRep(); }
   else if (m.cmd === "track") { mxLoad().then(() => { const k = mxTracks.findIndex(t => t.id === m.arg); if (k >= 0) mxPlay(k); }); }
 }
 
