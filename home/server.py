@@ -38,6 +38,7 @@ import notes_tools
 import pdf
 import sdnotify
 import pcpiconf
+import sound
 import timers
 
 ROOT = Path(__file__).resolve().parent
@@ -1127,7 +1128,7 @@ def start_timers():
     """Temporizadores y alarmas: hilo que mira el reloj cada segundo y, al vencer uno, hace sonar el altavoz."""
     global TIMERS, RINGER
     TIMERS = timers.TimerStore()
-    RINGER = timers.Ringer(TIMERS.ringing)
+    RINGER = timers.Ringer(TIMERS.ringing, audio=sound)
 
     def loop():
         while True:

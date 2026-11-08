@@ -42,6 +42,11 @@
 
 - En la sección «Más adelante: batería y SSD», con su límite: sin medida de batería no hace nada.
 
+## Alarmas: ya no suenan en silencio si el sistema está silenciado
+
+- (Interno) `server.py` importa `sound` y un test arranca los temporizadores de verdad con el módulo real: sin eso la Pi habría fallado al arrancar con un `NameError` que ningún test veía.
+- Mientras suena una alarma o un temporizador, si el volumen está en mute se quita el mute y, al parar, se vuelve a poner. Antes («silencia» por voz o el botón de mute) la alarma de las 7 sonaba sin que se oyera nada. Probado con un audio falso; sin probar con altavoz real.
+
 ## Batería: apagado seguro opcional (`auto_shutdown_percent`)
 
 - Con un UPS que mida la carga, si pones `auto_shutdown_percent = 5` en `[battery]`, la Pi se apaga sola (por el mismo mecanismo que el botón Apagar) cuando lleva **1 minuto** por debajo de ese % **y sin cargar** (si no se sabe si carga, nunca apaga). Así una batería que se agota no corrompe la tarjeta SD. Desactivado por defecto (0). Sin probar con un UPS real: lo cubren tests con reloj falso.

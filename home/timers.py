@@ -190,8 +190,9 @@ def make_alarm_wav():
 class Ringer:
     """Mientras `is_ringing()` sea verdad, repite el pitido por el altavoz (aplay). Sin aplay no hace nada (la pantalla avisa)."""
 
-    def __init__(self, is_ringing, play=None, gap=0.6, sleep=time.sleep):
+    def __init__(self, is_ringing, play=None, gap=0.6, sleep=time.sleep, audio=None):
         self.is_ringing, self.gap, self.sleep = is_ringing, gap, sleep
+        self.audio = audio                       # algo con status() y set_mute(accion) (home/sound.py): para que una alarma no suene en silencio
         self.wav = make_alarm_wav()
         self.play = play or self._aplay
         self.thread = None
@@ -210,8 +211,26 @@ class Ringer:
             self.thread = threading.Thread(target=self._run, daemon=True)
             self.thread.start()
 
+    def _unmute(self):
+        """Si el sistema esta silenciado, lo activa mientras suena (una alarma muda no sirve). Devuelve True si hay que volver a silenciar."""
+        try:
+            if self.audio is not None and self.audio.status().get("muted"):
+                self.audio.set_mute("unmute")
+                return True
+        except Exception:       # noqa: BLE001 - sin audio no se rompe nada: suena lo que pueda
+            pass
+        return False
+
     def _run(self):
         t0 = time.time()
-        while self.is_ringing() and time.time() - t0 < RING_MAX_S:
-            self.play()
-            self.sleep(self.gap)
+        volver_a_silenciar = self._unmute()
+        try:
+            while self.is_ringing() and time.time() - t0 < RING_MAX_S:
+                self.play()
+                self.sleep(self.gap)
+        finally:
+            if volver_a_silenciar:
+                try:
+                    self.audio.set_mute("mute")
+                except Exception:       # noqa: BLE001
+                    pass

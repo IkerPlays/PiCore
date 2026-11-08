@@ -147,6 +147,35 @@ class StoreTest(unittest.TestCase):
         self.assertTrue(llamadas)
         self.assertEqual(len(json.loads(f.read_text())), 1)
 
+    def test_the_server_starts_its_timers_with_the_real_sound_module(self):
+        """start_timers() arma el Ringer con home/sound.py: si falta el import, la Pi fallaria al arrancar (y ningun otro test lo nota)."""
+        import sound
+        viejo = (server.TIMERS, server.RINGER)
+        os.environ["PCPI_TIMERS"] = str(T / ("arranque%s.json" % time.time_ns()))
+        try:
+            server.start_timers()
+            self.assertIs(server.RINGER.audio, sound)
+            self.assertTrue(callable(server.RINGER.audio.status) and callable(server.RINGER.audio.set_mute))
+        finally:
+            server.TIMERS, server.RINGER = viejo
+
+    def test_a_muted_system_is_unmuted_while_ringing_and_muted_again_after(self):
+        class Audio:
+            def __init__(self, muted): self.muted, self.log = muted, []
+            def status(self): return {"available": True, "muted": self.muted}
+            def set_mute(self, accion): self.log.append(accion); self.muted = accion == "mute"
+        estado = {"on": True}
+        def play():
+            estado["on"] = False                                          # suena una vez y para
+        a = Audio(True)
+        r = timers.Ringer(lambda: estado["on"], play=play, gap=0.0, audio=a)
+        r._run()
+        self.assertEqual(a.log, ["unmute", "mute"])
+        a2 = Audio(False)                                                 # sin silenciar: no se toca nada
+        estado["on"] = True
+        timers.Ringer(lambda: estado["on"], play=play, gap=0.0, audio=a2)._run()
+        self.assertEqual(a2.log, [])
+
     def test_alarm_next_occurrence(self):
         now = time.mktime((2026, 11, 6, 10, 0, 0, 0, 0, -1))
         nxt = timers.next_occurrence(7, 30, now)
