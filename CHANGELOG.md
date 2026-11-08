@@ -42,6 +42,10 @@
 
 - En la sección «Más adelante: batería y SSD», con su límite: sin medida de batería no hace nada.
 
+## Test: el bucle del servidor que apaga con batería baja
+
+- Comprueba que pide `shutdown` con el ajuste puesto y que **nunca** lo pide si el ajuste está en 0.
+
 ## Alarmas: ya no suenan en silencio si el sistema está silenciado
 
 - (Interno) `server.py` importa `sound` y un test arranca los temporizadores de verdad con el módulo real: sin eso la Pi habría fallado al arrancar con un `NameError` que ningún test veía.

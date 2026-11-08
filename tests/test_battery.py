@@ -71,6 +71,34 @@ class BatteryTest(unittest.TestCase):
         t[0] = 131
         self.assertTrue(g.update({"available": True, "percent": 4, "charging": False}))
 
+    def test_the_server_loop_asks_for_a_shutdown_and_never_without_the_setting(self):
+        import server
+        pedidos = []
+
+        class Parar(Exception):
+            pass
+
+        def una_vuelta(valor):
+            cp = configparser.ConfigParser()
+            cp.read_string("[battery]\nauto_shutdown_percent = %s\n" % valor)
+            reales = (server.read_conf, server.battery.read, server.battery.LowBatteryGuard, server.health.request_power, server.time.sleep)
+            server.read_conf = lambda: cp
+            server.battery.read = lambda c: {"available": True, "percent": 3, "charging": False}
+            server.battery.LowBatteryGuard = lambda th: reales[2](th, hold=0)
+            server.health.request_power = lambda a: pedidos.append(a)
+            server.time.sleep = lambda s: (_ for _ in ()).throw(Parar())
+            try:
+                server.battery_guard_loop()
+            except Parar:
+                pass
+            finally:
+                (server.read_conf, server.battery.read, server.battery.LowBatteryGuard, server.health.request_power, server.time.sleep) = reales
+
+        una_vuelta(0)
+        self.assertEqual(pedidos, [])                                              # sin el ajuste, jamas apaga
+        una_vuelta(5)
+        self.assertEqual(pedidos, ["shutdown"])
+
     def test_auto_shutdown_setting_is_clamped(self):
         for valor, esperado in (("", 0), ("0", 0), ("-3", 0), ("1", 2), ("8", 8), ("90", 15), ("x", 0)):
             cp = configparser.ConfigParser()
