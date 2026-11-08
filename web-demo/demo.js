@@ -699,6 +699,11 @@
       }
     }
     if (has("que dia", "que fecha")) return "Hoy es " + now.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+    if (has("tiempo", "temperatura", "llover", "llueve", "hace frio", "hace calor") && !has("que hora", "temporizador")) {
+      const OC = { madrid: "Madrid", londres: "Londres", paris: "París", berlin: "Berlín", roma: "Roma", "nueva york": "Nueva York", mexico: "México", tokio: "Tokio", pekin: "Pekín", dubai: "Dubái", sidney: "Sídney", "buenos aires": "Buenos Aires", bogota: "Bogotá", caracas: "Caracas", "los angeles": "Los Ángeles" };
+      for (const k of Object.keys(OC)) if (new RegExp("\\ben " + k + "\\b").test(t)) return "Solo tengo el tiempo de la ciudad que elegiste en la pantalla, no el de " + OC[k];
+    }
+    if (has("paraguas", "riesgo de lluvia", "probabilidad de lluvia", "va a llover", "llovera") && !has("manana")) { const w = weather(); return "Ahora hay " + Math.round(w.temp) + " grados. Probabilidad de lluvia hoy: " + w.rain + " por ciento (datos de ejemplo)"; }
     if (has("tiempo", "llover", "llovera", "lluvia", "temperatura", "hara") && has("manana")) {
       const off = has("pasado manana") ? 2 : 1, d = weather().days[off - 1];
       return (off === 1 ? "Mañana" : "Pasado mañana") + " habrá una máxima de " + d.tmax + " grados y una mínima de " + d.tmin + (d.rain >= 30 ? ", y un " + d.rain + " por ciento de probabilidad de lluvia" : "");
