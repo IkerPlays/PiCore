@@ -289,6 +289,12 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.parse("puedes poner musica").arg, "play")
         self.assertEqual(i.parse("modo dev").arg, "dev")
 
+    def test_dos_ordenes_en_una_frase(self):
+        self.assertEqual(i.split_commands("sube el volumen y pon musica"), ["sube el volumen", "pon musica"])
+        self.assertEqual(i.split_commands("que hora es y que dia es"), ["que hora es", "que dia es"])
+        for f in ("toma nota comprar pan y leche", "pon un temporizador de dos horas y media", "anade leche y pan a la lista", "pon musica"):
+            self.assertEqual(len(i.split_commands(f)), 1, f)
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

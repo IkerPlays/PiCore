@@ -386,6 +386,13 @@ class Assistant:
         if not text:
             return
         self.heard = intents.norm(text)
+        partes = intents.split_commands(self.heard)
+        if len(partes) > 1:                               # «sube el volumen y pon música»: las dos cosas, una detrás de otra
+            self.reply = ". ".join(self.execute(intents.parse(p)) for p in partes)
+            self._publish("speaking")
+            self.speak(self.reply)
+            self._back_to_idle()
+            return
         intent = intents.parse(self.heard)
         if intent is None and self.ai:                    # no es una orden conocida: se la pasa a la IA local
             intent = intents.Intent("ask", text)

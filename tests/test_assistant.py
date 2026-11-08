@@ -87,6 +87,12 @@ class AssistantTest(unittest.TestCase):
         s = state()
         self.assertEqual((s["heard"], s["reply"], s["state"]), ("que hora es", "hecho", "listening"))
 
+    def test_two_commands_in_one_sentence(self):
+        a, log, _ = make([True], ["sube el volumen y pon música"])
+        a.on_audio(b"x"); a.on_audio(b"x")
+        self.assertEqual([l for l in log if l[0] == "exec"], [("exec", ("volume", "+10")), ("exec", ("music", "play"))])
+        self.assertIn(("say", "hecho. hecho"), log)
+
     def test_unknown_command(self):
         a, log, _ = make([True], ["háblame de los gatos"])
         a.on_audio(b"x"); a.on_audio(b"x")

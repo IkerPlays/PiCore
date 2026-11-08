@@ -730,8 +730,16 @@
     if (has("apaga la pi", "reinicia")) return "En el simulador no se apaga nada. En tu Pi real te pediría confirmar en pantalla";
     return "No te he entendido. La IA local no está activada en el simulador; prueba con: qué hora es, qué tiempo hace o pon un temporizador de un minuto";
   }
+  /* «sube el volumen y pon música»: si las dos mitades empiezan como una orden, se hacen una detrás de otra */
+  function understandMany(text) {
+    const t = norm(text).replace(/^(oye pi|hey jarvis|ok pi)[,\s]*/, "").trim(), verbo = /^(pon|ponme|sube|baja|apaga|enciende|activa|desactiva|abre|cierra|muestra|pausa|para|siguiente|cuanto|que|dime|cuenta|tira)\b/;
+    if (/^(toma nota|apunta|anota|anade|añade|pon un temporizador|pon una alarma|despiertame|avisame|recuerdame)\b/.test(t)) return understand(text);
+    const m = /^(.+?) (?:y luego|y despues|luego|despues|y) (.+)$/.exec(t);
+    if (m && verbo.test(m[1]) && verbo.test(m[2])) return understand(m[1]) + ". " + understand(m[2]);
+    return understand(text);
+  }
   function say(text) {
-    const heard = String(text || "").trim().slice(0, 140), reply = understand(heard);
+    const heard = String(text || "").trim().slice(0, 140), reply = understandMany(heard);
     S.voice = { state: "listening", wake: "hey jarvis", heard, reply, ts: Date.now() / 1000 };
     try { if (typeof window.refresh === "function") window.refresh(); } catch (e) {}
     try {                                                           // la «Pi» habla (con la voz de tu navegador, si hay una en español)

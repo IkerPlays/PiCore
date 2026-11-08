@@ -6,6 +6,10 @@
 
 
 
+## Voz: dos órdenes en una frase
+
+- «Sube el volumen y pon música», «qué hora es y qué día es»: si las dos mitades son órdenes por sí solas, se hacen una detrás de otra y la Pi dice las dos respuestas. Las órdenes que ya llevan «y» dentro («toma nota comprar pan y leche», «dos horas y media») no se parten. En el simulador la detección es más simple (por el verbo con el que empieza cada mitad).
+
 ## Voz (arreglo): preguntas sobre cómo funciona algo y opiniones ya no ejecutan nada
 
 - «Para qué sirve el Pi-hole» lo pausaba y «el modo Dev es genial» cambiaba de modo. Ahora las preguntas («para qué sirve», «qué hace», «cómo activo…») remiten al tutorial y las opiniones sobre una función («me gusta el modo Casa») se contestan con «Me alegro» (una opinión sobre otra cosa sigue yendo a la IA local). «Puedes poner música» ya pone música. También en el simulador.

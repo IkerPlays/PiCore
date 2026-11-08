@@ -525,6 +525,27 @@ def say_time(now):
     return "%s y %d" % (art, m)
 
 
+SEPARADORES = (" y luego ", " y despues ", " y ", " luego ", " despues ")
+SOLO_UNA = ("list_add", "note_add", "timer_set", "alarm_set", "timer_extend", "chat", "ask")
+
+
+def split_commands(t):
+    """«sube el volumen y pon musica» -> ['sube el volumen', 'pon musica'] si las dos mitades son ordenes por si solas; si no, [t]."""
+    t = norm(t)
+    whole = parse(t)
+    if whole is not None and whole.name in SOLO_UNA:
+        return [t]
+    for sep in SEPARADORES:
+        k = t.find(sep)
+        while k > 0:
+            a, b = t[:k].strip(), t[k + len(sep):].strip()
+            pa, pb = parse(a), parse(b)
+            if pa is not None and pb is not None and pa.name not in SOLO_UNA[:6] and pb.name not in SOLO_UNA[:6]:
+                return [a, b]
+            k = t.find(sep, k + 1)
+    return [t]
+
+
 def say_alarm(timers):
     """«Tu próxima alarma es a las 7 y 30» (la más cercana que no esté sonando)."""
     al = sorted([t for t in (timers or []) if t.get("kind") == "alarm" and not t.get("ringing") and isinstance(t.get("hour"), int)], key=lambda t: t.get("due", 0))
