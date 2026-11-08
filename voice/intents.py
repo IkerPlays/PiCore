@@ -384,6 +384,8 @@ def parse(text):
             return Intent("music", "play")
     if has("cuantos anuncios", "cuanto has bloqueado", "cuantas consultas", "como va el pihole", "como va pihole", "estado del pihole", "estadisticas del pihole", "como va el pi hole", "como va pi hole", "estado del pi hole", "estadisticas del pi hole"):
         return Intent("pihole_stats", None)
+    if has("pihole", "pi hole", "pi jol", "bloqueador") and has("cuanto", "esta activo", "esta funcionando", "esta apagado", "porcentaje", "que tal"):
+        return Intent("pihole_stats", None)                      # una pregunta nunca debe pausarlo
     if has("pihole", "pi hole", "pi jol", "anuncios", "bloqueador"):
         if has("desactiva", "pausa", "apaga", "para ", "quita", "deshabilita"):
             return Intent("pihole_disable", find_number(words) or 5)

@@ -6,6 +6,10 @@
 
 
 
+## Voz (arreglo): preguntar por el Pi-hole ya no lo pausa
+
+- «Cuánto tiempo queda de pausa del Pi-hole» se entendía como «pausa el Pi-hole». Ahora cualquier pregunta («cuánto», «está activo», «porcentaje») da las estadísticas y no cambia nada. También en el simulador.
+
 ## Voz: «vuelve a casa», «adiós» y «perdona»
 
 - «Vuelve a casa» (o «ve al inicio») cambia a modo Casa; «adiós» y «perdona» tienen su respuesta. También en el simulador.

@@ -271,6 +271,12 @@ class IntentTest(unittest.TestCase):
         for f in ("adios", "hasta luego", "perdona"):
             self.assertEqual(i.parse(f).name, "chat", f)
 
+    def test_preguntar_por_el_pihole_no_lo_pausa(self):
+        for f in ("cuanto tiempo queda de pausa del pihole", "el pihole esta activo", "porcentaje de bloqueo del pihole"):
+            self.assertEqual(i.parse(f).name, "pihole_stats", f)
+        self.assertEqual(i.parse("pon el pihole en pausa").name, "pihole_disable")
+        self.assertEqual(i.parse("activa el pihole").name, "pihole_enable")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)
