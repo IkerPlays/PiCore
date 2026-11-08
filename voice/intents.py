@@ -241,6 +241,12 @@ def parse(text):
         n = [norm(x) for x in MESES].index(m.group(1)) + 1
         d = calendar.monthrange(datetime.date.today().year, n)[1]
         return Intent("chat", "%s tiene %d días" % (m.group(1).capitalize(), d))
+    m = re.match(r"^deletrea (?:la palabra )?(\w{1,20})$", t)
+    if m:
+        return Intent("chat", ", ".join(m.group(1)))
+    m = re.match(r"^repite (?:despues de mi|conmigo) (.{1,100})$", t)
+    if m:
+        return Intent("chat", m.group(1))
     for frases, resp in RESPUESTAS:
         if has(*frases):
             return Intent("chat", resp)

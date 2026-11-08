@@ -197,6 +197,10 @@ class IntentTest(unittest.TestCase):
         self.assertIn("días", i.parse("cuantos dias tiene febrero").arg)
         self.assertEqual(i.parse("cuantos dias tiene marzo").arg, "Marzo tiene 31 días")
 
+    def test_deletrear_y_repetir(self):
+        self.assertEqual(i.parse("deletrea hola").arg, "h, o, l, a")
+        self.assertEqual(i.parse("repite despues de mi buenos dias").arg, "buenos dias")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

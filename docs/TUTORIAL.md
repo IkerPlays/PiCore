@@ -593,6 +593,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «sube la música» · «baja la música» · «quita el sonido» | Cambia el volumen o silencia (igual que «sube el volumen» y «silencia») |
 | «cómo te llamas» · «me oyes» · «buenas noches» | Pequeñas respuestas de cortesía, sin internet |
 | «cuántos días tiene febrero» | Dice los días del mes (de este año, así que febrero cuenta los bisiestos) |
+| «deletrea hola» · «repite después de mí buenos días» | Dice la palabra letra a letra o repite lo que le digas |
 | «en qué año estamos» · «qué mes es» · «qué día cae el 25 de diciembre» | Año, mes y día de la semana de una fecha (la próxima vez que llega) |
 | «cuéntame un chiste» | Cuenta uno de una lista corta guardada en la Pi (funciona sin internet) |
 | «qué hora será dentro de veinte minutos» | Suma el tiempo a la hora actual y te dice a qué hora será |

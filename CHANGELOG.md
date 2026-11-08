@@ -6,6 +6,10 @@
 
 
 
+## Voz: deletrear y repetir
+
+- «Deletrea hola» dice «h, o, l, a»; «repite después de mí …» repite la frase. También en el simulador.
+
 ## Voz: cuántos días tiene un mes
 
 - «Cuántos días tiene febrero» (cuenta los bisiestos del año actual). También en el simulador.
