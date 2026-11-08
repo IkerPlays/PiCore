@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Hoja del Tiempo: los días de lluvia (50 % o más) también se tiñen
+
+- Igual que las horas: se ve de un vistazo qué días llueve.
+
 ## Hoja del Tiempo: la primera hora se llama «Ahora» y las horas de lluvia se tiñen
 
 - La tarjeta de la hora actual lleva borde de color y la etiqueta «Ahora»; las horas con 50 % o más de lluvia salen con un fondo azulado, para ver de un vistazo cuándo llueve.

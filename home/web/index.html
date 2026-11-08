@@ -1101,7 +1101,7 @@ function renderWeather() {
     H.append(d);
   });
   for (const x of w.days || []) {
-    const row = document.createElement("div"); row.className = "dy";
+    const row = document.createElement("div"); row.className = "dy" + (x.rain != null && x.rain >= 50 ? " wet" : "");
     const name = new Date(x.date + "T12:00").toLocaleDateString("es-ES", {weekday:"long"});
     const a = document.createElement("span"); a.textContent = name.charAt(0).toUpperCase() + name.slice(1);
     const ic = document.createElement("span"); ic.className = "wic"; ic.innerHTML = ico(wIcon(x.code));

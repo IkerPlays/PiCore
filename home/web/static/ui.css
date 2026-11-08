@@ -58,7 +58,7 @@ h2::before { content:""; width:6px; height:6px; border-radius:50%; background:va
 .hr .wic .ic, .dy .wic .ic { width:32px; height:32px; fill:currentColor; stroke:none; }
 .hr { background:var(--card2); border:1px solid var(--hair); }
 .hr.now { border-color:var(--acc); box-shadow:0 0 0 1px var(--acc) inset; } .hr.now small:first-child { color:var(--acc); font-weight:700; }
-.hr.wet { background:color-mix(in srgb, var(--acc) 9%, var(--card2)); }
+.hr.wet, .dy.wet { background:color-mix(in srgb, var(--acc) 9%, var(--card2)); }
 .ev, .ev2 { border-radius:var(--r-sm); }
 
 /* ---------- Pi-hole, musica ---------- */
