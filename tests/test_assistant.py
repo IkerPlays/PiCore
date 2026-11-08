@@ -88,7 +88,7 @@ class AssistantTest(unittest.TestCase):
         self.assertEqual((s["heard"], s["reply"], s["state"]), ("que hora es", "hecho", "listening"))
 
     def test_unknown_command(self):
-        a, log, _ = make([True], ["cuéntame un chiste"])
+        a, log, _ = make([True], ["háblame de los gatos"])
         a.on_audio(b"x"); a.on_audio(b"x")
         self.assertIn(("say", "No te he entendido"), log)
         self.assertFalse([l for l in log if l[0] == "exec"])

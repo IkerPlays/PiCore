@@ -133,7 +133,7 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(P("desactiva la vigilancia"), ("motion", False))
         self.assertEqual(P("activa la vigilancia de la cámara"), ("motion", True))    # no abre el visor
         self.assertEqual(P("apaga el detector de movimiento"), ("motion", False))
-        self.assertIsNone(P("cuéntame un chiste"))
+        self.assertIsNone(P("háblame de los gatos"))
         self.assertIsNone(P(""))
 
     def test_say_weather_with_rain(self):
@@ -151,6 +151,10 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.say_date(d), "Hoy es miércoles 4 de noviembre")
         self.assertIn("No tengo", i.say_weather({"ok": False}))
         self.assertEqual(i.say_weather({"ok": True, "temp": 18.4, "code": 0}), "Ahora hay 18 grados y está despejado")
+
+    def test_chiste(self):
+        self.assertEqual(i.parse("cuentame un chiste").name, "joke")
+        self.assertIn(i.say_joke(), i.CHISTES)
 
     def test_calculadora(self):
         self.assertEqual(i.parse("cuanto es 12 por 5").arg, (12, "*", 5))

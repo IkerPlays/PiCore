@@ -202,6 +202,8 @@ def execute(cfg, intent):
             return intents.say_time_in(a[0], a[1], datetime.datetime.now(datetime.timezone.utc))
         if n == "days_until":
             return intents.say_days_until(a, datetime.date.today())
+        if n == "joke":
+            return intents.say_joke()
         if n == "calc":
             return intents.say_calc(*a)
         if n == "random":

@@ -306,9 +306,9 @@ class VoiceFallbackTest(unittest.TestCase):
 
         class Rec:
             def AcceptWaveform(self, d): return True
-            def Result(self): return json.dumps({"text": "cuéntame un chiste de gatos"})
+            def Result(self): return json.dumps({"text": "háblame de los gatos"})
             def Reset(self): pass
-        for ai, expected in ((True, [("exec", ("ask", "cuéntame un chiste de gatos")), ("say", "ok")]), (False, [("say", "No te he entendido")])):
+        for ai, expected in ((True, [("exec", ("ask", "háblame de los gatos")), ("say", "ok")]), (False, [("say", "No te he entendido")])):
             log = []
             a = self.assistant.Assistant(Det(), Rec(), lambda i: log.append(("exec", tuple(i))) or "ok", lambda t: log.append(("say", t)),
                                          lambda: None, lambda: None, "x", followup=60, ai=ai)

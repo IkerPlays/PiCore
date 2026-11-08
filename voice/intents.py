@@ -191,6 +191,8 @@ def parse(text):
         return Intent("sys_info", "temp" if not has("como esta", "estado") else "all")
     if has("que puedes hacer", "que sabes hacer", "ayuda", "que te puedo pedir", "que comandos"):
         return Intent("help", None)
+    if has("chiste", "hazme reir", "algo gracioso"):
+        return Intent("joke", None)
     if has("gracias", "muchas gracias", "eres genial"):
         return Intent("chat", "De nada")
     if t.strip() in ("hola", "buenas", "buenos dias", "buenas tardes", "buenas noches", "hola pi"):
@@ -450,6 +452,14 @@ def say_days_until(which, today):
     if n == 0:
         return "Hoy es %s" % nombre
     return "Falta 1 día para %s" % nombre if n == 1 else "Faltan %d días para %s" % (n, nombre)
+
+
+CHISTES = ['¿Qué le dice un cero a un ocho? Bonito cinturón', '¿Por qué los pájaros vuelan hacia el sur? Porque andando tardarían mucho', '¿Qué hace una abeja en el gimnasio? Zum-ba', '¿Cómo se llama el campeón de buceo japonés? Tokofondo', '¿Qué le dice un semáforo a otro? No me mires, que me pongo rojo', '¿Qué hace un perro con un taladro? Taladrando', 'Mi ordenador no me hace caso, pero yo a él tampoco']
+
+
+def say_joke(rnd=None):
+    import random
+    return (rnd or random).choice(CHISTES)
 
 
 def say_random(kind, rnd=None):

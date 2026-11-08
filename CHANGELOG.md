@@ -6,6 +6,10 @@
 
 
 
+## Voz: chistes
+
+- «Cuéntame un chiste»: elige uno de siete, sin internet. También en el simulador. Probado con tests; no en una Pi real.
+
 ## Voz: calculadora
 
 - «Cuánto es 12 por 5», «calcula 10 entre 4»: dos números con más, menos, por o entre (cifras o palabras). Dividir entre cero se contesta sin fallar. También en el simulador (solo con cifras). Probado con tests; no en una Pi real.
