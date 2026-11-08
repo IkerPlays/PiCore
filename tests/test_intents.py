@@ -163,6 +163,12 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.say_convert(100, "fahrenheit", "grados"), "100 fahrenheit son 37 coma 8 grados")
         self.assertEqual(i.parse("cuantos dias faltan para navidad").name, "days_until")
 
+    def test_hora_dentro_de(self):
+        x = i.parse("que hora sera dentro de veinte minutos")
+        self.assertEqual((x.name, x.arg), ("time_plus", 1200))
+        self.assertEqual(i.say_time_plus(datetime.datetime(2026, 1, 1, 14, 50), 1200), "Serán las 15 y 10")
+        self.assertEqual(i.parse("que hora es").name, "time")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

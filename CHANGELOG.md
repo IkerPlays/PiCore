@@ -6,6 +6,10 @@
 
 
 
+## Voz: qué hora será dentro de…
+
+- «Qué hora será dentro de veinte minutos / dos horas». También en el simulador.
+
 ## Voz: conversiones de unidades
 
 - Kilómetros y millas, kilos y libras, metros y pies, grados y Fahrenheit («cuántos kilómetros son 10 millas», «pasa 20 grados a fahrenheit»). El simulador solo entiende cifras.

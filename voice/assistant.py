@@ -111,6 +111,8 @@ def execute(cfg, intent):
     now = datetime.datetime.now()
     n, a = intent
     try:
+        if n == "time_plus":
+            return intents.say_time_plus(now, a)
         if n == "time":
             return intents.say_time(now)
         if n == "date":

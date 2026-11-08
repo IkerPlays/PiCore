@@ -613,6 +613,10 @@
       S.timers.push({ id: rid(8), kind: "alarm", label, due: d.getTime(), hour: h, minute: mi, daily }); LS.set("timers", S.timers);
       return "Alarma a las " + pad(h) + ":" + pad(mi) + (daily ? ", todos los días" : "") + (label ? " para " + label : "");
     }
+    if (has("que hora sera dentro de", "que hora seran dentro de", "que hora sera en")) {
+      const sec = duration(t.replace(/^.*(dentro de|sera en) /, ""));
+      if (sec) { const d = new Date(Date.now() + sec * 1000); return "Serán las " + pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+    }
     if (has("que hora", "dime la hora")) return "Son las " + pad(now.getHours()) + ":" + pad(now.getMinutes());
     if (has("que dia", "que fecha")) return "Hoy es " + now.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
     if (has("tiempo", "llover", "llovera", "lluvia", "temperatura", "hara") && has("manana")) {

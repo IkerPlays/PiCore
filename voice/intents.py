@@ -1,4 +1,5 @@
 """Interprete de ordenes de voz en español. Puro Python, sin audio: facil de probar."""
+import datetime
 import re
 import unicodedata
 from collections import namedtuple
@@ -392,6 +393,11 @@ def parse(text):
     c = parse_calc(t)
     if c:
         return Intent("calc", c)
+    if has("que hora sera dentro de", "que hora sera en", "que hora seran dentro de") or (has("dentro de") and has("hora sera")):
+        k = t.find("dentro de")
+        secs = parse_duration(t[k + 9:].split() if k >= 0 else t.split()[t.split().index("en") + 1:])
+        if secs:
+            return Intent("time_plus", secs)
     if has("que hora", "la hora", "hora es"):
         return Intent("time", None)
     if has("que dia", "fecha", "a cuanto estamos"):
@@ -417,6 +423,12 @@ def say_time_in(tz, nombre, now_utc):
     except Exception:       # noqa: BLE001 - sin tzdata o zona rara: se dice tal cual
         return "No sé la hora de " + nombre
     return "En %s %s" % (nombre, say_time(local).replace("Es la una", "es la una").replace("Son las", "son las"))
+
+
+def say_time_plus(now, secs):
+    """«Serán las 15 y 20» para dentro de `secs` segundos."""
+    t = say_time(now + datetime.timedelta(seconds=secs))
+    return t.replace("Es la una", "Será la una").replace("Son las", "Serán las")
 
 
 def say_time(now):
