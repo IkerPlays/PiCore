@@ -67,6 +67,10 @@ Además de probar el código, hay tests que cruzan cosas que se desincronizan f�
 - `tests/test_docs_links.py`: los enlaces internos (archivos y anclas) y las imágenes de la documentación existen.
 - `tests/test_icons.py`: todos los iconos pedidos por nombre existen en el sprite.
 - `tests/test_web_demo.py` (`SintaxisJs`): el JavaScript de todas las páginas y scripts es válido (`node --check`).
+- `tests/test_contrast.py`: contraste WCAG de los colores (portada, Casa e Iker en claro y oscuro).
+- `tests/test_static_refs.py`: toda página pide solo ficheros de `/static/` que existen.
+- `tests/overflow_smoke.js` (`Desbordes`): Casa, Iker y Dev caben en 800, 1024 y 1280 px sin que nada se salga.
+- `tests/shell_smoke.js` (`PortadaYCarcasa`): pestañas con flechas, «Volver arriba», tecla `?`, `?say=`, `aria-pressed`.
 - `tests/test_city.py`: cada ajuste de la pantalla existe en `pcpi.conf.example` y cada acción de `/api/settings` está documentada aquí.
 
 Si añades una orden de voz o un ajuste y falla alguno, el mensaje dice qué falta.

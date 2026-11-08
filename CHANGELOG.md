@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Arquitectura: describe los tests de contraste, ficheros estáticos, desbordes y carcasa
+
+- Para que quien añada una pantalla sepa qué se le va a comprobar.
+
 ## Test: cada página pide solo ficheros de /static/ que existen
 
 - Evita pantallas rotas por renombrar o borrar `fx.js`, `ui.css`, `osk.js`… y comprueba que `fx.js` está en las cuatro pantallas de la Pi.
