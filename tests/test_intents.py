@@ -243,6 +243,10 @@ class IntentTest(unittest.TestCase):
         for f in ("donde vives", "quien te hizo", "eres un robot", "que te gusta"):
             self.assertEqual(i.parse(f).name, "chat", f)
 
+    def test_cuenta_hasta(self):
+        self.assertEqual(i.parse("cuenta hasta cinco").arg, "1, 2, 3, 4, 5")
+        self.assertIn("mucho", i.parse("cuenta hasta cien").arg)
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

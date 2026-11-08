@@ -541,6 +541,12 @@
     }
     const dl = /^deletrea (?:la palabra )?(\w{1,20})$/.exec(t); if (dl) return dl[1].split("").join(", ");
     const rp = /^repite (?:despues de mi|conmigo) (.{1,100})$/.exec(t); if (rp) return rp[1];
+    const ch = /^cuenta hasta (\w+)$/.exec(t);
+    if (ch) {
+      const n = /^\d+$/.test(ch[1]) ? +ch[1] : WORDS[ch[1]];
+      if (n >= 1 && n <= 20) return Array.from({ length: n }, (_, k) => k + 1).join(", ");
+      if (n > 20) return "Hasta " + n + " es mucho: prueba con un número hasta veinte";
+    }
     for (const [fr, resp] of RESPUESTAS) if (has(...fr)) return resp;
     if (has("chiste", "hazme reir", "algo gracioso")) { const J = ["¿Qué le dice un cero a un ocho? Bonito cinturón", "¿Por qué los pájaros vuelan hacia el sur? Porque andando tardarían mucho", "¿Qué hace una abeja en el gimnasio? Zum-ba", "¿Cómo se llama el campeón de buceo japonés? Tokofondo", "¿Qué le dice un semáforo a otro? No me mires, que me pongo rojo", "¿Qué hace un perro con un taladro? Taladrando", "Mi ordenador no me hace caso, pero yo a él tampoco"]; return J[Math.floor(Math.random() * J.length)]; }
     const cv = /^(?:pasa|convierte) (\d+) (kilometros|millas|kilos|libras|metros|pies|grados|fahrenheit) a (kilometros|millas|kilos|libras|metros|pies|grados|fahrenheit)$/.exec(t) || (m => m && [m[0], m[2], m[3], m[1]])(/^cuant[oa]s (kilometros|millas|kilos|libras|metros|pies|grados|fahrenheit) son (\d+) (kilometros|millas|kilos|libras|metros|pies|grados|fahrenheit)$/.exec(t));

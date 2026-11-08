@@ -262,6 +262,13 @@ def parse(text):
     m = re.match(r"^repite (?:despues de mi|conmigo) (.{1,100})$", t)
     if m:
         return Intent("chat", m.group(1))
+    m = re.match(r"^cuenta hasta (\w+)$", t)
+    if m:
+        n = find_number([m.group(1)])
+        if n is not None and 1 <= n <= 20:
+            return Intent("chat", ", ".join(str(k) for k in range(1, n + 1)))
+        if n is not None:
+            return Intent("chat", "Hasta %d es mucho: prueba con un número hasta veinte" % n)
     for frases, resp in RESPUESTAS:
         if has(*frases):
             return Intent("chat", resp)

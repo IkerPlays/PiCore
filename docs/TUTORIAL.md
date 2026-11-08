@@ -593,6 +593,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «sube la música» · «baja la música» · «quita el sonido» | Cambia el volumen o silencia (igual que «sube el volumen» y «silencia») |
 | «cómo te llamas» · «me oyes» · «buenas noches» · «dónde vives» · «quién te hizo» | Pequeñas respuestas de cortesía y de charla, sin internet |
 | «cuántos días tiene febrero» | Dice los días del mes (de este año, así que febrero cuenta los bisiestos) |
+| «cuenta hasta diez» | Cuenta en voz alta (hasta veinte) |
 | «deletrea hola» · «repite después de mí buenos días» | Dice la palabra letra a letra o repite lo que le digas |
 | «qué día fue ayer» | Dice el día de la semana y la fecha de ayer |
 | «en qué año estamos» · «qué mes es» · «qué día cae el 25 de diciembre» | Año, mes y día de la semana de una fecha (la próxima vez que llega) |

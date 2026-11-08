@@ -6,6 +6,10 @@
 
 
 
+## Voz: cuenta hasta N
+
+- «Cuenta hasta diez» dice 1, 2, 3… hasta veinte como máximo. También en el simulador.
+
 ## Voz: más charla sencilla
 
 - «Qué te gusta», «dónde vives», «quién te hizo», «eres un robot», «tienes hambre». Son frases fijas de la tabla `RESPUESTAS` (la misma en el simulador). Ojo: son respuestas escritas a mano, no una IA.
