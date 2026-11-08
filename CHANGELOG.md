@@ -6,6 +6,10 @@
 
 
 
+## Modo Iker: a 800 px de ancho también cabe «Salir»
+
+- Por debajo de 900 px, Nueva y Borrar también pasan a solo icono (sobraban 2 px).
+
 ## Modo Iker: tema coherente (antes mezclaba claro y oscuro)
 
 - Iker decidía su tema por la preferencia del navegador mientras que `ui.css` fijaba colores oscuros: el panel lateral salía claro con letra blanca. Ahora sigue el mismo criterio que Casa (claro de día, oscuro de noche, o el que elegiste tocando la hora) y el panel tiene su color en los dos temas.
