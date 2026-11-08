@@ -565,6 +565,11 @@
       const f = F[cv[2] + ">" + cv[3]];
       if (f) return cv[1] + " " + cv[2] + " son " + f(+cv[1]).toFixed(1).replace(/\.0$/, "").replace(".", " coma ") + " " + cv[3];
     }
+    const mt = /^(?:cuanto es|cuanto son|calcula) (la mitad|el doble|el triple|la tercera parte) de (\d+)$/.exec(t.replace("la tercera parte", "la tercera parte"));
+    if (mt) {
+      const n = +mt[2], f = { "la mitad": [x => x / 2, "La mitad de"], "el doble": [x => x * 2, "El doble de"], "el triple": [x => x * 3, "El triple de"], "la tercera parte": [x => x / 3, "La tercera parte de"] }[mt[1]];
+      return f[1] + " " + n + " es " + f[0](n).toFixed(2).replace(/\.?0+$/, "").replace(".", " coma ");
+    }
     const rq = /^(?:cuanto es|cuanto son|calcula) la raiz cuadrada de (\d+)$/.exec(t);
     if (rq) return "La raíz cuadrada de " + rq[1] + " es " + Math.sqrt(+rq[1]).toFixed(2).replace(/\.?0+$/, "").replace(".", " coma ");
     const sq = /^(?:cuanto es|cuanto son|calcula) (\d+) al cuadrado$/.exec(t);

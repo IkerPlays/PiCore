@@ -131,6 +131,10 @@ def parse_calc(t):
     if not (t.startswith("cuanto es ") or t.startswith("cuanto son ") or t.startswith("calcula ")):
         return None
     words = t.split()[2:] if not t.startswith("calcula ") else t.split()[1:]
+    if words[:2] in (["la", "mitad"], ["el", "doble"], ["el", "triple"], ["la", "tercera"]) and "de" in words:      # «la mitad de 50», «el doble de 8»
+        n = find_number(words[words.index("de") + 1:])
+        if n is not None:
+            return n, {"mitad": "/2", "doble": "*2", "triple": "*3", "tercera": "/3"}[words[1]], 0
     if words[:3] == ["la", "raiz", "cuadrada"] and "de" in words:           # «la raiz cuadrada de 144»
         n = find_number(words[words.index("de") + 1:])
         return (n, "sqrt", 0) if n is not None else None
@@ -190,6 +194,10 @@ def say_convert(v, de, a):
 
 
 def say_calc(a, op, b):
+    if op in ("/2", "*2", "*3", "/3"):
+        r = {"/2": a / 2, "*2": a * 2, "*3": a * 3, "/3": a / 3}[op]
+        nombre = {"/2": "La mitad de", "*2": "El doble de", "*3": "El triple de", "/3": "La tercera parte de"}[op]
+        return "%s %d es %s" % (nombre, a, ("%.2f" % r).rstrip("0").rstrip(".").replace(".", " coma "))
     if op == "sqrt":
         r = a ** 0.5
         return "La raíz cuadrada de %d es %s" % (a, ("%.2f" % r).rstrip("0").rstrip(".").replace(".", " coma "))

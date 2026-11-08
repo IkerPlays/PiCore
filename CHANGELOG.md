@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Voz: la mitad, el doble y el triple de un número
+
+- «Cuánto es la mitad de 50», «el doble de 8», «el triple de 7». También en el simulador.
+
 ## Voz (arreglo): «qué tengo el viernes» y «qué tengo pasado mañana»
 
 - Antes «el viernes» se contestaba con lo de hoy y «pasado mañana» con lo de mañana (se comía la palabra). Ahora mira el día pedido. También en el simulador.

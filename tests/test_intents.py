@@ -375,6 +375,12 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.parse("que tengo manana").arg, "tomorrow")
         self.assertEqual(i.parse("que tengo hoy").arg, "today")
 
+    def test_mitad_doble_triple(self):
+        self.assertEqual(i.say_calc(*i.parse("cuanto es la mitad de 50").arg), "La mitad de 50 es 25")
+        self.assertEqual(i.say_calc(*i.parse("cuanto es la mitad de 7").arg), "La mitad de 7 es 3 coma 5")
+        self.assertEqual(i.say_calc(*i.parse("cuanto es el doble de 8").arg), "El doble de 8 es 16")
+        self.assertEqual(i.say_calc(*i.parse("cuanto es el triple de 7").arg), "El triple de 7 es 21")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

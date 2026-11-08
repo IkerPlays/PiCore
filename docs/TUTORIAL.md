@@ -614,6 +614,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «cuéntame un chiste» | Cuenta uno de una lista corta guardada en la Pi (funciona sin internet) |
 | «qué hora será dentro de veinte minutos» | Suma el tiempo a la hora actual y te dice a qué hora será |
 | «cuánto es el 20 por ciento de 50» | Calcula porcentajes |
+| «cuánto es la mitad de 50» · «cuánto es el doble de 8» · «cuánto es el triple de 7» | La mitad, el doble y el triple |
 | «cuánto es la raíz cuadrada de 144» · «cuánto es 7 al cuadrado» | Raíces cuadradas y cuadrados |
 | «cuánto es 12 por 5» · «calcula 10 entre 4» | Hace cuentas sencillas con dos números: más, menos, por, entre |
 | «apaga la pantalla» · «oscurece la pantalla» | Baja el brillo al mínimo (10 %): no apaga la pantalla del todo; para volver, «brillo automático» o tócala |
