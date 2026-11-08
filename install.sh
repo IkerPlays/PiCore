@@ -36,6 +36,13 @@ user_ctl() { XDG_RUNTIME_DIR="/run/user/$UID_ME" DBUS_SESSION_BUS_ADDRESS="unix:
 step "Comprobaciones previas"
 [ "$(uname -m)" = "aarch64" ] || echo "Aviso: no es un sistema de 64 bits (aarch64). Usa Raspberry Pi OS 64-bit."
 curl -fsI -m 10 https://deb.debian.org >/dev/null || { echo "No hay internet. Conecta el wifi/Ethernet y repite." >&2; exit 1; }
+# La Pi 5 no tiene pila de reloj: sin internet al arrancar la hora puede ser falsa y apt rechaza los repositorios («Release file is not valid yet»)
+if [ "$(date +%Y)" -lt 2024 ]; then
+  echo "La hora de la Pi parece falsa ($(date '+%d/%m/%Y')). Intento sincronizarla con internet..."
+  sudo timedatectl set-ntp true 2>/dev/null || true
+  for _ in $(seq 20); do [ "$(date +%Y)" -ge 2024 ] && break; sleep 1; done
+  [ "$(date +%Y)" -ge 2024 ] || { echo "Sigue con la hora falsa ($(date '+%d/%m/%Y')). Espera un minuto con internet y repite; o ponla a mano: sudo date -s '2026-11-08 12:00'" >&2; exit 1; }
+fi
 [ "$(df --output=avail -k / | tail -1)" -gt 2000000 ] || { echo "Queda menos de 2 GB libres en la tarjeta." >&2; exit 1; }
 
 step "Paquetes"
