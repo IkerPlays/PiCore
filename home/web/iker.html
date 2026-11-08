@@ -86,7 +86,8 @@ function when(t) {
 function setStatus(msg, cls) { $("status").textContent = msg; $("status").className = cls || ""; }
 function counts() {
   const t = $("text").value, w = t.trim() ? t.trim().split(/\s+/).length : 0;
-  $("count").textContent = w + " palabras · " + t.length + " caracteres";
+  const min = Math.round(w / 200);                       // unas 200 palabras por minuto de lectura
+  $("count").textContent = w + (w === 1 ? " palabra · " : " palabras · ") + t.length + (t.length === 1 ? " carácter" : " caracteres") + (min >= 1 ? " · " + min + " min de lectura" : "");
 }
 
 /* resalta las palabras buscadas SIN usar innerHTML (el texto de las notas nunca se interpreta como HTML) */

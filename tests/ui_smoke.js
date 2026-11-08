@@ -453,7 +453,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const before = await page.locator('#list .item').count();
   await page.click('#new');
   await page.fill('#text', 'Nota de prueba\nsegunda linea ñandú');
-  check('se cuenta palabras', /\d+ palabras/.test(await page.textContent('#count')), await page.textContent('#count'));
+  check('se cuenta palabras', /\d+ palabras?/.test(await page.textContent('#count')), await page.textContent('#count'));
   await page.waitForFunction(() => document.getElementById('status').textContent.includes('Guardado'), null, { timeout: 6000 }).catch(() => {});
   check('se guarda solo', (await page.textContent('#status')).includes('Guardado'), await page.textContent('#status'));
   check('la nota aparece en la lista con su titulo', (await page.locator('#list .item b', { hasText: 'Nota de prueba' }).count()) === 1);

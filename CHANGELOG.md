@@ -6,6 +6,10 @@
 
 
 
+## Modo Iker: tiempo de lectura y singular correcto
+
+- El contador de abajo dice «1 palabra» (no «1 palabras») y, desde unas 100 palabras, añade «· N min de lectura» (a 200 palabras por minuto).
+
 ## Simulador: ayuda de atajos con la tecla «?»
 
 - Una ventanita lista los atajos (1-4, V, T, flechas, Esc). Se cierra con Esc o con «Entendido».
