@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Herramienta `pcpi-frase`: qué orden entendería la Pi con una frase
+
+- `pcpi-frase "sube el volumen y pon música"` imprime la orden (o órdenes) que entendería, sin ejecutar nada. Sirve para depurar la voz sin micrófono; sin argumentos lee frases de la entrada. Se instala con el resto de `bin/`.
+
 ## Visita guiada: paso «Cuentas, fechas y unidades» (15 pasos)
 
 - Enseña las órdenes nuevas y ejecuta «cuánto es 12 por 5» en la barra de voz.

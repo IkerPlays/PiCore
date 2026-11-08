@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+"""Dice QUÉ ORDEN entendería la Pi con una frase, SIN ejecutarla (para depurar la voz sin micrófono).
+
+  pcpi-frase "qué hora es"
+  pcpi-frase "sube el volumen y pon música"
+  pcpi-frase                         lee frases de la entrada (una por línea; útil con ficheros: pcpi-frase < frases.txt)
+"""
+import os
+import sys
+
+BASE = os.environ.get("PCPI_HOME") or os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
+sys.path.insert(0, os.path.join(BASE, "voice"))
+import intents  # noqa: E402
+
+
+def explica(frase):
+    partes = intents.split_commands(frase)
+    out = []
+    for p in partes:
+        i = intents.parse(p)
+        out.append("  %-34s -> %s" % ("«%s»" % p, "no la entiende (pasaría a la IA local si está activada)" if i is None else "%s %r" % (i.name, i.arg)))
+    return ("«%s»" % frase if len(partes) == 1 else "«%s» (%d órdenes)" % (frase, len(partes))) + "\n" + "\n".join(out)
+
+
+def main(argv):
+    frases = [" ".join(argv)] if argv else [l.strip() for l in sys.stdin if l.strip()]
+    if not frases:
+        print(__doc__)
+        return 2
+    for f in frases:
+        print(explica(f))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

@@ -36,7 +36,8 @@ make lint        # shell y Python (con pyflakes si lo tienes: pip install pyflak
 3. **Si la API no existe,** añádela en `home/server.py` con las mismas reglas de siempre (cabecera `X-PCPI`, cliente local, valores validados y una lista cerrada de lo que se puede tocar) y sus tests.
 4. **Simulador:** copia la orden a `understand()` en `web-demo/demo.js` para que se pueda probar en la web.
 5. **Docs:** una línea en la tabla de órdenes de `docs/TUTORIAL.md`, una entrada en `CHANGELOG.md` y, si quieres que Whisper la acierte mejor, la frase en `PROMPT` de `voice/stt.py`.
-6. **Compruébalo de verdad:** `make rapido` prueba la Pi, pero **el simulador solo se prueba en el navegador** (`python3 -m unittest tests.test_web_demo.BrowserTest`, ~1 minuto): ahí es donde se comprueba que `demo.js` entiende todas las frases del tutorial. Si editas `demo.js` con un script que busca y reemplaza texto, haz que falle cuando no encuentre lo que busca (a mí me pasó con la batería: el reemplazo no se aplicó y nadie se enteró hasta el navegador).
+6. **Pruébala sin micrófono:** `bin/pcpi-frase "tu frase"` dice qué orden entendería la Pi (sin ejecutarla) y cómo parte las frases con dos órdenes.
+7. **Compruébalo de verdad:** `make rapido` prueba la Pi, pero **el simulador solo se prueba en el navegador** (`python3 -m unittest tests.test_web_demo.BrowserTest`, ~1 minuto): ahí es donde se comprueba que `demo.js` entiende todas las frases del tutorial. Si editas `demo.js` con un script que busca y reemplaza texto, haz que falle cuando no encuentre lo que busca (a mí me pasó con la batería: el reemplazo no se aplicó y nadie se enteró hasta el navegador).
 
 **Respuestas fijas (charla):** si solo hay que contestar un texto, no hace falta `execute()`: añade una línea a la tabla `RESPUESTAS` de `voice/intents.py` y la misma en `RESPUESTAS` de `web-demo/demo.js`.
 
