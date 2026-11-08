@@ -6,6 +6,10 @@
 
 
 
+## Web: botón «Volver arriba»
+
+- Aparece al bajar un buen trozo de la portada y sube con un deslizamiento suave. Tiene nombre accesible y no sale si pides menos movimiento (ni con JavaScript apagado).
+
 ## Web: se puede instalar en el móvil
 
 - Nuevo `manifest.webmanifest`: en el móvil, «Añadir a la pantalla de inicio» abre el simulador a pantalla completa con el icono de PiCore. No es una app con modo sin conexión, solo el acceso directo.

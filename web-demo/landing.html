@@ -22,6 +22,7 @@
 <!--ICONS-->
 <a class="skip" href="#que-es">Saltar al contenido</a>
 <div id="prog" aria-hidden="true"></div>
+<button id="top" type="button" aria-label="Volver arriba"><svg class="ic" aria-hidden="true"><use href="#i-arrow-up"/></svg></button>
 <header class="nav"><div class="wrap">
   <a class="brand" href="/"><img src="/favicon.svg" alt="" width="30" height="30">PiCore</a>
   <nav aria-label="Principal"><a href="#que-es">Qué es</a><a href="#sirve">Para qué sirve</a><a href="#funciona">Cómo funciona</a><a href="#modos">Modos</a><a href="#instalar">Instalar</a><a href="#faq">Preguntas</a></nav>
@@ -226,13 +227,14 @@ paintTheme();
     var sib = n.parentElement ? Array.prototype.indexOf.call(n.parentElement.children, n) : 0;
     n.style.setProperty("--d", Math.min(sib, 6)); n.classList.add("rv"); io.observe(n);
   });
-  var prog = document.getElementById("prog"), nav = document.querySelector("header.nav"), tick = false;
+  var top = document.getElementById("top"), prog = document.getElementById("prog"), nav = document.querySelector("header.nav"), tick = false;
   function upd() {
     var h = document.documentElement.scrollHeight - innerHeight;
     prog.style.transform = "scaleX(" + (h > 0 ? Math.min(1, scrollY / h) : 0) + ")";
-    nav.classList.toggle("sc", scrollY > 8); tick = false;
+    nav.classList.toggle("sc", scrollY > 8); top.classList.toggle("on", scrollY > 900); tick = false;
   }
   addEventListener("scroll", function () { if (!tick) { tick = true; requestAnimationFrame(upd); } }, { passive: true });
+  top.onclick = function () { scrollTo({ top: 0, behavior: "smooth" }); };
   upd();
 })();
 </script>

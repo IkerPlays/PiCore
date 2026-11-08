@@ -123,3 +123,8 @@ header.nav { transition:box-shadow .25s; } header.nav.sc { box-shadow:0 10px 30p
 .tabs button { transition:background .2s, color .2s, border-color .2s, transform .15s; } .tabs button:active { transform:scale(.96); }
 .mode.on { animation:hin .5s cubic-bezier(.2,.8,.2,1) both; }
 @media print { .js .rv { opacity:1 !important; transform:none !important; } #prog { display:none; } }
+
+/* volver arriba */
+#top { position:fixed; right:18px; bottom:18px; z-index:55; width:46px; height:46px; padding:0; border-radius:50%; border:1px solid var(--line); background:var(--card); color:var(--fg); box-shadow:var(--shadow);
+       display:grid; place-items:center; cursor:pointer; opacity:0; transform:translateY(12px) scale(.9); pointer-events:none; transition:opacity .25s, transform .25s, border-color .2s; }
+#top.on { opacity:1; transform:none; pointer-events:auto; } #top:hover { border-color:var(--acc); }
