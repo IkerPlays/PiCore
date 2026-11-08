@@ -687,6 +687,10 @@
       const sec = duration(t.replace(/^.*(dentro de|sera en) /, ""));
       if (sec) { const d = new Date(Date.now() + sec * 1000); return "Serán las " + pad(d.getHours()) + ":" + pad(d.getMinutes()); }
     }
+    if (has("maxima", "minima") && has("hoy", "temperatura", "tiempo", "cual es")) {
+      const w = weather(), mx = has("maxima"), mn = has("minima");
+      return mx && !mn ? "La máxima de hoy es de " + Math.round(w.tmax) + " grados" : mn && !mx ? "La mínima de hoy es de " + Math.round(w.tmin) + " grados" : "Hoy, máxima de " + Math.round(w.tmax) + " grados y mínima de " + Math.round(w.tmin);
+    }
     if (has("amanece", "sale el sol", "salida del sol", "anochece", "se pone el sol", "puesta de sol", "atardece")) {
       const sal = has("amanece", "sale el sol", "salida del sol"), h = (sal ? "07:42" : "18:21").split(":");
       return (sal ? "El sol sale" : "El sol se pone") + " a las " + (+h[0]) + " y " + (+h[1]);

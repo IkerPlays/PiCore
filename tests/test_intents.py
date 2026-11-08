@@ -359,6 +359,13 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.say_notes_found("", [{"title": "A"}, {"title": "B"}, {"title": "C"}, {"title": "D"}], recent=True), "Tus notas: A, B, C y 1 más")
         self.assertEqual(i.say_notes_found("", [], recent=True), "No tienes ninguna nota")
 
+    def test_maxima_y_minima(self):
+        w = {"tmax": 24.1, "tmin": 17.6}
+        self.assertEqual(i.say_minmax(w, i.parse("cual es la maxima de hoy").arg), "La máxima de hoy es de 24 grados")
+        self.assertEqual(i.say_minmax(w, i.parse("cual es la minima de hoy").arg), "La mínima de hoy es de 18 grados")
+        self.assertEqual(i.say_minmax(w, i.parse("maxima y minima de hoy").arg), "Hoy, máxima de 24 grados y mínima de 18")
+        self.assertEqual(i.say_minmax({}, "max"), "No sé las temperaturas de hoy")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

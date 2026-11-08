@@ -482,6 +482,8 @@ def parse(text):
             return Intent("camera_hide", None)
         if has("muestra", "ensena", "abre", "enciende", "ver ", "pon", "activa"):
             return Intent("camera_show", None)
+    if has("maxima", "minima") and has("hoy", "temperatura", "tiempo", "cual es"):
+        return Intent("minmax", "max" if has("maxima") and not has("minima") else "min" if has("minima") and not has("maxima") else "both")
     if has("amanece", "sale el sol", "salida del sol", "anochece", "se pone el sol", "puesta de sol", "atardece"):
         return Intent("sun", "rise" if has("amanece", "sale el sol", "salida del sol") else "set")
     if has("tiempo", "temperatura", "llover", "llueve", "hace frio", "hace calor") and not has("que hora", "temporizador"):
@@ -793,6 +795,17 @@ def say_date_part(now, what):
 
 def say_date(now):
     return "Hoy es %s %d de %s" % (DIAS[now.weekday()], now.day, MESES[now.month - 1])
+
+
+def say_minmax(w, which):
+    mx, mn = (w or {}).get("tmax"), (w or {}).get("tmin")
+    if not isinstance(mx, (int, float)) or not isinstance(mn, (int, float)):
+        return "No sé las temperaturas de hoy"
+    if which == "max":
+        return "La máxima de hoy es de %d grados" % round(mx)
+    if which == "min":
+        return "La mínima de hoy es de %d grados" % round(mn)
+    return "Hoy, máxima de %d grados y mínima de %d" % (round(mx), round(mn))
 
 
 def say_sun(w, which):

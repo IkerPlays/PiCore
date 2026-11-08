@@ -6,6 +6,10 @@
 
 
 
+## Voz: máxima y mínima de hoy
+
+- «Cuál es la máxima de hoy», «la mínima de hoy», «máxima y mínima». También en el simulador.
+
 ## Voz: qué notas tengo
 
 - Dice los títulos de las tres primeras notas (las fijadas salen antes) y cuántas más hay. También en el simulador.
