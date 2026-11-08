@@ -398,7 +398,7 @@ def say_system(kind, st):
 
 
 HELP_TEXT = ("Puedes pedirme la hora, el tiempo, que ponga temporizadores y alarmas, que controle la música, el volumen y el brillo, "
-             "que cambie de modo, que tome notas, o que te diga cómo está la Pi.")
+             "que cambie de modo, que tome notas, que haga cuentas sencillas, que te cuente un chiste, o que te diga cómo está la Pi.")
 
 
 def say_uptime(secs):

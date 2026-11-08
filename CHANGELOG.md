@@ -6,6 +6,10 @@
 
 
 
+## Voz: la ayuda menciona las cuentas y los chistes
+
+- Lo que contesta «qué puedes hacer» incluye ya las cuentas y los chistes.
+
 ## Voz: chistes
 
 - «Cuéntame un chiste»: elige uno de siete, sin internet. También en el simulador. Probado con tests; no en una Pi real.
