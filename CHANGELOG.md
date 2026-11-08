@@ -6,6 +6,10 @@
 
 
 
+## Simulador: los botones de modo dicen cuál está activo (`aria-pressed`)
+
+- Un lector de pantalla ahora sabe si Casa, Iker, Dev o Escritorio es el modo actual.
+
 ## Web: la barra superior marca la sección que lees
 
 - El enlace de la sección visible se resalta con una raya de color (`aria-current`).
