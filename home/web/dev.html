@@ -50,7 +50,7 @@
     <div class="warn">Cuidado: esto es una consola de verdad con tu usuario. Puedes romper cosas; para deshacer una actualización mala, <code>pcpi-backup restore</code>.</div>
   </section>
   <section id="t-api">
-    <div style="display:flex;gap:8px"><select id="apim" style="font:inherit;padding:8px;border-radius:10px;background:var(--card);color:var(--fg);border:1px solid var(--line)"><option>GET</option><option>POST</option></select><input id="apipath" value="/api/status" autocomplete="off" spellcheck="false"><button id="apigo" class="primary">Enviar</button></div>
+    <div style="display:flex;gap:8px"><select id="apim" aria-label="Método HTTP" style="font:inherit;padding:8px;border-radius:10px;background:var(--card);color:var(--fg);border:1px solid var(--line)"><option>GET</option><option>POST</option></select><input id="apipath" aria-label="Ruta de la API" value="/api/status" autocomplete="off" spellcheck="false"><button id="apigo" class="primary">Enviar</button></div>
     <textarea id="apibody" rows="3" placeholder='Cuerpo JSON (solo POST), por ejemplo {"mode":"home"}' spellcheck="false" style="flex:none"></textarea>
     <div id="apiout" class="dim">Prueba las rutas de la API de PiCore. Los POST llevan la cabecera X-PCPI automáticamente.</div>
   </section>

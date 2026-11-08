@@ -6,6 +6,10 @@
 
 
 
+## Accesibilidad: nombre para el deslizador de brillo y el explorador de la API
+
+- El deslizador de brillo, el selector GET/POST y la ruta de la API del modo Dev no tenían nombre para un lector de pantalla.
+
 ## Simulador: «Copiar enlace» abre la hoja de compartir en el móvil
 
 - Si el navegador tiene Web Share y la pantalla es táctil, abre el menú de compartir del sistema; si no, copia el enlace como siempre.
