@@ -29,7 +29,7 @@ h2 { font-size:clamp(28px, 4vw, 42px); margin-bottom:14px; } h3 { font-size:20px
 header.nav { position:sticky; top:0; z-index:50; backdrop-filter:blur(14px); background:color-mix(in srgb, var(--bg) 78%, transparent); border-bottom:1px solid var(--hair); }
 .nav .wrap { display:flex; align-items:center; gap:22px; height:64px; }
 .brand { display:flex; align-items:center; gap:10px; font-weight:780; font-size:19px; letter-spacing:-.03em; color:var(--fg); } .brand:hover { text-decoration:none; } .brand img { width:30px; height:30px; }
-.nav nav { display:flex; gap:22px; margin-left:auto; } .nav nav a { color:var(--dim); font-size:15px; font-weight:560; } .nav nav a:hover { color:var(--fg); text-decoration:none; }
+.nav nav { display:flex; gap:22px; margin-left:auto; } .nav nav a { color:var(--dim); font-size:15px; font-weight:560; } .nav nav a:hover, .nav nav a[aria-current] { color:var(--fg); text-decoration:none; } .nav nav a[aria-current] { box-shadow:0 2px 0 var(--acc); }
 .btn { display:inline-flex; align-items:center; justify-content:center; gap:9px; font:inherit; font-weight:650; font-size:16px; padding:13px 22px; border-radius:14px; border:1px solid var(--line); background:var(--card); color:var(--fg); cursor:pointer; transition:transform .15s, border-color .2s, box-shadow .2s; }
 .btn:hover { text-decoration:none; border-color:var(--acc); transform:translateY(-1px); }
 .btn.primary { background:linear-gradient(180deg, color-mix(in srgb, var(--acc) 90%, #fff), var(--acc)); color:var(--acc-fg); border-color:transparent; box-shadow:0 10px 30px color-mix(in srgb, var(--acc) 38%, transparent); }

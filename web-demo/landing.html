@@ -251,6 +251,11 @@ paintTheme();
     nav.classList.toggle("sc", scrollY > 8); top.classList.toggle("on", scrollY > 900); tick = false;
   }
   addEventListener("scroll", function () { if (!tick) { tick = true; requestAnimationFrame(upd); } }, { passive: true });
+  var links = {}; document.querySelectorAll('.nav nav a[href^="#"]').forEach(function (a) { links[a.getAttribute("href").slice(1)] = a; });
+  var spy = new IntersectionObserver(function (es) {            // marca en la barra superior la seccion que se esta leyendo
+    es.forEach(function (e) { if (e.isIntersecting && links[e.target.id]) { Object.keys(links).forEach(function (k) { links[k].removeAttribute("aria-current"); }); links[e.target.id].setAttribute("aria-current", "true"); } });
+  }, { rootMargin: "-45% 0px -50% 0px" });
+  Object.keys(links).forEach(function (k) { var s = document.getElementById(k); if (s) spy.observe(s); });
   top.onclick = function () { scrollTo({ top: 0, behavior: "smooth" }); };
   upd();
 })();

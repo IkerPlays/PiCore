@@ -6,6 +6,10 @@
 
 
 
+## Web: la barra superior marca la sección que lees
+
+- El enlace de la sección visible se resalta con una raya de color (`aria-current`).
+
 ## Web: «Pídele algo a la Pi» en la portada
 
 - Ocho frases que abren el simulador y la ejecutan al llegar (`?say=`). Un test comprueba que el asistente de la Pi entiende cada una.
