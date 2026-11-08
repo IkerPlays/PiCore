@@ -6,6 +6,10 @@
 
 
 
+## Hoja Sistema: la lista «Qué puedo decirle a la Pi» incluye las órdenes nuevas
+
+- Cuentas, unidades, batería, amanecer, días que faltan, dos órdenes seguidas y chistes. Un test comprueba que el asistente entiende cada frase de la lista.
+
 ## Voz: cuánto falta para el viernes, el fin de semana o una fecha
 
 - Además de Navidad, Nochevieja, Reyes, Año Nuevo y el verano. También en el simulador.
