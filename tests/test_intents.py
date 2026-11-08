@@ -300,6 +300,11 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.parse("oye pi alarma".replace("oye pi ", "")).name, "chat")
         self.assertIn("temporizador de diez minutos", i.parse("temporizador").arg)
 
+    def test_mas_conversiones(self):
+        self.assertEqual(i.parse("cuantas pulgadas son 10 centimetros").arg, (10, "centimetros", "pulgadas"))
+        self.assertEqual(i.say_convert(10, "centimetros", "pulgadas"), "10 centimetros son 3 coma 9 pulgadas")
+        self.assertEqual(i.parse("pasa 4 litros a galones").arg, (4, "litros", "galones"))
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

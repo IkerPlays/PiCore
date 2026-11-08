@@ -158,6 +158,8 @@ CONV = {  # (de, a): factor o funcion
     ("kilometros", "millas"): lambda x: x * 0.621371, ("millas", "kilometros"): lambda x: x / 0.621371,
     ("kilos", "libras"): lambda x: x * 2.20462, ("libras", "kilos"): lambda x: x / 2.20462,
     ("metros", "pies"): lambda x: x * 3.28084, ("pies", "metros"): lambda x: x / 3.28084,
+    ("centimetros", "pulgadas"): lambda x: x / 2.54, ("pulgadas", "centimetros"): lambda x: x * 2.54,
+    ("litros", "galones"): lambda x: x / 3.78541, ("galones", "litros"): lambda x: x * 3.78541,
     ("grados", "fahrenheit"): lambda x: x * 9 / 5 + 32, ("fahrenheit", "grados"): lambda x: (x - 32) * 5 / 9,
 }
 
@@ -165,7 +167,7 @@ CONV = {  # (de, a): factor o funcion
 def parse_convert(t):
     """«cuantos kilometros son 10 millas» / «pasa 20 grados a fahrenheit» -> (valor, de, a) o None."""
     w = t.split()
-    w = [{"kilometro": "kilometros", "milla": "millas", "kilo": "kilos", "libra": "libras", "metro": "metros", "pie": "pies", "celsius": "grados"}.get(x, x) for x in w]
+    w = [{"kilometro": "kilometros", "milla": "millas", "kilo": "kilos", "libra": "libras", "metro": "metros", "pie": "pies", "celsius": "grados", "centimetro": "centimetros", "pulgada": "pulgadas", "litro": "litros", "galon": "galones"}.get(x, x) for x in w]
     if not (w[:1] in (["cuantos"], ["cuantas"], ["pasa"], ["convierte"])):
         return None
     for (de, a) in CONV:

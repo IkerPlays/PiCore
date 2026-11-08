@@ -6,6 +6,10 @@
 
 
 
+## Voz: centímetros y pulgadas, litros y galones
+
+- Se suman a las conversiones de kilómetros, kilos, metros y grados. También en el simulador.
+
 ## Web: el pie de la portada dice de qué versión es la web
 
 - Lee `/version.txt` (el commit con el que se construyó) y lo enseña como «· web 1a2b3c4». Si no está (en local), no muestra nada.
