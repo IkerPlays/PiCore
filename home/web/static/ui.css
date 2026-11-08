@@ -178,3 +178,11 @@ body.osk-open #cityp { padding-bottom:268px; }
 body.osk-open #php { padding-bottom:268px; }
 #wcity { min-height:40px; border-radius:99px; padding:0 14px; font-size:14px; }
 #weather .pick { font-size:18px; padding:10px 18px; border-radius:99px; }
+
+/* ---------- efectos (fx.js): destello al tocar, tarjetas con presion, cifras que no bailan ---------- */
+@keyframes tapglow { from { box-shadow:0 0 0 0 color-mix(in srgb, var(--acc) 55%, transparent); } to { box-shadow:0 0 0 14px transparent; } }
+.tap { animation:tapglow .5s var(--ease, ease-out); }
+.card, .ev, .ev2, .hr, .dy { transition:transform .25s var(--ease, ease), border-color .25s, background .25s; }
+.card:active { transform:scale(.992); }
+#time, #timer-txt, #ph-blocked, #ph-total, #chip-cpu, #chip-bat, .trk time { font-variant-numeric:tabular-nums; }
+@media (hover:hover) { .card:hover { border-color:color-mix(in srgb, var(--acc) 30%, var(--hair)); } }

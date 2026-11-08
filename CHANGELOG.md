@@ -6,6 +6,10 @@
 
 
 
+## Interfaz: destello al tocar y tarjetas con presión (todas las pantallas)
+
+- Nuevo `home/web/static/fx.js`: al tocar un botón, chip o canción sale un destello suave (solo `box-shadow`, sin repintar la pantalla). Las tarjetas se hunden un poco al pulsarlas y las cifras (reloj, Pi-hole, temporizador) usan números de ancho fijo para que no bailen. Se desactiva con «reducir movimiento». Probado en Chromium sin pantalla; no he medido el coste en una Pi real.
+
 ## Voz: porcentajes, «ponme música», «sube la música» y «quita el sonido»
 
 - Arreglo: «cuánto es el 20 por ciento de 50» salía como 20 por 100; ahora calcula el porcentaje.

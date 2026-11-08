@@ -248,7 +248,7 @@ class SintaxisJs(unittest.TestCase):
         node = shutil.which("node")
         if not node:
             self.skipTest("no hay node")
-        for f in ("web-demo/demo.js", "home/web/static/osk.js", "home/web/static/online.js"):
+        for f in ("web-demo/demo.js", "home/web/static/osk.js", "home/web/static/online.js", "home/web/static/fx.js"):
             r = subprocess.run([node, "--check", str(ROOT / f)], capture_output=True, text=True)
             self.assertEqual(r.returncode, 0, f + "\n" + r.stderr)
 
