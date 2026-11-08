@@ -15,6 +15,10 @@
   body { display:grid; grid-template-columns:270px 1fr; grid-template-rows:56px auto 1fr; }
   header { grid-column:1 / span 2; display:flex; align-items:center; gap:8px; padding:0 12px; background:var(--side); border-bottom:1px solid var(--line); }
   header .title { font-weight:700; font-size:18px; margin-right:auto; }
+  @media (max-width:1180px) {            /* la barra no cabia en 1024 px y «Salir» quedaba fuera: los botones secundarios pasan a solo icono (el texto sigue para lectores de pantalla) */
+    #usb, #dup, #pin, #pdf, #web { font-size:0 !important; gap:0 !important; padding:0 13px !important; }
+    #usb .ic, #dup .ic, #pin .ic, #pdf .ic, #web .ic { width:19px !important; height:19px !important; }
+  }
   button { font:inherit; font-size:16px; border:1px solid var(--line); background:var(--card); color:var(--fg); border-radius:12px; padding:9px 14px; cursor:pointer; }
   button:hover { border-color:var(--acc); }
   button:active, button.primary { background:var(--acc); color:var(--acc-fg); border-color:var(--acc); }
@@ -47,6 +51,10 @@
   #status.ok { color:var(--ok); } #status.err { color:var(--bad); }
 </style>
 <link rel="stylesheet" href="/static/ui.css">
+<style>   /* mismo tema que Casa (claro de dia, oscuro de noche, o el que elegiste); ui.css fija los colores base y aqui se le suma el del panel lateral */
+  html:not([data-theme=light]) { --side:#0b0e14; } html[data-theme=light] { --side:#e5decf; }
+</style>
+<script>(function () { var t = null; try { t = localStorage.getItem("pcpi-theme"); } catch (e) {} var h = new Date().getHours(); document.documentElement.dataset.theme = t === "light" || t === "dark" ? t : (h >= 8 && h < 20 ? "light" : "dark"); })();</script>
 </head>
 <body>
 <!--ICONS-->

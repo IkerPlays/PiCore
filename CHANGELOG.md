@@ -6,6 +6,14 @@
 
 
 
+## Modo Iker: tema coherente (antes mezclaba claro y oscuro)
+
+- Iker decidía su tema por la preferencia del navegador mientras que `ui.css` fijaba colores oscuros: el panel lateral salía claro con letra blanca. Ahora sigue el mismo criterio que Casa (claro de día, oscuro de noche, o el que elegiste tocando la hora) y el panel tiene su color en los dos temas.
+
+## Modo Iker: la barra de botones cabe en 1024 px (antes «Salir» se salía por la derecha)
+
+- USB, Duplicar, Fijar, PDF e Internet pasan a solo icono por debajo de 1180 px de ancho; conservan nombre y texto para lectores de pantalla y la ayuda al pasar el ratón.
+
 ## Modo Iker: Ctrl+D duplica la nota
 
 - Se suma a Ctrl+S, Ctrl+N, Ctrl+P y Ctrl+F; el pie de la página lo recuerda.
