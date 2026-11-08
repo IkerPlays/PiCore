@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Capturas regeneradas con `make capturas`
+
+- Las imágenes de la web y de la documentación reflejan la interfaz actual: barra de Iker con iconos, tema coherente y «Amanece / Anochece» en la hoja del Tiempo. Siguen siendo capturas de la demo simulada.
+
 ## Voz: números grandes con palabras (ciento veinte, doscientos, dos mil)
 
 - Antes solo entendía hasta «cien»: «ciento veinte» daba 100. Ahora llega hasta el millar («cuánto es doscientos por tres», «dime un número entre cien y mil»). Las horas con letras («las veinte treinta») siguen igual. En el simulador las cifras grandes solo se entienden escritas con números.
