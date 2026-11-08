@@ -491,6 +491,15 @@ def parse(text):
             return Intent("pihole_disable", find_number(words) or 5)
         if has("activa", "enciende", "reanuda", "habilita", "pon"):
             return Intent("pihole_enable", None)
+    if has("cierra esto", "cierra la hoja", "cierra la ventana", "cierra el panel", "cierra todo", "cierra eso", "quita esto"):
+        return Intent("ui", ("close", None))
+    m = re.match(r"^(?:abre|abreme|muestrame|ensename) (?:la hoja de |la pantalla de |el panel de )?(el tiempo|el pronostico|la prevision|los temporizadores|el temporizador|las alarmas|el sistema|los ajustes|la configuracion|el wifi|la wifi|wifi|wi fi|las redes|musix|la musica)$", t)
+    if m:
+        k = m.group(1)
+        hoja = ("tiempo" if k in ("el tiempo", "el pronostico", "la prevision") else "temporizadores" if k in ("los temporizadores", "el temporizador", "las alarmas")
+                else "sistema" if k in ("el sistema", "los ajustes", "la configuracion") else "wifi" if "wi" in k or k == "las redes"
+                else "musix")
+        return Intent("ui", ("open", hoja))
     if has("abre el bloc de notas", "abre las notas", "abre mis notas", "abre el bloc"):
         return Intent("mode", "iker")
     if has("abre el terminal", "abre la consola", "abre el terminal real"):

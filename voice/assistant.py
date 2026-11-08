@@ -162,6 +162,14 @@ def execute(cfg, intent):
                 except ValueError:
                     return "No he podido controlar la música"
             return {"pause": "Música en pausa", "play": "Seguimos con la música", "next": "Siguiente canción", "previous": "Canción anterior"}[a]
+        if n == "ui":
+            accion, hoja = a
+            try:
+                api(cfg, "/api/ui", {"action": accion, **({"target": hoja} if hoja else {})})
+            except urllib.error.URLError:
+                return "No he podido abrirlo"
+            nombres = {"tiempo": "el tiempo", "temporizadores": "los temporizadores", "sistema": "el sistema", "wifi": "el wifi", "musix": "Musix", "calendario": "el calendario"}
+            return "Cerrado" if accion == "close" else "Abro %s" % nombres[hoja]
         if n == "music_mode":
             kind, val = a
             try:

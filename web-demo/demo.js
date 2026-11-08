@@ -36,6 +36,7 @@
     timers: LS.get("timers", []),
     nowplaying: { state: "stopped" },
     music: { seq: 0, cmd: null, arg: null },
+    ui: { seq: 0, cmd: null, arg: null },
     tracks: null,
     flags: LS.get("flags", { ai_chat: false, live_graph: false, voice_log: false, casa_debug: false }),
     wifi: LS.get("wifi", { active: "CasaIker", wantsPi: { CasaIker: true } }),
@@ -179,6 +180,7 @@
                          : { available: true, name: null, connectivity: "none", portal: false },
       display: displayInfo(), motion: motionInfo(), battery: { available: true, percent: 76, charging: false, low: false, critical: false },
       timers: timersList(), ai: { enabled: false, model: "qwen2.5:1.5b" }, calendar: calendar(),
+      ui: { seq: S.ui.seq, cmd: S.ui.cmd, arg: S.ui.arg },
       music: { seq: S.music.seq, cmd: S.music.cmd, arg: S.music.arg, embed: LS.get("embed", null), history: LS.get("history", []), search: false },
       audio: { available: true, volume: S.audio.volume, muted: S.audio.muted },
       dev: { enabled: true, flags: S.flags }, system: systemInfo(), ip: "192.0.2.10", host: "picore-demo",
@@ -422,6 +424,12 @@
 
     /* musica */
     if (p === "/api/music" && method === "GET") return J({ tracks: tracks(), seq: S.music.seq, cmd: S.music.cmd, arg: S.music.arg, embed: LS.get("embed", null), history: LS.get("history", []), search: false });
+    if (p === "/api/ui" && method === "POST") {
+      if (body.action === "open") { if (!["tiempo", "temporizadores", "sistema", "wifi", "musix", "calendario"].includes(body.target)) return ERR("hoja invalida"); S.ui = { seq: S.ui.seq + 1, cmd: "open", arg: body.target }; }
+      else if (body.action === "close") S.ui = { seq: S.ui.seq + 1, cmd: "close", arg: null };
+      else return ERR("accion invalida");
+      return J({ ok: true, seq: S.ui.seq });
+    }
     if (p === "/api/music" && method === "POST") {
       const act = body.action;
       if (act === "cmd") { if (!["play", "pause", "next", "previous", "sleep", "track", "shuffle", "repeat"].includes(body.cmd)) return ERR("orden invalida"); if (body.cmd === "shuffle" && typeof body.on !== "boolean") return ERR("indica on: true o false"); if (body.cmd === "repeat" && !["all", "one", "off"].includes(body.mode)) return ERR("modo de repeticion invalido"); if (body.cmd === "track" && !tracks().some(t => t.id === body.id)) return ERR("esa cancion no existe"); S.music = { seq: S.music.seq + 1, cmd: body.cmd, arg: body.cmd === "sleep" ? body.seconds : body.cmd === "track" ? body.id : body.cmd === "shuffle" ? body.on : body.cmd === "repeat" ? body.mode : null }; return J({ ok: true, seq: S.music.seq }); }
@@ -515,6 +523,13 @@
   function understand(text) {
     const t = norm(text).replace(/^(oye pi|hey jarvis|ok pi)[,\s]*/, "").trim(), has = (...k) => k.some(x => t.includes(x)), now = new Date();
     if (!t) return "Dime algo, por ejemplo: qué hora es";
+    if (has("cierra esto", "cierra la hoja", "cierra la ventana", "cierra el panel", "cierra todo", "cierra eso", "quita esto")) { S.ui = { seq: S.ui.seq + 1, cmd: "close", arg: null }; return "Cerrado"; }
+    const ho = /^(?:abre|abreme|muestrame|ensename) (?:la hoja de |la pantalla de |el panel de )?(el tiempo|el pronostico|la prevision|los temporizadores|el temporizador|las alarmas|el sistema|los ajustes|la configuracion|el wifi|la wifi|wifi|wi fi|las redes|musix|la musica)$/.exec(t);
+    if (ho) {
+      const k = ho[1], hoja = ["el tiempo", "el pronostico", "la prevision"].includes(k) ? "tiempo" : ["los temporizadores", "el temporizador", "las alarmas"].includes(k) ? "temporizadores" : ["el sistema", "los ajustes", "la configuracion"].includes(k) ? "sistema" : (k.includes("wi") || k === "las redes") ? "wifi" : "musix";
+      S.ui = { seq: S.ui.seq + 1, cmd: "open", arg: hoja };
+      return "Abro " + { tiempo: "el tiempo", temporizadores: "los temporizadores", sistema: "el sistema", wifi: "el wifi", musix: "Musix", calendario: "el calendario" }[hoja];
+    }
     const lm2 = /^(?:por favor )?(?:anade|añade|apunta|pon|mete|agrega)\s+(.{2,80}?)\s+(?:a|en)\s+(?:la\s+)?lista(?:\s+de\s+(?:la\s+)?(compra|compras|tareas|pendientes))?$/i.exec(String(text).replace(/^(oye pi|hey jarvis|ok pi)[,\s]*/i, "").trim().replace(/[\s.!?¡¿]+$/, ""));
     if (lm2) {
       const ttl = /tareas|pendientes/i.test(lm2[2] || "") ? "Tareas" : "Lista de la compra", all = notes(), f = all.find(n => norm(title(n.text)) === norm(ttl));

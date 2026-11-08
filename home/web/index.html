@@ -878,6 +878,16 @@ function paintDebug(on) {
   if (!b) { b = document.createElement("div"); b.id = "dbg"; b.style.cssText = "position:fixed;left:8px;bottom:8px;z-index:50;font:12px/1.3 ui-monospace,monospace;padding:4px 8px;border-radius:8px;background:#000a;color:#9f9;pointer-events:none"; document.body.append(b); }
   b.textContent = "estado " + dbgMs + " ms · " + Math.round(performance.now() / 1000) + " s abierta";
 }
+let uiSeq = null;
+const UI_ABRIR = {tiempo: () => openWeather(), temporizadores: () => $("chip-timer").click(), sistema: () => openSystem(), wifi: () => openSheet(), musix: () => openMusix("home"), calendario: () => { const c = $("cal"); if (c) c.click(); }};
+function paintUi(u) {                                                    // la voz abre o cierra hojas
+  if (!u) return;
+  if (uiSeq === null) { uiSeq = u.seq; return; }                         // la primera lectura no es una orden
+  if (u.seq === uiSeq) return;
+  uiSeq = u.seq;
+  if (u.cmd === "close") $("scrim").click();
+  else if (u.cmd === "open" && UI_ABRIR[u.arg]) { $("scrim").click(); setTimeout(UI_ABRIR[u.arg], 120); }
+}
 function paintMusic(m) {
   if (!m) return;
   if (mxSeq === null) { mxSeq = m.seq; return; }                      // la primera lectura no es una orden
@@ -1434,6 +1444,7 @@ async function refresh() {
   lastCpu = s.cpu_temp ?? null; lastVersion = s.version || null;
   paintSystem(s.system);
   paintMusic(s.music);
+  paintUi(s.ui);
   $("nav-dev").hidden = !!(s.dev && s.dev.enabled === false);
   paintDebug(s.dev && s.dev.flags && s.dev.flags.casa_debug);
 

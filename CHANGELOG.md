@@ -38,6 +38,14 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Arquitectura: describe el canal voz → pantalla (`/api/ui`, `/api/music`)
+
+- Explica por qué la voz deja órdenes con número de secuencia y qué acepta cada una.
+
+## Voz: abrir y cerrar hojas de Casa («abre el tiempo», «cierra esto»)
+
+- Nuevo canal `POST /api/ui` (lista cerrada de hojas: tiempo, temporizadores, sistema, wifi, musix, calendario; o cerrar): la pantalla lo recoge al leer `/api/status`, igual que las órdenes de música. También en el simulador.
+
 ## Voz: aleatorio y repetir canción en el MP3 Player
 
 - «Pon el modo aleatorio», «quita el aleatorio», «repite la canción», «repite todas las canciones», «no repitas». El servidor valida (`on` booleano; `mode` en all/one/off) y la pantalla aplica el cambio como si pulsaras los botones. También en el simulador.

@@ -441,6 +441,14 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.parse("tira un dado").name, "random")
         self.assertEqual(i.parse("dime un numero al azar").name, "random")
 
+    def test_abrir_y_cerrar_hojas(self):
+        for frase, hoja in (("abre el tiempo", "tiempo"), ("abre los temporizadores", "temporizadores"), ("abre los ajustes", "sistema"), ("abre el wifi", "wifi"), ("abre musix", "musix")):
+            self.assertEqual(i.parse(frase).arg, ("open", hoja), frase)
+        self.assertEqual(i.parse("cierra esto").arg, ("close", None))
+        self.assertEqual(i.parse("cierra la camara").name, "camera_hide")
+        self.assertEqual(i.parse("abre la camara").name, "camera_show")
+        self.assertEqual(i.parse("abre el calendario").name, "calendar")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

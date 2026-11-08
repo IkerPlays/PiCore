@@ -311,6 +311,16 @@ class ApiTest(unittest.TestCase):
         for malo in ({"cmd": "shuffle"}, {"cmd": "shuffle", "on": "si"}, {"cmd": "repeat", "mode": "siempre"}, {"cmd": "repeat"}):
             self.assertEqual(self.req("/api/music", dict({"action": "cmd"}, **malo))[0], 400, malo)
 
+    def test_ui_channel_opens_only_known_sheets(self):
+        s0 = json.loads(self.req("/api/status")[2])["ui"]["seq"]
+        self.assertEqual(self.req("/api/ui", {"action": "open", "target": "tiempo"})[0], 200)
+        u = json.loads(self.req("/api/status")[2])["ui"]
+        self.assertEqual((u["seq"], u["cmd"], u["arg"]), (s0 + 1, "open", "tiempo"))
+        self.assertEqual(self.req("/api/ui", {"action": "close"})[0], 200)
+        for malo in ({"action": "open", "target": "../etc"}, {"action": "open"}, {"action": "abrir", "target": "tiempo"}, {}):
+            self.assertEqual(self.req("/api/ui", malo)[0], 400, malo)
+        self.assertEqual(self.req("/api/ui", {"action": "open", "target": "tiempo"}, hdr=False)[0], 403)
+
     def test_sleep_timer_values(self):
         for ok in (0, 60, 1800, 43200):
             self.assertEqual(self.req("/api/music", {"action": "cmd", "cmd": "sleep", "seconds": ok})[0], 200, ok)

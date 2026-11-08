@@ -298,6 +298,12 @@ class ExecuteApiIntentsTest(unittest.TestCase):
         self.assertEqual(self.posts[-1][1], {"action": "cmd", "cmd": "repeat", "mode": "one"})
         self.assertEqual(assistant.execute(self.cfg, ("music_mode", ("repeat", "off"))), "Sin repetir")
 
+    def test_open_and_close_sheets_by_voice(self):
+        self.assertEqual(assistant.execute(self.cfg, ("ui", ("open", "tiempo"))), "Abro el tiempo")
+        self.assertEqual(self.posts[-1][0:2], ("/api/ui", {"action": "open", "target": "tiempo"}))
+        self.assertEqual(assistant.execute(self.cfg, ("ui", ("close", None))), "Cerrado")
+        self.assertEqual(self.posts[-1][1], {"action": "close"})
+
     def test_battery_by_voice(self):
         self.status["battery"] = {"available": True, "percent": 50, "charging": False}
         self.assertEqual(assistant.execute(self.cfg, ("battery", None)), "Tienes el 50 por ciento de batería")

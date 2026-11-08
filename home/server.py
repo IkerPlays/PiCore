@@ -553,6 +553,7 @@ def status():
         "ai": ai_info(cp),
         "calendar": calendar_info(cp),
         "music": music_info(),
+        "ui": dict(UI),
         "audio": audio_info(),
         "dev": {"enabled": dev_enabled(cp), "flags": devmode.get_flags()},
         "system": {**system_info({"cpu_temp": cpu_temp(), "net": net_summary(), "pihole": cached("pihole", 10, lambda: pihole_stats(cp)), "ai": ai_info(cp),
@@ -994,7 +995,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self._host_ok():
             return self._send(403, {"error": "host no permitido"})
         paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/notes/export", "/api/bookmarks", "/api/music", "/api/dev", "/api/audio", "/api/settings", "/api/loaded",
-                 "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display", "/api/motion", "/api/timers", "/api/ask", "/api/system")
+                 "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display", "/api/motion", "/api/timers", "/api/ask", "/api/system", "/api/ui")
         if self.path not in paths or self.headers.get("X-PCPI") != "1":
             return self._send(403, {"error": "prohibido"})
         try:
@@ -1066,6 +1067,11 @@ class Handler(BaseHTTPRequestHandler):
                 except devmode.DevError as e:
                     return self._send(429, {"error": str(e)})
                 except ValueError as e:                              # mensajes nuestros (modo, orden vacia...): se ven tal cual
+                    return self._send(400, {"error": str(e)})
+            if self.path == "/api/ui":
+                try:
+                    return self._send(200, ui_post(body))
+                except ValueError as e:
                     return self._send(400, {"error": str(e)})
             if self.path == "/api/music":
                 try:
@@ -1213,6 +1219,22 @@ def dev_post(body):
 
 
 MUSIC = {"seq": 0, "cmd": None, "arg": None}
+UI = {"seq": 0, "cmd": None, "arg": None}                           # «abre el tiempo»: la pantalla lo recoge al leer /api/status (como la musica)
+UI_HOJAS = ("tiempo", "temporizadores", "sistema", "wifi", "musix", "calendario")
+
+
+def ui_post(body):
+    """La voz abre o cierra una hoja de Casa. Lista CERRADA de hojas; la pantalla decide si puede abrirla."""
+    act = body.get("action")
+    if act == "open":
+        if body.get("target") not in UI_HOJAS:
+            raise ValueError("hoja invalida")
+        UI.update(seq=UI["seq"] + 1, cmd="open", arg=body["target"])
+    elif act == "close":
+        UI.update(seq=UI["seq"] + 1, cmd="close", arg=None)
+    else:
+        raise ValueError("accion invalida")
+    return {"ok": True, "seq": UI["seq"]}
 
 
 def music_info():
