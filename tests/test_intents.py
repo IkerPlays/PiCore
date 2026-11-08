@@ -265,6 +265,12 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.say_alarm([{"kind": "alarm", "hour": 7, "minute": 30, "daily": True, "label": "gimnasio", "due": 5}]), "Tu próxima alarma es a las 7 y 30, todos los días (gimnasio)")
         self.assertEqual(i.say_alarm([]), "No tienes ninguna alarma")
 
+    def test_vuelve_a_casa_y_despedidas(self):
+        self.assertEqual(i.parse("vuelve a casa").arg, "home")
+        self.assertEqual(i.parse("ve al inicio").arg, "home")
+        for f in ("adios", "hasta luego", "perdona"):
+            self.assertEqual(i.parse(f).name, "chat", f)
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

@@ -6,6 +6,10 @@
 
 
 
+## Voz: «vuelve a casa», «adiós» y «perdona»
+
+- «Vuelve a casa» (o «ve al inicio») cambia a modo Casa; «adiós» y «perdona» tienen su respuesta. También en el simulador.
+
 ## Voz: «despiértame en una hora» y «a qué hora suena la alarma»
 
 - Antes no se entendía lo primero y lo segundo se contestaba con la hora actual. Ahora lo primero pone un aviso y lo segundo dice la próxima alarma (con «todos los días» y el nombre si los tiene). También en el simulador.

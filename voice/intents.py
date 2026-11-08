@@ -389,6 +389,8 @@ def parse(text):
             return Intent("pihole_disable", find_number(words) or 5)
         if has("activa", "enciende", "reanuda", "habilita", "pon"):
             return Intent("pihole_enable", None)
+    if has("vuelve a casa", "ve a casa", "volver a casa", "pantalla de inicio", "ve al inicio", "vuelve al inicio"):
+        return Intent("mode", "home")
     if has("modo"):
         if has("casa", "hogar"):
             return Intent("mode", "home")
@@ -624,6 +626,8 @@ RESPUESTAS = (
     (("como te llamas", "quien eres", "cual es tu nombre"), "Soy PiCore, el asistente de tu Raspberry Pi. Todo lo que hago, lo hago aquí, sin nube"),
     (("estas ahi", "me oyes", "me escuchas"), "Sí, te oigo"),
     (("buenas noches",), "Buenas noches. Que descanses"),
+    (("adios", "hasta luego", "hasta manana", "nos vemos"), "Hasta luego. Aquí estaré"),
+    (("perdona", "lo siento", "disculpa"), "No pasa nada"),
     (("te quiero", "eres la mejor"), "Gracias, yo también te aprecio. Soy una Pi, pero se agradece"),
     (("cuantos anos tienes", "cuando naciste"), "Soy software: nací cuando me instalaste"),
     (("que te gusta", "cual es tu color favorito", "cual es tu comida favorita"), "Me gustan los ciclos de reloj bien cortos y la memoria libre"),

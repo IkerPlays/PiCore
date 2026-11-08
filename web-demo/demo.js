@@ -488,6 +488,8 @@
     [["como te llamas", "quien eres", "cual es tu nombre"], "Soy PiCore, el asistente de tu Raspberry Pi. Todo lo que hago, lo hago aquí, sin nube"],
     [["estas ahi", "me oyes", "me escuchas"], "Sí, te oigo"],
     [["buenas noches"], "Buenas noches. Que descanses"],
+    [["adios", "hasta luego", "hasta manana", "nos vemos"], "Hasta luego. Aquí estaré"],
+    [["perdona", "lo siento", "disculpa"], "No pasa nada"],
     [["te quiero", "eres la mejor"], "Gracias, yo también te aprecio. Soy una Pi, pero se agradece"],
     [["cuantos anos tienes", "cuando naciste"], "Soy software: nací cuando me instalaste"],
     [["que te gusta", "cual es tu color favorito", "cual es tu comida favorita"], "Me gustan los ciclos de reloj bien cortos y la memoria libre"],
@@ -693,7 +695,7 @@
       const w = weather(); return "Ahora hay " + Math.round(w.temp) + " grados y poco nuboso. Máxima " + Math.round(w.tmax) + ", mínima " + Math.round(w.tmin) + ". " + (w.rain_alert ? "Habrá lluvia en " + w.rain_alert.in_hours + " hora, con un " + w.rain_alert.prob + " por ciento." : "");
     }
     if (has("calendario", "agenda", "que tengo")) { const ev = calendar().events; return "Hoy tienes " + ev[0].title + " a las " + ev[0].time + ". Mañana: " + ev[1].title; }
-    if (has("modo casa", "modo hogar")) { LS.set("mode", "home"); fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "home" }) }); return "Cambiando a modo casa"; }
+    if (has("modo casa", "modo hogar", "vuelve a casa", "ve a casa", "volver a casa", "pantalla de inicio", "ve al inicio", "vuelve al inicio")) { LS.set("mode", "home"); fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "home" }) }); return "Cambiando a modo casa"; }
     if (has("modo iker", "modo notas", "bloc")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "iker" }) }); return "Cambiando a modo iker"; }
     if (has("modo escritorio", "modo desktop", "ve al escritorio")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "desktop" }) }); return "Cambiando a modo escritorio"; }
     if (has("modo dev", "modo desarrollador", "modo consola")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "dev" }) }); return "Cambiando a modo desarrollador"; }

@@ -591,7 +591,8 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «cuántos kilómetros son 10 millas» · «pasa 20 grados a fahrenheit» | Convierte entre kilómetros y millas, kilos y libras, metros y pies, y grados y Fahrenheit |
 | «dime un número al azar entre 1 y 10» | Dice un número al azar; sin rango, entre 1 y 100 |
 | «sube la música» · «baja la música» · «quita el sonido» | Cambia el volumen o silencia (igual que «sube el volumen» y «silencia») |
-| «cómo te llamas» · «me oyes» · «buenas noches» · «dónde vives» · «quién te hizo» | Pequeñas respuestas de cortesía y de charla, sin internet |
+| «vuelve a casa» | Vuelve al modo Casa (igual que «modo casa») |
+| «cómo te llamas» · «me oyes» · «buenas noches» · «adiós» · «dónde vives» · «quién te hizo» | Pequeñas respuestas de cortesía y de charla, sin internet |
 | «cuántos días tiene febrero» | Dice los días del mes (de este año, así que febrero cuenta los bisiestos) |
 | «cuenta hasta diez» | Cuenta en voz alta (hasta veinte) |
 | «deletrea hola» · «repite después de mí buenos días» | Dice la palabra letra a letra o repite lo que le digas |
