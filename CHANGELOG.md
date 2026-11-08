@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Test: cada página pide solo ficheros de /static/ que existen
+
+- Evita pantallas rotas por renombrar o borrar `fx.js`, `ui.css`, `osk.js`… y comprueba que `fx.js` está en las cuatro pantallas de la Pi.
+
 ## Voz: cuántas canciones tengo
 
 - Cuenta los MP3 de la carpeta. También en el simulador.
