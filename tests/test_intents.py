@@ -234,6 +234,11 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.say_calc(*i.parse("cuanto es la raiz cuadrada de 2").arg), "La raíz cuadrada de 2 es 1 coma 41")
         self.assertEqual(i.say_calc(*i.parse("cuanto es 7 al cuadrado").arg), "7 al cuadrado son 49")
 
+    def test_ayer(self):
+        hoy = datetime.datetime(2026, 11, 8, 10, 0)
+        self.assertEqual(i.say_date_part(hoy, i.parse("que dia fue ayer").arg), "Ayer fue sábado 7 de noviembre")
+        self.assertEqual(i.say_date_part(datetime.datetime(2026, 3, 1), i.parse("que dia fue ayer").arg), "Ayer fue sábado 28 de febrero")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

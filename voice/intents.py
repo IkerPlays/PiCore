@@ -313,6 +313,8 @@ def parse(text):
     m = re.search(r"que dia (?:de la semana )?(?:cae|es) el (\d{1,2}) de (\w+)", t)
     if m and m.group(2) in [norm(x) for x in MESES] and 1 <= int(m.group(1)) <= 31:
         return Intent("date_part", ("day", int(m.group(1)), [norm(x) for x in MESES].index(m.group(2)) + 1))
+    if has("que dia fue ayer", "que dia era ayer", "que fue ayer"):
+        return Intent("date_part", ("ago", 1))
     if has("que dia de la semana", "que dia es manana", "que dia sera manana", "que dia cae"):
         return Intent("date_tomorrow" if has("manana") else "date", None)
     if has("pon la pantalla en negro", "apaga la pantalla", "oscurece la pantalla"):
@@ -636,6 +638,9 @@ def say_date_part(now, what):
         return "Estamos en %d" % now.year
     if what == "month":
         return "Estamos en %s" % MESES[now.month - 1]
+    if what[0] == "ago":
+        f = now - datetime.timedelta(days=what[1])
+        return "Ayer fue %s %d de %s" % (DIAS[f.weekday()], f.day, MESES[f.month - 1])
     _, d, mes = what                                   # («day», dia, mes): el proximo 25 de diciembre
     for y in (now.year, now.year + 1):
         try:

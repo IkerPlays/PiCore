@@ -6,6 +6,10 @@
 
 
 
+## Voz: qué día fue ayer
+
+- Dice el día de la semana y la fecha de ayer. También en el simulador.
+
 ## Voz: raíz cuadrada y al cuadrado
 
 - «Cuánto es la raíz cuadrada de 144», «cuánto es 7 al cuadrado». También en el simulador.

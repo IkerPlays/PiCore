@@ -653,6 +653,7 @@
     if (has("que hora", "dime la hora")) return "Son las " + pad(now.getHours()) + ":" + pad(now.getMinutes());
     if (has("que ano es", "en que ano estamos", "que ano estamos")) return "Estamos en " + now.getFullYear();
     if (has("que mes es", "en que mes estamos", "que mes estamos")) return "Estamos en " + now.toLocaleDateString("es-ES", { month: "long" });
+    if (has("que dia fue ayer", "que dia era ayer", "que fue ayer")) return "Ayer fue " + new Date(now.getTime() - 864e5).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" }).replace(/^([^,]+), (\d+) de/, "$1 $2 de");
     const dm = /que dia (?:de la semana )?(?:cae|es) el (\d{1,2}) de (\w+)/.exec(t);
     if (dm) {
       const MS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"], mi = MS.indexOf(dm[2]);
