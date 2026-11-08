@@ -6,6 +6,10 @@
 
 
 
+## Interfaz: la bolita de los deslizadores crece al arrastrar
+
+- Brillo y volumen: la bolita se agranda un poco y deja un halo de color mientras la arrastras.
+
 ## Simulador: el dispositivo aparece con un desenfoque suave
 
 - Solo cambia la opacidad y el desenfoque (no toca el escalado de la carcasa) y se apaga con «reducir movimiento».
