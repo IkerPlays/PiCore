@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Hoja del Tiempo: la primera hora se llama «Ahora» y las horas de lluvia se tiñen
+
+- La tarjeta de la hora actual lleva borde de color y la etiqueta «Ahora»; las horas con 50 % o más de lluvia salen con un fondo azulado, para ver de un vistazo cuándo llueve.
+
 ## Voz: el tiempo a una hora («qué temperatura habrá a las seis»)
 
 - Usa la previsión por horas que ya carga la pantalla (las próximas 12). Si preguntas por una hora fuera de ese margen, lo dice. También en el simulador.

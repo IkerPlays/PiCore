@@ -1094,12 +1094,12 @@ function renderWeather() {
   H.textContent = ""; D.textContent = ""; $("w-sun").textContent = "";
   if (!w) { H.textContent = "Sin datos del tiempo."; return; }
   if (w.sunrise || w.sunset) $("w-sun").innerHTML = (w.sunrise ? '<span>' + ico("sun") + " Amanece " + esc(w.sunrise) + '</span>' : "") + (w.sunset ? '<span>' + ico("moon") + " Anochece " + esc(w.sunset) + '</span>' : "");
-  for (const x of w.hourly || []) {
-    const d = document.createElement("div"); d.className = "hr";
+  (w.hourly || []).forEach((x, k) => {
+    const d = document.createElement("div"); d.className = "hr" + (k === 0 ? " now" : "") + (x.rain != null && x.rain >= 50 ? " wet" : "");
     const ic = wIcon(x.code);
-    d.innerHTML = `<small>${esc(x.h)}</small><div class="wic">${ico(ic)}</div><b>${x.temp == null ? "--" : Math.round(x.temp) + "°"}</b><small class="r">${x.rain == null ? "" : x.rain + "%"}</small>`;
+    d.innerHTML = `<small>${k === 0 ? "Ahora" : esc(x.h)}</small><div class="wic">${ico(ic)}</div><b>${x.temp == null ? "--" : Math.round(x.temp) + "°"}</b><small class="r">${x.rain == null ? "" : x.rain + "%"}</small>`;
     H.append(d);
-  }
+  });
   for (const x of w.days || []) {
     const row = document.createElement("div"); row.className = "dy";
     const name = new Date(x.date + "T12:00").toLocaleDateString("es-ES", {weekday:"long"});
