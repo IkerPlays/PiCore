@@ -6,6 +6,10 @@
 
 
 
+## Voz: temporizadores con nombre «…para la pizza de 12 minutos», «cuánto le queda…» y «ponme un temporizador»
+
+- El nombre se perdía cuando iba antes de la duración; «cuánto le queda al temporizador de la pasta» no se entendía; y «ponme un temporizador» sin tiempo ahora pregunta de cuánto.
+
 ## Hoja Sistema: la lista «Qué puedo decirle a la Pi» incluye las órdenes nuevas
 
 - Cuentas, unidades, batería, amanecer, días que faltan, dos órdenes seguidas y chistes. Un test comprueba que el asistente entiende cada frase de la lista.

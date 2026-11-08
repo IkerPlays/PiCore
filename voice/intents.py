@@ -218,9 +218,12 @@ def strip_wake(text, wakes):
 
 def timer_label(text):
     """«...temporizador de diez minutos para la pasta» -> «pasta» (para ponerle nombre). Sin nombre -> ''."""
-    m = re.search(r"\bpara (?:el |la |los |las |mi |mis |un |una )?([a-záéíóúñü]+(?: [a-záéíóúñü]+){0,2})$", str(text).lower().strip(" .,!?¡¿"))
+    s = str(text).lower().strip(" .,!?¡¿")
+    m = re.search(r"\bpara (?:el |la |los |las |mi |mis |un |una )?([a-záéíóúñü]+(?: [a-záéíóúñü]+){0,2})$", s)
     if not m or parse_duration(norm(m.group(1)).split()):
-        return ""
+        m = re.search(r"\bpara (?:el |la |los |las |mi |mis |un |una )?([a-záéíóúñü]+(?: [a-záéíóúñü]+){0,1}) (?:de|en) \d", s)    # «...para la pizza de 12 minutos»
+        if not m:
+            return ""
     return m.group(1)[:40]
 
 
@@ -358,7 +361,7 @@ def parse(text):
                 return Intent("timer_extend", secs)
         if has("cancela", "quita", "borra", "elimina", "olvida"):
             return Intent("timer_cancel", None)
-        if has("cuanto queda", "cuanto falta", "que queda", "que falta"):
+        if has("cuanto queda", "cuanto falta", "que queda", "que falta", "cuanto le queda", "cuanto le falta"):
             return Intent("timer_query", None)
         if has("para ", "silencia", "apaga", "detener", "deten") and not has("pon", "programa", "crea") and not parse_duration(words):
             return Intent("timers_stop", None)
@@ -366,6 +369,8 @@ def parse(text):
         if secs:
             label = timer_label(text)
             return Intent("timer_set", (secs, label) if label else secs)
+        if has("pon", "ponme", "crea", "programa"):
+            return Intent("chat", "¿De cuánto? Dime, por ejemplo: pon un temporizador de diez minutos")
     if has("brillo") and has("que brillo", "cuanto brillo", "nivel de brillo", "como esta el brillo"):
         return Intent("brightness_query", None)
     if has("bateria") and has("cuanto", "cuanta", "nivel", "como esta", "esta cargando", "cargando"):

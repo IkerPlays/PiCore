@@ -313,6 +313,13 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.say_days_until(i.parse("cuanto falta para el domingo").arg, hoy), "Es hoy: el domingo")
         self.assertEqual(i.parse("cuanto falta para navidad").arg, "navidad")
 
+    def test_temporizadores_nombre_antes_de_la_duracion(self):
+        self.assertEqual(i.parse("pon un temporizador para la pizza de 12 minutos").arg, (720, "pizza"))
+        self.assertEqual(i.parse("pon un temporizador de diez minutos para la pasta").arg, (600, "pasta"))
+        self.assertEqual(i.parse("cuanto le queda al temporizador de la pasta").name, "timer_query")
+        self.assertEqual(i.parse("ponme un temporizador").name, "chat")
+        self.assertEqual(i.parse("pon un temporizador de diez minutos").arg, 600)
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)
