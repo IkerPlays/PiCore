@@ -623,6 +623,7 @@
     }
     if (has("repite", "que has dicho") && !has("cancion", "musica")) return S.voice && S.voice.reply ? S.voice.reply : "Todavía no he dicho nada";
     if (has("vigilancia", "movimiento")) { const on = !has("desactiva", "apaga", "quita", "deja de"); S.motion = on; LS.set("motion", on); return on ? "Vigilancia activada" : "Vigilancia desactivada"; }
+    if (has("quita el silencio", "activa el sonido", "pon el sonido", "quita el mute", "desactiva el silencio", "devuelve el sonido")) { S.audio.muted = false; LS.set("audio", S.audio); return "Sonido activado"; }
     if (has("silencia", "silencio", "mute", "quita el sonido", "sin sonido")) { S.audio.muted = !S.audio.muted; LS.set("audio", S.audio); return S.audio.muted ? "Silenciado" : "Sonido activado"; }
     if (has("que puedes hacer", "que sabes hacer", "ayuda", "que comandos")) return "Puedes pedirme la hora, el tiempo, temporizadores y alarmas, la música, el volumen y el brillo, cambiar de modo, tomar notas o decirte cómo está la Pi.";
     if (has("gracias")) return "De nada";

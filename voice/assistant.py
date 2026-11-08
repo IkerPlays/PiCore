@@ -74,6 +74,8 @@ def api(cfg, path, data=None):
 def set_volume(arg):
     if arg == "mute":
         cmds = [["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"], ["amixer", "-q", "set", "Master", "toggle"]]
+    elif arg == "unmute":
+        cmds = [["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "0"], ["amixer", "-q", "set", "Master", "unmute"]]
     elif arg[0] in "+-":
         cmds = [["wpctl", "set-volume", "-l", "1.0", "@DEFAULT_AUDIO_SINK@", arg[1:] + "%" + arg[0]],
                 ["amixer", "-q", "set", "Master", arg[1:] + "%" + arg[0]]]

@@ -330,6 +330,12 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.parse("tengo reuniones hoy").name, "calendar")
         self.assertEqual(i.parse("que hora es en madrid").name, "time_in")
 
+    def test_quitar_el_silencio(self):
+        for f in ("quita el silencio", "activa el sonido", "pon el sonido"):
+            self.assertEqual(i.parse(f).arg, "unmute", f)
+        self.assertEqual(i.parse("silencia").arg, "mute")
+        self.assertEqual(i.parse("quita el sonido").arg, "mute")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

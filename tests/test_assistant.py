@@ -93,6 +93,22 @@ class AssistantTest(unittest.TestCase):
         self.assertEqual([l for l in log if l[0] == "exec"], [("exec", ("volume", "+10")), ("exec", ("music", "play"))])
         self.assertIn(("say", "hecho. hecho"), log)
 
+    def test_set_volume_comandos(self):
+        lanzados = []
+        class R:
+            returncode = 0
+        real = assistant.subprocess.run
+        assistant.subprocess.run = lambda c, **k: (lanzados.append(c), R())[1]
+        try:
+            self.assertTrue(assistant.set_volume("unmute"))
+            self.assertTrue(assistant.set_volume("mute"))
+            self.assertTrue(assistant.set_volume("+10"))
+        finally:
+            assistant.subprocess.run = real
+        self.assertEqual(lanzados[0], ["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "0"])
+        self.assertEqual(lanzados[1][-1], "toggle")
+        self.assertEqual(lanzados[2][-1], "10%+")
+
     def test_unknown_command(self):
         a, log, _ = make([True], ["háblame de los gatos"])
         a.on_audio(b"x"); a.on_audio(b"x")

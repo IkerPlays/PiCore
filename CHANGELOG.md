@@ -6,6 +6,10 @@
 
 
 
+## Voz: «quita el silencio» y «activa el sonido» devuelven el sonido
+
+- Antes «quita el silencio» silenciaba (se entendía «silencio»). Ahora quita el silencio de verdad (`wpctl set-mute 0`, o `amixer unmute`). También en el simulador.
+
 ## Voz: el tiempo de otra ciudad ya no se contesta con el de la tuya
 
 - «Qué tiempo hace en Madrid» daba el tiempo de la ciudad elegida como si fuera el de Madrid. Ahora lo dice: solo hay el de la ciudad de la pantalla. Además «necesito un paraguas» y «hay riesgo de lluvia» dan el tiempo, «a cuántos estamos» da la fecha y «tengo reuniones hoy» mira el calendario.

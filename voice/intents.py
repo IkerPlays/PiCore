@@ -426,6 +426,8 @@ def parse(text):
             return Intent("mode", "dev")
         if has("escritorio"):
             return Intent("mode", "desktop")
+    if has("quita el silencio", "activa el sonido", "pon el sonido", "quita el mute", "desactiva el silencio", "devuelve el sonido"):
+        return Intent("volume", "unmute")
     if has("quita el sonido", "sin sonido"):
         return Intent("volume", "mute")
     if has("volumen", "silencia", "silencio", "mute"):
