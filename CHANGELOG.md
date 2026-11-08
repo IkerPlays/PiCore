@@ -6,6 +6,10 @@
 
 
 
+## Docs: «Qué no hace la voz (a propósito)» en docs/VOICE.md
+
+- Resume las reglas que impiden que una pregunta, una negación o una opinión ejecuten una orden.
+
 ## Voz: «más alto», «más bajo» y «pon la radio»
 
 - «Más alto / más fuerte» y «más bajo / más flojo» cambian el volumen; «pon la radio» dice con honestidad que no hay radio y qué sí se puede poner. También en el simulador.

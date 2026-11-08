@@ -13,6 +13,19 @@ micro ─► openWakeWord ──(palabra)──► pitido ─► Whisper (o Vosk
 - El texto se convierte en una acción en `voice/intents.py` y se ejecuta en `voice/assistant.py` llamando a la API local de la Pi; para añadir una orden nueva, sigue la receta de [CONTRIBUTING.md](../CONTRIBUTING.md#receta-añadir-una-orden-de-voz).
 - Uso: di la palabra → suena un **pitido** → di la orden («qué hora es», «modo casa», «pausa el Pi-hole diez minutos»...). La lista de órdenes está en el [README](../README.md#voz).
 
+## Qué no hace la voz (a propósito)
+
+Para que una frase suelta no cambie cosas sin querer, `voice/intents.py` aplica estas reglas **antes** de buscar la orden:
+
+- **Órdenes negadas** («no pongas la cámara», «no subas el volumen») no hacen nada: la Pi contesta «Vale, lo dejo como está».
+- **Preguntas de estado** («la vigilancia está activa», «está apagada la cámara») no cambian nada: la Pi dice que eso no lo sabe decir por voz.
+- **Preguntas de «cómo funciona»** («para qué sirve el Pi-hole», «qué hace el modo Dev») remiten al tutorial.
+- **Preguntar por el Pi-hole** («cuánto tiempo queda de pausa») da las estadísticas; nunca lo pausa.
+- **Apagar o reiniciar la Pi** no se puede pedir por voz: solo desde la hoja Sistema, con confirmación en pantalla.
+- **Dos órdenes en una frase** («sube el volumen y pon música») se hacen una detrás de otra solo si las dos mitades son órdenes por sí solas.
+
+Cada regla tiene su test en `tests/test_intents.py`. Si añades una orden nueva, comprueba que no se dispara con una pregunta o una negación.
+
 ## Palabra de activación
 
 Los modelos que vienen incluidos son en inglés: `hey_jarvis` (por defecto, y el que recomiendo), `alexa`, `hey_mycroft`, `hey_marvin`, `timer`, `weather`. Cambia `wake_model` en `/etc/pcpi/pcpi.conf` y reinicia con `systemctl --user restart pcpi-voice`.
