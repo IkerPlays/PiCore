@@ -6,6 +6,11 @@
 
 
 
+## Web: movimiento en la portada y barra superior fija
+
+- Las secciones aparecen al hacer scroll (con retraso escalonado en las rejillas), el título del hero brilla despacio, el dispositivo flota, hay una barra de progreso arriba y la barra superior gana sombra al bajar. Todo se apaga con «reducir movimiento» y sin JavaScript la página se ve completa.
+- Arreglo: la barra superior no se quedaba fija al hacer scroll (`overflow-x:hidden` en `html` y `body` lo impedía); ahora usa `overflow-x:clip`.
+
 ## Interfaz: destello al tocar y tarjetas con presión (todas las pantallas)
 
 - Nuevo `home/web/static/fx.js`: al tocar un botón, chip o canción sale un destello suave (solo `box-shadow`, sin repintar la pantalla). Las tarjetas se hunden un poco al pulsarlas y las cifras (reloj, Pi-hole, temporizador) usan números de ancho fijo para que no bailen. Se desactiva con «reducir movimiento». Probado en Chromium sin pantalla; no he medido el coste en una Pi real.
