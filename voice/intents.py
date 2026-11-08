@@ -355,7 +355,7 @@ def parse(text):
         clock = parse_clock(words)
         if clock:
             return Intent("alarm_set", clock + (True,) if has("todos los dias", "cada dia", "diaria", "a diario", "diariamente") else clock)
-    if has("que suena", "que cancion es", "que cancion esta sonando", "que estoy escuchando", "como se llama esta cancion"):
+    if has("que suena", "que cancion es", "que cancion esta sonando", "que estoy escuchando", "como se llama esta cancion", "quien canta", "que esta sonando"):
         return Intent("music_now", None)
     if has("musica", "cancion", "musix", "tema "):
         if has(" en ", "dentro de", "durante") and has("para", "apaga", "pausa", "deten"):

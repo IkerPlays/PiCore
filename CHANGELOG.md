@@ -6,6 +6,10 @@
 
 
 
+## Voz: «quién canta esto» y «qué está sonando»
+
+- Se suman a «qué suena» y «qué canción es». También en el simulador.
+
 ## Interfaz: la bolita de los deslizadores crece al arrastrar
 
 - Brillo y volumen: la bolita se agranda un poco y deja un halo de color mientras la arrastras.

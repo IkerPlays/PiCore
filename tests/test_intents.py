@@ -247,6 +247,10 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.parse("cuenta hasta cinco").arg, "1, 2, 3, 4, 5")
         self.assertIn("mucho", i.parse("cuenta hasta cien").arg)
 
+    def test_que_suena_variantes(self):
+        for f in ("quien canta esta cancion", "que esta sonando"):
+            self.assertEqual(i.parse(f).name, "music_now", f)
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)
