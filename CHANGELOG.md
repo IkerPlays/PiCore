@@ -6,6 +6,10 @@
 
 
 
+## README: más órdenes de voz en la lista
+
+- Cuentas, chistes y número al azar.
+
 ## Voz: número al azar
 
 - «Dime un número al azar entre 1 y 10» (o sin rango: de 1 a 100). También en el simulador.
