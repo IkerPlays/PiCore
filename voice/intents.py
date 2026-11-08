@@ -235,6 +235,9 @@ def parse(text):
         return Intent("sys_info", "temp" if not has("como esta", "estado") else "all")
     if has("que puedes hacer", "que sabes hacer", "ayuda", "que te puedo pedir", "que comandos"):
         return Intent("help", None)
+    for frases, resp in RESPUESTAS:
+        if has(*frases):
+            return Intent("chat", resp)
     if has("chiste", "hazme reir", "algo gracioso"):
         return Intent("joke", None)
     if has("gracias", "muchas gracias", "eres genial"):
@@ -527,6 +530,15 @@ def say_days_until(which, today):
         return "Hoy es %s" % nombre
     return "Falta 1 día para %s" % nombre if n == 1 else "Faltan %d días para %s" % (n, nombre)
 
+
+# Respuestas fijas: (frases que las activan, lo que se contesta). El simulador tiene la misma tabla en web-demo/demo.js.
+RESPUESTAS = (
+    (("como te llamas", "quien eres", "cual es tu nombre"), "Soy PiCore, el asistente de tu Raspberry Pi. Todo lo que hago, lo hago aquí, sin nube"),
+    (("estas ahi", "me oyes", "me escuchas"), "Sí, te oigo"),
+    (("buenas noches",), "Buenas noches. Que descanses"),
+    (("te quiero", "eres la mejor"), "Gracias, yo también te aprecio. Soy una Pi, pero se agradece"),
+    (("cuantos anos tienes", "cuando naciste"), "Soy software: nací cuando me instalaste"),
+)
 
 CHISTES = ['¿Qué le dice un cero a un ocho? Bonito cinturón', '¿Por qué los pájaros vuelan hacia el sur? Porque andando tardarían mucho', '¿Qué hace una abeja en el gimnasio? Zum-ba', '¿Cómo se llama el campeón de buceo japonés? Tokofondo', '¿Qué le dice un semáforo a otro? No me mires, que me pongo rojo', '¿Qué hace un perro con un taladro? Taladrando', 'Mi ordenador no me hace caso, pero yo a él tampoco']
 

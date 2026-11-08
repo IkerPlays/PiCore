@@ -179,6 +179,12 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.parse("quita el sonido").arg, "mute")
         self.assertEqual(i.parse("quita la musica").arg, "pause")
 
+    def test_respuestas_de_cortesia(self):
+        for frase, trozo in (("como te llamas", "PiCore"), ("me oyes", "te oigo"), ("buenas noches", "descanses")):
+            x = i.parse(frase)
+            self.assertEqual(x.name, "chat")
+            self.assertIn(trozo, x.arg)
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

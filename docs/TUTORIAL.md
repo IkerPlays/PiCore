@@ -591,6 +591,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «cuántos kilómetros son 10 millas» · «pasa 20 grados a fahrenheit» | Convierte entre kilómetros y millas, kilos y libras, metros y pies, y grados y Fahrenheit |
 | «dime un número al azar entre 1 y 10» | Dice un número al azar; sin rango, entre 1 y 100 |
 | «sube la música» · «baja la música» · «quita el sonido» | Cambia el volumen o silencia (igual que «sube el volumen» y «silencia») |
+| «cómo te llamas» · «me oyes» · «buenas noches» | Pequeñas respuestas de cortesía, sin internet |
 | «cuéntame un chiste» | Cuenta uno de una lista corta guardada en la Pi (funciona sin internet) |
 | «qué hora será dentro de veinte minutos» | Suma el tiempo a la hora actual y te dice a qué hora será |
 | «cuánto es el 20 por ciento de 50» | Calcula porcentajes |

@@ -6,6 +6,10 @@
 
 
 
+## Voz: respuestas de cortesía
+
+- «Cómo te llamas», «me oyes», «buenas noches», «te quiero»: respuestas fijas guardadas en una tabla (`RESPUESTAS`), la misma en la Pi y en el simulador.
+
 ## Web: movimiento en la portada y barra superior fija
 
 - Las secciones aparecen al hacer scroll (con retraso escalonado en las rejillas), el título del hero brilla despacio, el dispositivo flota, hay una barra de progreso arriba y la barra superior gana sombra al bajar. Todo se apaga con «reducir movimiento» y sin JavaScript la página se ve completa.

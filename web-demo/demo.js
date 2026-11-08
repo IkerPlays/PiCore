@@ -484,6 +484,13 @@
   /* ---------------- voz simulada: escribes lo que dirias y la «Pi» contesta (y habla, si tu navegador sabe) ---------------- */
   const WORDS = { un: 1, uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10, once: 11, doce: 12, trece: 13, catorce: 14, quince: 15, dieciseis: 16,
     diecisiete: 17, dieciocho: 18, diecinueve: 19, veinte: 20, treinta: 30, cuarenta: 40, cincuenta: 50, sesenta: 60 };
+  const RESPUESTAS = [
+    [["como te llamas", "quien eres", "cual es tu nombre"], "Soy PiCore, el asistente de tu Raspberry Pi. Todo lo que hago, lo hago aquí, sin nube"],
+    [["estas ahi", "me oyes", "me escuchas"], "Sí, te oigo"],
+    [["buenas noches"], "Buenas noches. Que descanses"],
+    [["te quiero", "eres la mejor"], "Gracias, yo también te aprecio. Soy una Pi, pero se agradece"],
+    [["cuantos anos tienes", "cuando naciste"], "Soy software: nací cuando me instalaste"],
+  ];
   function duration(t) {                                            // «diez minutos», «5 min», «media hora», «una hora y media» -> segundos
     if (/media hora/.test(t) && !/hora y media/.test(t)) return 1800;
     const m = /(\d+|[a-z]+)\s*(segundos?|minutos?|min|horas?)\b/.exec(t); if (!m) return null;
@@ -517,6 +524,7 @@
         return "En " + CT[k][1] + " " + (h === 1 ? "es la una" : "son las " + h) + (m ? " y " + m : " en punto");
       }
     }
+    for (const [fr, resp] of RESPUESTAS) if (has(...fr)) return resp;
     if (has("chiste", "hazme reir", "algo gracioso")) { const J = ["¿Qué le dice un cero a un ocho? Bonito cinturón", "¿Por qué los pájaros vuelan hacia el sur? Porque andando tardarían mucho", "¿Qué hace una abeja en el gimnasio? Zum-ba", "¿Cómo se llama el campeón de buceo japonés? Tokofondo", "¿Qué le dice un semáforo a otro? No me mires, que me pongo rojo", "¿Qué hace un perro con un taladro? Taladrando", "Mi ordenador no me hace caso, pero yo a él tampoco"]; return J[Math.floor(Math.random() * J.length)]; }
     const cv = /^(?:pasa|convierte) (\d+) (kilometros|millas|kilos|libras|metros|pies|grados|fahrenheit) a (kilometros|millas|kilos|libras|metros|pies|grados|fahrenheit)$/.exec(t) || (m => m && [m[0], m[2], m[3], m[1]])(/^cuant[oa]s (kilometros|millas|kilos|libras|metros|pies|grados|fahrenheit) son (\d+) (kilometros|millas|kilos|libras|metros|pies|grados|fahrenheit)$/.exec(t));
     if (cv) {
