@@ -598,6 +598,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «qué día fue ayer» | Dice el día de la semana y la fecha de ayer |
 | «en qué año estamos» · «qué mes es» · «qué día cae el 25 de diciembre» | Año, mes y día de la semana de una fecha (la próxima vez que llega) |
 | «lee la lista de la compra» · «qué hay en mis tareas» | Lee en voz alta lo que hay en la lista (hasta 12 elementos) |
+| «despiértame en una hora» · «a qué hora suena la alarma» | Pone un aviso dentro de ese tiempo; o dice cuándo es la próxima alarma |
 | «cuántas alarmas tengo» | Cuenta las alarmas (igual que «cuántas notas tengo» y «cuántos temporizadores») |
 | «qué versión tienes» | Dice la versión de PiCore instalada |
 | «qué brillo tengo» | Dice el brillo actual (y si está en automático) |

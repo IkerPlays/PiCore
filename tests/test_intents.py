@@ -257,6 +257,14 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.say_brightness({"effective": 40, "auto": True}), "El brillo está al 40 por ciento, en automático")
         self.assertEqual(i.say_brightness(None), "No sé qué brillo tengo")
 
+    def test_despiertame_y_proxima_alarma(self):
+        self.assertEqual(i.parse("despiertame en una hora").arg, 3600)
+        self.assertEqual(i.parse("pon la alarma para dentro de una hora").arg, 3600)
+        self.assertEqual(i.parse("despiertame a las siete").name, "alarm_set")
+        self.assertEqual(i.parse("a que hora suena la alarma").name, "alarm_query")
+        self.assertEqual(i.say_alarm([{"kind": "alarm", "hour": 7, "minute": 30, "daily": True, "label": "gimnasio", "due": 5}]), "Tu próxima alarma es a las 7 y 30, todos los días (gimnasio)")
+        self.assertEqual(i.say_alarm([]), "No tienes ninguna alarma")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

@@ -6,6 +6,10 @@
 
 
 
+## Voz: «despiértame en una hora» y «a qué hora suena la alarma»
+
+- Antes no se entendía lo primero y lo segundo se contestaba con la hora actual. Ahora lo primero pone un aviso y lo segundo dice la próxima alarma (con «todos los días» y el nombre si los tiene). También en el simulador.
+
 ## CONTRIBUTING: receta de voz con el paso del navegador y las respuestas fijas
 
 - Documenta la trampa de los reemplazos de texto que no se aplican y cómo añadir una respuesta fija.

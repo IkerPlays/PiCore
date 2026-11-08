@@ -282,6 +282,10 @@ def parse(text):
         return Intent("uptime", None)
     if has("a que wifi", "que wifi", "a que red", "que red", "tengo internet", "hay internet", "estoy conectad", "estamos conectad"):
         return Intent("net_info", None)
+    if (has("despiertame", "despierta me") or (has("alarma") and has("dentro de"))) and not parse_clock(words) and (secs_d := parse_duration(words)):
+        return Intent("timer_set", secs_d)                       # «despiertame en una hora», «pon la alarma para dentro de una hora»
+    if has("alarma") and has("a que hora suena", "a que hora esta", "cuando suena", "cual es mi alarma", "proxima alarma"):
+        return Intent("alarm_query", None)
     if has("avisame", "recuerdame", "avisa me", "recuerda me") and not parse_duration(words) and (clock_r := parse_clock(words)):
         t2 = re.sub(r"\bde la (?:mañana|manana|tarde|noche|madrugada)\b", "", str(text).lower().strip(" .,!?¡¿"))
         m = re.search(r"\ba las [^,]*?\b(?:que|para|de)\s+(.{2,40})$", t2)
@@ -507,6 +511,16 @@ def say_time(now):
     if m == 0:
         return art + " en punto"
     return "%s y %d" % (art, m)
+
+
+def say_alarm(timers):
+    """«Tu próxima alarma es a las 7 y 30» (la más cercana que no esté sonando)."""
+    al = sorted([t for t in (timers or []) if t.get("kind") == "alarm" and not t.get("ringing") and isinstance(t.get("hour"), int)], key=lambda t: t.get("due", 0))
+    if not al:
+        return "No tienes ninguna alarma"
+    t = al[0]
+    hora = "las %d en punto" % t["hour"] if not t.get("minute") else "las %d y %d" % (t["hour"], t["minute"])
+    return "Tu próxima alarma es a %s%s%s" % (hora, ", todos los días" if t.get("daily") else "", " (%s)" % t["label"] if t.get("label") else "")
 
 
 def say_brightness(d):
