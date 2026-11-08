@@ -6,6 +6,10 @@
 
 
 
+## Web: se puede instalar en el móvil
+
+- Nuevo `manifest.webmanifest`: en el móvil, «Añadir a la pantalla de inicio» abre el simulador a pantalla completa con el icono de PiCore. No es una app con modo sin conexión, solo el acceso directo.
+
 ## Voz: deletrear y repetir
 
 - «Deletrea hola» dice «h, o, l, a»; «repite después de mí …» repite la frase. También en el simulador.

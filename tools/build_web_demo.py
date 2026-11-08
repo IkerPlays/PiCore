@@ -103,6 +103,11 @@ def build(out):
         for f in sorted(LANDING_IMG.iterdir()):
             if f.suffix in (".webp", ".png", ".jpg", ".svg"):
                 shutil.copy2(f, out / "img" / f.name)
+    (out / "manifest.webmanifest").write_text(json.dumps({     # «Añadir a la pantalla de inicio» en el móvil
+        "name": "PiCore", "short_name": "PiCore", "description": "Simulador de PiCore, un PC portátil con Raspberry Pi 5",
+        "start_url": "/simulador", "scope": "/", "display": "standalone", "lang": "es",
+        "background_color": "#07090e", "theme_color": "#07090e",
+        "icons": [{"src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}]}, ensure_ascii=False), encoding="utf-8")
     (out / "robots.txt").write_text("User-agent: *\nAllow: /\nDisallow: /app\nDisallow: /iker\nDisallow: /dev\nDisallow: /escritorio\nDisallow: /loading\nSitemap: %s/sitemap.xml\n" % SITE, encoding="utf-8")
     (out / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>%s/</loc></url>\n  <url><loc>%s/simulador</loc></url>\n</urlset>\n' % (SITE, SITE), encoding="utf-8")
     for name, (dest, title) in PAGES.items():

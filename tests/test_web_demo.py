@@ -41,6 +41,10 @@ class LandingTest(unittest.TestCase):
             self.assertIn(tag, self.html)
         self.assertNotIn("noindex", self.html)
         self.assertIn("Sitemap:", (self.out / "robots.txt").read_text())
+        mf = json.loads((self.out / "manifest.webmanifest").read_text())
+        self.assertEqual((mf["display"], mf["start_url"]), ("standalone", "/simulador"))
+        for pagina in ("index.html", "simulador.html"):
+            self.assertIn('rel="manifest"', (self.out / pagina).read_text())
         self.assertIn("/simulador", (self.out / "sitemap.xml").read_text())
 
     def test_estructura_basica_de_la_portada(self):
@@ -93,7 +97,7 @@ class BuildTest(unittest.TestCase):
         build_web_demo.build(cls.out)
 
     def test_expected_files(self):
-        for n in ("index.html", "app.html", "iker.html", "dev.html", "loading.html", "escritorio.html", "404.html", "_headers", "simulador.html", "favicon.svg", "robots.txt", "sitemap.xml", "img/casa.webp", "static/landing.css", "static/demo.js", "static/ui.css", "static/icons.svg", "static/osk.js"):
+        for n in ("index.html", "app.html", "iker.html", "dev.html", "loading.html", "escritorio.html", "404.html", "_headers", "simulador.html", "favicon.svg", "robots.txt", "sitemap.xml", "manifest.webmanifest", "img/casa.webp", "static/landing.css", "static/demo.js", "static/ui.css", "static/icons.svg", "static/osk.js"):
             self.assertTrue((self.out / n).is_file(), n)
 
     def test_pages_have_the_sprite_and_the_demo_script_first(self):
