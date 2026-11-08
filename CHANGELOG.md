@@ -26,6 +26,10 @@
 
 - Se suma a Ctrl+S, Ctrl+N, Ctrl+P y Ctrl+F; el pie de la página lo recuerda.
 
+## Test: la portada y la carcasa del simulador en un navegador
+
+- Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
+
 ## Voz (arreglo): «qué tengo el viernes» y «qué tengo pasado mañana»
 
 - Antes «el viernes» se contestaba con lo de hoy y «pasado mañana» con lo de mañana (se comía la palabra). Ahora mira el día pedido. También en el simulador.
