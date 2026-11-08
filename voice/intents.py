@@ -140,6 +140,39 @@ def parse_calc(t):
     return None
 
 
+CONV = {  # (de, a): factor o funcion
+    ("kilometros", "millas"): lambda x: x * 0.621371, ("millas", "kilometros"): lambda x: x / 0.621371,
+    ("kilos", "libras"): lambda x: x * 2.20462, ("libras", "kilos"): lambda x: x / 2.20462,
+    ("metros", "pies"): lambda x: x * 3.28084, ("pies", "metros"): lambda x: x / 3.28084,
+    ("grados", "fahrenheit"): lambda x: x * 9 / 5 + 32, ("fahrenheit", "grados"): lambda x: (x - 32) * 5 / 9,
+}
+
+
+def parse_convert(t):
+    """«cuantos kilometros son 10 millas» / «pasa 20 grados a fahrenheit» -> (valor, de, a) o None."""
+    w = t.split()
+    w = [{"kilometro": "kilometros", "milla": "millas", "kilo": "kilos", "libra": "libras", "metro": "metros", "pie": "pies", "celsius": "grados"}.get(x, x) for x in w]
+    if not (w[:1] in (["cuantos"], ["cuantas"], ["pasa"], ["convierte"])):
+        return None
+    for (de, a) in CONV:
+        if de in w and a in w:
+            if w[:1] in (["cuantos"], ["cuantas"]):   # «cuantos KM son 10 MILLAS»: el valor va con el segundo
+                dest, orig = (de, a) if w.index(de) < w.index(a) else (a, de)
+                v = find_number(w[w.index(orig) - 1:w.index(orig)])
+                return (v, orig, dest) if v is not None and (orig, dest) in CONV else None
+            if w.index(de) > w.index(a):
+                continue                               # lo contrario lo cubre el otro par
+            v = find_number(w[:w.index(de)])
+            return (v, de, a) if v is not None else None
+    return None
+
+
+def say_convert(v, de, a):
+    r = CONV[(de, a)](v)
+    txt = ("%.1f" % r).rstrip("0").rstrip(".").replace(".", " coma ")
+    return "%d %s son %s %s" % (v, de, txt, a)
+
+
 def say_calc(a, op, b):
     if op == "/" and b == 0:
         return "No se puede dividir entre cero"
@@ -353,6 +386,9 @@ def parse(text):
         for k, (tz, nombre) in CITY_TZ.items():
             if k in t:
                 return Intent("time_in", (tz, nombre))
+    cv = parse_convert(t)
+    if cv:
+        return Intent("convert", cv)
     c = parse_calc(t)
     if c:
         return Intent("calc", c)

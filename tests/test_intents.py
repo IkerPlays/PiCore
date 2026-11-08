@@ -157,6 +157,12 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.parse("dime un numero al azar").arg, ("numero", 1, 100))
         self.assertTrue(5 <= int(i.say_random(("numero", 5, 9)).split()[-1]) <= 9)
 
+    def test_conversiones(self):
+        self.assertEqual(i.parse("cuantos kilometros son diez millas").arg, (10, "millas", "kilometros"))
+        self.assertEqual(i.parse("convierte 100 fahrenheit a grados").arg, (100, "fahrenheit", "grados"))
+        self.assertEqual(i.say_convert(100, "fahrenheit", "grados"), "100 fahrenheit son 37 coma 8 grados")
+        self.assertEqual(i.parse("cuantos dias faltan para navidad").name, "days_until")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

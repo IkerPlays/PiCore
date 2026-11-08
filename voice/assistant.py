@@ -204,6 +204,8 @@ def execute(cfg, intent):
             return intents.say_days_until(a, datetime.date.today())
         if n == "joke":
             return intents.say_joke()
+        if n == "convert":
+            return intents.say_convert(*a)
         if n == "calc":
             return intents.say_calc(*a)
         if n == "random":

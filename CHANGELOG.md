@@ -6,6 +6,10 @@
 
 
 
+## Voz: conversiones de unidades
+
+- Kilómetros y millas, kilos y libras, metros y pies, grados y Fahrenheit («cuántos kilómetros son 10 millas», «pasa 20 grados a fahrenheit»). El simulador solo entiende cifras.
+
 ## README: más órdenes de voz en la lista
 
 - Cuentas, chistes y número al azar.

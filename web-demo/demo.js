@@ -518,6 +518,12 @@
       }
     }
     if (has("chiste", "hazme reir", "algo gracioso")) { const J = ["¿Qué le dice un cero a un ocho? Bonito cinturón", "¿Por qué los pájaros vuelan hacia el sur? Porque andando tardarían mucho", "¿Qué hace una abeja en el gimnasio? Zum-ba", "¿Cómo se llama el campeón de buceo japonés? Tokofondo", "¿Qué le dice un semáforo a otro? No me mires, que me pongo rojo", "¿Qué hace un perro con un taladro? Taladrando", "Mi ordenador no me hace caso, pero yo a él tampoco"]; return J[Math.floor(Math.random() * J.length)]; }
+    const cv = /^(?:pasa|convierte) (\d+) (kilometros|millas|kilos|libras|metros|pies|grados|fahrenheit) a (kilometros|millas|kilos|libras|metros|pies|grados|fahrenheit)$/.exec(t) || (m => m && [m[0], m[2], m[3], m[1]])(/^cuant[oa]s (kilometros|millas|kilos|libras|metros|pies|grados|fahrenheit) son (\d+) (kilometros|millas|kilos|libras|metros|pies|grados|fahrenheit)$/.exec(t));
+    if (cv) {
+      const F = { "kilometros>millas": x => x * 0.621371, "millas>kilometros": x => x / 0.621371, "kilos>libras": x => x * 2.20462, "libras>kilos": x => x / 2.20462, "metros>pies": x => x * 3.28084, "pies>metros": x => x / 3.28084, "grados>fahrenheit": x => x * 9 / 5 + 32, "fahrenheit>grados": x => (x - 32) * 5 / 9 };
+      const f = F[cv[2] + ">" + cv[3]];
+      if (f) return cv[1] + " " + cv[2] + " son " + f(+cv[1]).toFixed(1).replace(/\.0$/, "").replace(".", " coma ") + " " + cv[3];
+    }
     const calc = /^(?:cuanto (?:es|son)|calcula) (\d+) (mas|menos|por|entre|multiplicado por|dividido (?:entre|por)) (\d+)$/.exec(t);
     if (calc) {
       const a = +calc[1], b = +calc[3], o = calc[2];

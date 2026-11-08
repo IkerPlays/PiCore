@@ -588,6 +588,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «activa el Pi-hole» | Lo vuelve a activar |
 | «sube el volumen» · «baja el volumen» | ±10 % |
 | «volumen al cincuenta» | Pone el volumen a ese número (0–100) |
+| «cuántos kilómetros son 10 millas» · «pasa 20 grados a fahrenheit» | Convierte entre kilómetros y millas, kilos y libras, metros y pies, y grados y Fahrenheit |
 | «dime un número al azar entre 1 y 10» | Dice un número al azar; sin rango, entre 1 y 100 |
 | «cuéntame un chiste» | Cuenta uno de una lista corta guardada en la Pi (funciona sin internet) |
 | «cuánto es 12 por 5» · «calcula 10 entre 4» | Hace cuentas sencillas con dos números: más, menos, por, entre |
