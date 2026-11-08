@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Voz: la pista de Whisper incluye las órdenes nuevas
+
+- Se suman cuentas, unidades, amanecer, batería, fechas y chistes a la frase de ayuda que se le da a Whisper (`PROMPT` en `voice/stt.py`). Es una ayuda, no una garantía: sin probar en una Pi con micrófono real, no sé cuánto mejora el acierto.
+
 ## Voz: fechas relativas, días que quedan del mes y semana del año
 
 - «Qué fecha será dentro de una semana», «qué día fue hace dos semanas» (también meses, con calendario real), «cuántos días quedan de este mes», «en qué semana estamos». En el simulador, solo con cifras.
