@@ -717,6 +717,8 @@
       P.screensaver = on; LS.set("prefs", P); return on ? "Salvapantallas activado" : "Salvapantallas desactivado";
     }
     if (has("cuantos anuncios", "cuanto has bloqueado", "como va el pihole", "como va pihole", "estadisticas del pihole")) return "Pi-hole ha bloqueado 326 de 1211 consultas, un 27 por ciento (datos de ejemplo)";
+    if (/^(?:para que sirve|que hace|que es el|que es la|que son|como (?:activo|pongo|uso|funciona|se activa|se pone|se usa)|por que)\b/.test(t)) return "Eso está explicado en el tutorial y en «Qué puedo decirle a la Pi», en la hoja Sistema";
+    if (has("me gusta", "es genial", "es muy bueno", "que bonito", "que bueno es") && has("modo", "camara", "musica", "pihole", "pi hole", "pantalla", "vigilancia", "salvapantallas", "temporizador", "alarma")) return "Me alegro";
     if (/\bno (?:me )?(?:pongas|pon|enciendas|actives|abras|muestres|apagues|pares|quites|desactives|subas|bajes|cambies|borres)\b/.test(t)) return "Vale, lo dejo como está";
     if (/\besta(?:n)? (?:activ|encendid|apagad|desactivad|puest|conectad)/.test(t) && has("vigilancia", "camara", "salvapantallas", "pantalla", "musica")) return "Eso no lo sé decir por voz todavía: míralo en la pantalla";
     if (has("pihole", "pi hole", "bloqueador") && has("cuanto", "esta activo", "esta funcionando", "esta apagado", "porcentaje", "que tal")) return "Pi-hole ha bloqueado 326 de 1211 consultas, un 27 por ciento (datos de ejemplo)";

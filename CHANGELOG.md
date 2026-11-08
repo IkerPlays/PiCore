@@ -6,6 +6,10 @@
 
 
 
+## Voz (arreglo): preguntas sobre cómo funciona algo y opiniones ya no ejecutan nada
+
+- «Para qué sirve el Pi-hole» lo pausaba y «el modo Dev es genial» cambiaba de modo. Ahora las preguntas («para qué sirve», «qué hace», «cómo activo…») remiten al tutorial y las opiniones sobre una función («me gusta el modo Casa») se contestan con «Me alegro» (una opinión sobre otra cosa sigue yendo a la IA local). «Puedes poner música» ya pone música. También en el simulador.
+
 ## Voz (arreglo): las órdenes negadas y las preguntas de estado no ejecutan nada
 
 - «No pongas la cámara» abría la cámara y «la vigilancia está activa» activaba la vigilancia. Ahora «no + verbo» contesta «Vale, lo dejo como está», y preguntar si algo «está activo / encendido / apagado» (cámara, vigilancia, salvapantallas, pantalla, música) no cambia nada. También en el simulador.

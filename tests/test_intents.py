@@ -283,6 +283,12 @@ class IntentTest(unittest.TestCase):
         for f, n in (("pon la camara", "camera_show"), ("activa la vigilancia", "motion"), ("apaga la musica", "music"), ("sube el volumen", "volume")):
             self.assertEqual(i.parse(f).name, n, f)
 
+    def test_preguntas_y_opiniones_no_ejecutan(self):
+        for f in ("para que sirve el pihole", "que hace el modo dev", "como activo la camara", "me gusta el modo casa", "el modo dev es genial"):
+            self.assertEqual(i.parse(f).name, "chat", f)
+        self.assertEqual(i.parse("puedes poner musica").arg, "play")
+        self.assertEqual(i.parse("modo dev").arg, "dev")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

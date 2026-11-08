@@ -229,6 +229,10 @@ def parse(text):
         return None
     words = t.split()
     has = lambda *ks: any(k in t for k in ks)
+    if re.match(r"^(?:para que sirve|que hace|que es el|que es la|que son|como (?:activo|pongo|uso|funciona|se activa|se pone|se usa)|por que)\b", t):
+        return Intent("chat", "Eso está explicado en el tutorial y en «Qué puedo decirle a la Pi», en la hoja Sistema")
+    if has("me gusta", "es genial", "es muy bueno", "que bonito", "que bueno es") and has("modo", "camara", "musica", "pihole", "pi hole", "pantalla", "vigilancia", "salvapantallas", "temporizador", "alarma"):
+        return Intent("chat", "Me alegro")
     if re.search(r"\bno (?:me )?(?:pongas|pon|enciendas|actives|abras|muestres|apagues|pares|quites|desactives|subas|bajes|cambies|borres)\b", t):
         return Intent("chat", "Vale, lo dejo como está")             # una orden negada nunca se ejecuta
 
@@ -382,7 +386,7 @@ def parse(text):
             return Intent("music", "previous")
         if has("pausa", "para ", "detener", "deten", "silencia", "quita", "apaga"):
             return Intent("music", "pause")
-        if has("reanuda", "continua", "sigue", "pon ", "ponme", "reproduce", "activa", "play"):
+        if has("reanuda", "continua", "sigue", "pon ", "poner ", "ponme", "reproduce", "activa", "play"):
             return Intent("music", "play")
     if has("cuantos anuncios", "cuanto has bloqueado", "cuantas consultas", "como va el pihole", "como va pihole", "estado del pihole", "estadisticas del pihole", "como va el pi hole", "como va pi hole", "estado del pi hole", "estadisticas del pi hole"):
         return Intent("pihole_stats", None)
