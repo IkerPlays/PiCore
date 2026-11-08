@@ -26,6 +26,14 @@
 
 - Se suma a Ctrl+S, Ctrl+N, Ctrl+P y Ctrl+F; el pie de la página lo recuerda.
 
+## Tema claro (todas las pantallas): textos secundarios y estados con contraste AA
+
+- `ui.css` pisaba los colores ya corregidos de Casa e Iker con otros más claros (`--dim` 3,7:1 sobre el panel de Iker; verde y rojo también justos). Ahora usa los mismos valores AA que Casa.
+
+## Test: contraste de Iker sobre su panel lateral en los dos temas
+
+- Cubre el arreglo del tema mezclado de Iker.
+
 ## Test: la portada y la carcasa del simulador en un navegador
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.

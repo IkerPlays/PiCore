@@ -41,6 +41,23 @@ class ContrasteDeLaPortada(unittest.TestCase):
                 c = contraste(t[texto], t[fondo])
                 self.assertGreaterEqual(c, minimo, "tema %s: --%s sobre --%s tiene contraste %.2f (minimo %s)" % (nombre, texto, fondo, c, minimo))
 
+    def test_iker_los_dos_temas_sobre_el_panel_lateral(self):
+        """Iker usa los colores de ui.css (que fijan el tema) mas su propio --side: el texto se lee sobre el panel en claro y en oscuro."""
+        raiz = Path(__file__).resolve().parent.parent / "home" / "web"
+        ui = (raiz / "static" / "ui.css").read_text(encoding="utf-8")
+        iker = (raiz / "iker.html").read_text(encoding="utf-8")
+        oscuro = {}
+        for bloque in re.findall(r"^:root \{(.*?)\}", ui, re.S | re.M):          # ui.css reparte las variables en varios :root
+            oscuro.update(variables(bloque))
+        claro = dict(oscuro)
+        claro.update(variables(re.search(r"html\[data-theme=light\] \{(.*?)\}", ui, re.S).group(1)))
+        oscuro["side"] = re.search(r"html:not\(\[data-theme=light\]\) \{ --side:(#[0-9a-fA-F]{6});", iker).group(1)
+        claro["side"] = re.search(r"html\[data-theme=light\] \{ --side:(#[0-9a-fA-F]{6});", iker).group(1)
+        for nombre, t in (("oscuro", oscuro), ("claro", claro)):
+            for texto in ("fg", "dim"):
+                c = contraste(t[texto], t["side"])
+                self.assertGreaterEqual(c, 4.5, "Iker, tema %s: --%s sobre el panel lateral = %.2f" % (nombre, texto, c))
+
     def test_tema_claro_de_la_pantalla_de_la_pi(self):
         """Casa (index.html) y Iker en tema claro: el texto secundario y los colores de estado se leen (WCAG AA, 4,5)."""
         raiz = Path(__file__).resolve().parent.parent / "home" / "web"

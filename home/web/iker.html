@@ -53,7 +53,7 @@
 </style>
 <link rel="stylesheet" href="/static/ui.css">
 <style>   /* mismo tema que Casa (claro de dia, oscuro de noche, o el que elegiste); ui.css fija los colores base y aqui se le suma el del panel lateral */
-  html:not([data-theme=light]) { --side:#0b0e14; } html[data-theme=light] { --side:#e5decf; }
+  html:not([data-theme=light]) { --side:#0b0e14; } html[data-theme=light] { --side:#ebe5d8; }
 </style>
 <script>(function () { var t = null; try { t = localStorage.getItem("pcpi-theme"); } catch (e) {} var h = new Date().getHours(); document.documentElement.dataset.theme = t === "light" || t === "dark" ? t : (h >= 8 && h < 20 ? "light" : "dark"); })();</script>
 </head>
