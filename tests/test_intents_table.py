@@ -76,6 +76,15 @@ class TablaDeOrdenes(unittest.TestCase):
                 self.assertIsNotNone(intents.parse(frase), "la pantalla o la web dicen «%s» pero el asistente no lo entiende" % frase)
         self.assertGreater(total, 25)
 
+    def test_los_enlaces_say_de_la_portada_se_entienden(self):
+        import re
+        from urllib.parse import unquote
+        l = (Path(__file__).resolve().parent.parent / "web-demo" / "landing.html").read_text(encoding="utf-8")
+        enlaces = re.findall(r'href="/simulador\?say=([^"]+)"', l)
+        self.assertGreaterEqual(len(enlaces), 6)
+        for e in enlaces:
+            self.assertIsNotNone(intents.parse(unquote(e)), "la portada enlaza «%s» pero el asistente no lo entiende" % unquote(e))
+
     def test_las_frases_del_readme_se_entienden(self):
         import re
         t = (Path(__file__).resolve().parent.parent / "README.md").read_text(encoding="utf-8")

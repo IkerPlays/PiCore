@@ -6,6 +6,10 @@
 
 
 
+## Web: «Pídele algo a la Pi» en la portada
+
+- Ocho frases que abren el simulador y la ejecutan al llegar (`?say=`). Un test comprueba que el asistente de la Pi entiende cada una.
+
 ## Simulador: `?say=` prueba una orden al abrir
 
 - `/simulador?say=qué hora es` escribe y envía esa orden a los dos segundos de abrir (máximo 140 caracteres). Sirve para enlazar ejemplos desde la portada o una incidencia.
