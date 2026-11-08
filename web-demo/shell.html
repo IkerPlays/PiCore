@@ -93,6 +93,9 @@ document.getElementById("themebtn").onclick = () => { const t = $f("#time"); if 
 document.getElementById("share").onclick = async () => {
   let m = "home"; try { m = JSON.parse(localStorage.getItem("pcpi-demo-mode") || '"home"'); } catch (e) {}
   const url = location.origin + "/simulador?p=" + ({home: "/app", iker: "/iker", dev: "/dev", desktop: "/escritorio"}[m] || "/app"), btn = document.getElementById("share");
+  if (navigator.share && matchMedia("(pointer: coarse)").matches) {                 // en el móvil: la hoja de compartir del sistema
+    try { await navigator.share({ title: "PiCore", text: "Prueba PiCore en el navegador", url }); return; } catch (e) { if (e && e.name === "AbortError") return; }
+  }
   try { await navigator.clipboard.writeText(url); btn.textContent = "Enlace copiado"; } catch (e) { btn.textContent = url; }
   setTimeout(() => { btn.textContent = "Copiar enlace"; }, 2500);
 };

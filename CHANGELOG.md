@@ -6,6 +6,10 @@
 
 
 
+## Simulador: «Copiar enlace» abre la hoja de compartir en el móvil
+
+- Si el navegador tiene Web Share y la pantalla es táctil, abre el menú de compartir del sistema; si no, copia el enlace como siempre.
+
 ## Voz: «quién canta esto» y «qué está sonando»
 
 - Se suman a «qué suena» y «qué canción es». También en el simulador.
