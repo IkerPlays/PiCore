@@ -6,6 +6,10 @@
 
 
 
+## Hoja del Tiempo: amanece y anochece
+
+- Debajo de las próximas horas sale «Amanece 07:42» y «Anochece 18:21» (con iconos, sin emojis). Si la API no los da, no se muestra nada.
+
 ## Voz: a qué hora amanece y anochece
 
 - El servidor pide también `sunrise` y `sunset` a Open-Meteo (la misma llamada del tiempo) y la voz los dice. Antes «a qué hora amanece» se entendía como «qué hora es». En el simulador son horas de ejemplo.

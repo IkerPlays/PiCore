@@ -427,6 +427,7 @@
 <section id="wpanel" aria-label="Tiempo">
   <h3><span id="w-title">Tiempo</span> <button id="wcity" hidden>Cambiar ciudad</button><button id="w-close" aria-label="Cerrar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></h3>
   <div class="dim" style="font-size:14px;margin-bottom:6px">Próximas horas</div><div class="hours" id="w-hours"></div>
+  <div class="dim" id="w-sun" style="font-size:14px;margin:-2px 0 12px;display:flex;gap:18px"></div>
   <div class="dim" style="font-size:14px;margin-bottom:6px">Próximos días</div><div class="days" id="w-days"></div>
 </section>
 <audio id="mxaudio" preload="none"></audio>
@@ -1086,8 +1087,9 @@ loadSaver(); setInterval(loadSaver, 5 * 60 * 1000);
 /* ---- detalle del tiempo: por horas y proximos dias ---- */
 function renderWeather() {
   const w = lastWeather, H = $("w-hours"), D = $("w-days");
-  H.textContent = ""; D.textContent = "";
+  H.textContent = ""; D.textContent = ""; $("w-sun").textContent = "";
   if (!w) { H.textContent = "Sin datos del tiempo."; return; }
+  if (w.sunrise || w.sunset) $("w-sun").innerHTML = (w.sunrise ? '<span>' + ico("sun") + " Amanece " + esc(w.sunrise) + '</span>' : "") + (w.sunset ? '<span>' + ico("moon") + " Anochece " + esc(w.sunset) + '</span>' : "");
   for (const x of w.hourly || []) {
     const d = document.createElement("div"); d.className = "hr";
     const ic = wIcon(x.code);
