@@ -277,6 +277,12 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.parse("pon el pihole en pausa").name, "pihole_disable")
         self.assertEqual(i.parse("activa el pihole").name, "pihole_enable")
 
+    def test_negaciones_y_preguntas_de_estado_no_ejecutan(self):
+        for f in ("no pongas la camara", "no apagues la musica", "no subas el volumen", "la vigilancia esta activa", "esta apagada la camara", "esta puesto el salvapantallas"):
+            self.assertEqual(i.parse(f).name, "chat", f)
+        for f, n in (("pon la camara", "camera_show"), ("activa la vigilancia", "motion"), ("apaga la musica", "music"), ("sube el volumen", "volume")):
+            self.assertEqual(i.parse(f).name, n, f)
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

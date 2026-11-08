@@ -229,6 +229,8 @@ def parse(text):
         return None
     words = t.split()
     has = lambda *ks: any(k in t for k in ks)
+    if re.search(r"\bno (?:me )?(?:pongas|pon|enciendas|actives|abras|muestres|apagues|pares|quites|desactives|subas|bajes|cambies|borres)\b", t):
+        return Intent("chat", "Vale, lo dejo como está")             # una orden negada nunca se ejecuta
 
     m = re.match(r"^(?:por favor )?(?:anade|añade|apunta|pon|mete|agrega|agregame|anademe|añademe)\s+(.{2,80}?)\s+(?:a|en)\s+(?:la\s+)?lista(?:\s+de\s+(?:la\s+)?(compra|compras|tareas|pendientes))?$", str(text).strip(" .!?¡¿"), re.I)
     if m:
@@ -418,6 +420,8 @@ def parse(text):
             return Intent("volume", "+10")
         if has("baja", "menos", "bajo"):
             return Intent("volume", "-10")
+    if re.search(r"\besta(?:n)? (?:activ|encendid|apagad|desactivad|puest|conectad)", t) and has("vigilancia", "camara", "salvapantallas", "pantalla", "musica"):
+        return Intent("chat", "Eso no lo sé decir por voz todavía: míralo en la pantalla")      # una pregunta de estado nunca cambia nada
     if has("vigilancia", "movimiento", "alarma de camara"):
         if has("desactiva", "apaga", "para ", "quita", "deja de", "cancela"):
             return Intent("motion", False)

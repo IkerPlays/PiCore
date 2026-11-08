@@ -6,6 +6,10 @@
 
 
 
+## Voz (arreglo): las órdenes negadas y las preguntas de estado no ejecutan nada
+
+- «No pongas la cámara» abría la cámara y «la vigilancia está activa» activaba la vigilancia. Ahora «no + verbo» contesta «Vale, lo dejo como está», y preguntar si algo «está activo / encendido / apagado» (cámara, vigilancia, salvapantallas, pantalla, música) no cambia nada. También en el simulador.
+
 ## Voz (arreglo): preguntar por el Pi-hole ya no lo pausa
 
 - «Cuánto tiempo queda de pausa del Pi-hole» se entendía como «pausa el Pi-hole». Ahora cualquier pregunta («cuánto», «está activo», «porcentaje») da las estadísticas y no cambia nada. También en el simulador.
