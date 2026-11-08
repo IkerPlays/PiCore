@@ -888,6 +888,7 @@ function paintMusic(m) {
   else if (m.cmd === "next") { if (mxCur < 0) mxLoad().then(() => mxPlay(0)); else mxNext(); }
   else if (m.cmd === "previous") mxPrev();
   else if (m.cmd === "sleep") mxSetSleep(m.arg || 0);
+  else if (m.cmd === "track") { mxLoad().then(() => { const k = mxTracks.findIndex(t => t.id === m.arg); if (k >= 0) mxPlay(k); }); }
 }
 
 function mxShow(v) {

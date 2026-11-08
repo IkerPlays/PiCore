@@ -392,6 +392,13 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(x.name, "chat")
         self.assertEqual(i.parse("despiertame a las 7 todos los dias").name, "alarm_set")
 
+    def test_pon_la_cancion(self):
+        self.assertEqual(i.parse("pon la cancion aurora").arg, "aurora")
+        pistas = [{"id": "a" * 12, "title": "Aurora (demo)"}, {"id": "b" * 12, "title": "Aurora boreal larga"}]
+        self.assertEqual(i.find_track(pistas, "AURORA")["id"], "a" * 12)
+        self.assertIsNone(i.find_track(pistas, "marea"))
+        self.assertEqual(i.parse("pon la musica").arg, "play")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

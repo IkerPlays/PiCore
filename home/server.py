@@ -1227,9 +1227,13 @@ def music_post(body):
     act = body.get("action")
     cp = read_conf()
     if act == "cmd":
-        if body.get("cmd") not in ("play", "pause", "next", "previous", "sleep"):
+        if body.get("cmd") not in ("play", "pause", "next", "previous", "sleep", "track"):
             raise ValueError("orden invalida")
         arg = None
+        if body["cmd"] == "track":                                  # «pon la cancion Aurora»: solo un id que exista en la carpeta
+            arg = str(body.get("id") or "")
+            if arg not in {t["id"] for t in musix.list_tracks()}:
+                raise ValueError("esa cancion no existe")
         if body["cmd"] == "sleep":                                  # «apaga la musica en 30 minutos»; 0 = cancelar
             arg = body.get("seconds")
             if isinstance(arg, bool) or not isinstance(arg, int) or not (arg == 0 or 60 <= arg <= 12 * 3600):

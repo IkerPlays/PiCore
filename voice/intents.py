@@ -409,6 +409,9 @@ def parse(text):
             return Intent("alarm_set", clock + (True,) if has("todos los dias", "cada dia", "diaria", "a diario", "diariamente") else clock)
     if has("que suena", "que cancion es", "que cancion esta sonando", "que estoy escuchando", "como se llama esta cancion", "quien canta", "que esta sonando"):
         return Intent("music_now", None)
+    m = re.match(r"^(?:pon|ponme|reproduce) (?:la cancion|el tema|la musica de) (.{2,40})$", t)
+    if m:
+        return Intent("music_track", m.group(1).strip())
     if has("musica", "cancion", "musix", "tema "):
         if has(" en ", "dentro de", "durante") and has("para", "apaga", "pausa", "deten"):
             secs = parse_duration(words)
@@ -616,6 +619,13 @@ def say_notes_found(q, found, recent=False):
         return "No he encontrado ninguna nota con %s" % q
     titulos = ", ".join(str(f.get("title") or "sin título") for f in found[:3]) + (" y %d más" % (len(found) - 3) if len(found) > 3 else "")
     return ("He encontrado una nota con %s: %s" if len(found) == 1 else "He encontrado %d notas con %%s: %%s" % len(found)) % (q, titulos)
+
+
+def find_track(tracks, query):
+    """La cancion cuyo titulo contiene lo pedido (sin tildes ni mayusculas); si hay varias, la de titulo mas corto."""
+    q = norm(query)
+    hits = [t for t in (tracks or []) if q and q in norm(t.get("title", ""))]
+    return min(hits, key=lambda t: len(t.get("title", ""))) if hits else None
 
 
 def say_cancelled(kind, k):

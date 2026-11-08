@@ -159,6 +159,16 @@ def execute(cfg, intent):
                 except ValueError:
                     return "No he podido controlar la música"
             return {"pause": "Música en pausa", "play": "Seguimos con la música", "next": "Siguiente canción", "previous": "Canción anterior"}[a]
+        if n == "music_track":
+            try:
+                with urllib.request.urlopen(cfg["api"] + "/api/music", timeout=5) as r:
+                    t = intents.find_track(json.load(r).get("tracks"), a)
+                if not t:
+                    return "No encuentro ninguna canción que se llame %s" % a
+                api(cfg, "/api/music", {"action": "cmd", "cmd": "track", "id": t["id"]})
+                return "Pongo %s" % t["title"]
+            except (urllib.error.URLError, ValueError):
+                return "No he podido poner esa canción"
         if n == "volume":
             return "Hecho" if set_volume(a) else "No he podido cambiar el volumen"
         if n == "brightness":

@@ -423,7 +423,7 @@
     if (p === "/api/music" && method === "GET") return J({ tracks: tracks(), seq: S.music.seq, cmd: S.music.cmd, arg: S.music.arg, embed: LS.get("embed", null), history: LS.get("history", []), search: false });
     if (p === "/api/music" && method === "POST") {
       const act = body.action;
-      if (act === "cmd") { if (!["play", "pause", "next", "previous", "sleep"].includes(body.cmd)) return ERR("orden invalida"); S.music = { seq: S.music.seq + 1, cmd: body.cmd, arg: body.cmd === "sleep" ? body.seconds : null }; return J({ ok: true, seq: S.music.seq }); }
+      if (act === "cmd") { if (!["play", "pause", "next", "previous", "sleep", "track"].includes(body.cmd)) return ERR("orden invalida"); if (body.cmd === "track" && !tracks().some(t => t.id === body.id)) return ERR("esa cancion no existe"); S.music = { seq: S.music.seq + 1, cmd: body.cmd, arg: body.cmd === "sleep" ? body.seconds : body.cmd === "track" ? body.id : null }; return J({ ok: true, seq: S.music.seq }); }
       if (act === "now") { S.nowplaying = { state: body.state, title: String(body.title || "").slice(0, 120), artist: String(body.artist || "").slice(0, 80) }; return J({ ok: true }); }
       if (act === "embed") {
         if (!body.link) { LS.set("embed", null); return J({ ok: true, url: null, history: LS.get("history", []) }); }
@@ -740,6 +740,12 @@
     if (has("modo iker", "modo notas", "bloc")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "iker" }) }); return "Cambiando a modo iker"; }
     if (has("modo escritorio", "modo desktop", "ve al escritorio")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "desktop" }) }); return "Cambiando a modo escritorio"; }
     if (has("modo dev", "modo desarrollador", "modo consola")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "dev" }) }); return "Cambiando a modo desarrollador"; }
+    const mtk = /^(?:pon|ponme|reproduce) (?:la cancion|el tema|la musica de) (.{2,40})$/.exec(t);
+    if (mtk) {
+      const hits = tracks().filter(x => norm(x.title).includes(norm(mtk[1]))).sort((a, b) => a.title.length - b.title.length);
+      if (!hits.length) return "No encuentro ninguna canción que se llame " + mtk[1];
+      S.music = { seq: S.music.seq + 1, cmd: "track", arg: hits[0].id }; return "Pongo " + hits[0].title;
+    }
     if (has("musica", "cancion")) {
       if (has("sube", "baja") && !has("volumen")) { S.audio.volume = Math.max(0, Math.min(100, S.audio.volume + (has("sube") ? 15 : -15))); S.audio.muted = false; LS.set("audio", S.audio); return "Volumen al " + S.audio.volume + " por ciento"; }
       const cmd = has("siguiente", "salta") ? "next" : has("anterior") ? "previous" : has("pausa", "para", "deten", "silencia") ? "pause" : has("pon", "ponme", "reanuda", "sigue", "reproduce") ? "play" : null;
