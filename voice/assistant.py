@@ -293,7 +293,7 @@ def execute(cfg, intent):
                 cal = json.load(r).get("calendar", {})
             if not cal.get("configured"):
                 return "No tienes ningún calendario configurado"
-            return intents.say_calendar(cal.get("events", []), a)
+            return intents.say_calendar(cal.get("events", []), a, datetime.date.today())
         if n == "ask":
             return ask_ai(cfg, a)
         if n == "timer_set":

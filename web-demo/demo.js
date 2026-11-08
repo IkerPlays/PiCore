@@ -724,6 +724,12 @@
     if (has("tiempo", "llover", "lluvia", "temperatura", "calor", "frio")) {
       const w = weather(); return "Ahora hay " + Math.round(w.temp) + " grados y poco nuboso. Máxima " + Math.round(w.tmax) + ", mínima " + Math.round(w.tmin) + ". " + (w.rain_alert ? "Habrá lluvia en " + w.rain_alert.in_hours + " hora, con un " + w.rain_alert.prob + " por ciento." : "");
     }
+    if (has("calendario", "agenda", "que tengo", "tengo algo") && /\b(lunes|martes|miercoles|jueves|viernes|sabado|domingo)\b|pasado manana/.test(t)) {
+      const DS = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"], dm = /\b(lunes|martes|miercoles|jueves|viernes|sabado|domingo)\b/.exec(t);
+      const dia = dm ? dm[1] : DS[(((now.getDay() + 6) % 7) + 2) % 7], et = dm ? "el " + dia : "pasado mañana";
+      const mine = calendar().events.filter(e => norm(e.when).split(" ")[0] === dia);
+      return !mine.length ? "No tienes nada " + et : et[0].toUpperCase() + et.slice(1) + " tienes: " + mine.map(e => e.title + (e.time ? " a las " + e.time.replace(":", " y ").replace(" y 00", " en punto") : "")).join("; ");
+    }
     if (has("calendario", "agenda", "que tengo")) { const ev = calendar().events; return "Hoy tienes " + ev[0].title + " a las " + ev[0].time + ". Mañana: " + ev[1].title; }
     if (has("modo casa", "modo hogar", "vuelve a casa", "ve a casa", "volver a casa", "pantalla de inicio", "ve al inicio", "vuelve al inicio")) { LS.set("mode", "home"); fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "home" }) }); return "Cambiando a modo casa"; }
     if (has("modo iker", "modo notas", "bloc")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "iker" }) }); return "Cambiando a modo iker"; }

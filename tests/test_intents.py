@@ -366,6 +366,15 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.say_minmax(w, i.parse("maxima y minima de hoy").arg), "Hoy, máxima de 24 grados y mínima de 18")
         self.assertEqual(i.say_minmax({}, "max"), "No sé las temperaturas de hoy")
 
+    def test_calendario_otros_dias(self):
+        ev = [{"when": "Jueves 12", "time": "18:30", "title": "Guitarra"}, {"when": "Hoy", "time": "", "title": "Cumple"}]
+        hoy = datetime.date(2026, 11, 8)                      # domingo: pasado manana = martes
+        self.assertEqual(i.say_calendar(ev, i.parse("que tengo el jueves").arg, hoy), "El jueves tienes: Guitarra a las 18 y 30")
+        self.assertEqual(i.say_calendar(ev, i.parse("que tengo el viernes").arg, hoy), "No tienes nada el viernes")
+        self.assertEqual(i.say_calendar(ev, i.parse("que tengo pasado manana").arg, hoy), "No tienes nada pasado mañana")
+        self.assertEqual(i.parse("que tengo manana").arg, "tomorrow")
+        self.assertEqual(i.parse("que tengo hoy").arg, "today")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

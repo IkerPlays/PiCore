@@ -601,6 +601,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «cuánto falta para el viernes» · «cuánto falta para el fin de semana» · «cuánto falta para el 25 de diciembre» | Cuenta los días que faltan |
 | «en qué año estamos» · «qué mes es» · «qué día cae el 25 de diciembre» | Año, mes y día de la semana de una fecha (la próxima vez que llega) |
 | «qué notas tengo» | Dice los títulos de tus tres notas más recientes (las fijadas, primero) |
+| «qué tengo el viernes» · «qué tengo pasado mañana» | Mira el calendario de ese día (solo los próximos eventos que carga la Pi) |
 | «busca en mis notas leche» | Dice cuántas notas tienen esa palabra y sus títulos |
 | «lee la lista de la compra» · «qué hay en mis tareas» | Lee en voz alta lo que hay en la lista (hasta 12 elementos) |
 | «despiértame en una hora» · «a qué hora suena la alarma» | Pone un aviso dentro de ese tiempo; o dice cuándo es la próxima alarma |

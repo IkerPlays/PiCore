@@ -26,6 +26,10 @@
 
 - Se suma a Ctrl+S, Ctrl+N, Ctrl+P y Ctrl+F; el pie de la página lo recuerda.
 
+## Voz (arreglo): «qué tengo el viernes» y «qué tengo pasado mañana»
+
+- Antes «el viernes» se contestaba con lo de hoy y «pasado mañana» con lo de mañana (se comía la palabra). Ahora mira el día pedido. También en el simulador.
+
 ## Voz: máxima y mínima de hoy
 
 - «Cuál es la máxima de hoy», «la mínima de hoy», «máxima y mínima». También en el simulador.

@@ -357,6 +357,13 @@ def parse(text):
         return Intent("date_tomorrow" if has("manana") else "date", None)
     if has("pon la pantalla en negro", "apaga la pantalla", "oscurece la pantalla"):
         return Intent("brightness", "10")
+    if has("calendario", "agenda", "que tengo", "tengo algo", "tengo dentista") and not has("proximo evento", "siguiente evento", "proxima cita"):
+        dias = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"]
+        m = re.search(r"\b(lunes|martes|miercoles|jueves|viernes|sabado|domingo)\b", t)
+        if m:
+            return Intent("calendar", ("weekday", dias.index(m.group(1))))
+        if has("pasado manana"):
+            return Intent("calendar", ("offset", 2))
     if has("calendario", "agenda", "que tengo", "tengo algo", "mis eventos", "proximo evento", "siguiente evento", "proxima cita", "tengo hoy", "tengo manana", "reuniones", "citas hoy"):
         return Intent("calendar", "next" if has("proximo evento", "siguiente evento", "proxima cita") else "tomorrow" if has("manana") else "today")
     if has("temporizador", "cuenta atras", "cuentaatras"):
@@ -844,8 +851,21 @@ def say_weather_day(w, offset):
     return txt
 
 
-def say_calendar(events, which="today"):
-    """Frase con los eventos de hoy o de manana (lista ya en JSON del servidor)."""
+def say_calendar(events, which="today", today=None):
+    """Frase con los eventos de hoy o de manana (lista ya en JSON del servidor). which tambien puede ser ('weekday', n) u ('offset', dias)."""
+    if isinstance(which, tuple):
+        hoy = today or datetime.date.today()
+        if which[0] == "offset":
+            dia = (hoy + datetime.timedelta(days=which[1])).weekday()
+            etiqueta = "pasado mañana"
+        else:
+            dia = which[1]
+            etiqueta = "el " + DIAS[dia]
+        mine = [e for e in events if norm(e["when"]).split()[0] == norm(DIAS[dia])]
+        if not mine:
+            return "No tienes nada %s" % etiqueta
+        parts = ["%s%s" % (e["title"], (" a las " + e["time"].replace(":", " y ").replace(" y 00", " en punto")) if e["time"] else "") for e in mine[:4]]
+        return "%s tienes: %s" % (etiqueta.capitalize(), "; ".join(parts))
     if which == "next":
         if not events:
             return "No tienes ningún evento próximo"
