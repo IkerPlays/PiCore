@@ -6,6 +6,10 @@ La portada (`web-demo/landing.html`, con su CSS y capturas en `web-demo/`) expli
 
 Una versión de la interfaz que corre **solo en el navegador**, sin Raspberry Pi y sin servidor Python. Sirve para enseñar el proyecto, probar cambios de diseño o dejar que otra persona lo pruebe con un enlace.
 
+## Enlaces con una orden
+
+`/simulador?say=qué hora es` abre el simulador y le dice esa orden a los dos segundos (máximo 140 caracteres). Se puede combinar con `?p=/iker` o `?tour`.
+
 ## Cómo funciona
 
 La interfaz real habla con un servidor Python (`home/server.py`) por una API (`/api/...`). En la demo, `web-demo/demo.js` se carga **antes** que el resto y sustituye `fetch` para esas rutas: contesta él mismo, en JavaScript, con datos de ejemplo. Lo que "guardas" (notas, marcadores, ajustes, temporizadores) se queda en el almacenamiento local **de tu navegador**; el botón **Restablecer** de la insignia lo borra.

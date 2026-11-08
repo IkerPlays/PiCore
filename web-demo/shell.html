@@ -159,6 +159,9 @@ document.getElementById("t-next").onclick = () => { if (step >= STEPS.length - 1
 document.getElementById("t-prev").onclick = () => show(step - 1);
 document.getElementById("t-x").onclick = () => { tour.classList.remove("on"); step = -1; };
 if (/[?&]tour\b/.test(location.search)) setTimeout(() => show(0), 1200);
+/* /simulador?say=qué hora es : prueba una orden al abrir (sirve para enlazar ejemplos desde fuera) */
+{ const s = (new URLSearchParams(location.search).get("say") || "").slice(0, 140).trim();
+  if (s) setTimeout(() => { document.getElementById("sayin").value = s; say(s); }, 2200); }
 
 const keys = document.getElementById("keys"); document.getElementById("keys-x").onclick = () => { keys.hidden = true; };
 /* atajos: 1 Casa, 2 Iker, 3 Dev, T visita guiada, V escribir a la Pi (solo si no estas escribiendo en un cuadro) */

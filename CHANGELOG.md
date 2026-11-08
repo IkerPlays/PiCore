@@ -6,6 +6,10 @@
 
 
 
+## Simulador: `?say=` prueba una orden al abrir
+
+- `/simulador?say=qué hora es` escribe y envía esa orden a los dos segundos de abrir (máximo 140 caracteres). Sirve para enlazar ejemplos desde la portada o una incidencia.
+
 ## Voz: qué brillo tengo
 
 - Dice el brillo efectivo (el de noche si toca) y si está en automático. También en el simulador.
