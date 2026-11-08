@@ -34,7 +34,7 @@ La lista completa está en el [tutorial](TUTORIAL.md#qué-puedes-pedir). La pala
 ## La web (picoreweb.netlify.app)
 
 - **Portada** que explica qué es, para qué sirve, cómo funciona, cómo instalarlo y preguntas frecuentes, con tema claro/oscuro.
-- **Simulador** con barra de **voz escrita**, **visita guiada** de 14 pasos, atajos de teclado y botón «Copiar enlace».
+- **Simulador** con barra de **voz escrita**, **visita guiada** de 15 pasos, atajos de teclado y botón «Copiar enlace».
 
 ## Calidad
 

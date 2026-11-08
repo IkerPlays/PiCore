@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Visita guiada: paso «Cuentas, fechas y unidades» (15 pasos)
+
+- Enseña las órdenes nuevas y ejecuta «cuánto es 12 por 5» en la barra de voz.
+
 ## Hoja del Tiempo: los días de lluvia (50 % o más) también se tiñen
 
 - Igual que las horas: se ve de un vistazo qué días llueve.

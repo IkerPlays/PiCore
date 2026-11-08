@@ -46,7 +46,7 @@ La web explica qué es PiCore, cómo funciona y para qué sirve, y el **simulado
 make demo           # la misma demo en local: http://127.0.0.1:8081
 ```
 
-En la demo funciona **casi todo lo visual**: Casa (reloj, tiempo, Pi-hole, temporizadores, Wi-Fi, brillo, Sistema), **Musix** (el MP3 Player suena con canciones generadas en el navegador; YT Music carga el reproductor de YouTube), el modo **Iker** con notas que se guardan en tu navegador y el modo **Dev** con una consola de mentira. Tiene **voz escrita** (le escribes «qué hora es», «pon un temporizador…», «toma nota…» y responde en voz alta) y una **visita guiada** de 14 pasos. **No hace nada real**: no apaga, no descarga, no ejecuta órdenes, no hay micrófono ni cámara real. Para ponerla tú en Netlify (3 pasos): [docs/DEMO_WEB.md](docs/DEMO_WEB.md).
+En la demo funciona **casi todo lo visual**: Casa (reloj, tiempo, Pi-hole, temporizadores, Wi-Fi, brillo, Sistema), **Musix** (el MP3 Player suena con canciones generadas en el navegador; YT Music carga el reproductor de YouTube), el modo **Iker** con notas que se guardan en tu navegador y el modo **Dev** con una consola de mentira. Tiene **voz escrita** (le escribes «qué hora es», «pon un temporizador…», «toma nota…» y responde en voz alta) y una **visita guiada** de 15 pasos. **No hace nada real**: no apaga, no descarga, no ejecuta órdenes, no hay micrófono ni cámara real. Para ponerla tú en Netlify (3 pasos): [docs/DEMO_WEB.md](docs/DEMO_WEB.md).
 
 **Opción 2 · Emulador completo (Python).** Con el servidor real y un Pi-hole falso:
 
