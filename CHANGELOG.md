@@ -6,6 +6,10 @@
 
 
 
+## Simulador: ayuda de atajos con la tecla «?»
+
+- Una ventanita lista los atajos (1-4, V, T, flechas, Esc). Se cierra con Esc o con «Entendido».
+
 ## Web: las pestañas de los modos se manejan con el teclado
 
 - Flechas izquierda y derecha, Inicio y Fin cambian de modo (Casa, Iker, Dev) en la portada; solo la pestaña activa entra con Tab, como en cualquier lista de pestañas accesible.

@@ -40,6 +40,10 @@
   @media (max-width:900px) { .keys { display:none; } }
   @media (max-width:700px) { #hint { bottom:4px; font-size:11px; padding:0 12px; } #bar { bottom:56px; } #stage { bottom:122px; } }
   @media (orientation:portrait) and (max-width:700px) { #rot { display:inline; } header small { display:none; } }
+  #keys { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); z-index:30; width:min(380px, calc(100% - 28px)); padding:20px 22px; border-radius:18px; background:#12161ee8; border:1px solid #ffffff22; box-shadow:0 30px 80px #000a; }
+  #keys[hidden] { display:none; } #keys h4 { font-size:16px; margin-bottom:12px; }
+  #keys dl { display:grid; grid-template-columns:auto 1fr; gap:8px 16px; margin-bottom:16px; font-size:14px; } #keys dt { font-weight:700; color:#7cabff; white-space:nowrap; } #keys dd { color:#c9d3e6; margin:0; }
+  #keys:not([hidden]) { animation:kin .25s cubic-bezier(.2,.8,.2,1); } @keyframes kin { from { opacity:0; transform:translate(-50%,-46%) scale(.96); } }
 </style>
 </head>
 <body>
@@ -48,6 +52,9 @@
   <button data-m="home">Casa</button><button data-m="iker">Iker</button><button data-m="dev">Dev</button><button data-m="desktop">Escritorio</button>
   <button id="themebtn" title="Cambia entre tema claro y oscuro en Casa (en la Pi, toca la hora)">Tema</button><button id="tourbtn" title="Un paseo por las funciones, paso a paso">Visita guiada</button><a class="b" href="https://github.com/IkerPlays/PiCore" target="_blank" rel="noopener">GitHub</a><button id="share" title="Copia un enlace que abre el simulador en este modo">Copiar enlace</button><button id="reset">Restablecer</button></header>
 <div id="stage"><div id="dev"><iframe id="f" title="PiCore" allow="autoplay; encrypted-media"></iframe></div></div>
+<div id="keys" role="dialog" aria-label="Atajos de teclado" hidden><h4>Atajos de teclado</h4>
+  <dl><dt>1 · 2 · 3 · 4</dt><dd>Casa, Iker, Dev, Escritorio</dd><dt>V</dt><dd>Escribir una orden de voz</dd><dt>T</dt><dd>Visita guiada</dd><dt>← →</dt><dd>Pasos de la visita</dd><dt>?</dt><dd>Esta ayuda</dd><dt>Esc</dt><dd>Cerrar</dd></dl>
+  <button id="keys-x" type="button" class="on">Entendido</button></div>
 <div id="tour" role="dialog" aria-label="Visita guiada"><small id="t-n"></small><h4 id="t-h"></h4><p id="t-p"></p><div class="dots" id="t-d"></div>
   <div class="row"><button id="t-prev" type="button">Atrás</button><button id="t-next" type="button" class="on">Siguiente</button><button id="t-x" type="button" aria-label="Cerrar la visita">Salir</button></div></div>
 <div id="bar">
@@ -148,10 +155,13 @@ document.getElementById("t-prev").onclick = () => show(step - 1);
 document.getElementById("t-x").onclick = () => { tour.classList.remove("on"); step = -1; };
 if (/[?&]tour\b/.test(location.search)) setTimeout(() => show(0), 1200);
 
+const keys = document.getElementById("keys"); document.getElementById("keys-x").onclick = () => { keys.hidden = true; };
 /* atajos: 1 Casa, 2 Iker, 3 Dev, T visita guiada, V escribir a la Pi (solo si no estas escribiendo en un cuadro) */
 addEventListener("keydown", e => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   const el = document.activeElement; if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+  if (e.key === "Escape" && !keys.hidden) { keys.hidden = true; return; }
+  if (e.key === "?") { keys.hidden = !keys.hidden; if (!keys.hidden) document.getElementById("keys-x").focus(); return; }
   if (e.key === "Escape" && tour.classList.contains("on")) { tour.classList.remove("on"); step = -1; return; }
   if (tour.classList.contains("on") && (e.key === "ArrowRight" || e.key === "ArrowLeft")) { e.preventDefault(); show(step + (e.key === "ArrowRight" ? 1 : -1)); return; }
   const m = {"1": "home", "2": "iker", "3": "dev", "4": "desktop"}[e.key];
