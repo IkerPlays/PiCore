@@ -295,6 +295,11 @@ class IntentTest(unittest.TestCase):
         for f in ("toma nota comprar pan y leche", "pon un temporizador de dos horas y media", "anade leche y pan a la lista", "pon musica"):
             self.assertEqual(len(i.split_commands(f)), 1, f)
 
+    def test_una_sola_palabra(self):
+        self.assertEqual(i.parse("hora").name, "time")
+        self.assertEqual(i.parse("oye pi alarma".replace("oye pi ", "")).name, "chat")
+        self.assertIn("temporizador de diez minutos", i.parse("temporizador").arg)
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

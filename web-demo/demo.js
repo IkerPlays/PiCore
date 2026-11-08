@@ -717,6 +717,11 @@
       P.screensaver = on; LS.set("prefs", P); return on ? "Salvapantallas activado" : "Salvapantallas desactivado";
     }
     if (has("cuantos anuncios", "cuanto has bloqueado", "como va el pihole", "como va pihole", "estadisticas del pihole")) return "Pi-hole ha bloqueado 326 de 1211 consultas, un 27 por ciento (datos de ejemplo)";
+    if (t === "hora") return "Son las " + pad(now.getHours()) + ":" + pad(now.getMinutes());
+    if (t === "fecha" || t === "dia") return "Hoy es " + now.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+    if (t === "alarma") return "Dime a qué hora, por ejemplo: despiértame a las siete";
+    if (t === "temporizador") return "Dime cuánto, por ejemplo: pon un temporizador de diez minutos";
+    if (t === "notas") return "Dime: toma nota, y lo que quieras apuntar";
     if (/^(?:para que sirve|que hace|que es el|que es la|que son|como (?:activo|pongo|uso|funciona|se activa|se pone|se usa)|por que)\b/.test(t)) return "Eso está explicado en el tutorial y en «Qué puedo decirle a la Pi», en la hoja Sistema";
     if (has("me gusta", "es genial", "es muy bueno", "que bonito", "que bueno es") && has("modo", "camara", "musica", "pihole", "pi hole", "pantalla", "vigilancia", "salvapantallas", "temporizador", "alarma")) return "Me alegro";
     if (/\bno (?:me )?(?:pongas|pon|enciendas|actives|abras|muestres|apagues|pares|quites|desactives|subas|bajes|cambies|borres)\b/.test(t)) return "Vale, lo dejo como está";

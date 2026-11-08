@@ -229,6 +229,8 @@ def parse(text):
         return None
     words = t.split()
     has = lambda *ks: any(k in t for k in ks)
+    if t in UNA_PALABRA:
+        return UNA_PALABRA[t]
     if re.match(r"^(?:para que sirve|que hace|que es el|que es la|que son|como (?:activo|pongo|uso|funciona|se activa|se pone|se usa)|por que)\b", t):
         return Intent("chat", "Eso está explicado en el tutorial y en «Qué puedo decirle a la Pi», en la hoja Sistema")
     if has("me gusta", "es genial", "es muy bueno", "que bonito", "que bueno es") and has("modo", "camara", "musica", "pihole", "pi hole", "pantalla", "vigilancia", "salvapantallas", "temporizador", "alarma"):
@@ -525,6 +527,12 @@ def say_time(now):
     return "%s y %d" % (art, m)
 
 
+UNA_PALABRA = {                      # una sola palabra: la orden mas probable o una pista de como pedirlo
+    "hora": Intent("time", None), "fecha": Intent("date", None), "dia": Intent("date", None),
+    "alarma": Intent("chat", "Dime a qué hora, por ejemplo: despiértame a las siete"),
+    "temporizador": Intent("chat", "Dime cuánto, por ejemplo: pon un temporizador de diez minutos"),
+    "musica": Intent("music", "play"), "notas": Intent("chat", "Dime: toma nota, y lo que quieras apuntar"),
+}
 SEPARADORES = (" y luego ", " y despues ", " y ", " luego ", " despues ")
 SOLO_UNA = ("list_add", "note_add", "timer_set", "alarm_set", "timer_extend", "chat", "ask")
 

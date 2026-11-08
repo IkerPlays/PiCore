@@ -6,6 +6,10 @@
 
 
 
+## Voz: una sola palabra
+
+- «Hora», «fecha», «música», «alarma», «temporizador», «notas»: la orden más probable o una pista de cómo pedirlo. En el simulador «música» no hace nada (sin reproductor suelto).
+
 ## Voz: dos órdenes en una frase
 
 - «Sube el volumen y pon música», «qué hora es y qué día es»: si las dos mitades son órdenes por sí solas, se hacen una detrás de otra y la Pi dice las dos respuestas. Las órdenes que ya llevan «y» dentro («toma nota comprar pan y leche», «dos horas y media») no se parten. En el simulador la detección es más simple (por el verbo con el que empieza cada mitad).
