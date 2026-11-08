@@ -6,6 +6,10 @@
 
 
 
+## CONTRIBUTING: receta de voz con el paso del navegador y las respuestas fijas
+
+- Documenta la trampa de los reemplazos de texto que no se aplican y cómo añadir una respuesta fija.
+
 ## Simulador: los botones de modo dicen cuál está activo (`aria-pressed`)
 
 - Un lector de pantalla ahora sabe si Casa, Iker, Dev o Escritorio es el modo actual.
