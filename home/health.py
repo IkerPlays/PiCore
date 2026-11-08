@@ -49,13 +49,17 @@ def clock_state(run=subprocess.run, now=None):
     """Reloj de la Pi: {synced: True/False/None, year, plausible}. La Pi 5 no tiene pila de reloj: sin internet tras un corte de luz la hora puede ser falsa,
     y los temporizadores, las alarmas y el calendario dependen de ella. synced=None si no se puede saber (sin timedatectl)."""
     year = time.gmtime(now if now is not None else time.time()).tm_year
-    synced = None
+    synced, tz = None, None
+    try:
+        tz = run(["timedatectl", "show", "-p", "Timezone", "--value"], capture_output=True, text=True, timeout=2).stdout.strip() or None
+    except (OSError, subprocess.TimeoutExpired):
+        pass
     try:
         out = run(["timedatectl", "show", "-p", "NTPSynchronized", "--value"], capture_output=True, text=True, timeout=2).stdout.strip()
         synced = {"yes": True, "no": False}.get(out)
     except (OSError, subprocess.TimeoutExpired):
         pass
-    return {"synced": synced, "year": year, "plausible": year >= 2024}
+    return {"synced": synced, "year": year, "plausible": year >= 2024, "tz": tz}
 
 
 def update_state(path=None):
@@ -141,6 +145,8 @@ def checks(status, disk=None, mem=None, thr=None):
     ck = status.get("clock") or {}
     if ck.get("plausible") is False:
         out.append({"level": "bad", "text": "La hora de la Pi parece falsa (año %s): las alarmas y los temporizadores fallarían. Conéctala a internet un momento." % ck.get("year"), "action": "wifi"})
+    elif ck.get("tz") in ("UTC", "Etc/UTC", "Etc/UCT", "Etc/Universal"):
+        out.append({"level": "info", "text": "La zona horaria de la Pi es UTC: las alarmas y la hora que ves pueden ir desfasadas respecto a la tuya. Cámbiala con sudo raspi-config (Localisation Options → Timezone)."})
     elif ck.get("synced") is False:
         out.append({"level": "info", "text": "La hora de la Pi no está sincronizada con internet todavía; si acaba de encenderse, se arreglará sola.", "action": "wifi"})
     ai = status.get("ai") or {}

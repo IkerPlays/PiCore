@@ -45,12 +45,20 @@ class ChecksTest(unittest.TestCase):
         info = lv({"update": {"available": False}, "clock": {"plausible": True, "synced": False, "year": 2026}})
         self.assertEqual(info[0]["level"], "info")
 
+    def test_utc_timezone_is_pointed_out(self):
+        r = lv({"update": {"available": False}, "clock": {"plausible": True, "synced": True, "year": 2026, "tz": "Etc/UTC"}})
+        self.assertEqual(r[0]["level"], "info")
+        self.assertIn("zona horaria", r[0]["text"])
+        ok = lv({"update": {"available": False}, "clock": {"plausible": True, "synced": True, "year": 2026, "tz": "Atlantic/Canary"}})
+        self.assertEqual([x["level"] for x in ok], ["ok"])
+
     def test_clock_state_reads_timedatectl_and_survives_its_absence(self):
         class R:
             def __init__(self, s): self.stdout = s
         self.assertEqual(health.clock_state(run=lambda *a, **k: R("yes\n"), now=1_800_000_000)["synced"], True)
         self.assertEqual(health.clock_state(run=lambda *a, **k: R("no\n"), now=1_800_000_000)["synced"], False)
         self.assertFalse(health.clock_state(run=lambda *a, **k: R("no\n"), now=0)["plausible"])
+        self.assertEqual(health.clock_state(run=lambda *a, **k: R("Atlantic/Canary\n"), now=1_800_000_000)["tz"], "Atlantic/Canary")
         def sin(*a, **k): raise OSError("no hay timedatectl")
         self.assertIsNone(health.clock_state(run=sin, now=1_800_000_000)["synced"])
 

@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Zona horaria UTC: la hoja Sistema y `pcpi-doctor` lo avisan
+
+- Una Pi sin zona horaria elegida va en UTC y las alarmas sonarían desfasadas respecto a tu hora. Se avisa (solo información en la hoja Sistema; aviso en el doctor) con la forma de cambiarla. Sin probar en una Pi real.
+
 ## Instalador: arregla o detecta la hora falsa antes de `apt`
 
 - Sin pila de reloj, una Pi recién encendida sin internet puede creer que es 1970 y `apt update` falla con «Release file is not valid yet». `install.sh` ahora lo detecta, intenta sincronizar (`timedatectl set-ntp true`) hasta 20 s y, si no puede, dice cómo ponerla a mano. Sin probar en una Pi real.
