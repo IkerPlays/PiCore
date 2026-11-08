@@ -214,6 +214,14 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.say_system("version", {"version": "1.2.3"}), "Tengo PiCore versión 1.2.3")
         self.assertEqual(i.say_system("version", {}), "No sé qué versión tengo")
 
+    def test_bateria(self):
+        for f in ("cuanta bateria queda", "cuanto queda de bateria", "esta cargando la bateria"):
+            self.assertEqual(i.parse(f).name, "battery", f)
+        self.assertEqual(i.parse("cuanto queda del temporizador").name, "timer_query")
+        self.assertEqual(i.say_battery({"available": True, "percent": 76.4, "charging": True}), "Tienes el 76 por ciento de batería y se está cargando")
+        self.assertIn("conecta el cargador", i.say_battery({"available": True, "percent": 4, "critical": True}))
+        self.assertEqual(i.say_battery({"available": False}), "No tengo batería conectada")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

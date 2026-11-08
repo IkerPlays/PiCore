@@ -598,6 +598,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «lee la lista de la compra» · «qué hay en mis tareas» | Lee en voz alta lo que hay en la lista (hasta 12 elementos) |
 | «cuántas alarmas tengo» | Cuenta las alarmas (igual que «cuántas notas tengo» y «cuántos temporizadores») |
 | «qué versión tienes» | Dice la versión de PiCore instalada |
+| «cuánta batería queda» | Dice el porcentaje y si se está cargando (solo si la Pi tiene batería) |
 | «cuéntame un chiste» | Cuenta uno de una lista corta guardada en la Pi (funciona sin internet) |
 | «qué hora será dentro de veinte minutos» | Suma el tiempo a la hora actual y te dice a qué hora será |
 | «cuánto es el 20 por ciento de 50» | Calcula porcentajes |

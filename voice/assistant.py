@@ -243,6 +243,9 @@ def execute(cfg, intent):
             return "Mañana es " + intents.say_date(datetime.datetime.now() + datetime.timedelta(days=1)).replace("Hoy es ", "")
         if n == "help":
             return intents.HELP_TEXT
+        if n == "battery":
+            with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
+                return intents.say_battery(json.load(r).get("battery"))
         if n == "sys_info":
             with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=8) as r:
                 return intents.say_system(a, json.load(r))

@@ -323,6 +323,8 @@ def parse(text):
         if secs:
             label = timer_label(text)
             return Intent("timer_set", (secs, label) if label else secs)
+    if has("bateria") and has("cuanto", "cuanta", "nivel", "como esta", "esta cargando", "cargando"):
+        return Intent("battery", None)
     if has("cuanto queda", "cuanto falta") and not has("camara"):
         return Intent("timer_query", None)
     if has("alarma", "despiertame", "despierta", "levantame") and not has("alarma de camara"):
@@ -481,6 +483,20 @@ def say_time(now):
     if m == 0:
         return art + " en punto"
     return "%s y %d" % (art, m)
+
+
+def say_battery(b):
+    """«Tienes el 76 por ciento de batería» a partir del campo battery de /api/status."""
+    if not b or not b.get("available") or not isinstance(b.get("percent"), (int, float)):
+        return "No tengo batería conectada"
+    txt = "Tienes el %d por ciento de batería" % round(b["percent"])
+    if b.get("charging"):
+        txt += " y se está cargando"
+    elif b.get("critical"):
+        txt += ". Es muy poca: conecta el cargador"
+    elif b.get("low"):
+        txt += ". Va quedando poca"
+    return txt
 
 
 def say_system(kind, st):

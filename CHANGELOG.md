@@ -6,6 +6,10 @@
 
 
 
+## Voz: cuánta batería queda
+
+- Antes «cuánto queda de batería» se entendía como «cuánto queda del temporizador». Ahora dice el porcentaje y si se está cargando (o que no hay batería). El simulador da un dato de ejemplo.
+
 ## Voz: qué versión tienes
 
 - Dice la versión de PiCore que lee de `/api/status` (la que escribe `install.sh`). En el simulador contesta «demo».
