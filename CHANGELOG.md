@@ -6,6 +6,10 @@
 
 
 
+## Voz: «más alto», «más bajo» y «pon la radio»
+
+- «Más alto / más fuerte» y «más bajo / más flojo» cambian el volumen; «pon la radio» dice con honestidad que no hay radio y qué sí se puede poner. También en el simulador.
+
 ## Voz: «quita el silencio» y «activa el sonido» devuelven el sonido
 
 - Antes «quita el silencio» silenciaba (se entendía «silencio»). Ahora quita el silencio de verdad (`wpctl set-mute 0`, o `amixer unmute`). También en el simulador.

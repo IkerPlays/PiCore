@@ -735,6 +735,8 @@
       P.screensaver = on; LS.set("prefs", P); return on ? "Salvapantallas activado" : "Salvapantallas desactivado";
     }
     if (has("cuantos anuncios", "cuanto has bloqueado", "como va el pihole", "como va pihole", "estadisticas del pihole")) return "Pi-hole ha bloqueado 326 de 1211 consultas, un 27 por ciento (datos de ejemplo)";
+    if (t === "mas alto" || t === "mas fuerte" || t === "mas bajo" || t === "mas flojo") { S.audio.volume = Math.max(0, Math.min(100, S.audio.volume + (/alto|fuerte/.test(t) ? 15 : -15))); S.audio.muted = false; LS.set("audio", S.audio); return "Volumen al " + S.audio.volume + " por ciento"; }
+    if (t === "pon la radio") return "No tengo radio. Puedo poner tus MP3 o YouTube Music desde Musix";
     if (t === "hora") return "Son las " + pad(now.getHours()) + ":" + pad(now.getMinutes());
     if (t === "fecha" || t === "dia") return "Hoy es " + now.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
     if (t === "alarma") return "Dime a qué hora, por ejemplo: despiértame a las siete";

@@ -551,7 +551,9 @@ def say_time(now):
     return "%s y %d" % (art, m)
 
 
-UNA_PALABRA = {                      # una sola palabra: la orden mas probable o una pista de como pedirlo
+UNA_PALABRA = {
+    "mas alto": Intent("volume", "+10"), "mas fuerte": Intent("volume", "+10"), "mas bajo": Intent("volume", "-10"), "mas flojo": Intent("volume", "-10"),
+    "pon la radio": Intent("chat", "No tengo radio. Puedo poner tus MP3 o YouTube Music desde Musix"),                      # una sola palabra: la orden mas probable o una pista de como pedirlo
     "hora": Intent("time", None), "fecha": Intent("date", None), "dia": Intent("date", None),
     "alarma": Intent("chat", "Dime a qué hora, por ejemplo: despiértame a las siete"),
     "temporizador": Intent("chat", "Dime cuánto, por ejemplo: pon un temporizador de diez minutos"),

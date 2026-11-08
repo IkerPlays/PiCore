@@ -336,6 +336,11 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.parse("silencia").arg, "mute")
         self.assertEqual(i.parse("quita el sonido").arg, "mute")
 
+    def test_mas_alto_mas_bajo_y_radio(self):
+        self.assertEqual(i.parse("mas alto").arg, "+10")
+        self.assertEqual(i.parse("mas bajo").arg, "-10")
+        self.assertIn("No tengo radio", i.parse("pon la radio").arg)
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)
