@@ -8,6 +8,8 @@
 
 ## Web: la pregunta «¿Qué le puedo decir a la Pi?» incluye cuentas, unidades, fechas y dos órdenes
 
+- Las frases nuevas de la respuesta pasan por el test que comprueba que el asistente las entiende.
+
 ## Voz: una sola palabra
 
 - «Hora», «fecha», «música», «alarma», «temporizador», «notas»: la orden más probable o una pista de cómo pedirlo. En el simulador «música» no hace nada (sin reproductor suelto).
