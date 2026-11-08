@@ -313,7 +313,7 @@ def parse(text):
     if has("alarma") and has("a que hora suena", "a que hora esta", "cuando suena", "cual es mi alarma", "proxima alarma"):
         return Intent("alarm_query", None)
     if has("despiertame", "alarma", "avisame", "recuerdame") and has("menos los", "excepto", "salvo", "menos el ") and parse_clock(words):
-        return Intent("chat", "Solo sé alarmas de un día o todos los días, no con excepciones. Díme una de las dos")
+        return Intent("chat", "Solo sé alarmas de un día o todos los días, no con excepciones. Dime una de las dos")
     if has("avisame", "recuerdame", "avisa me", "recuerda me") and not parse_duration(words) and (clock_r := parse_clock(words)):
         t2 = re.sub(r"\bde la (?:mañana|manana|tarde|noche|madrugada)\b", "", str(text).lower().strip(" .,!?¡¿"))
         m = re.search(r"\ba las [^,]*?\b(?:que|para|de)\s+(.{2,40})$", t2)
