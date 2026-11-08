@@ -6,6 +6,10 @@
 
 
 
+## Modo Iker: Ctrl+D duplica la nota
+
+- Se suma a Ctrl+S, Ctrl+N, Ctrl+P y Ctrl+F; el pie de la página lo recuerda.
+
 ## Voz: máxima y mínima de hoy
 
 - «Cuál es la máxima de hoy», «la mínima de hoy», «máxima y mínima». También en el simulador.
