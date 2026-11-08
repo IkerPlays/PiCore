@@ -1159,6 +1159,7 @@ Empieza **siempre** por `pcpi-doctor`: marca con `✘` lo que está mal y con `!
 No son necesarios. Puedes añadirlos cuando quieras:
 
 - **Batería** (para llevarlo de un sitio a otro): una power bank de **20.000 mAh con USB-C PD de 45 W o más**, comprada en una tienda de tu isla (desde Amazon a ti no te llegaban las baterías). Conéctala con un cable USB-C a USB-C y ejecuta `./install.sh --battery`. Dura unas 5–7 horas. **Ojo:** una power bank normal **no deja leer cuánta carga le queda**, así que el icono 🔋 de la pantalla no aparecerá (mira el [8.3](#83-brillo-vigilancia-y-batería-iconos-de-arriba-a-la-derecha-en-casa)); para verlo necesitas un UPS/HAT con medidor.
+  - **Apagado seguro (opcional):** si tienes un UPS que sí mida la batería, pon `auto_shutdown_percent = 5` en `[battery]` de `/etc/pcpi/pcpi.conf` y la Pi se apagará sola cuando lleve **un minuto** por debajo de ese porcentaje **sin cargar**, para no corromper la tarjeta si la batería se agota de golpe. Con una power bank normal no hace nada (no hay medida). Está desactivado por defecto y no lo he probado con un UPS real.
 - **SSD** (arranque y apps más rápidos): un SSD USB 3 en un puerto azul. La microSD basta para este proyecto.
 
 ### 8.3 Brillo, vigilancia y batería (iconos de arriba a la derecha en Casa)

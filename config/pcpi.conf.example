@@ -150,6 +150,9 @@ fps = 2
 # Avisos (en %): bateria baja y critica.
 low_percent = 20
 critical_percent = 10
+# Apagar la Pi sola cuando la bateria lleve 1 minuto por debajo de este % SIN cargar (protege la tarjeta SD de un apagon).
+# 0 = desactivado. Solo sirve con un UPS o comando que mida la bateria (entre 2 y 15).
+auto_shutdown_percent = 0
 
 [musix]
 # Musix: reproductor propio (YT Music, MP3 Player y DYMusic). Las canciones offline viven en /var/lib/pcpi/music.

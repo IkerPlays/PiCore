@@ -78,6 +78,42 @@ def read(cp):
             "low": pct <= low_at and chg is not True, "critical": pct <= crit_at and chg is not True}
 
 
+class LowBatteryGuard:
+    """Decide cuando apagar la Pi para no corromper la tarjeta SD si la bateria se agota de golpe.
+
+    Solo actua si hay medida, la bateria NO se esta cargando (charging is False, no «desconocido») y lleva por debajo del
+    umbral `hold` segundos seguidos. Apagado desactivado si threshold <= 0. `clock` es inyectable para probarlo sin esperar."""
+
+    def __init__(self, threshold, hold=60, clock=None):
+        import time
+        self.threshold, self.hold, self.clock = threshold, hold, clock or time.time
+        self.since, self.fired = None, False
+
+    def update(self, bat):
+        if self.threshold <= 0 or self.fired or not bat or not bat.get("available"):
+            self.since = None
+            return False
+        pct = bat.get("percent")
+        if not isinstance(pct, (int, float)) or pct > self.threshold or bat.get("charging") is not False:
+            self.since = None
+            return False
+        now = self.clock()
+        self.since = self.since if self.since is not None else now
+        if now - self.since >= self.hold:
+            self.fired = True
+            return True
+        return False
+
+
+def auto_shutdown_percent(cp):
+    """[battery] auto_shutdown_percent: 0 = desactivado (por defecto); si no, entre 2 y 15."""
+    try:
+        v = cp.getint("battery", "auto_shutdown_percent", fallback=0)
+    except ValueError:
+        return 0
+    return 0 if v <= 0 else max(2, min(v, 15))
+
+
 def _int(cp, key, default):
     try:
         return max(1, min(cp.getint("battery", key, fallback=default), 99))

@@ -583,6 +583,24 @@ def display_info(cp):
     return {"level": st["level"], "auto": st["auto"], "effective": eff, **cfg, "hw": display.hardware_info()}
 
 
+def battery_guard_loop():
+    """Con un UPS que mida la bateria y [battery] auto_shutdown_percent > 0: apaga la Pi (con el mismo mecanismo que el boton de la hoja Sistema)
+    cuando la bateria lleva un minuto casi vacia y sin cargar. Desactivado por defecto."""
+    guard = None
+    while True:
+        try:
+            cp = read_conf()
+            pct = battery.auto_shutdown_percent(cp)
+            if guard is None or guard.threshold != pct:
+                guard = battery.LowBatteryGuard(pct)
+            if pct and guard.update(battery.read(cp)):
+                print("Bateria al limite (%d%%) y sin cargar: apago la Pi para proteger la tarjeta." % pct, flush=True)
+                health.request_power("shutdown")
+        except Exception:       # noqa: BLE001
+            pass
+        time.sleep(15)
+
+
 def display_loop():
     """Aplica el brillo al backlight (si existe y se puede escribir) cuando cambia. Sin backlight, la UI atenua por software."""
     last = None
@@ -1499,6 +1517,7 @@ def main():
     port = cp.getint("server", "port", fallback=8080)
     start_netwatch(cp)
     threading.Thread(target=display_loop, daemon=True).start()
+    threading.Thread(target=battery_guard_loop, daemon=True).start()
     threading.Thread(target=backup_loop, daemon=True).start()
     start_motion(cp)
     start_timers()

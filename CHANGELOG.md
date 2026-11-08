@@ -38,6 +38,14 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Tutorial: explica el apagado seguro con batería
+
+- En la sección «Más adelante: batería y SSD», con su límite: sin medida de batería no hace nada.
+
+## Batería: apagado seguro opcional (`auto_shutdown_percent`)
+
+- Con un UPS que mida la carga, si pones `auto_shutdown_percent = 5` en `[battery]`, la Pi se apaga sola (por el mismo mecanismo que el botón Apagar) cuando lleva **1 minuto** por debajo de ese % **y sin cargar** (si no se sabe si carga, nunca apaga). Así una batería que se agota no corrompe la tarjeta SD. Desactivado por defecto (0). Sin probar con un UPS real: lo cubren tests con reloj falso.
+
 ## Notas y temporizadores: se fuerzan a disco antes de renombrar (`fsync`)
 
 - Con un corte de luz entre escribir y renombrar, el archivo podía quedar vacío. Ahora `save_note` y el guardado de temporizadores hacen `fsync` antes de `os.replace`. Un test comprueba la llamada; no he simulado un corte de luz real.

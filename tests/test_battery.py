@@ -41,6 +41,42 @@ class BatteryTest(unittest.TestCase):
         import shutil
         shutil.rmtree(T / "ps", ignore_errors=True)
 
+    def test_auto_shutdown_only_after_a_minute_low_and_not_charging(self):
+        t = [0.0]
+        g = battery.LowBatteryGuard(5, hold=60, clock=lambda: t[0])
+        casi_vacia = {"available": True, "percent": 4, "charging": False}
+        self.assertFalse(g.update(casi_vacia))
+        t[0] = 59
+        self.assertFalse(g.update(casi_vacia))
+        t[0] = 60
+        self.assertTrue(g.update(casi_vacia))
+        self.assertFalse(g.update(casi_vacia))                                   # solo una vez
+
+    def test_auto_shutdown_never_when_charging_unknown_or_disabled(self):
+        for bat in ({"available": True, "percent": 2, "charging": True}, {"available": True, "percent": 2, "charging": None},
+                    {"available": True, "percent": 50, "charging": False}, {"available": False}, None):
+            t = [0.0]
+            g = battery.LowBatteryGuard(5, hold=0, clock=lambda: t[0])
+            self.assertFalse(g.update(bat), bat)
+        self.assertFalse(battery.LowBatteryGuard(0, hold=0).update({"available": True, "percent": 1, "charging": False}))
+
+    def test_auto_shutdown_resets_when_the_charger_comes_back(self):
+        t = [0.0]
+        g = battery.LowBatteryGuard(5, hold=60, clock=lambda: t[0])
+        g.update({"available": True, "percent": 4, "charging": False})
+        t[0] = 50
+        g.update({"available": True, "percent": 4, "charging": True})            # enchufan: se reinicia la cuenta
+        t[0] = 70
+        self.assertFalse(g.update({"available": True, "percent": 4, "charging": False}))
+        t[0] = 131
+        self.assertTrue(g.update({"available": True, "percent": 4, "charging": False}))
+
+    def test_auto_shutdown_setting_is_clamped(self):
+        for valor, esperado in (("", 0), ("0", 0), ("-3", 0), ("1", 2), ("8", 8), ("90", 15), ("x", 0)):
+            cp = configparser.ConfigParser()
+            cp.read_string("[battery]\nauto_shutdown_percent = %s\n" % valor)
+            self.assertEqual(battery.auto_shutdown_percent(cp), esperado, valor)
+
     def test_nothing_available(self):
         self.assertEqual(battery.read(cfg()), {"available": False})
 
