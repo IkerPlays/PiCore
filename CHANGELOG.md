@@ -6,6 +6,10 @@
 
 
 
+## Voz: raíz cuadrada y al cuadrado
+
+- «Cuánto es la raíz cuadrada de 144», «cuánto es 7 al cuadrado». También en el simulador.
+
 ## Modo Dev: botón «Copiar» en la consola
 
 - Copia todo lo que sale en la consola, para pegarlo en una incidencia o en una nota. Si el navegador no deja usar el portapapeles, avisa de que hay que seleccionar y copiar a mano.

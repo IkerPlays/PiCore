@@ -544,6 +544,10 @@
       const f = F[cv[2] + ">" + cv[3]];
       if (f) return cv[1] + " " + cv[2] + " son " + f(+cv[1]).toFixed(1).replace(/\.0$/, "").replace(".", " coma ") + " " + cv[3];
     }
+    const rq = /^(?:cuanto es|cuanto son|calcula) la raiz cuadrada de (\d+)$/.exec(t);
+    if (rq) return "La raíz cuadrada de " + rq[1] + " es " + Math.sqrt(+rq[1]).toFixed(2).replace(/\.?0+$/, "").replace(".", " coma ");
+    const sq = /^(?:cuanto es|cuanto son|calcula) (\d+) al cuadrado$/.exec(t);
+    if (sq) return sq[1] + " al cuadrado son " + (+sq[1] * +sq[1]);
     const pc = /^(?:cuanto (?:es|son)|calcula) el (\d+) por ciento de (\d+)$/.exec(t);
     if (pc) return "Son " + (+pc[1] * +pc[2] / 100).toFixed(2).replace(/\.?0+$/, "").replace(".", " coma ");
     const calc = /^(?:cuanto (?:es|son)|calcula) (\d+) (mas|menos|por|entre|multiplicado por|dividido (?:entre|por)) (\d+)$/.exec(t);

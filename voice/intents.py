@@ -131,6 +131,12 @@ def parse_calc(t):
     if not (t.startswith("cuanto es ") or t.startswith("cuanto son ") or t.startswith("calcula ")):
         return None
     words = t.split()[2:] if not t.startswith("calcula ") else t.split()[1:]
+    if words[:3] == ["la", "raiz", "cuadrada"] and "de" in words:           # «la raiz cuadrada de 144»
+        n = find_number(words[words.index("de") + 1:])
+        return (n, "sqrt", 0) if n is not None else None
+    if words[-2:] == ["al", "cuadrado"]:                                  # «7 al cuadrado»
+        n = find_number(words[:-2])
+        return (n, "^2", 0) if n is not None else None
     if "ciento" in words and "por" in words:                      # «el 20 por ciento de 50»
         k = words.index("por")
         if words[k + 1:k + 2] == ["ciento"] and "de" in words[k + 2:]:
@@ -182,6 +188,11 @@ def say_convert(v, de, a):
 
 
 def say_calc(a, op, b):
+    if op == "sqrt":
+        r = a ** 0.5
+        return "La raíz cuadrada de %d es %s" % (a, ("%.2f" % r).rstrip("0").rstrip(".").replace(".", " coma "))
+    if op == "^2":
+        return "%d al cuadrado son %d" % (a, a * a)
     if op == "/" and b == 0:
         return "No se puede dividir entre cero"
     if op == "%":

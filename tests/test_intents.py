@@ -229,6 +229,11 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.say_sun({"sunset": "18:00"}, "set"), "El sol se pone a las 18 en punto")
         self.assertEqual(i.say_sun({}, "rise"), "No sé a qué hora sale el sol")
 
+    def test_raiz_y_cuadrado(self):
+        self.assertEqual(i.say_calc(*i.parse("cuanto es la raiz cuadrada de 144").arg), "La raíz cuadrada de 144 es 12")
+        self.assertEqual(i.say_calc(*i.parse("cuanto es la raiz cuadrada de 2").arg), "La raíz cuadrada de 2 es 1 coma 41")
+        self.assertEqual(i.say_calc(*i.parse("cuanto es 7 al cuadrado").arg), "7 al cuadrado son 49")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)
