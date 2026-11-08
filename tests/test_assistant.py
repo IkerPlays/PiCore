@@ -237,6 +237,12 @@ class ExecuteApiIntentsTest(unittest.TestCase):
         self.assertTrue(self.posts[-1][1]["text"].endswith("\n- pan\n"))
         self.assertIn("tus tareas", assistant.execute(self.cfg, ("list_add", ("llamar", "Tareas"))))
 
+    def test_read_shopping_list_by_voice(self):
+        self.assertEqual(assistant.execute(self.cfg, ("list_read", "Lista de la compra")), "No tienes nada en la lista de la compra")     # sin lista
+        self.notes = [{"id": "a", "title": "Lista de la compra", "updated": 1}]                       # con lista: el servidor de prueba da un texto sin guiones
+        self.assertEqual(assistant.execute(self.cfg, ("list_read", "Lista de la compra")), "No tienes nada en la lista de la compra")
+        self.assertEqual(assistant.execute(self.cfg, ("list_read", "Tareas")), "No tienes nada en tus tareas")
+
     def test_alarm_with_a_name_by_voice(self):
         self.assertEqual(assistant.execute(self.cfg, ("alarm_set", (18, 0, False, "saque la basura"))), "Alarma a las 18 en punto para saque la basura")
         self.assertEqual(self.posts[-1][1], {"action": "alarm", "hour": 18, "minute": 0, "label": "saque la basura"})

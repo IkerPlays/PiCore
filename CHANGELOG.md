@@ -6,6 +6,10 @@
 
 
 
+## Voz: leer la lista de la compra o las tareas
+
+- «Lee la lista de la compra», «qué hay en mis tareas»: dice los elementos (hasta 12). Solo lee; no borra nada. También en el simulador.
+
 ## Modo Iker: tiempo de lectura y singular correcto
 
 - El contador de abajo dice «1 palabra» (no «1 palabras») y, desde unas 100 palabras, añade «· N min de lectura» (a 200 palabras por minuto).

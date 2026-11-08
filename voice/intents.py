@@ -227,6 +227,8 @@ def parse(text):
         return Intent("note_add", m.group(1).strip())
     if has("nota") and has("lee", "leeme", "dime", "cual es", "que pone") and has("ultima", "reciente", "anterior"):
         return Intent("note_read", None)
+    if re.search(r"\b(lee|leeme|que hay en|que tengo en|dime) (?:la |mi |mis )?(?:lista|tareas|pendientes)", t) and not has("anade", "añade", "apunta"):
+        return Intent("list_read", "Tareas" if has("tareas", "pendientes") else "Lista de la compra")
     if has("espacio libre", "cuanto espacio", "espacio en la tarjeta", "espacio en el disco", "espacio queda"):
         return Intent("sys_info", "disk")
     if has("memoria libre", "cuanta memoria", "memoria ram", "memoria queda"):
@@ -584,6 +586,15 @@ def say_pihole(p):
         return "Pi-hole no responde ahora mismo"
     base = "Pi-hole ha bloqueado %d de %d consultas, un %d por ciento" % (p.get("blocked", 0), p.get("total", 0), round(p.get("percent", 0)))
     return base + ("" if p.get("blocking") == "enabled" else ". Ahora está en pausa")
+
+
+def say_list(title, text):
+    """Lee los elementos de una lista (lineas «- algo» de una nota) o dice que esta vacia."""
+    items = [l[2:].strip() for l in (text or "").splitlines() if l.startswith("- ") and l[2:].strip()]
+    nombre = "la lista de la compra" if title.startswith("Lista") else "tus tareas"
+    if not items:
+        return "No tienes nada en %s" % nombre
+    return "En %s: %s" % (nombre, ", ".join(items[:12]) + (" y %d más" % (len(items) - 12) if len(items) > 12 else ""))
 
 
 def say_date_part(now, what):

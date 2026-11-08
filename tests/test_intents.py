@@ -201,6 +201,13 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.parse("deletrea hola").arg, "h, o, l, a")
         self.assertEqual(i.parse("repite despues de mi buenos dias").arg, "buenos dias")
 
+    def test_leer_listas(self):
+        self.assertEqual(i.parse("lee la lista de la compra").arg, "Lista de la compra")
+        self.assertEqual(i.parse("que hay en mis tareas").arg, "Tareas")
+        self.assertEqual(i.parse("anade leche a la lista").name, "list_add")
+        self.assertEqual(i.say_list("Lista de la compra", "Lista de la compra\n- leche\n- pan\n#compra"), "En la lista de la compra: leche, pan")
+        self.assertEqual(i.say_list("Tareas", "Tareas\n"), "No tienes nada en tus tareas")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

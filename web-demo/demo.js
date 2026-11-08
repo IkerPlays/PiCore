@@ -513,6 +513,11 @@
       if (f) { f.text = f.text.replace(/\n+$/, "") + "\n- " + lm2[1].trim() + "\n"; f.updated = Date.now() / 1000; } else all.push({ id: rid(16), text: ttl + "\n- " + lm2[1].trim() + "\n", updated: Date.now() / 1000, pinned: false });
       LS.set("notes", all); return "Añadido " + lm2[1].trim() + " a " + (ttl === "Tareas" ? "tus tareas" : "la lista de la compra");
     }
+    if (/\b(lee|leeme|que hay en|que tengo en|dime) (?:la |mi |mis )?(?:lista|tareas|pendientes)/.test(t) && !has("anade", "apunta")) {
+      const ttl = has("tareas", "pendientes") ? "Tareas" : "Lista de la compra", f = notes().find(n => norm(title(n.text)) === norm(ttl));
+      const items = f ? f.text.split("\n").filter(l => l.startsWith("- ") && l.slice(2).trim()).map(l => l.slice(2).trim()) : [], nombre = ttl === "Tareas" ? "tus tareas" : "la lista de la compra";
+      return items.length ? "En " + nombre + ": " + items.slice(0, 12).join(", ") + (items.length > 12 ? " y " + (items.length - 12) + " más" : "") : "No tienes nada en " + nombre;
+    }
     const nm = /^(?:por favor )?(?:toma nota|apunta|anota|apuntame|anotame|guarda una nota)(?: de| que| lo siguiente)?[ :,]+(.{2,400})$/i.exec(String(text).replace(/^(oye pi|hey jarvis|ok pi)[,\s]*/i, "").trim().replace(/[\s.!?¡¿]+$/, ""));
     if (nm) { const all = notes(); all.push({ id: rid(16), text: nm[1].trim(), updated: Date.now() / 1000, pinned: false }); LS.set("notes", all); return "Anotado"; }
     if (has("a que wifi", "que wifi", "a que red", "tengo internet", "hay internet", "estoy conectad")) return S.wifi.active ? "Estoy conectada a la wifi " + S.wifi.active + " y hay internet" : "No estoy conectada a ninguna red";

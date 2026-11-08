@@ -162,6 +162,18 @@ def execute(cfg, intent):
             level = max(10, min(100, level))
             api(cfg, "/api/display", {"level": level, "auto": False})
             return "Brillo al %d por ciento" % level
+        if n == "list_read":
+            try:
+                with urllib.request.urlopen(cfg["api"] + "/api/notes", timeout=5) as r:
+                    notes = json.load(r)
+                found = next((x for x in notes if intents.norm(x.get("title", "")) == intents.norm(a)), None)
+                text = ""
+                if found:
+                    with urllib.request.urlopen(cfg["api"] + "/api/notes/" + found["id"], timeout=5) as r:
+                        text = json.load(r)["text"]
+            except (urllib.error.URLError, ValueError, KeyError):
+                return "No he podido leer la lista"
+            return intents.say_list(a, text)
         if n == "list_add":
             item, title = a
             try:
