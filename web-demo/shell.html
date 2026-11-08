@@ -17,7 +17,7 @@
   :root { color-scheme:dark; }
   * { box-sizing:border-box; margin:0; }
   html, body { height:100%; background:radial-gradient(1200px 700px at 50% 30%, #1a2233, #07090e); color:#e9eef7; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; overflow:hidden; }
-  header { height:56px; display:flex; align-items:center; gap:10px; padding:0 16px; }
+  header { height:56px; display:flex; align-items:center; gap:10px; padding:0 16px; overflow-x:auto; scrollbar-width:none; } header::-webkit-scrollbar { display:none; } header > * { flex:none; }
   header b { font-size:16px; letter-spacing:-.01em; } header small { color:#8a94a6; margin-right:auto; font-size:13px; }
   button, a.b { font:inherit; font-size:13px; font-weight:600; color:#e9eef7; background:#ffffff10; border:1px solid #ffffff1f; border-radius:99px; padding:7px 14px; cursor:pointer; text-decoration:none; }
   button:hover, a.b:hover { border-color:#7cabff; } button.on { background:#7cabff; color:#06101f; border-color:#7cabff; }

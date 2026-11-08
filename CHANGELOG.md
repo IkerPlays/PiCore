@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Simulador: el botón del modo Escritorio se marca bien y la cabecera se desplaza si no cabe
+
+- Al abrir `/escritorio` la demo se declaraba en modo Casa y el botón resaltado era el equivocado. Además, por debajo de unos 1100 px los últimos botones (GitHub, Copiar enlace, Restablecer) quedaban cortados: ahora la cabecera se desplaza de lado.
+
 ## Voz: la pista de Whisper incluye las órdenes nuevas
 
 - Se suman cuentas, unidades, amanecer, batería, fechas y chistes a la frase de ayuda que se le da a Whisper (`PROMPT` en `voice/stt.py`). Es una ayuda, no una garantía: sin probar en una Pi con micrófono real, no sé cuánto mejora el acierto.

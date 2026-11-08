@@ -26,7 +26,7 @@
 
   /* ---------------- estado ---------------- */
   const here = location.pathname.replace(/\/+$/, "");
-  const PAGE_MODE = here === "/iker" ? "iker" : here === "/dev" ? "dev" : here === "/loading" ? null : "home";
+  const PAGE_MODE = here === "/iker" ? "iker" : here === "/dev" ? "dev" : here === "/escritorio" ? "desktop" : here === "/loading" ? null : "home";
   if (PAGE_MODE) LS.set("mode", PAGE_MODE);
   const S = {
     pihole: { blocking: true, until: 0 },
