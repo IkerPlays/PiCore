@@ -6,6 +6,10 @@
 
 
 
+## Web: el pie de la portada dice de qué versión es la web
+
+- Lee `/version.txt` (el commit con el que se construyó) y lo enseña como «· web 1a2b3c4». Si no está (en local), no muestra nada.
+
 ## Web: la pregunta «¿Qué le puedo decir a la Pi?» incluye cuentas, unidades, fechas y dos órdenes
 
 - Las frases nuevas de la respuesta pasan por el test que comprueba que el asistente las entiende.

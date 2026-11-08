@@ -194,7 +194,7 @@ cd PiCore</pre><button type="button" data-copy="git clone https://github.com/Ike
 </main>
 
 <footer><div class="wrap">
-  <div><b style="color:var(--fg)">PiCore</b> · un PC portátil con Raspberry Pi 5 · licencia MIT</div>
+  <div><b style="color:var(--fg)">PiCore</b> · un PC portátil con Raspberry Pi 5 · licencia MIT <span id="ver" class="dim" hidden></span></div>
   <nav aria-label="Enlaces"><a href="/simulador">Simulador</a><a href="https://github.com/IkerPlays/PiCore" rel="noopener">GitHub</a><a href="https://github.com/IkerPlays/PiCore/blob/main/docs/TUTORIAL.md" rel="noopener">Tutorial</a><a href="https://github.com/IkerPlays/PiCore/blob/main/docs/NOVEDADES.md" rel="noopener">Novedades</a><a href="https://github.com/IkerPlays/PiCore/blob/main/CHANGELOG.md" rel="noopener">Registro de cambios</a><a href="https://github.com/IkerPlays/PiCore/blob/main/SECURITY.md" rel="noopener">Seguridad</a></nav>
 </div></footer>
 
@@ -233,6 +233,7 @@ function paintTheme() {            // el icono muestra a qué tema cambias: sol 
   document.querySelector("#theme use").setAttribute("href", cur === "light" ? "#i-moon" : "#i-sun");
 }
 paintTheme();
+fetch("/version.txt").then(r => r.ok ? r.text() : "").then(t => { t = t.trim(); if (/^[0-9a-f]{7}$/.test(t)) { const v = document.getElementById("ver"); v.textContent = "· web " + t; v.hidden = false; } }).catch(() => {});
 
 /* movimiento: aparecer al hacer scroll, barra de progreso y sombra de la barra superior (nada si pides menos movimiento) */
 (function () {
