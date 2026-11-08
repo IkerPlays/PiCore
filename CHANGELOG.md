@@ -6,6 +6,10 @@
 
 
 
+## Voz: calculadora
+
+- «Cuánto es 12 por 5», «calcula 10 entre 4»: dos números con más, menos, por o entre (cifras o palabras). Dividir entre cero se contesta sin fallar. También en el simulador (solo con cifras). Probado con tests; no en una Pi real.
+
 ## Herramienta para regenerar las capturas
 
 - `make capturas` construye la demo, hace las capturas con Chromium (1024x600) y reescribe las imágenes de la web y de la documentación. Necesita Playwright y Pillow. Las imágenes de la demo son simuladas, no de una Pi real.

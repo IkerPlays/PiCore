@@ -152,6 +152,14 @@ class IntentTest(unittest.TestCase):
         self.assertIn("No tengo", i.say_weather({"ok": False}))
         self.assertEqual(i.say_weather({"ok": True, "temp": 18.4, "code": 0}), "Ahora hay 18 grados y está despejado")
 
+    def test_calculadora(self):
+        self.assertEqual(i.parse("cuanto es 12 por 5").arg, (12, "*", 5))
+        self.assertEqual(i.parse("cuanto son siete mas ocho").arg, (7, "+", 8))
+        self.assertEqual(i.say_calc(10, "/", 4), "Son 2 coma 5")
+        self.assertEqual(i.say_calc(5, "/", 0), "No se puede dividir entre cero")
+        self.assertEqual(i.say_calc(3, "-", 5), "Son -2")
+        self.assertIsNone(i.parse("cuanto es la vida"))
+
 
 if __name__ == "__main__":
     unittest.main()

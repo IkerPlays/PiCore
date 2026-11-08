@@ -122,6 +122,33 @@ def parse_clock(words):
     return None
 
 
+CALC_OPS = (("mas", "+"), ("menos", "-"), ("por", "*"), ("multiplicado por", "*"), ("entre", "/"), ("dividido entre", "/"), ("dividido por", "/"))
+
+
+def parse_calc(t):
+    """«cuanto es 12 por 5» -> (12, '*', 5); None si no es una cuenta sencilla."""
+    if not (t.startswith("cuanto es ") or t.startswith("cuanto son ") or t.startswith("calcula ")):
+        return None
+    words = t.split()[2:] if not t.startswith("calcula ") else t.split()[1:]
+    for frase, op in sorted(CALC_OPS, key=lambda x: -len(x[0])):
+        f = frase.split()
+        for i in range(1, len(words) - len(f)):
+            if words[i:i + len(f)] == f:
+                a, b = find_number(words[:i]), find_number(words[i + len(f):])
+                if a is not None and b is not None:
+                    return a, op, b
+    return None
+
+
+def say_calc(a, op, b):
+    if op == "/" and b == 0:
+        return "No se puede dividir entre cero"
+    r = {"+": a + b, "-": a - b, "*": a * b, "/": a / b if b else 0}[op]
+    if op == "/" and r != int(r):
+        return "Son %s" % ("%.2f" % r).rstrip("0").replace(".", " coma ")
+    return "Son %d" % r
+
+
 def strip_wake(text, wakes):
     """(desperto, resto). 'oye pi pon modo casa' -> (True, 'pon modo casa')."""
     t = norm(text)
@@ -314,6 +341,9 @@ def parse(text):
         for k, (tz, nombre) in CITY_TZ.items():
             if k in t:
                 return Intent("time_in", (tz, nombre))
+    c = parse_calc(t)
+    if c:
+        return Intent("calc", c)
     if has("que hora", "la hora", "hora es"):
         return Intent("time", None)
     if has("que dia", "fecha", "a cuanto estamos"):

@@ -517,6 +517,15 @@
         return "En " + CT[k][1] + " " + (h === 1 ? "es la una" : "son las " + h) + (m ? " y " + m : " en punto");
       }
     }
+    const calc = /^(?:cuanto (?:es|son)|calcula) (\d+) (mas|menos|por|entre|multiplicado por|dividido (?:entre|por)) (\d+)$/.exec(t);
+    if (calc) {
+      const a = +calc[1], b = +calc[3], o = calc[2];
+      if (/^(entre|dividido)/.test(o)) {
+        if (!b) return "No se puede dividir entre cero";
+        const r = a / b; return "Son " + (Number.isInteger(r) ? r : r.toFixed(2).replace(/0+$/, "").replace(".", " coma "));
+      }
+      return "Son " + (o === "mas" ? a + b : o === "menos" ? a - b : a * b);
+    }
     if (has("tira un dado", "lanza un dado")) return "Ha salido el " + (1 + Math.floor(Math.random() * 6));
     if (has("cara o cruz", "tira una moneda", "lanza una moneda")) return "Ha salido " + (Math.random() < 0.5 ? "cara" : "cruz");
     if (has("pospon", "posponer", "cinco minutos mas", "5 minutos mas") && !has("temporizador de")) {
