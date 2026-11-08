@@ -42,6 +42,10 @@
 
 - En la sección «Más adelante: batería y SSD», con su límite: sin medida de batería no hace nada.
 
+## pcpi-session: relanza el navegador de Casa si «engorda» demasiado
+
+- Chromium en kiosco durante semanas puede acumular memoria. Cada ~10 minutos (builtins + un `pgrep`) se suma el `VmRSS` de sus procesos; si pasa de `PCPI_BROWSER_MEM_MB` (2500 por defecto, 0 = nunca) se relanza **de madrugada (3 a 6 h)**, o ya mismo si dobla el límite. Solo en modo Casa y con la pantalla en marcha. La suma se prueba con un `/proc` falso; el «Pi virtual» sigue pasando. No he medido el consumo real de Chromium en una Pi, así que el límite es una estimación.
+
 ## Test: el bucle del servidor que apaga con batería baja
 
 - Comprueba que pide `shutdown` con el ajuste puesto y que **nunca** lo pide si el ajuste está en 0.

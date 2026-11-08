@@ -31,6 +31,8 @@ LOAD_TIMEOUT="${PCPI_LOAD_TIMEOUT:-1800}" # tope de la pantalla de carga (segund
                                           # descargar un video de ~500 MB; una pagina colgada ya la detecta el latido (45 s)
 PROFILE="$HOME/.cache/pcpi-kiosk"        # el perfil de Iker cuelga de este nombre (para poder matar ambos)
 PORTAL_PROFILE="$HOME/.cache/pcpi-portal"
+MEM_EVERY="${PCPI_MEM_CHECK_EVERY:-600}"     # vueltas entre comprobaciones de memoria (600 vueltas de 1 s = 10 min)
+MEM_LIMIT_MB="${PCPI_BROWSER_MEM_MB:-2500}"  # si el navegador de Casa pasa de esto (MB) se relanza (Chromium tarda semanas en «engordar»); 0 = nunca
 
 # una sola instancia
 exec 9>"${XDG_RUNTIME_DIR:-/tmp}/pcpi-session.lock"
@@ -42,6 +44,17 @@ CHROMIUM="$(command -v chromium || command -v chromium-browser || true)"
 stop_browser()  { pkill -f -- "--user-data-dir=$PROFILE" 2>/dev/null || true; }
 browser_alive() { pgrep -f -- "--user-data-dir=$PROFILE" >/dev/null; }
 portal_alive()  { pgrep -f -- "--user-data-dir=$PORTAL_PROFILE" >/dev/null; }
+
+# Memoria (MB) que usan estos procesos, sumando VmRSS de /proc/<pid>/status. PCPI_PROC permite probarlo con un /proc falso.
+rss_of_pids_mb() {
+  local kb=0 v pid
+  for pid in "$@"; do
+    v="$(awk '/^VmRSS:/{print $2}' "${PCPI_PROC:-/proc}/$pid/status" 2>/dev/null)" || v=""
+    case "$v" in ''|*[!0-9]*) ;; *) kb=$((kb + v)) ;; esac
+  done
+  echo $((kb / 1024))
+}
+browser_rss_mb() { rss_of_pids_mb $(pgrep -f -- "--user-data-dir=$PROFILE( |\$)" 2>/dev/null); }
 
 common_flags() {
   # la coma de --disable-features=A,B es parte del valor, no un separador
@@ -297,7 +310,7 @@ mkdir -p "$RUN" 2>/dev/null || true
 launched_at="$(now_s)"; restarts=(); cooldown_until=0
 boot=1; [ -e "$RUN/booted" ] && boot=0          # /run es RAM: tras cada encendido no existe
 
-applied="" ; tick=0 ; phase=running ; loading_since=0
+applied="" ; tick=0 ; phase=running ; loading_since=0 ; memtick=0
 while true; do
   mode=desktop
   read -r mode < "$MODE_FILE" 2>/dev/null || true          # builtin: no lanza procesos
@@ -340,6 +353,19 @@ while true; do
     # El latido solo vale para la UI de Casa y la pantalla de carga. En Iker la ventana es un navegador normal:
     # puedes cerrar la pestaña de notas o dejarla oculta (Chromium frena sus temporizadores) y seguir navegando.
     elif { [ "$mode" = home ] || [ "$phase" = loading ]; } && [ "$(heartbeat_age)" -gt "$ALIVE_TIMEOUT" ]; then relaunch "$mode"; fi
+  fi
+
+  # Memoria del navegador de Casa: cada ~10 min mira cuanto usa. Pasado el limite se relanza de madrugada (3-6 h) o ya, si dobla el limite.
+  if [ "$MEM_LIMIT_MB" -gt 0 ] && [ "$mode" = home ] && [ "$phase" = running ]; then
+    memtick=$((memtick + 1))
+    if [ "$memtick" -ge "$MEM_EVERY" ]; then
+      memtick=0
+      mem="$(browser_rss_mb)"; printf -v hora '%(%H)T' -1
+      if [ "$mem" -gt "$MEM_LIMIT_MB" ] && { [ $((10#$hora)) -ge 3 ] && [ $((10#$hora)) -lt 6 ] || [ "$mem" -gt $((MEM_LIMIT_MB * 2)) ]; }; then
+        echo "pcpi-session: el navegador usa ${mem} MB (limite $MEM_LIMIT_MB): se relanza" >&2
+        relaunch "$mode"
+      fi
+    fi
   fi
 
   sync_portal
