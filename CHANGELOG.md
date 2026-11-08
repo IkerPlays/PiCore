@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## pcpi-backup: guarda también los experimentos del modo Dev
+
+- `dev.json` (los experimentos que tengas encendidos) faltaba en la copia y se perdía al restaurar.
+
 ## Temporizadores y alarmas: lo que venció hace más de 10 minutos ya no suena
 
 - Si la Pi estaba apagada (o el reloj se corrigió tras arrancar sin internet), una alarma de las 7 sonaba a las 9 y un temporizador de pasta sonaba horas tarde. Ahora, si lo vencido lleva más de 10 minutos, se descarta (una alarma diaria se reprograma para su próxima hora). Sin probar en una Pi real; los tests usan un reloj falso.

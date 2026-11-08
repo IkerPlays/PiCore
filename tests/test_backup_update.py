@@ -25,6 +25,7 @@ def make_root(base):
     (r / "var/lib/pcpi/notes/a.json").write_text('{"text":"hola","updated":1}')
     (r / "var/lib/pcpi/nets.json").write_text('{"CasaIker": false}')
     (r / "var/lib/pcpi/timers.json").write_text('[]')
+    (r / "var/lib/pcpi/dev.json").write_text('{"flags": {"casa_debug": true}}')
     (r / "var/lib/pcpi/music").mkdir()
     (r / "var/lib/pcpi/music/cancion.mp3").write_bytes(b"x" * 2000)
     (r / "opt/pcpi/extra-assets/start").mkdir(parents=True)
@@ -53,7 +54,7 @@ class BackupTest(unittest.TestCase):
         self.assertEqual(oct(f.stat().st_mode & 0o777), "0o600")
         with tarfile.open(f) as tf:
             names = tf.getnames()
-        for n in ("etc/pcpi/pcpi.conf", "etc/pcpi/mode", "var/lib/pcpi/notes/a.json", "var/lib/pcpi/nets.json", "var/lib/pcpi/timers.json",
+        for n in ("etc/pcpi/pcpi.conf", "etc/pcpi/mode", "var/lib/pcpi/notes/a.json", "var/lib/pcpi/nets.json", "var/lib/pcpi/timers.json", "var/lib/pcpi/dev.json",
                   "opt/pcpi/extra-assets/start/Inicio.mp4", "MANIFEST.json"):
             self.assertIn("pcpi-backup/" + n, names)
         self.assertFalse([n for n in names if "backups" in n], "las copias automaticas no deben entrar en la copia")
