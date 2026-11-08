@@ -195,9 +195,19 @@ cd PiCore</pre><button type="button" data-copy="git clone https://github.com/Ike
 "use strict";
 /* pestañas de los modos */
 const tabs = document.querySelectorAll(".tabs button"), modes = document.querySelectorAll(".mode");
-for (const b of tabs) b.addEventListener("click", () => {
-  for (const x of tabs) x.setAttribute("aria-selected", String(x === b));
+function pick(b, focus) {
+  for (const x of tabs) { x.setAttribute("aria-selected", String(x === b)); x.tabIndex = x === b ? 0 : -1; }
   for (const m of modes) m.classList.toggle("on", m.dataset.m === b.dataset.m);
+  if (focus) b.focus();
+}
+tabs.forEach((b, i) => {
+  b.tabIndex = i === 0 ? 0 : -1;
+  b.addEventListener("click", () => pick(b, false));
+  b.addEventListener("keydown", (e) => {            // flechas, Inicio y Fin, como en cualquier pestaña accesible
+    const k = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+    if (k === undefined) return;
+    e.preventDefault(); pick(tabs[(k + tabs.length) % tabs.length], true);
+  });
 });
 /* botones «Copiar» */
 for (const b of document.querySelectorAll("button[data-copy]")) b.addEventListener("click", async () => {

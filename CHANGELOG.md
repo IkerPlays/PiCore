@@ -6,6 +6,10 @@
 
 
 
+## Web: las pestañas de los modos se manejan con el teclado
+
+- Flechas izquierda y derecha, Inicio y Fin cambian de modo (Casa, Iker, Dev) en la portada; solo la pestaña activa entra con Tab, como en cualquier lista de pestañas accesible.
+
 ## Web: botón «Volver arriba»
 
 - Aparece al bajar un buen trozo de la portada y sube con un deslizamiento suave. Tiene nombre accesible y no sale si pides menos movimiento (ni con JavaScript apagado).

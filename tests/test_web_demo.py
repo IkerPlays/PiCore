@@ -32,6 +32,10 @@ class LandingTest(unittest.TestCase):
         for text in ("Qué es PiCore", "Para qué sirve", "Cómo funciona", "Instalar", "Preguntas frecuentes", "todavía no en una Raspberry Pi real"):
             self.assertIn(text, self.html)
 
+    def test_las_pestanas_se_manejan_con_flechas(self):
+        for k in ("ArrowRight", "ArrowLeft", "Home", "End", "tabIndex"):
+            self.assertIn(k, self.html)
+
     def test_points_to_the_simulator_and_github(self):
         self.assertGreaterEqual(self.html.count('href="/simulador"'), 3)
         self.assertIn("https://github.com/IkerPlays/PiCore", self.html)
