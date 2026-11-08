@@ -220,6 +220,16 @@ def parse(text):
             return Intent("days_until", m.group(1))
     if has("tira un dado", "lanza un dado", "tirame un dado", "tira el dado", "lanza el dado"):
         return Intent("random", "dado")
+    if has("numero al azar", "numero aleatorio", "numero entre"):
+        w = t.split()
+        if "entre" in w:
+            k = w.index("entre")
+            lo, hi = find_number(w[k + 1:k + 4]), None
+            if "y" in w[k + 1:]:
+                hi = find_number(w[w.index("y", k + 1) + 1:])
+            if lo is not None and hi is not None and lo < hi:
+                return Intent("random", ("numero", lo, hi))
+        return Intent("random", ("numero", 1, 100))
     if has("cara o cruz", "cara o cruces", "tira una moneda", "lanza una moneda"):
         return Intent("random", "moneda")
     if has("pospon", "posponer", "pospone", "cinco minutos mas", "5 minutos mas", "dame cinco minutos", "dame 5 minutos") and not has("temporizador de", "alarma a las"):
@@ -466,6 +476,8 @@ def say_random(kind, rnd=None):
     """Dado de 6 caras o moneda. rnd: un random.Random (para los tests)."""
     import random
     r = rnd or random
+    if isinstance(kind, tuple):
+        return "Ha salido el %d" % r.randint(kind[1], kind[2])
     if kind == "moneda":
         return "Ha salido " + r.choice(["cara", "cruz"])
     return "Ha salido el %d" % r.randint(1, 6)

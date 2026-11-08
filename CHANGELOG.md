@@ -6,6 +6,10 @@
 
 
 
+## Voz: número al azar
+
+- «Dime un número al azar entre 1 y 10» (o sin rango: de 1 a 100). También en el simulador.
+
 ## Voz: la ayuda menciona las cuentas y los chistes
 
 - Lo que contesta «qué puedes hacer» incluye ya las cuentas y los chistes.

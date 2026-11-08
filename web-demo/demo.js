@@ -528,6 +528,10 @@
       return "Son " + (o === "mas" ? a + b : o === "menos" ? a - b : a * b);
     }
     if (has("tira un dado", "lanza un dado")) return "Ha salido el " + (1 + Math.floor(Math.random() * 6));
+    if (has("numero al azar", "numero aleatorio", "numero entre")) {
+      const m = /entre (\d+) y (\d+)/.exec(t); let lo = 1, hi = 100; if (m && +m[1] < +m[2]) { lo = +m[1]; hi = +m[2]; }
+      return "Ha salido el " + (lo + Math.floor(Math.random() * (hi - lo + 1)));
+    }
     if (has("cara o cruz", "tira una moneda", "lanza una moneda")) return "Ha salido " + (Math.random() < 0.5 ? "cara" : "cruz");
     if (has("pospon", "posponer", "cinco minutos mas", "5 minutos mas") && !has("temporizador de")) {
       const r = S.timers.find(x => Date.now() >= x.due);

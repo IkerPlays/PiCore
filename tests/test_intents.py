@@ -152,6 +152,11 @@ class IntentTest(unittest.TestCase):
         self.assertIn("No tengo", i.say_weather({"ok": False}))
         self.assertEqual(i.say_weather({"ok": True, "temp": 18.4, "code": 0}), "Ahora hay 18 grados y está despejado")
 
+    def test_numero_al_azar(self):
+        self.assertEqual(i.parse("dime un numero al azar entre 5 y 9").arg, ("numero", 5, 9))
+        self.assertEqual(i.parse("dime un numero al azar").arg, ("numero", 1, 100))
+        self.assertTrue(5 <= int(i.say_random(("numero", 5, 9)).split()[-1]) <= 9)
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)
