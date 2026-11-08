@@ -595,6 +595,11 @@ RESPUESTAS = (
     (("buenas noches",), "Buenas noches. Que descanses"),
     (("te quiero", "eres la mejor"), "Gracias, yo también te aprecio. Soy una Pi, pero se agradece"),
     (("cuantos anos tienes", "cuando naciste"), "Soy software: nací cuando me instalaste"),
+    (("que te gusta", "cual es tu color favorito", "cual es tu comida favorita"), "Me gustan los ciclos de reloj bien cortos y la memoria libre"),
+    (("tienes hambre", "tienes sueno", "estas cansada"), "No me canso, pero si me apagas un rato también lo agradezco"),
+    (("donde vives", "donde estas"), "Vivo en una Raspberry Pi 5, sobre tu mesa"),
+    (("quien te hizo", "quien te creo", "quien te programo"), "Me hizo Iker, con un montón de ayuda. Todo el código está en GitHub"),
+    (("eres una persona", "eres humana", "eres un robot"), "Soy un programa que corre en tu Raspberry Pi. No soy una persona, pero hago lo que puedo"),
 )
 
 CHISTES = ['¿Qué le dice un cero a un ocho? Bonito cinturón', '¿Por qué los pájaros vuelan hacia el sur? Porque andando tardarían mucho', '¿Qué hace una abeja en el gimnasio? Zum-ba', '¿Cómo se llama el campeón de buceo japonés? Tokofondo', '¿Qué le dice un semáforo a otro? No me mires, que me pongo rojo', '¿Qué hace un perro con un taladro? Taladrando', 'Mi ordenador no me hace caso, pero yo a él tampoco']

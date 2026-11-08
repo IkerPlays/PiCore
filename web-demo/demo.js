@@ -490,6 +490,11 @@
     [["buenas noches"], "Buenas noches. Que descanses"],
     [["te quiero", "eres la mejor"], "Gracias, yo también te aprecio. Soy una Pi, pero se agradece"],
     [["cuantos anos tienes", "cuando naciste"], "Soy software: nací cuando me instalaste"],
+    [["que te gusta", "cual es tu color favorito", "cual es tu comida favorita"], "Me gustan los ciclos de reloj bien cortos y la memoria libre"],
+    [["tienes hambre", "tienes sueno", "estas cansada"], "No me canso, pero si me apagas un rato también lo agradezco"],
+    [["donde vives", "donde estas"], "Vivo en una Raspberry Pi 5, sobre tu mesa"],
+    [["quien te hizo", "quien te creo", "quien te programo"], "Me hizo Iker, con un montón de ayuda. Todo el código está en GitHub"],
+    [["eres una persona", "eres humana", "eres un robot"], "Soy un programa que corre en tu Raspberry Pi. No soy una persona, pero hago lo que puedo"],
   ];
   function duration(t) {                                            // «diez minutos», «5 min», «media hora», «una hora y media» -> segundos
     if (/media hora/.test(t) && !/hora y media/.test(t)) return 1800;
