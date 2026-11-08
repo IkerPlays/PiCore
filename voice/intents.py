@@ -325,8 +325,8 @@ def parse(text):
         return Intent("timer_set", (secs_r, label) if label else secs_r)
     if has("repite", "repitelo", "que has dicho", "como has dicho", "no te he entendido") and not has("cancion", "musica", "tema"):
         return Intent("repeat", None)
-    if has("cuantas notas", "cuantos temporizadores", "cuantas alarmas"):
-        return Intent("count", "notes" if has("notas") else "alarms" if has("alarmas") else "timers")
+    if has("cuantas notas", "cuantos temporizadores", "cuantas alarmas", "cuantas canciones", "cuantos mp3"):
+        return Intent("count", "notes" if has("notas") else "alarms" if has("alarmas") else "tracks" if has("canciones", "mp3") else "timers")
     if has("cuanto falta para", "cuantos dias faltan para", "dias para"):
         m = re.search(r"(navidad|ano nuevo|nochevieja|reyes|verano)", t)
         if m:

@@ -184,7 +184,7 @@ class ExecuteApiIntentsTest(unittest.TestCase):
 
     def setUp(self):
         import http.server
-        self.notes = []
+        self.notes, self.tracks = [], []
         self.posts, self.status = [], {"display": {"level": 60}, "motion": {"available": True}}
         outer = self
 
@@ -192,6 +192,8 @@ class ExecuteApiIntentsTest(unittest.TestCase):
             def do_GET(self):
                 if self.path.split("?")[0] == "/api/notes":
                     body = json.dumps(outer.notes).encode()
+                elif self.path == "/api/music":
+                    body = json.dumps({"tracks": outer.tracks}).encode()
                 elif self.path.startswith("/api/notes/"):
                     body = json.dumps({"id": "a", "text": "Comprar\n  leche   y pan " * 40, "updated": 1}).encode()
                 else:
@@ -275,6 +277,19 @@ class ExecuteApiIntentsTest(unittest.TestCase):
     def test_brightness_query_by_voice(self):
         self.status["display"] = {"effective": 70, "auto": False}
         self.assertEqual(assistant.execute(self.cfg, ("brightness_query", None)), "El brillo está al 70 por ciento")
+
+    def test_count_tracks_by_voice(self):
+        self.assertEqual(assistant.execute(self.cfg, ("count", "tracks")), "No tienes ninguna canción")
+        self.tracks = [{"id": "a" * 12, "title": "Aurora"}]
+        self.assertEqual(assistant.execute(self.cfg, ("count", "tracks")), "Tienes una canción")
+        self.tracks = [{"id": "a" * 12, "title": "Aurora"}, {"id": "b" * 12, "title": "Marea"}]
+        self.assertEqual(assistant.execute(self.cfg, ("count", "tracks")), "Tienes 2 canciones")
+
+    def test_play_a_named_track_by_voice(self):
+        self.tracks = [{"id": "a" * 12, "title": "Aurora (demo)"}, {"id": "b" * 12, "title": "Marea baja"}]
+        self.assertEqual(assistant.execute(self.cfg, ("music_track", "marea")), "Pongo Marea baja")
+        self.assertEqual(self.posts[-1][1], {"action": "cmd", "cmd": "track", "id": "b" * 12})
+        self.assertIn("No encuentro", assistant.execute(self.cfg, ("music_track", "jazz")))
 
     def test_battery_by_voice(self):
         self.status["battery"] = {"available": True, "percent": 50, "charging": False}

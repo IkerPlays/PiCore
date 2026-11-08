@@ -606,6 +606,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «busca en mis notas leche» | Dice cuántas notas tienen esa palabra y sus títulos |
 | «lee la lista de la compra» · «qué hay en mis tareas» | Lee en voz alta lo que hay en la lista (hasta 12 elementos) |
 | «despiértame en una hora» · «a qué hora suena la alarma» | Pone un aviso dentro de ese tiempo; o dice cuándo es la próxima alarma |
+| «cuántas canciones tengo» | Cuenta tus MP3 |
 | «cuántas alarmas tengo» | Cuenta las alarmas (igual que «cuántas notas tengo» y «cuántos temporizadores») |
 | «qué versión tienes» | Dice la versión de PiCore instalada |
 | «qué brillo tengo» | Dice el brillo actual (y si está en automático) |

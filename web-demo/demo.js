@@ -606,10 +606,10 @@
       if (!c) return "No hay ningún temporizador en marcha";
       c.due += duration(t) * 1000; LS.set("timers", S.timers); return "Añadido " + sayDuration(duration(t)) + " al temporizador";
     }
-    if (has("cuantas notas", "cuantos temporizadores", "cuantas alarmas")) {
-      const que = has("notas") ? "notes" : has("alarmas") ? "alarms" : "timers";
-      const k = que === "notes" ? notes().length : S.timers.filter(x => x.kind === (que === "alarms" ? "alarm" : "timer")).length;
-      const [una, uno, varios, nombre] = { notes: ["una", "nota", "notas", "ninguna nota"], alarms: ["una", "alarma", "alarmas", "ninguna alarma"], timers: ["un", "temporizador", "temporizadores", "ningún temporizador"] }[que];
+    if (has("cuantas notas", "cuantos temporizadores", "cuantas alarmas", "cuantas canciones", "cuantos mp3")) {
+      const que = has("notas") ? "notes" : has("alarmas") ? "alarms" : has("canciones", "mp3") ? "tracks" : "timers";
+      const k = que === "notes" ? notes().length : que === "tracks" ? tracks().length : S.timers.filter(x => x.kind === (que === "alarms" ? "alarm" : "timer")).length;
+      const [una, uno, varios, nombre] = { notes: ["una", "nota", "notas", "ninguna nota"], alarms: ["una", "alarma", "alarmas", "ninguna alarma"], tracks: ["una", "canción", "canciones", "ninguna canción"], timers: ["un", "temporizador", "temporizadores", "ningún temporizador"] }[que];
       return k === 0 ? "No tienes " + nombre : "Tienes " + (k === 1 ? una : k) + " " + (k === 1 ? uno : varios);
     }
     if (has("nota") && has("lee", "leeme", "dime", "que pone", "cual es") && has("ultima", "reciente", "anterior")) {

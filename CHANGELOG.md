@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Voz: cuántas canciones tengo
+
+- Cuenta los MP3 de la carpeta. También en el simulador.
+
 ## Voz: «pon la canción Aurora»
 
 - La Pi busca entre tus MP3 por título (sin tildes ni mayúsculas, basta una parte; si hay varias, la de título más corto) y la pone. El servidor solo acepta el identificador de una canción que exista en la carpeta. También en el simulador.

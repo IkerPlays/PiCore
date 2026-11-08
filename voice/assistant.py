@@ -238,11 +238,11 @@ def execute(cfg, intent):
             with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
                 return intents.say_now_playing(json.load(r).get("nowplaying"))
         if n == "count":
-            with urllib.request.urlopen(cfg["api"] + ("/api/notes" if a == "notes" else "/api/status"), timeout=5) as r:
+            with urllib.request.urlopen(cfg["api"] + {"notes": "/api/notes", "tracks": "/api/music"}.get(a, "/api/status"), timeout=5) as r:
                 data = json.load(r)
             kind = {"timers": "timer", "alarms": "alarm"}.get(a)
-            k = len(data) if a == "notes" else len([t for t in (data.get("timers") or []) if t.get("kind") == kind])
-            una, noun = {"notes": ("una", ("nota", "notas")), "alarms": ("una", ("alarma", "alarmas")), "timers": ("un", ("temporizador", "temporizadores"))}[a]
+            k = len(data) if a == "notes" else len(data.get("tracks") or []) if a == "tracks" else len([t for t in (data.get("timers") or []) if t.get("kind") == kind])
+            una, noun = {"notes": ("una", ("nota", "notas")), "alarms": ("una", ("alarma", "alarmas")), "timers": ("un", ("temporizador", "temporizadores")), "tracks": ("una", ("canción", "canciones"))}[a]
             if k == 0:
                 return "No tienes ninguna %s" % noun[0] if una == "una" else "No tienes ningún %s" % noun[0]
             return "Tienes %s %s" % (una if k == 1 else k, noun[0] if k == 1 else noun[1])
