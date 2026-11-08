@@ -106,6 +106,10 @@ if [ -x /opt/pcpi/venv/bin/python ]; then
   [ -d /opt/pcpi/models/vosk-model-small-es-0.42 ] && ok "modelo de voz español" || bad "falta el modelo Vosk en /opt/pcpi/models"
   wm="$(sed -n 's/^wake_model *= *//p' /etc/pcpi/pcpi.conf 2>/dev/null | head -1)"
   ok "palabra de activacion: ${wm:-oye_pi}"
+  dev="$(sed -n 's/^device *= *//p' /etc/pcpi/pcpi.conf 2>/dev/null | head -1 | sed 's/[[:space:]]*#.*//')"
+  case "$dev" in
+    hw:[0-9]*|plughw:[0-9]*) warn "el microfono se llama por numero ($dev): puede cambiar al reiniciar. Mejor por nombre, p. ej. plughw:CARD=C270,DEV=0 (mira arecord -L)";;
+  esac
   if systemctl --user is-active --quiet pcpi-voice 2>/dev/null; then ok "servicio pcpi-voice activo"; else warn "pcpi-voice parado: systemctl --user status pcpi-voice"; fi
 else warn "voz no instalada (./install.sh --voice)"; fi
 

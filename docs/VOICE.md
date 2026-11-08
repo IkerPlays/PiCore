@@ -57,7 +57,7 @@ Para conseguir un «Oye Pi» bueno hace falta **tu voz real**:
 
 ## Cambiar el micrófono
 
-`arecord -l` lista las tarjetas. Para la Logitech C270 sale algo como `card 2: C270`; entonces `device = plughw:2,0`.
+`arecord -l` lista las tarjetas. Para la Logitech C270 sale algo como `card 2: C270`. **Mejor usa el nombre que el número**: el número (`plughw:2,0`) puede cambiar al reiniciar si conectas otro aparato USB, y entonces la Pi deja de oírte. Con `arecord -L` ves los nombres; para la C270 sería `device = plughw:CARD=C270,DEV=0`.
 
 ## Qué falta por probar en la Pi
 

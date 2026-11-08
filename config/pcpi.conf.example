@@ -38,7 +38,8 @@ whisper_model = base
 whisper_dir = /opt/pcpi/models/whisper
 # Hilos de CPU para Whisper (la Pi 5 tiene 4 nucleos).
 whisper_threads = 4
-# Dispositivo de captura de arecord ("arecord -l" para listarlos). default = el del sistema.
+# Dispositivo de captura de arecord ("arecord -L" para listarlos). default = el del sistema.
+# Si pones uno concreto, mejor por NOMBRE (plughw:CARD=C270,DEV=0) que por numero (plughw:2,0): el numero cambia al reiniciar.
 device = default
 # Voz de espeak-ng
 tts_voice = es

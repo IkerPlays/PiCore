@@ -42,6 +42,10 @@
 
 - En la sección «Más adelante: batería y SSD», con su límite: sin medida de batería no hace nada.
 
+## Micrófono: mejor por nombre que por número de tarjeta
+
+- El número de una tarjeta de audio USB puede cambiar al reiniciar. La documentación y la config de ejemplo recomiendan `plughw:CARD=NOMBRE,DEV=0`, y `pcpi-doctor` avisa si `device` usa un número.
+
 ## pcpi-doctor: país de la wifi y bloqueo por software
 
 - Una Pi recién instalada sin país de wifi (`00`) o con la wifi bloqueada por `rfkill` no ve redes de 5 GHz o ninguna. El doctor lo avisa con el comando para arreglarlo. Sin probar en una Pi real (en este equipo no hay `iw`).
