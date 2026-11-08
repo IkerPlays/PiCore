@@ -549,6 +549,8 @@ def parse(text):
             return Intent("camera_hide", None)
         if has("muestra", "ensena", "abre", "enciende", "ver ", "pon", "activa"):
             return Intent("camera_show", None)
+    if has("tiempo", "temperatura", "llover", "llueve", "frio", "calor") and (hh := parse_clock(words)) and not has("temporizador", "alarma", "despiertame", "avisame", "recuerdame"):
+        return Intent("weather_hour", hh[0])
     if has("maxima", "minima") and has("hoy", "temperatura", "tiempo", "cual es"):
         return Intent("minmax", "max" if has("maxima") and not has("minima") else "min" if has("minima") and not has("maxima") else "both")
     if has("amanece", "sale el sol", "salida del sol", "anochece", "se pone el sol", "puesta de sol", "atardece"):
@@ -928,6 +930,22 @@ def say_weather(w):
     elif w.get("rain") is not None and w["rain"] >= 50:
         txt += ". Hoy hay un %d por ciento de probabilidad de lluvia" % w["rain"]
     return txt
+
+
+def say_weather_hour(w, hour):
+    """«A las 17 habrá 23 grados, con el cielo poco nuboso, y un 10 por ciento de lluvia» a partir de w['hourly'] (las proximas 12 horas)."""
+    if not w or not w.get("ok"):
+        return "No tengo el tiempo configurado"
+    for x in w.get("hourly") or []:                                    # «a las cinco» puede ser la 5 o las 17: vale la primera que llegue
+        hh = int(str(x.get("h", "00"))[:2])
+        if hh == hour or (hour <= 12 and hh == hour + 12):
+            hour = hh
+            txt = "A las %d habrá %d grados" % (hour, round(x["temp"])) if x.get("temp") is not None else "A las %d no sé la temperatura" % hour
+            txt += ", con el cielo %s" % WMO.get(x.get("code"), "variable")
+            if x.get("rain") is not None and x["rain"] >= 30:
+                txt += ", y un %d por ciento de probabilidad de lluvia" % x["rain"]
+            return txt
+    return "Solo tengo la previsión de las próximas doce horas"
 
 
 def say_weather_day(w, offset):

@@ -421,6 +421,16 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.parse("abre la consola").arg, "dev")
         self.assertEqual(i.parse("abre la camara").name, "camera_show")
 
+    def test_el_tiempo_a_una_hora(self):
+        w = {"ok": True, "hourly": [{"h": "17:00", "temp": 22.6, "code": 1, "rain": 10}, {"h": "18:00", "temp": 21, "code": 61, "rain": 70}]}
+        self.assertEqual(i.parse("que temperatura habra a las cinco").arg, 5)
+        self.assertEqual(i.say_weather_hour(w, 17), "A las 17 habrá 23 grados, con el cielo poco nuboso")
+        self.assertIn("70 por ciento", i.say_weather_hour(w, 18))
+        self.assertTrue(i.say_weather_hour(w, 5).startswith("A las 17 habrá 23"))                  # «a las cinco» = las 17 si es lo que hay
+        self.assertIn("próximas doce horas", i.say_weather_hour(w, 3))
+        self.assertEqual(i.parse("despiertame a las siete").name, "alarm_set")
+        self.assertEqual(i.parse("que hora es").name, "time")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

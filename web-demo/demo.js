@@ -692,6 +692,16 @@
       const sec = duration(t.replace(/^.*(dentro de|sera en) /, ""));
       if (sec) { const d = new Date(Date.now() + sec * 1000); return "Serán las " + pad(d.getHours()) + ":" + pad(d.getMinutes()); }
     }
+    const wh = /\ba las (\w+)\b/.exec(t);
+    if (wh && has("tiempo", "temperatura", "llover", "llueve", "frio", "calor") && !has("temporizador", "alarma", "despiertame", "avisame", "recuerdame")) {
+      const hh = /^\d+$/.test(wh[1]) ? +wh[1] : WORDS[wh[1]];
+      if (hh != null) {
+        const x = weather().hourly.find(y => +y.h.slice(0, 2) === hh || (hh <= 12 && +y.h.slice(0, 2) === hh + 12));
+        if (!x) return "Solo tengo la previsión de las próximas doce horas";
+        const WM = { 0: "despejado", 1: "poco nuboso", 61: "con lluvia" };
+        return "A las " + +x.h.slice(0, 2) + " habrá " + Math.round(x.temp) + " grados, con el cielo " + (WM[x.code] || "variable") + (x.rain >= 30 ? ", y un " + x.rain + " por ciento de probabilidad de lluvia" : "");
+      }
+    }
     if (has("maxima", "minima") && has("hoy", "temperatura", "tiempo", "cual es")) {
       const w = weather(), mx = has("maxima"), mn = has("minima");
       return mx && !mn ? "La máxima de hoy es de " + Math.round(w.tmax) + " grados" : mn && !mx ? "La mínima de hoy es de " + Math.round(w.tmin) + " grados" : "Hoy, máxima de " + Math.round(w.tmax) + " grados y mínima de " + Math.round(w.tmin);

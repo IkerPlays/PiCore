@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Voz: el tiempo a una hora («qué temperatura habrá a las seis»)
+
+- Usa la previsión por horas que ya carga la pantalla (las próximas 12). Si preguntas por una hora fuera de ese margen, lo dice. También en el simulador.
+
 ## Voz: «abre las notas» y «abre la consola»
 
 - Pasan a modo Iker y a modo Dev. También en el simulador.

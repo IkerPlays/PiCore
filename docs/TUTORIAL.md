@@ -613,6 +613,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «qué versión tienes» | Dice la versión de PiCore instalada |
 | «qué brillo tengo» | Dice el brillo actual (y si está en automático) |
 | «cuánta batería queda» | Dice el porcentaje y si se está cargando (solo si la Pi tiene batería) |
+| «qué temperatura habrá a las seis» | Mira la previsión de esa hora (solo las próximas 12 horas) |
 | «cuál es la máxima de hoy» · «cuál es la mínima de hoy» | Temperatura máxima y mínima del día |
 | «a qué hora amanece» · «a qué hora anochece» | Dice la hora de salida y puesta del sol de hoy (datos de Open-Meteo, como el tiempo) |
 | «cuéntame un chiste» | Cuenta uno de una lista corta guardada en la Pi (funciona sin internet) |

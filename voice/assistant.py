@@ -126,6 +126,9 @@ def execute(cfg, intent):
             with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
                 w = json.load(r).get("weather")
             return intents.say_weather_day(w, a) if a else intents.say_weather(w)
+        if n == "weather_hour":
+            with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
+                return intents.say_weather_hour(json.load(r).get("weather"), a)
         if n == "minmax":
             with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
                 return intents.say_minmax(json.load(r).get("weather"), a)
