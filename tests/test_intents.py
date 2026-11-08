@@ -169,6 +169,16 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.say_time_plus(datetime.datetime(2026, 1, 1, 14, 50), 1200), "Serán las 15 y 10")
         self.assertEqual(i.parse("que hora es").name, "time")
 
+    def test_porcentajes_y_frases_de_musica(self):
+        x = i.parse("cuanto es el 20 por ciento de 50")
+        self.assertEqual(x.arg, (20, "%", 50))
+        self.assertEqual(i.say_calc(*x.arg), "Son 10")
+        self.assertEqual(i.parse("ponme musica").arg, "play")
+        self.assertEqual(i.parse("sube la musica").arg, "+10")
+        self.assertEqual(i.parse("baja la musica").arg, "-10")
+        self.assertEqual(i.parse("quita el sonido").arg, "mute")
+        self.assertEqual(i.parse("quita la musica").arg, "pause")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

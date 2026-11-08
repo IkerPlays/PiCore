@@ -131,6 +131,13 @@ def parse_calc(t):
     if not (t.startswith("cuanto es ") or t.startswith("cuanto son ") or t.startswith("calcula ")):
         return None
     words = t.split()[2:] if not t.startswith("calcula ") else t.split()[1:]
+    if "ciento" in words and "por" in words:                      # «el 20 por ciento de 50»
+        k = words.index("por")
+        if words[k + 1:k + 2] == ["ciento"] and "de" in words[k + 2:]:
+            a, b = find_number(words[:k]), find_number(words[words.index("de", k) + 1:])
+            if a is not None and b is not None:
+                return a, "%", b
+        return None
     for frase, op in sorted(CALC_OPS, key=lambda x: -len(x[0])):
         f = frase.split()
         for i in range(1, len(words) - len(f)):
@@ -177,6 +184,9 @@ def say_convert(v, de, a):
 def say_calc(a, op, b):
     if op == "/" and b == 0:
         return "No se puede dividir entre cero"
+    if op == "%":
+        r = a * b / 100
+        return "Son %s" % ("%.2f" % r).rstrip("0").rstrip(".").replace(".", " coma ")
     r = {"+": a + b, "-": a - b, "*": a * b, "/": a / b if b else 0}[op]
     if op == "/" and r != int(r):
         return "Son %s" % ("%.2f" % r).rstrip("0").replace(".", " coma ")
@@ -310,13 +320,17 @@ def parse(text):
                 return Intent("music_sleep", secs)
         if has("cancela", "quita") and has("dormir", "apagado", "programad"):
             return Intent("music_sleep", 0)
+        if has("sube", "aumenta") and not has("volumen"):
+            return Intent("volume", "+10")
+        if has("baja", "reduce") and not has("volumen"):
+            return Intent("volume", "-10")
         if has("siguiente", "proxima", "salta", "otra cancion", "cambia"):
             return Intent("music", "next")
         if has("anterior", "previa", "atras", "vuelve"):
             return Intent("music", "previous")
         if has("pausa", "para ", "detener", "deten", "silencia", "quita", "apaga"):
             return Intent("music", "pause")
-        if has("reanuda", "continua", "sigue", "pon ", "reproduce", "activa", "play"):
+        if has("reanuda", "continua", "sigue", "pon ", "ponme", "reproduce", "activa", "play"):
             return Intent("music", "play")
     if has("cuantos anuncios", "cuanto has bloqueado", "cuantas consultas", "como va el pihole", "como va pihole", "estado del pihole", "estadisticas del pihole", "como va el pi hole", "como va pi hole", "estado del pi hole", "estadisticas del pi hole"):
         return Intent("pihole_stats", None)
@@ -334,6 +348,8 @@ def parse(text):
             return Intent("mode", "dev")
         if has("escritorio"):
             return Intent("mode", "desktop")
+    if has("quita el sonido", "sin sonido"):
+        return Intent("volume", "mute")
     if has("volumen", "silencia", "silencio", "mute"):
         if has("silencia", "silencio", "mute"):
             return Intent("volume", "mute")

@@ -524,6 +524,8 @@
       const f = F[cv[2] + ">" + cv[3]];
       if (f) return cv[1] + " " + cv[2] + " son " + f(+cv[1]).toFixed(1).replace(/\.0$/, "").replace(".", " coma ") + " " + cv[3];
     }
+    const pc = /^(?:cuanto (?:es|son)|calcula) el (\d+) por ciento de (\d+)$/.exec(t);
+    if (pc) return "Son " + (+pc[1] * +pc[2] / 100).toFixed(2).replace(/\.?0+$/, "").replace(".", " coma ");
     const calc = /^(?:cuanto (?:es|son)|calcula) (\d+) (mas|menos|por|entre|multiplicado por|dividido (?:entre|por)) (\d+)$/.exec(t);
     if (calc) {
       const a = +calc[1], b = +calc[3], o = calc[2];
@@ -570,7 +572,7 @@
     }
     if (has("repite", "que has dicho") && !has("cancion", "musica")) return S.voice && S.voice.reply ? S.voice.reply : "Todavía no he dicho nada";
     if (has("vigilancia", "movimiento")) { const on = !has("desactiva", "apaga", "quita", "deja de"); S.motion = on; LS.set("motion", on); return on ? "Vigilancia activada" : "Vigilancia desactivada"; }
-    if (has("silencia", "silencio", "mute")) { S.audio.muted = !S.audio.muted; LS.set("audio", S.audio); return S.audio.muted ? "Silenciado" : "Sonido activado"; }
+    if (has("silencia", "silencio", "mute", "quita el sonido", "sin sonido")) { S.audio.muted = !S.audio.muted; LS.set("audio", S.audio); return S.audio.muted ? "Silenciado" : "Sonido activado"; }
     if (has("que puedes hacer", "que sabes hacer", "ayuda", "que comandos")) return "Puedes pedirme la hora, el tiempo, temporizadores y alarmas, la música, el volumen y el brillo, cambiar de modo, tomar notas o decirte cómo está la Pi.";
     if (has("gracias")) return "De nada";
     if (["hola", "buenas", "buenos dias", "buenas tardes", "buenas noches", "hola pi"].includes(t)) return "Hola, dime";
@@ -632,7 +634,8 @@
     if (has("modo escritorio", "modo desktop", "ve al escritorio")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "desktop" }) }); return "Cambiando a modo escritorio"; }
     if (has("modo dev", "modo desarrollador", "modo consola")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "dev" }) }); return "Cambiando a modo desarrollador"; }
     if (has("musica", "cancion")) {
-      const cmd = has("siguiente", "salta") ? "next" : has("anterior") ? "previous" : has("pausa", "para", "deten", "silencia") ? "pause" : has("pon", "reanuda", "sigue", "reproduce") ? "play" : null;
+      if (has("sube", "baja") && !has("volumen")) { S.audio.volume = Math.max(0, Math.min(100, S.audio.volume + (has("sube") ? 15 : -15))); S.audio.muted = false; LS.set("audio", S.audio); return "Volumen al " + S.audio.volume + " por ciento"; }
+      const cmd = has("siguiente", "salta") ? "next" : has("anterior") ? "previous" : has("pausa", "para", "deten", "silencia") ? "pause" : has("pon", "ponme", "reanuda", "sigue", "reproduce") ? "play" : null;
       if (cmd) { S.music = { seq: S.music.seq + 1, cmd, arg: null }; return { pause: "Música en pausa", play: "Seguimos con la música", next: "Siguiente canción", previous: "Canción anterior" }[cmd]; }
     }
     if (has("volumen")) {

@@ -6,6 +6,11 @@
 
 
 
+## Voz: porcentajes, «ponme música», «sube la música» y «quita el sonido»
+
+- Arreglo: «cuánto es el 20 por ciento de 50» salía como 20 por 100; ahora calcula el porcentaje.
+- «Ponme música» pone la música; «sube / baja la música» cambia el volumen; «quita el sonido» silencia. También en el simulador.
+
 ## Voz: qué hora será dentro de…
 
 - «Qué hora será dentro de veinte minutos / dos horas». También en el simulador.
