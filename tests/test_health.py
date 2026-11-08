@@ -37,6 +37,12 @@ class ChecksTest(unittest.TestCase):
         r = lv({"update": {"available": False}})
         self.assertEqual([x["level"] for x in r], ["ok"])
 
+    def test_a_disconnected_microphone_is_reported(self):
+        r = lv({"update": {"available": False}, "voice": {"state": "nomic"}})
+        self.assertEqual(r[0]["level"], "warn")
+        self.assertIn("micrófono", r[0]["text"])
+        self.assertEqual([x["level"] for x in lv({"update": {"available": False}, "voice": {"state": "listening"}})], ["ok"])
+
     def test_clock_without_battery_is_reported(self):
         self.assertEqual([x["level"] for x in lv({"update": {"available": False}, "clock": {"plausible": True, "synced": True, "year": 2026}})], ["ok"])
         bad = lv({"update": {"available": False}, "clock": {"plausible": False, "synced": False, "year": 1970}})

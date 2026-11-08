@@ -42,6 +42,10 @@
 
 - En la sección «Más adelante: batería y SSD», con su límite: sin medida de batería no hace nada.
 
+## Voz: si el micrófono se desconecta, la pantalla lo dice
+
+- Antes seguía poniendo «Di Hey Jarvis» aunque `arecord` hubiera muerto. Ahora el asistente publica el estado `nomic`, Casa muestra «Sin micrófono: conéctalo» y la hoja Sistema da un aviso. Cuando vuelve el audio, todo vuelve a la normalidad solo. Probado con un asistente de prueba; sin probar desenchufando un micrófono real.
+
 ## Micrófono: mejor por nombre que por número de tarjeta
 
 - El número de una tarjeta de audio USB puede cambiar al reiniciar. La documentación y la config de ejemplo recomiendan `plughw:CARD=NOMBRE,DEV=0`, y `pcpi-doctor` avisa si `device` usa un número.

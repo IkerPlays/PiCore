@@ -416,9 +416,10 @@ class Assistant:
         self.state = "idle"
         self._publish("listening")
 
-    def heartbeat(self):
-        """Renueva el estado aunque no pase nada: la UI lo da por 'apagado' si dejara de actualizarse."""
-        self._publish("awake" if self.state == "command" else "listening")
+    def heartbeat(self, mic_ok=True):
+        """Renueva el estado aunque no pase nada: la UI lo da por 'apagado' si dejara de actualizarse.
+        mic_ok=False (arecord murio: microfono desconectado) se publica como «nomic» para que la pantalla no diga «Di Hey Jarvis» en vano."""
+        self._publish("nomic" if not mic_ok else "awake" if self.state == "command" else "listening")
 
     def on_audio(self, data):
         if self.state == "idle":
@@ -571,7 +572,7 @@ def main():
                 cap[0] = start_capture(cfg)
             except OSError as e:
                 print("no puedo abrir el microfono (¿falta alsa-utils?): %r" % e, file=sys.stderr, flush=True)
-            asst.heartbeat()
+            asst.heartbeat(mic_ok=False)
             continue
         asst.on_audio(data)
         if time.monotonic() - last_beat > 20:

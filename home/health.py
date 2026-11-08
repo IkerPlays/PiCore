@@ -160,6 +160,8 @@ def checks(status, disk=None, mem=None, thr=None):
         out.append({"level": "info", "text": "Falta tu ciudad para el tiempo. Elígela desde la pantalla (o con pcpi-setup).", "action": "city"})
     if setup.get("voice") is False:
         out.append({"level": "info", "text": "La voz no está activa. Se instala con ./install.sh --voice (o mira systemctl --user status pcpi-voice)."})
+    if (status.get("voice") or {}).get("state") == "nomic":
+        out.append({"level": "warn", "text": "La voz no oye ningún micrófono: revisa que esté bien conectado (pcpi-doctor te dice qué ve la Pi)."})
     au = status.get("audio")
     if isinstance(au, dict) and au.get("available") is False:
         out.append({"level": "info", "text": "No detecto la salida de sonido. En la terminal: pcpi-sound status y pcpi-doctor."})

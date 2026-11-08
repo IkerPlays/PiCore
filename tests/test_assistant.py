@@ -131,6 +131,13 @@ class AssistantTest(unittest.TestCase):
         self.assertGreater(state()["ts"], t0)
         self.assertEqual(state()["state"], "listening")
 
+    def test_heartbeat_says_so_when_the_microphone_is_gone(self):
+        a, log, _ = make([False], [])
+        a.heartbeat(mic_ok=False)
+        self.assertEqual(state()["state"], "nomic")
+        a.heartbeat()                                                        # vuelve el audio: otra vez «listening»
+        self.assertEqual(state()["state"], "listening")
+
     def test_heartbeat_while_waiting_for_command(self):
         a, _, _ = make([True], [])
         a.on_audio(b"x")
