@@ -6,6 +6,10 @@
 
 
 
+## Test: nada se sale de la pantalla (Casa, Iker y Dev a 800, 1024 y 1280 px)
+
+- Nace de arreglar «Salir» en Iker: ahora un test comprueba que ningún botón ni campo queda fuera de la ventana ni hay scroll horizontal.
+
 ## Modo Iker: a 800 px de ancho también cabe «Salir»
 
 - Por debajo de 900 px, Nueva y Borrar también pasan a solo icono (sobraban 2 px).

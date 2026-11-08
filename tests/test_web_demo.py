@@ -228,6 +228,21 @@ class AccesibilidadTest(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
 
+class Desbordes(unittest.TestCase):
+    @unittest.skipUnless(node_env(), "hace falta node y playwright")
+    def test_nada_se_sale_de_la_pantalla(self):
+        out = Path(tempfile.mkdtemp()) / "dist"
+        build_web_demo.build(out)
+        port = free_port()
+        srv = serve_web_demo.serve(out, port)
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        try:
+            r = subprocess.run(["node", str(ROOT / "tests" / "overflow_smoke.js"), "http://127.0.0.1:%d" % port], capture_output=True, text=True, env=node_env(), timeout=150)
+        finally:
+            srv.shutdown()
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+
 class SimuladorVozYVisita(unittest.TestCase):
     def test_shell_tiene_voz_y_visita(self):
         s = (ROOT / "web-demo" / "shell.html").read_text(encoding="utf-8")
