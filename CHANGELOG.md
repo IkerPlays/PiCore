@@ -38,6 +38,10 @@
 
 - Cubre lo añadido hoy: pestañas con flechas, «Volver arriba», barra de progreso, sección marcada, frases de ejemplo, tecla `?`, `aria-pressed` y `?say=`.
 
+## Modo Dev: orden rápida `pcpi-frase` (y la entiende la consola del simulador)
+
+- En el simulador no dice la orden entendida (eso es solo de la Pi real) sino qué contestaría la demo.
+
 ## Docs: VOICE.md explica `pcpi-frase`
 
 - Sección «Probar una frase sin micrófono» con dos ejemplos.
