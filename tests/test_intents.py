@@ -341,6 +341,12 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.parse("mas bajo").arg, "-10")
         self.assertIn("No tengo radio", i.parse("pon la radio").arg)
 
+    def test_apagar_o_reiniciar_la_pi_nunca_es_una_orden_de_voz(self):
+        for f in ("apaga la pi", "reinicia la pi", "apagate", "reiniciate", "apaga el ordenador", "reinicia el sistema", "apaga la raspberry", "reinicia la raspberry"):
+            x = i.parse(f)
+            self.assertTrue(x is None or x.name in ("chat", "music", "pihole_disable", "camera_hide", "brightness"), "%s -> %s" % (f, x))
+            self.assertNotIn(x.name if x else "", ("power", "shutdown", "reboot", "restart"))
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

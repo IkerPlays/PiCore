@@ -6,6 +6,10 @@
 
 
 
+## Test: apagar o reiniciar la Pi nunca es una orden de voz
+
+- Fija lo que dice `docs/VOICE.md`: ninguna de esas frases produce una orden de apagado o reinicio.
+
 ## Docs: «Qué no hace la voz (a propósito)» en docs/VOICE.md
 
 - Resume las reglas que impiden que una pregunta, una negación o una opinión ejecuten una orden.
