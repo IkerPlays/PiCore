@@ -115,6 +115,8 @@ def execute(cfg, intent):
             return intents.say_time_plus(now, a)
         if n == "time":
             return intents.say_time(now)
+        if n == "date_part":
+            return intents.say_date_part(now, a)
         if n == "date":
             return intents.say_date(now)
         if n == "weather":

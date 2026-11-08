@@ -283,6 +283,9 @@ def parse(text):
         return Intent("snooze", None)
     if has("ponle", "ponme") and has("mas") and not has("temporizador de", "volumen", "brillo", "musica") and (secs_p := parse_duration(words)):
         return Intent("timer_extend", secs_p)
+    m = re.search(r"que dia (?:de la semana )?(?:cae|es) el (\d{1,2}) de (\w+)", t)
+    if m and m.group(2) in [norm(x) for x in MESES] and 1 <= int(m.group(1)) <= 31:
+        return Intent("date_part", ("day", int(m.group(1)), [norm(x) for x in MESES].index(m.group(2)) + 1))
     if has("que dia de la semana", "que dia es manana", "que dia sera manana", "que dia cae"):
         return Intent("date_tomorrow" if has("manana") else "date", None)
     if has("pon la pantalla en negro", "apaga la pantalla", "oscurece la pantalla"):
@@ -419,6 +422,10 @@ def parse(text):
             return Intent("time_plus", secs)
     if has("que hora", "la hora", "hora es"):
         return Intent("time", None)
+    if has("que ano es", "en que ano estamos", "que ano estamos"):
+        return Intent("date_part", "year")
+    if has("que mes es", "en que mes estamos", "que mes estamos"):
+        return Intent("date_part", "month")
     if has("que dia", "fecha", "a cuanto estamos"):
         return Intent("date", None)
     return None
@@ -565,6 +572,22 @@ def say_pihole(p):
         return "Pi-hole no responde ahora mismo"
     base = "Pi-hole ha bloqueado %d de %d consultas, un %d por ciento" % (p.get("blocked", 0), p.get("total", 0), round(p.get("percent", 0)))
     return base + ("" if p.get("blocking") == "enabled" else ". Ahora está en pausa")
+
+
+def say_date_part(now, what):
+    if what == "year":
+        return "Estamos en %d" % now.year
+    if what == "month":
+        return "Estamos en %s" % MESES[now.month - 1]
+    _, d, mes = what                                   # («day», dia, mes): el proximo 25 de diciembre
+    for y in (now.year, now.year + 1):
+        try:
+            f = datetime.date(y, mes, d)
+        except ValueError:
+            return "Ese día no existe"
+        if f >= now.date():
+            return "El %d de %s %s cae en %s" % (d, MESES[mes - 1], "de este año" if y == now.year else "del año que viene", DIAS[f.weekday()])
+    return "No lo sé"
 
 
 def say_date(now):

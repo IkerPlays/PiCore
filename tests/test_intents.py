@@ -185,6 +185,14 @@ class IntentTest(unittest.TestCase):
             self.assertEqual(x.name, "chat")
             self.assertIn(trozo, x.arg)
 
+    def test_fechas(self):
+        hoy = datetime.datetime(2026, 11, 8, 10, 0)
+        self.assertEqual(i.say_date_part(hoy, i.parse("en que ano estamos").arg), "Estamos en 2026")
+        self.assertEqual(i.say_date_part(hoy, i.parse("que mes es").arg), "Estamos en noviembre")
+        self.assertEqual(i.say_date_part(hoy, i.parse("que dia cae el 25 de diciembre").arg), "El 25 de diciembre de este año cae en viernes")
+        self.assertIn("año que viene", i.say_date_part(hoy, i.parse("que dia cae el 1 de enero").arg))
+        self.assertEqual(i.say_date_part(hoy, i.parse("que dia cae el 31 de febrero").arg), "Ese día no existe")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

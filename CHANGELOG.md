@@ -6,6 +6,10 @@
 
 
 
+## Voz: año, mes y día de la semana de una fecha
+
+- «En qué año estamos», «qué mes es», «qué día cae el 25 de diciembre» (la próxima vez que llega esa fecha). También en el simulador.
+
 ## Voz: respuestas de cortesía
 
 - «Cómo te llamas», «me oyes», «buenas noches», «te quiero»: respuestas fijas guardadas en una tabla (`RESPUESTAS`), la misma en la Pi y en el simulador.

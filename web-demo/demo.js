@@ -628,6 +628,20 @@
       if (sec) { const d = new Date(Date.now() + sec * 1000); return "Serán las " + pad(d.getHours()) + ":" + pad(d.getMinutes()); }
     }
     if (has("que hora", "dime la hora")) return "Son las " + pad(now.getHours()) + ":" + pad(now.getMinutes());
+    if (has("que ano es", "en que ano estamos", "que ano estamos")) return "Estamos en " + now.getFullYear();
+    if (has("que mes es", "en que mes estamos", "que mes estamos")) return "Estamos en " + now.toLocaleDateString("es-ES", { month: "long" });
+    const dm = /que dia (?:de la semana )?(?:cae|es) el (\d{1,2}) de (\w+)/.exec(t);
+    if (dm) {
+      const MS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"], mi = MS.indexOf(dm[2]);
+      if (mi >= 0 && +dm[1] >= 1 && +dm[1] <= 31) {
+        const hoy = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        for (const y of [now.getFullYear(), now.getFullYear() + 1]) {
+          const f = new Date(y, mi, +dm[1]);
+          if (f.getMonth() !== mi) return "Ese día no existe";
+          if (f >= hoy) return "El " + dm[1] + " de " + dm[2] + (y === now.getFullYear() ? " de este año" : " del año que viene") + " cae en " + f.toLocaleDateString("es-ES", { weekday: "long" });
+        }
+      }
+    }
     if (has("que dia", "que fecha")) return "Hoy es " + now.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
     if (has("tiempo", "llover", "llovera", "lluvia", "temperatura", "hara") && has("manana")) {
       const off = has("pasado manana") ? 2 : 1, d = weather().days[off - 1];
