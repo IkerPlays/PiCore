@@ -749,6 +749,8 @@
       return !mine.length ? "No tienes nada " + et : et[0].toUpperCase() + et.slice(1) + " tienes: " + mine.map(e => e.title + (e.time ? " a las " + e.time.replace(":", " y ").replace(" y 00", " en punto") : "")).join("; ");
     }
     if (has("calendario", "agenda", "que tengo")) { const ev = calendar().events; return "Hoy tienes " + ev[0].title + " a las " + ev[0].time + ". Mañana: " + ev[1].title; }
+    if (has("abre el bloc de notas", "abre las notas", "abre mis notas", "abre el bloc")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "iker" }) }); return "Cambiando a modo iker"; }
+    if (has("abre el terminal", "abre la consola")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "dev" }) }); return "Cambiando a modo desarrollador"; }
     if (has("modo casa", "modo hogar", "vuelve a casa", "ve a casa", "volver a casa", "pantalla de inicio", "ve al inicio", "vuelve al inicio")) { LS.set("mode", "home"); fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "home" }) }); return "Cambiando a modo casa"; }
     if (has("modo iker", "modo notas", "bloc")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "iker" }) }); return "Cambiando a modo iker"; }
     if (has("modo escritorio", "modo desktop", "ve al escritorio")) { fetch("/api/mode", { method: "POST", body: JSON.stringify({ mode: "desktop" }) }); return "Cambiando a modo escritorio"; }

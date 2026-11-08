@@ -483,6 +483,10 @@ def parse(text):
             return Intent("pihole_disable", find_number(words) or 5)
         if has("activa", "enciende", "reanuda", "habilita", "pon"):
             return Intent("pihole_enable", None)
+    if has("abre el bloc de notas", "abre las notas", "abre mis notas", "abre el bloc"):
+        return Intent("mode", "iker")
+    if has("abre el terminal", "abre la consola", "abre el terminal real"):
+        return Intent("mode", "dev")
     if has("vuelve a casa", "ve a casa", "volver a casa", "pantalla de inicio", "ve al inicio", "vuelve al inicio"):
         return Intent("mode", "home")
     if has("modo"):
