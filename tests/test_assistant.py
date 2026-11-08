@@ -190,7 +190,7 @@ class ExecuteApiIntentsTest(unittest.TestCase):
 
         class H(http.server.BaseHTTPRequestHandler):
             def do_GET(self):
-                if self.path == "/api/notes":
+                if self.path.split("?")[0] == "/api/notes":
                     body = json.dumps(outer.notes).encode()
                 elif self.path.startswith("/api/notes/"):
                     body = json.dumps({"id": "a", "text": "Comprar\n  leche   y pan " * 40, "updated": 1}).encode()
@@ -279,6 +279,12 @@ class ExecuteApiIntentsTest(unittest.TestCase):
     def test_battery_by_voice(self):
         self.status["battery"] = {"available": True, "percent": 50, "charging": False}
         self.assertEqual(assistant.execute(self.cfg, ("battery", None)), "Tienes el 50 por ciento de batería")
+
+    def test_note_search_by_voice(self):
+        self.notes = []
+        self.assertEqual(assistant.execute(self.cfg, ("note_search", "leche")), "No he encontrado ninguna nota con leche")
+        self.notes = [{"id": "a", "title": "Compra", "updated": 1}]
+        self.assertIn("He encontrado una nota con leche", assistant.execute(self.cfg, ("note_search", "leche")))
 
     def test_alarm_with_a_name_by_voice(self):
         self.assertEqual(assistant.execute(self.cfg, ("alarm_set", (18, 0, False, "saque la basura"))), "Alarma a las 18 en punto para saque la basura")

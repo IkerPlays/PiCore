@@ -347,6 +347,13 @@ class IntentTest(unittest.TestCase):
             self.assertTrue(x is None or x.name in ("chat", "music", "pihole_disable", "camera_hide", "brightness"), "%s -> %s" % (f, x))
             self.assertNotIn(x.name if x else "", ("power", "shutdown", "reboot", "restart"))
 
+    def test_buscar_en_notas(self):
+        self.assertEqual(i.parse("busca en mis notas leche").arg, "leche")
+        self.assertEqual(i.parse("busca leche en mis notas").arg, "leche")
+        self.assertEqual(i.say_notes_found("leche", []), "No he encontrado ninguna nota con leche")
+        self.assertEqual(i.say_notes_found("leche", [{"title": "Compra"}]), "He encontrado una nota con leche: Compra")
+        self.assertEqual(i.say_notes_found("pan", [{"title": "A"}, {"title": "B"}]), "He encontrado 2 notas con pan: A, B")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

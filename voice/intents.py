@@ -255,6 +255,9 @@ def parse(text):
         return Intent("list_read", "Tareas" if has("tareas", "pendientes") else "Lista de la compra")
     if has("que version", "version de picore", "version tienes", "version tiene la pi"):
         return Intent("sys_info", "version")
+    m = re.match(r"^(?:busca|buscame|encuentra) (?:en (?:mis )?notas |mis notas )?(?:sobre |con |de )?(.{2,40}?)(?: en (?:mis )?notas)?$", t)
+    if m and has("notas", "nota"):
+        return Intent("note_search", m.group(1).strip())
     if has("espacio libre", "cuanto espacio", "espacio en la tarjeta", "espacio en el disco", "espacio queda"):
         return Intent("sys_info", "disk")
     if has("memoria libre", "cuanta memoria", "memoria ram", "memoria queda"):
@@ -578,6 +581,15 @@ def split_commands(t):
                 return [a, b]
             k = t.find(sep, k + 1)
     return [t]
+
+
+def say_notes_found(q, found):
+    """«He encontrado 2 notas con leche: Lista de la compra y Receta»."""
+    found = [f for f in (found or []) if isinstance(f, dict)]
+    if not found:
+        return "No he encontrado ninguna nota con %s" % q
+    titulos = ", ".join(str(f.get("title") or "sin título") for f in found[:3]) + (" y %d más" % (len(found) - 3) if len(found) > 3 else "")
+    return ("He encontrado una nota con %s: %s" if len(found) == 1 else "He encontrado %d notas con %%s: %%s" % len(found)) % (q, titulos)
 
 
 def say_alarm(timers):

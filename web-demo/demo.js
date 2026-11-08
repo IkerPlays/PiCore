@@ -520,6 +520,11 @@
       if (f) { f.text = f.text.replace(/\n+$/, "") + "\n- " + lm2[1].trim() + "\n"; f.updated = Date.now() / 1000; } else all.push({ id: rid(16), text: ttl + "\n- " + lm2[1].trim() + "\n", updated: Date.now() / 1000, pinned: false });
       LS.set("notes", all); return "Añadido " + lm2[1].trim() + " a " + (ttl === "Tareas" ? "tus tareas" : "la lista de la compra");
     }
+    const ns = /^(?:busca|buscame|encuentra) (?:en (?:mis )?notas |mis notas )?(?:sobre |con |de )?(.{2,40}?)(?: en (?:mis )?notas)?$/.exec(t);
+    if (ns && has("nota")) {
+      const found = notes().filter(n => norm(n.text).includes(norm(ns[1]))), tt = found.slice(0, 3).map(n => title(n.text) || "sin título").join(", ") + (found.length > 3 ? " y " + (found.length - 3) + " más" : "");
+      return !found.length ? "No he encontrado ninguna nota con " + ns[1] : found.length === 1 ? "He encontrado una nota con " + ns[1] + ": " + tt : "He encontrado " + found.length + " notas con " + ns[1] + ": " + tt;
+    }
     if (/\b(lee|leeme|que hay en|que tengo en|dime) (?:la |mi |mis )?(?:lista|tareas|pendientes)/.test(t) && !has("anade", "apunta")) {
       const ttl = has("tareas", "pendientes") ? "Tareas" : "Lista de la compra", f = notes().find(n => norm(title(n.text)) === norm(ttl));
       const items = f ? f.text.split("\n").filter(l => l.startsWith("- ") && l.slice(2).trim()).map(l => l.slice(2).trim()) : [], nombre = ttl === "Tareas" ? "tus tareas" : "la lista de la compra";

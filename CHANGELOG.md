@@ -6,6 +6,10 @@
 
 
 
+## Voz: buscar en las notas
+
+- «Busca en mis notas leche» dice cuántas notas la tienen y los títulos de las tres primeras. También en el simulador.
+
 ## Test: apagar o reiniciar la Pi nunca es una orden de voz
 
 - Fija lo que dice `docs/VOICE.md`: ninguna de esas frases produce una orden de apagado o reinicio.

@@ -16,6 +16,7 @@ import re
 import subprocess
 import sys
 import time
+import urllib.parse
 import urllib.request
 import wave
 from pathlib import Path
@@ -167,6 +168,12 @@ def execute(cfg, intent):
             level = max(10, min(100, level))
             api(cfg, "/api/display", {"level": level, "auto": False})
             return "Brillo al %d por ciento" % level
+        if n == "note_search":
+            try:
+                with urllib.request.urlopen(cfg["api"] + "/api/notes?q=" + urllib.parse.quote(a), timeout=5) as r:
+                    return intents.say_notes_found(a, json.load(r))
+            except (urllib.error.URLError, ValueError):
+                return "No he podido buscar en tus notas"
         if n == "list_read":
             try:
                 with urllib.request.urlopen(cfg["api"] + "/api/notes", timeout=5) as r:
