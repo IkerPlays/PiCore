@@ -6,6 +6,10 @@
 
 
 
+## Voz: qué notas tengo
+
+- Dice los títulos de las tres primeras notas (las fijadas salen antes) y cuántas más hay. También en el simulador.
+
 ## Voz: buscar en las notas
 
 - «Busca en mis notas leche» dice cuántas notas la tienen y los títulos de las tres primeras. También en el simulador.

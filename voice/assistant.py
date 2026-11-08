@@ -168,6 +168,12 @@ def execute(cfg, intent):
             level = max(10, min(100, level))
             api(cfg, "/api/display", {"level": level, "auto": False})
             return "Brillo al %d por ciento" % level
+        if n == "note_titles":
+            try:
+                with urllib.request.urlopen(cfg["api"] + "/api/notes", timeout=5) as r:
+                    return intents.say_notes_found("", json.load(r), recent=True)
+            except (urllib.error.URLError, ValueError):
+                return "No he podido leer tus notas"
         if n == "note_search":
             try:
                 with urllib.request.urlopen(cfg["api"] + "/api/notes?q=" + urllib.parse.quote(a), timeout=5) as r:

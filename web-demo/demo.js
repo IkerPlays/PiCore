@@ -520,6 +520,9 @@
       if (f) { f.text = f.text.replace(/\n+$/, "") + "\n- " + lm2[1].trim() + "\n"; f.updated = Date.now() / 1000; } else all.push({ id: rid(16), text: ttl + "\n- " + lm2[1].trim() + "\n", updated: Date.now() / 1000, pinned: false });
       LS.set("notes", all); return "Añadido " + lm2[1].trim() + " a " + (ttl === "Tareas" ? "tus tareas" : "la lista de la compra");
     }
+    if (has("lee mis notas", "leeme mis notas", "que notas tengo", "dime mis notas", "lista mis notas", "cuales son mis notas")) {
+      const all = listNotes(); return !all.length ? "No tienes ninguna nota" : "Tus notas: " + all.slice(0, 3).map(n => n.title || "sin título").join(", ") + (all.length > 3 ? " y " + (all.length - 3) + " más" : "");
+    }
     const ns = /^(?:busca|buscame|encuentra) (?:en (?:mis )?notas |mis notas )?(?:sobre |con |de )?(.{2,40}?)(?: en (?:mis )?notas)?$/.exec(t);
     if (ns && has("nota")) {
       const found = notes().filter(n => norm(n.text).includes(norm(ns[1]))), tt = found.slice(0, 3).map(n => title(n.text) || "sin título").join(", ") + (found.length > 3 ? " y " + (found.length - 3) + " más" : "");

@@ -354,6 +354,11 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.say_notes_found("leche", [{"title": "Compra"}]), "He encontrado una nota con leche: Compra")
         self.assertEqual(i.say_notes_found("pan", [{"title": "A"}, {"title": "B"}]), "He encontrado 2 notas con pan: A, B")
 
+    def test_que_notas_tengo(self):
+        self.assertEqual(i.parse("que notas tengo").name, "note_titles")
+        self.assertEqual(i.say_notes_found("", [{"title": "A"}, {"title": "B"}, {"title": "C"}, {"title": "D"}], recent=True), "Tus notas: A, B, C y 1 más")
+        self.assertEqual(i.say_notes_found("", [], recent=True), "No tienes ninguna nota")
+
     def test_chiste(self):
         self.assertEqual(i.parse("cuentame un chiste").name, "joke")
         self.assertIn(i.say_joke(), i.CHISTES)

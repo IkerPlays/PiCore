@@ -255,6 +255,8 @@ def parse(text):
         return Intent("list_read", "Tareas" if has("tareas", "pendientes") else "Lista de la compra")
     if has("que version", "version de picore", "version tienes", "version tiene la pi"):
         return Intent("sys_info", "version")
+    if has("lee mis notas", "leeme mis notas", "que notas tengo", "dime mis notas", "lista mis notas", "cuales son mis notas"):
+        return Intent("note_titles", None)
     m = re.match(r"^(?:busca|buscame|encuentra) (?:en (?:mis )?notas |mis notas )?(?:sobre |con |de )?(.{2,40}?)(?: en (?:mis )?notas)?$", t)
     if m and has("notas", "nota"):
         return Intent("note_search", m.group(1).strip())
@@ -583,9 +585,14 @@ def split_commands(t):
     return [t]
 
 
-def say_notes_found(q, found):
+def say_notes_found(q, found, recent=False):
     """«He encontrado 2 notas con leche: Lista de la compra y Receta»."""
     found = [f for f in (found or []) if isinstance(f, dict)]
+    if recent:
+        if not found:
+            return "No tienes ninguna nota"
+        t = ", ".join(str(f.get("title") or "sin título") for f in found[:3]) + (" y %d más" % (len(found) - 3) if len(found) > 3 else "")
+        return "Tus notas: %s" % t
     if not found:
         return "No he encontrado ninguna nota con %s" % q
     titulos = ", ".join(str(f.get("title") or "sin título") for f in found[:3]) + (" y %d más" % (len(found) - 3) if len(found) > 3 else "")
