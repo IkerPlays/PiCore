@@ -569,6 +569,19 @@
       S.ui = { seq: S.ui.seq + 1, cmd: "open", arg: hoja };
       return "Abro " + { tiempo: "el tiempo", temporizadores: "los temporizadores", sistema: "el sistema", wifi: "el wifi", musix: "Musix", calendario: "el calendario", audio: "el audio y el Bluetooth" }[hoja];
     }
+    if (has("bluetooth", "auriculares", "cascos", "sonido", "microfono")) {   // Bluetooth y salida/entrada de audio por voz
+      const B = S.bt, au = audioDevices(), cur = l => (l.find(x => x.default) || {});
+      if (has("por donde sale el sonido", "que altavoz uso", "que salida de audio")) { const c = cur(au.outputs); return "El sonido sale por " + c.name + (c.bluetooth ? " (Bluetooth)" : ""); }
+      if (has("que microfono uso", "que microfono esta")) { const c = cur(au.inputs); return "Uso el micrófono " + c.name + (c.bluetooth ? " (Bluetooth)" : ""); }
+      if (has("bluetooth", "auriculares", "cascos")) {
+        const piOut = has("altavoz de la pi", "altavoz de la raspberry", "altavoz normal");
+        if (piOut && has("pon el sonido", "sonido en", "sonido por", "usa")) { B.out = 49; saveBt(); return "El sonido sale por Altavoz de la Pi"; }
+        if (has("pon el sonido", "sonido en", "sonido por", "usa")) { const o = au.outputs.find(x => x.bluetooth); if (!o) return "No hay ningún aparato Bluetooth conectado"; B.out = o.id; saveBt(); return "El sonido sale por " + o.name; }
+        if (has("busca", "escanea") && has("aparatos", "dispositivos", "bluetooth")) { B.found = true; B.devs.forEach(x => { x.hidden = false; }); saveBt(); return "Busco aparatos Bluetooth. Ponlos en modo de emparejamiento"; }
+        if (has("desconecta", "quita los auriculares", "quita el bluetooth")) { const d = B.devs.find(x => x.connected); if (!d) return "No hay ningún aparato conectado"; d.connected = false; fixSel(); saveBt(); return "Desconecto " + d.name; }
+        if (has("conecta", "empareja", "enlaza")) { const d = B.devs.find(x => !x.hidden && !x.connected && x.paired) || B.devs.find(x => !x.hidden && !x.connected); if (!d) return "No veo ningún aparato. Pídeme que busque aparatos Bluetooth"; d.paired = d.connected = true; B.out = btOut(d); saveBt(); return "Conecto " + d.name; }
+      }
+    }
     const lm2 = /^(?:por favor )?(?:anade|añade|apunta|pon|mete|agrega)\s+(.{2,80}?)\s+(?:a|en)\s+(?:la\s+)?lista(?:\s+de\s+(?:la\s+)?(compra|compras|tareas|pendientes))?$/i.exec(String(text).replace(/^(oye pi|hey jarvis|ok pi)[,\s]*/i, "").trim().replace(/[\s.!?¡¿]+$/, ""));
     if (lm2) {
       const ttl = /tareas|pendientes/i.test(lm2[2] || "") ? "Tareas" : "Lista de la compra", all = notes(), f = all.find(n => norm(title(n.text)) === norm(ttl));

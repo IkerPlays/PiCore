@@ -6,6 +6,13 @@
 
 
 
+## Bluetooth por voz, instalador y doctor
+
+- Voz: «conecta los auriculares», «desconecta el Bluetooth», «busca aparatos Bluetooth», «pon el sonido en los auriculares / en el altavoz de la Pi», «por dónde sale el sonido», «qué micrófono uso» (también en el simulador)
+- `install.sh` instala `bluez`, `rfkill` y `libspa-0.2-bluetooth` (si un paquete falta, avisa y sigue)
+- `pcpi-doctor` tiene una sección «Bluetooth»: adaptador, apagado/bloqueado y cuántas salidas y entradas de audio hay
+- **Sin probar con aparatos Bluetooth reales**: solo con simulaciones de `bluetoothctl` y `wpctl`
+
 ## Test: nada se sale de la pantalla (Casa, Iker y Dev a 800, 1024 y 1280 px)
 
 - Nace de arreglar «Salir» en Iker: ahora un test comprueba que ningún botón ni campo queda fuera de la ventana ni hay scroll horizontal.

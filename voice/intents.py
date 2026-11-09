@@ -491,6 +491,19 @@ def parse(text):
             return Intent("pihole_disable", find_number(words) or 5)
         if has("activa", "enciende", "reanuda", "habilita", "pon"):
             return Intent("pihole_enable", None)
+    if has("bluetooth", "auriculares", "cascos", "altavoz portatil") or (has("sonido") and has("altavoz de la pi", "altavoz de la raspberry")):
+        if has("busca", "escanea", "buscar") and has("aparatos", "dispositivos", "bluetooth"):
+            return Intent("bt", ("scan", None))
+        if has("desconecta", "desconectar", "quita los auriculares", "quita el bluetooth"):
+            return Intent("bt", ("disconnect", None))
+        if has("conecta", "conectar", "enlaza", "empareja"):
+            return Intent("bt", ("connect", None))
+        if has("pon el sonido", "saca el sonido", "pon la musica", "sonido en", "sonido por", "usa") and has("altavoz de la pi", "altavoz de la raspberry", "altavoz normal"):
+            return Intent("bt", ("output_pi", None))
+        if has("pon el sonido", "saca el sonido", "sonido en", "sonido por", "usa") and has("auriculares", "bluetooth", "cascos"):
+            return Intent("bt", ("output_bt", None))
+    if has("por donde sale el sonido", "que altavoz uso", "que salida de audio", "que microfono uso", "que microfono esta"):
+        return Intent("bt", ("which_in" if has("microfono") else "which_out", None))
     if has("cierra esto", "cierra la hoja", "cierra la ventana", "cierra el panel", "cierra todo", "cierra eso", "quita esto"):
         return Intent("ui", ("close", None))
     m = re.match(r"^(?:abre|abreme|muestrame|ensename) (?:la hoja de |la pantalla de |el panel de )?(el tiempo|el pronostico|la prevision|los temporizadores|el temporizador|las alarmas|el sistema|los ajustes|la configuracion|el wifi|la wifi|wifi|wi fi|las redes|musix|la musica|el bluetooth|bluetooth|el audio|los auriculares)$", t)
@@ -704,6 +717,23 @@ def say_cancelled(kind, k):
     if k is None:
         return "Cancelados todos los " + varias if kind == "timer" else "Canceladas todas las " + varias
     return "He cancelado las %d %s (la voz quita todas)" % (k, varias)
+
+
+def say_default_device(lista, tipo):
+    """«El sonido sale por Altavoz de la Pi» / «El micrófono es Auriculares (Bluetooth)» a partir de audio.outputs / audio.inputs."""
+    cur = next((d for d in (lista or []) if d.get("default")), None)
+    if not cur:
+        return "No sé %s" % ("por dónde sale el sonido" if tipo == "out" else "qué micrófono uso")
+    bt = " (Bluetooth)" if cur.get("bluetooth") else ""
+    return ("El sonido sale por %s%s" if tipo == "out" else "Uso el micrófono %s%s") % (cur["name"], bt)
+
+
+def pick_bt_device(devices, want="disconnected"):
+    """El aparato de audio al que conectar (el primero emparejado sin conectar; o uno nuevo) o al que desconectar (el conectado). None si no hay."""
+    devs = [d for d in (devices or []) if d.get("audio") or d.get("paired")]
+    if want == "connected":
+        return next((d for d in devs if d.get("connected")), None)
+    return next((d for d in devs if d.get("paired") and not d.get("connected")), None) or next((d for d in devs if not d.get("connected")), None)
 
 
 def say_alarm(timers):

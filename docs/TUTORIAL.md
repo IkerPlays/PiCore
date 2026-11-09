@@ -608,6 +608,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «sube la música» · «baja la música» · «quita el sonido» | Cambia el volumen o silencia (igual que «sube el volumen» y «silencia») |
 | «sube el volumen y pon música» | Se pueden encadenar dos órdenes con «y» o «luego»: las hace una detrás de otra |
 | «abre el tiempo» · «abre los temporizadores» · «abre los ajustes» · «abre el wifi» · «abre el Bluetooth» · «abre Musix» · «cierra esto» | Abre o cierra esa hoja en la pantalla de Casa |
+| «conecta los auriculares» · «desconecta el Bluetooth» · «busca aparatos Bluetooth» · «pon el sonido en los auriculares» · «pon el sonido en el altavoz de la Pi» · «por dónde sale el sonido» · «qué micrófono uso» | Maneja el Bluetooth y elige por dónde suena y qué micrófono se usa (sin probar con aparatos reales) |
 | «abre las notas» · «abre la consola» | Pasa a modo Iker o a modo Dev |
 | «vuelve a casa» | Vuelve al modo Casa (igual que «modo casa») |
 | «cómo te llamas» · «me oyes» · «buenas noches» · «adiós» · «dónde vives» · «quién te hizo» | Pequeñas respuestas de cortesía y de charla, sin internet |
@@ -957,6 +958,21 @@ Algunas wifis te dejan conectar pero **no te dan internet hasta que aceptas unas
 ---
 
 ---
+
+### Bluetooth: auriculares, altavoces y micrófono
+
+Desde **Casa → Sistema → Audio y Bluetooth** (o diciendo «abre el Bluetooth»):
+
+1. Pon el aparato en modo de emparejamiento y pulsa **Buscar aparatos**.
+2. Pulsa el aparato cuando aparezca: se empareja, se conecta y el sonido sale por él.
+3. Elige por dónde suena y qué micrófono se usa en las listas de **Salida** y **Entrada**.
+
+Límites, para no llevarte sorpresas:
+
+- Solo se emparejan aparatos que no piden PIN («Just Works»), que son casi todos los auriculares y altavoces.
+- Un micrófono Bluetooth solo funciona en el perfil de manos libres (calidad de teléfono).
+- Si el aparato no aparece: `pcpi-bt status`, `rfkill list bluetooth` y `./pcpi-doctor`.
+- **No se ha probado con aparatos reales todavía**: está comprobado solo con simulaciones.
 
 ## Paso 10: mini pantalla de estado (opcional)
 

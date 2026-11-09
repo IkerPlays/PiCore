@@ -441,6 +441,24 @@ class IntentTest(unittest.TestCase):
         self.assertEqual(i.parse("tira un dado").name, "random")
         self.assertEqual(i.parse("dime un numero al azar").name, "random")
 
+    def test_bluetooth_y_audio_por_voz(self):
+        for frase, arg in (("conecta los auriculares", "connect"), ("desconecta el bluetooth", "disconnect"),
+                           ("busca aparatos bluetooth", "scan"), ("pon el sonido en los auriculares", "output_bt"),
+                           ("pon el sonido en el altavoz de la pi", "output_pi"), ("por donde sale el sonido", "which_out"),
+                           ("que microfono uso", "which_in")):
+            r = i.parse(frase)
+            self.assertEqual((r.name, r.arg[0]), ("bt", arg), frase)
+        self.assertEqual(i.parse("abre el bluetooth").arg, ("open", "audio"))
+
+    def test_decir_dispositivo_y_elegir_aparato(self):
+        outs = [{"name": "Altavoz de la Pi", "default": False}, {"name": "Casco", "default": True, "bluetooth": True}]
+        self.assertEqual(i.say_default_device(outs, "out"), "El sonido sale por Casco (Bluetooth)")
+        self.assertIn("No sé", i.say_default_device([], "in"))
+        devs = [{"address": "A", "paired": True, "connected": True}, {"address": "B", "paired": True, "connected": False}]
+        self.assertEqual(i.pick_bt_device(devs, "connected")["address"], "A")
+        self.assertEqual(i.pick_bt_device(devs)["address"], "B")
+        self.assertIsNone(i.pick_bt_device([], "connected"))
+
     def test_abrir_y_cerrar_hojas(self):
         for frase, hoja in (("abre el tiempo", "tiempo"), ("abre los temporizadores", "temporizadores"), ("abre los ajustes", "sistema"), ("abre el wifi", "wifi"), ("abre musix", "musix")):
             self.assertEqual(i.parse(frase).arg, ("open", hoja), frase)

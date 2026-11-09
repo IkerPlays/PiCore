@@ -49,6 +49,9 @@ step "Paquetes"
 sudo apt-get update
 CHROMIUM_PKG=chromium; apt-cache show chromium >/dev/null 2>&1 || CHROMIUM_PKG=chromium-browser
 sudo apt-get install -y python3 curl rsync zenity ffmpeg alsa-utils "$CHROMIUM_PKG"   # ffmpeg: copias H.264 de tus videos de inicio
+# Bluetooth (auriculares/altavoces/microfono): bluez + el modulo de audio de PipeWire. Pesa pocos MB; si algun paquete no existe, no se aborta
+sudo apt-get install -y bluez rfkill || echo "Aviso: no se pudo instalar bluez; el Bluetooth no estara disponible." >&2
+sudo apt-get install -y libspa-0.2-bluetooth || echo "Aviso: sin libspa-0.2-bluetooth no habra audio Bluetooth (PipeWire)." >&2
 
 step "Archivos en $PREFIX"
 sudo mkdir -p "$PREFIX"

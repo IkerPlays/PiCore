@@ -101,6 +101,37 @@ def set_volume(arg):
     return False
 
 
+def voice_bt(cfg, what):
+    """Ordenes de voz de Bluetooth y de salida/entrada de audio. Todo pasa por la API local (/api/bt, /api/audio) que valida."""
+    try:
+        with urllib.request.urlopen(cfg["api"] + "/api/status", timeout=5) as r:
+            st = json.load(r)
+    except (urllib.error.URLError, ValueError):
+        return "No he podido consultar el audio"
+    bt, au = st.get("bt") or {}, st.get("audio") or {}
+    if what == "which_out":
+        return intents.say_default_device(au.get("outputs"), "out")
+    if what == "which_in":
+        return intents.say_default_device(au.get("inputs"), "in")
+    if what in ("output_pi", "output_bt"):
+        want_bt = what == "output_bt"
+        d = next((x for x in au.get("outputs") or [] if bool(x.get("bluetooth")) == want_bt), None)
+        if not d:
+            return "No hay ningún aparato Bluetooth conectado" if want_bt else "No encuentro el altavoz de la Pi"
+        api(cfg, "/api/audio", {"action": "use_output", "value": d["id"]})
+        return "El sonido sale por " + d["name"]
+    if not bt.get("available"):
+        return "No tengo Bluetooth en esta Pi"
+    if what == "scan":
+        api(cfg, "/api/bt", {"action": "scan"})
+        return "Busco aparatos Bluetooth. Ponlos en modo de emparejamiento"
+    d = intents.pick_bt_device(bt.get("devices"), "connected" if what == "disconnect" else "disconnected")
+    if d is None:
+        return "No hay ningún aparato conectado" if what == "disconnect" else "No veo ningún aparato. Pídeme que busque aparatos Bluetooth"
+    api(cfg, "/api/bt", {"action": "disconnect" if what == "disconnect" else ("connect" if d.get("paired") else "pair"), "address": d["address"]})
+    return ("Desconecto %s" if what == "disconnect" else "Conecto %s") % d["name"]
+
+
 def ask_ai(cfg, question):
     """Pregunta a la IA local a traves del servidor (puede tardar varios segundos). Devuelve lo que hay que decir."""
     req = urllib.request.Request(cfg["api"] + "/api/ask", data=json.dumps({"question": question}).encode(),
@@ -171,6 +202,8 @@ def execute(cfg, intent):
                 except ValueError:
                     return "No he podido controlar la música"
             return {"pause": "Música en pausa", "play": "Seguimos con la música", "next": "Siguiente canción", "previous": "Canción anterior"}[a]
+        if n == "bt":
+            return voice_bt(cfg, a[0])
         if n == "ui":
             accion, hoja = a
             try:
