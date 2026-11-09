@@ -527,6 +527,10 @@ class RecognizerChoiceTest(unittest.TestCase):
         self.assertEqual((name, model), ("whisper:base", None))
         self.assertIsInstance(rec, stt.WhisperRecognizer)
 
+    def test_speech_speed_is_clamped_and_defaults(self):
+        for valor, esperado in (("160", 160), ("", 160), ("x", 160), ("10", 90), ("900", 260), ("120.5", 120)):
+            self.assertEqual(assistant.speech_speed(valor), esperado, valor)
+
     def test_load_conf_reads_whisper_settings(self):
         c = assistant.load_conf()
         self.assertEqual((c["stt"], c["whisper_model"]), ("auto", "base"))

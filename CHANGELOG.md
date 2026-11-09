@@ -42,6 +42,10 @@
 
 - En la sección «Más adelante: batería y SSD», con su límite: sin medida de batería no hace nada.
 
+## Voz: velocidad de la voz de la Pi configurable (`tts_speed`)
+
+- En `[voice]`, de 90 a 260 palabras por minuto (160 por defecto). Fuera de rango o ilegible se corrige solo. No he podido oír el resultado en una Pi.
+
 ## Alarmas: el pitido empieza suave y sube de volumen
 
 - Cinco escalones (35 %, 50 %, 70 %, 85 %, 100 %) de 6 s cada uno: despierta sin dar un susto. Es solo la amplitud del propio pitido; el volumen del sistema no se toca. Sin probar con altavoz real.

@@ -43,6 +43,8 @@ whisper_threads = 4
 device = default
 # Voz de espeak-ng
 tts_voice = es
+# Velocidad de la voz (palabras por minuto, 90-260). Mas baja = mas clara.
+tts_speed = 160
 
 [camera]
 # Camara USB en el modo Casa (boton "Camara" o voz). Solo se enciende mientras la ves.

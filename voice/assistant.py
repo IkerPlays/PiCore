@@ -31,6 +31,14 @@ STATE = Path(os.environ.get("PCPI_VOICE_STATE", "/run/pcpi/voice.json"))
 RATE = 16000
 
 
+def speech_speed(valor):
+    """Palabras por minuto de espeak-ng: 90 a 260 (por defecto 160). Un valor raro no deja a la Pi muda ni ininteligible."""
+    try:
+        return max(90, min(int(float(valor)), 260))
+    except ValueError:
+        return 160
+
+
 def load_conf():
     cp = pcpiconf.load(CONF)
     g = lambda k, d: re.split(r"\s+#", cp.get("voice", k, fallback=d), maxsplit=1)[0].strip()   # ignora "# comentario" al final
@@ -47,6 +55,7 @@ def load_conf():
         "whisper_dir": g("whisper_dir", "/opt/pcpi/models/whisper").strip(),
         "whisper_threads": int(float(g("whisper_threads", "4"))),
         "voice": g("tts_voice", "es"),
+        "speed": speech_speed(g("tts_speed", "160")),
         "api": "http://127.0.0.1:%s" % cp.get("server", "port", fallback="8080"),
         "ai": cp.get("ai", "enabled", fallback="false").strip().lower() in ("1", "true", "yes", "si", "sí", "on"),
     }
@@ -554,7 +563,7 @@ def main():
         if text:
             last["t"] = text
         try:
-            subprocess.run(["espeak-ng", "-v", cfg["voice"], "-s", "160", text], capture_output=True, timeout=30)
+            subprocess.run(["espeak-ng", "-v", cfg["voice"], "-s", str(cfg["speed"]), text], capture_output=True, timeout=30)
         except (OSError, subprocess.TimeoutExpired) as e:
             print("no se pudo hablar (¿falta espeak-ng?): %r" % e, file=sys.stderr, flush=True)
 
