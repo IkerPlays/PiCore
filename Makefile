@@ -11,7 +11,7 @@ capturas:    ## Regenera las imagenes de la web y de la documentacion desde la d
 	python3 tools/capturas.py
 lint:        ## Comprueba los scripts de shell y Python
 	./tools/lint-shell.sh
-	python3 -m py_compile home/*.py voice/*.py stats/*.py tools/*.py training/*.py bin/pcpi-wifi bin/pcpi-backup bin/pcpi-update bin/pcpi-config bin/pcpi-frase
+	python3 -m py_compile home/*.py voice/*.py stats/*.py tools/*.py training/*.py bin/pcpi-wifi bin/pcpi-backup bin/pcpi-update bin/pcpi-config bin/pcpi-frase bin/pcpi-bt bin/pcpi-sound
 	@if python3 -c "import pyflakes" 2>/dev/null; then python3 -m pyflakes home/*.py voice/*.py tools/*.py tests/*.py bin/pcpi-config && echo "pyflakes OK"; else echo "(pyflakes no esta instalado: pip install pyflakes; se omite)"; fi
 
 mini-preview: ## Genera preview.png con el diseno de la mini pantalla (sin hardware)

@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+"""Bluetooth de audio (auriculares, altavoces, micros) desde la terminal; es lo mismo que el panel «Bluetooth» de la pantalla.
+
+  pcpi-bt status                 aparatos y estado del adaptador (JSON)
+  pcpi-bt scan                   busca aparatos 8 segundos y muestra el estado
+  pcpi-bt pair AA:BB:CC:DD:EE:FF empareja (sin PIN), confia y conecta
+  pcpi-bt connect | disconnect | forget AA:BB:CC:DD:EE:FF
+  pcpi-bt power on|off           enciende o apaga el adaptador
+
+Despues de conectar, el sonido sale por ellos y el micro se elige en «pcpi-sound devices / use-input». Usa BlueZ (bluetoothctl)."""
+import json
+import os
+import sys
+from pathlib import Path
+
+sys.dont_write_bytecode = True
+HERE = Path(os.path.realpath(__file__)).parent
+for cand in (HERE.parent / "home", Path("/opt/pcpi/home")):
+    if (cand / "bt.py").exists():
+        sys.path.insert(0, str(cand))
+        break
+import bt  # noqa: E402
+
+
+def main(argv):
+    cmd = argv[1] if len(argv) > 1 else "status"
+    try:
+        if cmd == "status":
+            out = bt.status()
+        elif cmd == "scan":
+            out = bt.scan()
+        elif cmd == "power" and len(argv) > 2 and argv[2] in ("on", "off"):
+            out = bt.power(argv[2] == "on")
+        elif cmd in ("pair", "connect", "disconnect", "forget") and len(argv) > 2:
+            out = {"pair": bt.pair_connect, "connect": bt.connect, "disconnect": bt.disconnect, "forget": bt.forget}[cmd](argv[2])
+        else:
+            print(__doc__)
+            return 2
+    except ValueError as e:
+        print("Error: %s" % e, file=sys.stderr)
+        return 2
+    print(json.dumps(out, ensure_ascii=False))
+    ok = out.get("ok", out.get("available", True))
+    return 0 if ok else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

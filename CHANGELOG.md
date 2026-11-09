@@ -50,6 +50,11 @@
 
 - Junto a la versión: «PiCore abc1234 2026-11-08 · Atlantic/Canary 19:32». Sirve para ver de un vistazo si la hora y la zona son las que esperas (de ellas dependen las alarmas).
 
+## Bluetooth de audio: módulo `home/bt.py` y herramienta `pcpi-bt`
+
+- Habla con BlueZ (`bluetoothctl`): lista aparatos y su estado, busca, **empareja** (sin PIN, con un agente «Just Works», que sirve para auriculares, altavoces y la mayoría de micrófonos), confía, conecta, desconecta y olvida. Cada dirección MAC se valida antes de llegar a `bluetoothctl`. Los aparatos que piden PIN o confirmación se dicen claramente y no se emparejan desde aquí. Probado con la salida de ejemplo de `bluetoothctl`; **sin probar con un aparato Bluetooth real**.
+- `pcpi-bt status | scan | pair | connect | disconnect | forget | power on|off`.
+
 ## Audio: listar y elegir salida y entrada (base para Bluetooth)
 
 - `home/sound.py` lee `wpctl status` y `wpctl inspect` para listar las **salidas** y **entradas** de audio, marcando cuáles son **Bluetooth** y cuál es la elegida; `pcpi-sound devices | use-output ID | use-input ID` las muestra y cambia. Solo acepta un identificador que exista ahora mismo en esa lista (nunca llega a `wpctl set-default` un valor raro). Probado con la salida de `wpctl` copiada de PipeWire 1.0 (formato de ejemplo); sin probar en una Pi real.
