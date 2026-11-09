@@ -177,7 +177,7 @@ def execute(cfg, intent):
                 api(cfg, "/api/ui", {"action": accion, **({"target": hoja} if hoja else {})})
             except urllib.error.URLError:
                 return "No he podido abrirlo"
-            nombres = {"tiempo": "el tiempo", "temporizadores": "los temporizadores", "sistema": "el sistema", "wifi": "el wifi", "musix": "Musix", "calendario": "el calendario"}
+            nombres = {"tiempo": "el tiempo", "temporizadores": "los temporizadores", "sistema": "el sistema", "wifi": "el wifi", "musix": "Musix", "calendario": "el calendario", "audio": "el audio y el Bluetooth"}
             return "Cerrado" if accion == "close" else "Abro %s" % nombres[hoja]
         if n == "music_mode":
             kind, val = a

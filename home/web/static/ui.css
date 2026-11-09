@@ -78,13 +78,13 @@ nav button { border-radius:var(--r-lg); font-weight:600; font-size:18px; border:
 nav button .ic { width:22px; height:22px; color:var(--acc); }
 
 /* ---------- hojas inferiores (tiempo, calendario, sistema, brillo, wifi, musix) ---------- */
-#wpanel, #cpanel, #spanel, #bpanel, #tpanel, #sheet, #mxpanel { border-radius:28px 28px 0 0; border:1px solid var(--hair); border-bottom:0; box-shadow:none; }
-#wpanel.on, #cpanel.on, #spanel.on, #bpanel.on, #tpanel.on, #sheet.on, #mxpanel.on { box-shadow:0 -24px 70px #0009, 0 1px 0 var(--glow) inset; }
-#wpanel::before, #cpanel::before, #spanel::before, #bpanel::before, #tpanel::before, #sheet::before, #mxpanel::before { content:""; display:none; width:44px; height:5px; border-radius:9px; background:var(--line); margin:-8px auto 12px; }
-#wpanel.on::before, #cpanel.on::before, #spanel.on::before, #bpanel.on::before, #tpanel.on::before, #sheet.on::before, #mxpanel.on::before { display:block; }
+#wpanel, #cpanel, #spanel, #bpanel, #apanel, #tpanel, #sheet, #mxpanel { border-radius:28px 28px 0 0; border:1px solid var(--hair); border-bottom:0; box-shadow:none; }
+#wpanel.on, #cpanel.on, #spanel.on, #bpanel.on, #apanel.on, #tpanel.on, #sheet.on, #mxpanel.on { box-shadow:0 -24px 70px #0009, 0 1px 0 var(--glow) inset; }
+#wpanel::before, #cpanel::before, #spanel::before, #bpanel::before, #apanel::before, #tpanel::before, #sheet::before, #mxpanel::before { content:""; display:none; width:44px; height:5px; border-radius:9px; background:var(--line); margin:-8px auto 12px; }
+#wpanel.on::before, #cpanel.on::before, #spanel.on::before, #bpanel.on::before, #apanel.on::before, #tpanel.on::before, #sheet.on::before, #mxpanel.on::before { display:block; }
 #mxpanel.full::before { display:none !important; }
-#wpanel h3, #cpanel h3, #spanel h3, #bpanel h3, #tpanel h3, #sh-head h3, .sh-head h3, #mxhead h3 { font-weight:700; letter-spacing:-.02em; }
-#wpanel h3 button, #cpanel h3 button, #spanel h3 button, #bpanel h3 button, #tpanel h3 button, .sh-head button, #mxhead #mx-close { width:44px; min-width:44px; height:44px; padding:0; border-radius:50%; }
+#wpanel h3, #cpanel h3, #spanel h3, #bpanel h3, #apanel h3, #tpanel h3, #sh-head h3, .sh-head h3, #mxhead h3 { font-weight:700; letter-spacing:-.02em; }
+#wpanel h3 button, #cpanel h3 button, #spanel h3 button, #bpanel h3 button, #apanel h3 button, #tpanel h3 button, .sh-head button, #mxhead #mx-close { width:44px; min-width:44px; height:44px; padding:0; border-radius:50%; }
 #scrim { background:#0009; }
 .sysrow div { border-radius:var(--r-md); border:1px solid var(--hair); background:var(--card2); }
 .hl { border-radius:var(--r-sm); border:1px solid var(--hair); border-left-width:4px; }

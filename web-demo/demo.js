@@ -42,6 +42,9 @@
     wifi: LS.get("wifi", { active: "CasaIker", wantsPi: { CasaIker: true } }),
     update: { state: "idle", tail: [], available: true, behind: 3 },
     audio: LS.get("audio", { volume: 60, muted: false }),
+    bt: Object.assign({ powered: true, busy: false, message: "", found: false, out: 49, inp: 50,
+      devs: [{ address: "AA:BB:CC:00:00:01", name: "Auriculares demo", paired: true, connected: false, audio: true, mic: true },
+             { address: "AA:BB:CC:00:00:02", name: "Altavoz demo", paired: false, connected: false, audio: true, mic: false, hidden: true }] }, LS.get("bt", {})),
     voice: { state: "listening", wake: "hey jarvis" },
     cmds: {},
   };
@@ -153,6 +156,22 @@
     return { available: true, active: a ? { name: a, type: "wifi", device: "wlan0", ssid: a } : null, connectivity: a ? "full" : "none", dns: a && S.wifi.wantsPi[a] ? "pihole" : "router", portal: false,
       wants_pihole: !!(a && S.wifi.wantsPi[a]), saved: Object.keys(S.wifi.wantsPi), networks: NETS.map(n => ({ ...n, active: n.ssid === a })), nets: {} };
   }
+  /* ---- audio y Bluetooth de mentira ---- */
+  const btOut = d => 58 + 2 * S.bt.devs.indexOf(d), btIn = d => 59 + 2 * S.bt.devs.indexOf(d);
+  function saveBt() { LS.set("bt", { powered: S.bt.powered, found: S.bt.found, out: S.bt.out, inp: S.bt.inp, devs: S.bt.devs }); }
+  function fixSel() {                                               // si el aparato elegido se va, vuelve el altavoz y el micro de la Pi (como hace PipeWire)
+    const o = audioDevices(); if (!o.outputs.some(x => x.id === S.bt.out)) S.bt.out = 49; if (!o.inputs.some(x => x.id === S.bt.inp)) S.bt.inp = 50;
+  }
+  function audioDevices() {
+    const con = S.bt.powered ? S.bt.devs.filter(x => x.connected && x.audio) : [];
+    return {
+      outputs: [{ id: 49, name: "Altavoz de la Pi", default: S.bt.out === 49, bluetooth: false, volume: S.audio.volume, muted: !!S.audio.muted }].concat(con.map(x => ({ id: btOut(x), name: x.name, default: S.bt.out === btOut(x), bluetooth: true, volume: 50, muted: false }))),
+      inputs: [{ id: 50, name: "Micrófono de la Pi", default: S.bt.inp === 50, bluetooth: false, volume: 100, muted: false }].concat(con.filter(x => x.mic).map(x => ({ id: btIn(x), name: x.name + " (manos libres)", default: S.bt.inp === btIn(x), bluetooth: true, volume: 80, muted: false }))),
+    };
+  }
+  function btInfo() {
+    return { available: true, powered: S.bt.powered, busy: S.bt.busy, message: S.bt.message, devices: S.bt.powered ? S.bt.devs.filter(x => !x.hidden).map(x => ({ address: x.address, name: x.name, paired: x.paired, connected: x.connected, audio: x.audio, rssi: -60 })) : [] };
+  }
   function displayInfo() {
     const d = S.display, h = new Date().getHours(), night = h >= 22 || h < 7;
     return { level: d.level, auto: d.auto, effective: d.auto && night ? 40 : d.level, night_from: 22, night_to: 7, night_level: 40, ramp: 60, hw: { present: false, writable: false } };
@@ -182,7 +201,8 @@
       timers: timersList(), ai: { enabled: false, model: "qwen2.5:1.5b" }, calendar: calendar(),
       ui: { seq: S.ui.seq, cmd: S.ui.cmd, arg: S.ui.arg },
       music: { seq: S.music.seq, cmd: S.music.cmd, arg: S.music.arg, embed: LS.get("embed", null), history: LS.get("history", []), search: false },
-      audio: { available: true, volume: S.audio.volume, muted: S.audio.muted },
+      audio: Object.assign({ available: true, volume: S.audio.volume, muted: S.audio.muted }, audioDevices()),
+      bt: btInfo(),
       dev: { enabled: true, flags: S.flags }, system: systemInfo(), ip: "192.0.2.10", host: "picore-demo",
     };
   }
@@ -338,13 +358,32 @@
       }
       return ERR("accion invalida");
     }
+    if (p === "/api/bt" && method === "POST") {                 // Bluetooth de mentira: sin aparatos reales, pero la interfaz se comporta igual
+      const B = S.bt, d = B.devs.find(x => x.address === String(body.address || "").toUpperCase()), done = (msg, fn) => { B.busy = true; B.message = msg[0]; setTimeout(() => { fn(); B.busy = false; B.message = msg[1]; saveBt(); }, 1600); };
+      if (B.busy && body.action !== "power_off") return J({ ok: true });
+      if (body.action === "scan") { if (!B.powered) return J({ ok: true }); done(["Buscando aparatos…", "Búsqueda terminada"], () => { B.found = true; B.devs.forEach(x => { x.hidden = false; }); });
+      } else if (body.action === "power_on" || body.action === "power_off") { B.powered = body.action === "power_on"; if (!B.powered) B.devs.forEach(x => { x.connected = false; }); fixSel(); B.message = ""; saveBt();
+      } else if (["pair", "connect", "disconnect", "forget"].includes(body.action)) {
+        if (!d) return ERR("direccion bluetooth invalida");
+        if (body.action === "pair") done(["Emparejando…", "Conectado"], () => { d.paired = d.connected = true; B.out = btOut(d); });
+        else if (body.action === "connect") done(["Conectando…", "Conectado"], () => { d.connected = true; B.out = btOut(d); });
+        else if (body.action === "disconnect") { d.connected = false; B.message = "Desconectado"; fixSel(); }
+        else { d.connected = d.paired = false; B.message = "Olvidado"; fixSel(); }
+        saveBt();
+      } else return ERR("accion invalida");
+      return J({ ok: true });
+    }
     if (p === "/api/audio") {                                   // el volumen es de mentira, pero «Probar sonido» suena de verdad (WebAudio)
       if (body.action === "volume") {
         const v = String(body.value); if (!/^[+-]?\d{1,3}$/.test(v)) return ERR("volumen invalido");
         S.audio.volume = Math.max(0, Math.min(100, /^[+-]/.test(v) ? S.audio.volume + parseInt(v, 10) : parseInt(v, 10)));
       } else if (body.action === "mute" || body.action === "unmute") S.audio.muted = body.action === "mute";
       else if (body.action === "test") beep();
-      else return ERR("accion invalida");
+      else if (body.action === "use_output" || body.action === "use_input") {
+        const lista = audioDevices()[body.action === "use_output" ? "outputs" : "inputs"];
+        if (!/^\d{1,6}$/.test(String(body.value)) || !lista.some(x => x.id === +body.value)) return ERR("dispositivo invalido");
+        S.bt[body.action === "use_output" ? "out" : "inp"] = +body.value; saveBt();
+      } else return ERR("accion invalida");
       LS.set("audio", S.audio); return J({ ok: true });
     }
     const prefs = () => Object.assign({ screensaver: true, idle_minutes: 5, night_from: 22, night_to: 7, night_level: 40 }, LS.get("prefs", {}));
@@ -425,7 +464,7 @@
     /* musica */
     if (p === "/api/music" && method === "GET") return J({ tracks: tracks(), seq: S.music.seq, cmd: S.music.cmd, arg: S.music.arg, embed: LS.get("embed", null), history: LS.get("history", []), search: false });
     if (p === "/api/ui" && method === "POST") {
-      if (body.action === "open") { if (!["tiempo", "temporizadores", "sistema", "wifi", "musix", "calendario"].includes(body.target)) return ERR("hoja invalida"); S.ui = { seq: S.ui.seq + 1, cmd: "open", arg: body.target }; }
+      if (body.action === "open") { if (!["tiempo", "temporizadores", "sistema", "wifi", "musix", "calendario", "audio"].includes(body.target)) return ERR("hoja invalida"); S.ui = { seq: S.ui.seq + 1, cmd: "open", arg: body.target }; }
       else if (body.action === "close") S.ui = { seq: S.ui.seq + 1, cmd: "close", arg: null };
       else return ERR("accion invalida");
       return J({ ok: true, seq: S.ui.seq });
@@ -524,11 +563,11 @@
     const t = norm(text).replace(/^(oye pi|hey jarvis|ok pi)[,\s]*/, "").trim(), has = (...k) => k.some(x => t.includes(x)), now = new Date();
     if (!t) return "Dime algo, por ejemplo: qué hora es";
     if (has("cierra esto", "cierra la hoja", "cierra la ventana", "cierra el panel", "cierra todo", "cierra eso", "quita esto")) { S.ui = { seq: S.ui.seq + 1, cmd: "close", arg: null }; return "Cerrado"; }
-    const ho = /^(?:abre|abreme|muestrame|ensename) (?:la hoja de |la pantalla de |el panel de )?(el tiempo|el pronostico|la prevision|los temporizadores|el temporizador|las alarmas|el sistema|los ajustes|la configuracion|el wifi|la wifi|wifi|wi fi|las redes|musix|la musica)$/.exec(t);
+    const ho = /^(?:abre|abreme|muestrame|ensename) (?:la hoja de |la pantalla de |el panel de )?(el tiempo|el pronostico|la prevision|los temporizadores|el temporizador|las alarmas|el sistema|los ajustes|la configuracion|el wifi|la wifi|wifi|wi fi|las redes|musix|la musica|el bluetooth|bluetooth|el audio|los auriculares)$/.exec(t);
     if (ho) {
-      const k = ho[1], hoja = ["el tiempo", "el pronostico", "la prevision"].includes(k) ? "tiempo" : ["los temporizadores", "el temporizador", "las alarmas"].includes(k) ? "temporizadores" : ["el sistema", "los ajustes", "la configuracion"].includes(k) ? "sistema" : (k.includes("wi") || k === "las redes") ? "wifi" : "musix";
+      const k = ho[1], hoja = ["el tiempo", "el pronostico", "la prevision"].includes(k) ? "tiempo" : ["los temporizadores", "el temporizador", "las alarmas"].includes(k) ? "temporizadores" : ["el sistema", "los ajustes", "la configuracion"].includes(k) ? "sistema" : (k.includes("wi") || k === "las redes") ? "wifi" : ["el bluetooth", "bluetooth", "el audio", "los auriculares"].includes(k) ? "audio" : "musix";
       S.ui = { seq: S.ui.seq + 1, cmd: "open", arg: hoja };
-      return "Abro " + { tiempo: "el tiempo", temporizadores: "los temporizadores", sistema: "el sistema", wifi: "el wifi", musix: "Musix", calendario: "el calendario" }[hoja];
+      return "Abro " + { tiempo: "el tiempo", temporizadores: "los temporizadores", sistema: "el sistema", wifi: "el wifi", musix: "Musix", calendario: "el calendario", audio: "el audio y el Bluetooth" }[hoja];
     }
     const lm2 = /^(?:por favor )?(?:anade|añade|apunta|pon|mete|agrega)\s+(.{2,80}?)\s+(?:a|en)\s+(?:la\s+)?lista(?:\s+de\s+(?:la\s+)?(compra|compras|tareas|pendientes))?$/i.exec(String(text).replace(/^(oye pi|hey jarvis|ok pi)[,\s]*/i, "").trim().replace(/[\s.!?¡¿]+$/, ""));
     if (lm2) {

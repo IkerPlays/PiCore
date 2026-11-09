@@ -1250,7 +1250,7 @@ def dev_post(body):
 
 MUSIC = {"seq": 0, "cmd": None, "arg": None}
 UI = {"seq": 0, "cmd": None, "arg": None}                           # «abre el tiempo»: la pantalla lo recoge al leer /api/status (como la musica)
-UI_HOJAS = ("tiempo", "temporizadores", "sistema", "wifi", "musix", "calendario")
+UI_HOJAS = ("tiempo", "temporizadores", "sistema", "wifi", "musix", "calendario", "audio")
 
 
 def ui_post(body):

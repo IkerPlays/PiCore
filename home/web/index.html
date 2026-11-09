@@ -298,11 +298,11 @@
   #motion small { font-weight:500; font-size:14px; opacity:.75; }
 
   /* ---------------- brillo ---------------- */
-  #bpanel { position:fixed; left:50%; bottom:0; z-index:21; width:min(560px,100vw); background:var(--card); border:1px solid var(--line); border-bottom:0;
+  #bpanel, #apanel { position:fixed; left:50%; bottom:0; z-index:21; width:min(560px,100vw); background:var(--card); border:1px solid var(--line); border-bottom:0;
             border-radius:26px 26px 0 0; box-shadow:0 -20px 60px #0008; padding:20px 24px 26px; transform:translate(-50%,105%); transition:transform .5s var(--ease); }
-  #bpanel.on { transform:translate(-50%,0); }
-  #bpanel h3 { font-size:22px; display:flex; justify-content:space-between; align-items:center; }
-  #bpanel h3 button { width:44px; height:44px; font-size:20px; border-radius:50%; }
+  #bpanel.on, #apanel.on { transform:translate(-50%,0); }
+  #bpanel h3, #apanel h3 { font-size:22px; display:flex; justify-content:space-between; align-items:center; }
+  #bpanel h3 button, #apanel h3 button { width:44px; height:44px; font-size:20px; border-radius:50%; }
   .bl { display:flex; align-items:center; gap:14px; margin:22px 0 8px; font-size:26px; }
   .bl output { min-width:3.6ch; text-align:right; font-size:22px; font-variant-numeric:tabular-nums; }
   input[type=range] { -webkit-appearance:none; appearance:none; flex:1; height:12px; border-radius:999px; background:linear-gradient(90deg,var(--acc) var(--p,100%),var(--line) var(--p,100%)); outline:none; cursor:pointer; }
@@ -312,6 +312,18 @@
   #v-mute { width:46px; height:46px; border-radius:50%; padding:0; flex:none; } #v-mute.off { color:var(--bad); }
   .snd-actions { display:flex; align-items:center; gap:14px; margin-top:6px; } #v-test { min-height:46px; padding:0 18px; border-radius:14px; } #vnote { color:var(--dim); font-size:14px; }
   #snd[hidden], #snd-h[hidden] { display:none; }
+  /* ---------------- audio y bluetooth ---------------- */
+  #apanel { max-height:90vh; overflow-y:auto; }
+  .adevs { display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+  .adev { display:flex; align-items:center; gap:12px; min-height:56px; padding:8px 14px; border-radius:16px; border:1px solid var(--line); background:var(--card2); font-size:17px; text-align:left; width:100%; }
+  .adev .ic { width:22px; height:22px; flex:none; color:var(--dim); }
+  .adev .nm { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .adev .tag { font-size:12px; font-weight:650; padding:3px 9px; border-radius:99px; border:1px solid var(--line); color:var(--dim); white-space:nowrap; }
+  .adev.on { border-color:var(--acc); box-shadow:0 0 0 1px var(--acc) inset; } .adev.on .ic { color:var(--acc); } .adev.on .tag { color:var(--acc); border-color:var(--acc); }
+  .adev button { min-height:40px; padding:0 14px; border-radius:12px; font-size:15px; }
+  .adev.bt { cursor:default; }
+  #a-msg { color:var(--dim); font-size:14px; } #a-note { font-size:13px; margin-top:12px; line-height:1.4; }
+  #a-bt[hidden], #a-scan[hidden], #a-bt-power[hidden] { display:none; }
   #bnote { color:var(--dim); font-size:14px; margin-top:12px; min-height:36px; }
 
   /* ---------------- cambio de modo ---------------- */
@@ -338,6 +350,7 @@
       <button class="chip" id="chip-timer" aria-label="Temporizadores" style="color:var(--fg)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:17px;height:17px;vertical-align:-3px"><circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 2M9.5 3h5"/></svg> <span id="timer-txt">Temporizador</span></button>
       <span class="chip" id="chip-bat" hidden></span>
       <button class="chip" id="chip-motion" hidden aria-label="Vigilancia"><svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg></button>
+      <button class="chip" id="chip-bt" hidden aria-label="Bluetooth"><svg class="ic" aria-hidden="true"><use href="#i-bluetooth"/></svg></button>
       <button class="chip" id="chip-bright" aria-label="Brillo" style="color:var(--fg)"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg></button>
       <button class="chip" id="chip-sys" aria-label="Sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:19px;height:19px;vertical-align:-4px"><path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></button>
       <button class="chip" id="chip-wifi" hidden aria-label="Wi-Fi">
@@ -429,6 +442,18 @@
   <div class="dim" style="font-size:14px;margin-bottom:6px">Próximas horas</div><div class="hours" id="w-hours"></div>
   <div class="dim" id="w-sun" style="font-size:14px;margin:-2px 0 12px;display:flex;gap:18px"></div>
   <div class="dim" style="font-size:14px;margin-bottom:6px">Próximos días</div><div class="days" id="w-days"></div>
+</section>
+<section id="apanel" aria-label="Audio y Bluetooth">
+  <h3>Audio y Bluetooth <button id="a-close" aria-label="Cerrar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></h3>
+  <div class="sec" id="a-out-h">El sonido sale por</div>
+  <div class="adevs" id="a-out" role="radiogroup" aria-label="Salida de sonido"></div>
+  <div class="sec" id="a-in-h">Micrófono</div>
+  <div class="adevs" id="a-in" role="radiogroup" aria-label="Entrada de audio (micrófono)"></div>
+  <div class="sec" id="a-bt-h">Bluetooth</div>
+  <div class="tg" id="a-bt-power"><div>Bluetooth<small id="a-bt-sub">Auriculares, altavoces y micrófonos</small></div><button class="sw on" id="a-bt-sw" aria-label="Bluetooth"></button></div>
+  <div class="snd-actions"><button id="a-scan"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg> Buscar aparatos</button><span id="a-msg" aria-live="polite"></span></div>
+  <div class="adevs" id="a-bt" aria-label="Aparatos Bluetooth"></div>
+  <div id="a-note" class="dim"></div>
 </section>
 <audio id="mxaudio" preload="none"></audio>
 <section id="mxpanel" aria-label="Musix">
@@ -524,6 +549,7 @@
   <div class="sec" id="snd-h">Sonido</div>
   <div id="snd">
     <div class="bl"><button id="v-mute" aria-label="Silenciar" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-volume"/></svg></button><input type="range" id="v-range" min="0" max="100" step="1" value="50" aria-label="Volumen"><output id="v-val">50%</output></div>
+    <div class="snd-actions"><button id="v-audio"><svg class="ic" aria-hidden="true"><use href="#i-bluetooth"/></svg> Salida, micrófono y Bluetooth</button></div>
     <div class="snd-actions"><button id="v-test"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg> Probar sonido</button><span id="vnote"></span></div>
   </div>
 </section>
@@ -609,7 +635,7 @@ function countTo(el, to, fmtFn = fmt) {
 let phEnabled = true;
 let phSetup = false;
 function openPh() { $("pherr").textContent = ""; $("phin").value = ""; $("scrim").classList.add("on"); $("php").classList.add("on"); setTimeout(() => $("phin").focus(), 350); }
-function closePh() { PCPIKeyboard.close(); $("php").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on,#cityp.on,#php.on")) $("scrim").classList.remove("on"); }
+function closePh() { PCPIKeyboard.close(); $("php").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on, #apanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on,#cityp.on,#php.on")) $("scrim").classList.remove("on"); }
 async function phSave() {
   $("pherr").textContent = "Probando…";
   try {
@@ -703,6 +729,7 @@ function paintAudio(a) {
   $("v-range").value = a.volume; $("v-range").style.setProperty("--p", a.volume + "%"); $("v-val").textContent = a.volume + "%";
   $("v-mute").classList.toggle("off", !!a.muted); $("v-mute").setAttribute("aria-pressed", String(!!a.muted));
   $("v-mute").innerHTML = ico(a.muted ? "volume-off" : "volume");
+  renderAudio();
 }
 $("v-range").oninput = () => {
   vUser = true; clearTimeout(vTimer);
@@ -715,6 +742,66 @@ $("v-mute").onclick = () => {
   sendAudio({action: mute ? "mute" : "unmute"});
 };
 $("v-test").onclick = () => { sendAudio({action: "test"}); $("vnote").textContent = "Sonando…"; setTimeout(() => { $("vnote").textContent = ""; }, 1800); };
+
+/* ---- audio y bluetooth: salida, microfono y aparatos (lo ejecuta pcpi-session; sin PipeWire/BlueZ la hoja lo dice) ---- */
+let btState = null, btHint = "";
+const sendBt = body => post("/api/bt", body).catch(() => {});
+function openAudio() { refresh(); renderAudio(); $("scrim").classList.add("on"); $("apanel").classList.add("on"); }
+function closeAudio() { $("apanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on")) $("scrim").classList.remove("on"); }
+$("v-audio").onclick = () => { closeBright(); openAudio(); };
+$("a-close").onclick = closeAudio;
+function devButton(d, kind) {
+  const b = document.createElement("button"); b.type = "button"; b.className = "adev" + (d.default ? " on" : "");
+  b.setAttribute("role", "radio"); b.setAttribute("aria-checked", String(!!d.default));
+  b.innerHTML = ico(d.bluetooth ? "bluetooth" : kind === "in" ? "mic" : "volume");
+  const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = d.name; b.append(nm);
+  if (d.bluetooth) { const t = document.createElement("span"); t.className = "tag"; t.textContent = "Bluetooth"; b.append(t); }
+  if (d.default) { const t = document.createElement("span"); t.className = "tag"; t.textContent = "En uso"; b.append(t); }
+  b.onclick = () => { if (d.default) return; sendAudio({action: kind === "in" ? "use_input" : "use_output", value: d.id}); btHint = "Cambiando…"; renderAudio(); };
+  return b;
+}
+function btRow(d) {
+  const row = document.createElement("div"); row.className = "adev bt" + (d.connected ? " on" : "");
+  row.innerHTML = ico(d.audio ? "headphones" : "bluetooth");
+  const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = d.name; row.append(nm);
+  const t = document.createElement("span"); t.className = "tag"; t.textContent = d.connected ? "Conectado" : d.paired ? "Emparejado" : "Nuevo"; row.append(t);
+  const act = (txt, body, label) => { const x = document.createElement("button"); x.type = "button"; x.textContent = txt; x.setAttribute("aria-label", label + " " + d.name); x.disabled = !!(btState && btState.busy); x.onclick = () => { sendBt(body); btHint = ""; }; row.append(x); };
+  if (d.connected) act("Desconectar", {action: "disconnect", address: d.address}, "Desconectar");
+  else if (d.paired) act("Conectar", {action: "connect", address: d.address}, "Conectar");
+  else act("Emparejar", {action: "pair", address: d.address}, "Emparejar");
+  if (d.paired) act("Olvidar", {action: "forget", address: d.address}, "Olvidar");
+  return row;
+}
+function renderAudio() {
+  if (!$("apanel").classList.contains("on")) return;
+  const au = audio || {}, outs = au.outputs || [], ins = au.inputs || [];
+  const fill = (id, list, kind) => { const box = $(id); box.textContent = ""; list.forEach(d => box.append(devButton(d, kind))); };
+  fill("a-out", outs, "out"); fill("a-in", ins, "in");
+  $("a-out-h").hidden = $("a-out").hidden = !outs.length; $("a-in-h").hidden = $("a-in").hidden = !ins.length;
+  const bt = btState, ok = !!(bt && bt.available);
+  $("a-bt-power").hidden = $("a-scan").hidden = $("a-bt").hidden = !ok;
+  const box = $("a-bt"); box.textContent = "";
+  if (ok) {
+    $("a-bt-sw").classList.toggle("on", !!bt.powered); $("a-bt-sw").setAttribute("aria-pressed", String(!!bt.powered));
+    $("a-bt-sub").textContent = bt.powered ? "Encendido" : "Apagado";
+    $("a-scan").disabled = !!bt.busy || !bt.powered;
+    (bt.devices || []).forEach(d => box.append(btRow(d)));
+    $("a-msg").textContent = bt.message || btHint;
+  } else $("a-msg").textContent = "";
+  $("a-note").textContent = !au.available && !ok ? "No detecto el audio ni el Bluetooth de la Pi (¿sesión gráfica? Prueba pcpi-doctor)." :
+    !ok ? "Bluetooth no disponible: se instala con ./install.sh --bluetooth (mira pcpi-doctor)." :
+    "Pon el aparato en modo de emparejamiento y toca «Buscar aparatos». Los que piden un PIN no se pueden emparejar desde aquí. Un micrófono Bluetooth solo se ve con el perfil de manos libres.";
+}
+$("a-scan").onclick = () => { sendBt({action: "scan"}); btHint = "Buscando aparatos…"; $("a-msg").textContent = btHint; };
+$("a-bt-sw").onclick = () => sendBt({action: btState && btState.powered ? "power_off" : "power_on"});
+function paintBt(b) {
+  btState = b || null;
+  const con = !!(b && b.available && (b.devices || []).some(d => d.connected));
+  $("chip-bt").hidden = !con;
+  if (con) $("chip-bt").title = "Bluetooth: " + b.devices.filter(d => d.connected).map(d => d.name).join(", ");
+  renderAudio();
+}
+$("chip-bt").onclick = openAudio;
 
 /* ---- bateria (solo si hay un UPS o un comando que la mida; la Pi 5 no la mide sola) ---- */
 function paintBattery(b) {
@@ -756,7 +843,7 @@ function openCalendar() {
   }
   $("scrim").classList.add("on"); $("cpanel").classList.add("on");
 }
-function closeCalendar() { $("cpanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on,#cityp.on,#php.on")) $("scrim").classList.remove("on"); }
+function closeCalendar() { $("cpanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on, #apanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on,#cityp.on,#php.on")) $("scrim").classList.remove("on"); }
 /* ---- sistema: salud de la Pi y apagar/reiniciar (con confirmacion de dos toques) ---- */
 /* ---- Musix: YT Music (YouTube incrustado), MP3 Player (offline) y DYMusic (buscar y bajar a la Pi) ---- */
 const mxAudio = $("mxaudio");
@@ -879,7 +966,7 @@ function paintDebug(on) {
   b.textContent = "estado " + dbgMs + " ms · " + Math.round(performance.now() / 1000) + " s abierta";
 }
 let uiSeq = null;
-const UI_ABRIR = {tiempo: () => openWeather(), temporizadores: () => $("chip-timer").click(), sistema: () => openSystem(), wifi: () => openSheet(), musix: () => openMusix("home"), calendario: () => { const c = $("cal"); if (c) c.click(); }};
+const UI_ABRIR = {tiempo: () => openWeather(), temporizadores: () => $("chip-timer").click(), sistema: () => openSystem(), wifi: () => openSheet(), musix: () => openMusix("home"), audio: () => openAudio(), calendario: () => { const c = $("cal"); if (c) c.click(); }};
 function paintUi(u) {                                                    // la voz abre o cierra hojas
   if (!u) return;
   if (uiSeq === null) { uiSeq = u.seq; return; }                         // la primera lectura no es una orden
@@ -930,7 +1017,7 @@ function setYt(url) {
   if (!url) { f.removeAttribute("src"); f.dataset.src = ""; }
 }
 function openMusix(v) { mxShow(v || mxView); $("scrim").classList.add("on"); $("mxpanel").classList.add("on"); }
-function closeMusix() { clearInterval(mxPoll); PCPIKeyboard.close(); $("mxpanel").classList.remove("full", "on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on")) $("scrim").classList.remove("on"); }
+function closeMusix() { clearInterval(mxPoll); PCPIKeyboard.close(); $("mxpanel").classList.remove("full", "on"); if (!document.querySelector("#sheet.on,#bpanel.on, #apanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on")) $("scrim").classList.remove("on"); }
 $("mxbtn").onclick = () => openMusix("home");
 $("mx-close").onclick = closeMusix; $("mx-back").onclick = () => mxShow("home");
 $("mx-full").onclick = () => { const f = $("mxpanel").classList.toggle("full"); $("mx-full").textContent = f ? "Salir de pantalla completa" : "Pantalla completa"; };
@@ -1059,7 +1146,7 @@ document.querySelectorAll("#prefs .st button").forEach(b => b.onclick = () => {
   prefSet(k, Math.max(lo, Math.min(hi, v)));
 });
 function openSystem() { loadPrefs(); renderSystem(); $("pwr-msg").textContent = ""; pwrReset(); $("scrim").classList.add("on"); $("spanel").classList.add("on"); }
-function closeSystem() { pwrReset(); $("spanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on")) $("scrim").classList.remove("on"); }
+function closeSystem() { pwrReset(); $("spanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on, #apanel.on,#tpanel.on,#wpanel.on,#cpanel.on")) $("scrim").classList.remove("on"); }
 $("chip-sys").onclick = openSystem; $("s-close").onclick = closeSystem;
 $("s-reboot").onclick = () => pwrClick("reboot", "s-reboot", "reiniciar");
 $("s-off").onclick = () => pwrClick("shutdown", "s-off", "apagar");
@@ -1093,7 +1180,7 @@ function showSaver() {
   svClock(); box.classList.add("on"); svShowPhoto();
 }
 function hideSaver() { svLast = Date.now(); if (!svOn) return; svOn = false; clearTimeout(svTimer); $("saver").classList.remove("on"); setTimeout(() => { if (!svOn) $("saver").querySelectorAll(".ph").forEach(o => o.remove()); }, 1300); }
-function busyForSaver() { return camShown() || $("tring").classList.contains("on") || document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on,#cityp.on,#php.on") || $("switching").classList.contains("on"); }
+function busyForSaver() { return camShown() || $("tring").classList.contains("on") || document.querySelector("#sheet.on,#bpanel.on, #apanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on,#cityp.on,#php.on") || $("switching").classList.contains("on"); }
 ["pointerdown", "keydown", "touchstart"].forEach(ev => document.addEventListener(ev, e => { if (svOn) { e.preventDefault(); e.stopPropagation(); } hideSaver(); }, true));
 setInterval(() => {
   if (svOn) { svClock(); if (busyForSaver()) hideSaver(); return; }
@@ -1125,7 +1212,7 @@ function renderWeather() {
 }
 /* ---- ciudad del tiempo: se busca por nombre (Open-Meteo) y se guarda en pcpi.conf; antes habia que editar coordenadas a mano ---- */
 function openCity() { $("cityerr").textContent = ""; $("cityres").textContent = ""; $("scrim").classList.add("on"); $("cityp").classList.add("on"); setTimeout(() => $("cityin").focus(), 350); }
-function closeCity() { PCPIKeyboard.close(); $("cityp").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on,#cityp.on,#php.on")) $("scrim").classList.remove("on"); }
+function closeCity() { PCPIKeyboard.close(); $("cityp").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on, #apanel.on,#tpanel.on,#wpanel.on,#cpanel.on,#spanel.on,#mxpanel.on,#cityp.on,#php.on")) $("scrim").classList.remove("on"); }
 async function citySearch() {
   $("cityerr").textContent = "Buscando…"; $("cityres").textContent = "";
   try {
@@ -1145,7 +1232,7 @@ async function citySearch() {
 $("citygo").onclick = citySearch; $("city-close").onclick = closeCity; $("wcity").onclick = () => { closeWeather(); openCity(); };
 $("cityin").addEventListener("focus", () => PCPIKeyboard.open($("cityin"), {onEnter: () => { PCPIKeyboard.close(); citySearch(); }}));
 function openWeather() { renderWeather(); $("wcity").hidden = false; $("w-title").textContent = "Tiempo" + (lastWeather && lastWeather.city ? " · " + lastWeather.city : ""); $("scrim").classList.add("on"); $("wpanel").classList.add("on"); }
-function closeWeather() { $("wpanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on,#tpanel.on")) $("scrim").classList.remove("on"); }
+function closeWeather() { $("wpanel").classList.remove("on"); if (!document.querySelector("#sheet.on,#bpanel.on, #apanel.on,#tpanel.on")) $("scrim").classList.remove("on"); }
 $("weather").onclick = $("wsub").onclick = openWeather;
 $("w-close").onclick = closeWeather;
 
@@ -1366,7 +1453,7 @@ function closeSheet() {
 }
 $("chip-wifi").onclick = openSheet;
 $("sh-close").onclick = closeSheet;
-$("scrim").onclick = () => { closeSheet(); closeBright(); closeTimers(); closeWeather(); closeCalendar(); closeSystem(); closeCity(); if (!$("mxpanel").classList.contains("full")) closeMusix(); };
+$("scrim").onclick = () => { closeSheet(); closeBright(); closeAudio(); closeTimers(); closeWeather(); closeCalendar(); closeSystem(); closeCity(); if (!$("mxpanel").classList.contains("full")) closeMusix(); };
 
 async function refresh() {
   let s;
@@ -1445,6 +1532,7 @@ async function refresh() {
   lastCpu = s.cpu_temp ?? null; lastVersion = s.version || null;
   paintSystem(s.system);
   paintMusic(s.music);
+  paintBt(s.bt);
   paintUi(s.ui);
   $("nav-dev").hidden = !!(s.dev && s.dev.enabled === false);
   paintDebug(s.dev && s.dev.flags && s.dev.flags.casa_debug);

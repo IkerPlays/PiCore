@@ -50,6 +50,14 @@
 
 - Junto a la versión: «PiCore abc1234 2026-11-08 · Atlantic/Canary 19:32». Sirve para ver de un vistazo si la hora y la zona son las que esperas (de ellas dependen las alarmas).
 
+## Test: la hoja de audio y Bluetooth en un navegador
+
+- `shell_smoke.js`: la voz la abre, lista salidas y aparatos, conectar unos auriculares los deja «En uso» y con icono en Casa, y elegir otra salida la cambia.
+
+## Bluetooth de audio: hoja «Audio y Bluetooth» en Casa
+
+- Se abre desde la hoja de brillo y sonido (botón «Salida, micrófono y Bluetooth»), desde el icono de Bluetooth que aparece en Casa cuando hay un aparato conectado, o por voz («abre el Bluetooth», «abre el audio»). Enseña **por dónde sale el sonido** y **qué micrófono se usa** (elegir uno cambia la salida o la entrada del sistema), y los aparatos Bluetooth con **Buscar, Emparejar, Conectar, Desconectar y Olvidar**, el interruptor del adaptador y un mensaje de estado. Si no hay audio o Bluetooth, lo dice en vez de enseñar botones que no funcionan. También en el simulador, con aparatos de mentira (auriculares y un altavoz).
+
 ## Bluetooth de audio: servidor y supervisor de sesión
 
 - **Servidor:** `POST /api/bt` (acciones `scan`, `power_on`, `power_off`, `pair`, `connect`, `disconnect`, `forget`; la MAC se valida y es lista cerrada) y `POST /api/audio` con `use_output` / `use_input`. Escriben una petición en `/run/pcpi/` y `GET /api/status` enseña `bt` (aparatos) y `audio.outputs` / `audio.inputs` (con las Bluetooth marcadas), siempre saneados.

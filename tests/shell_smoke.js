@@ -49,6 +49,16 @@ const check = (nombre, ok, extra) => resultados.push({ nombre, ok: !!ok, extra }
     const cierra = await c.waitForFunction(id => !document.getElementById(id).classList.contains('on'), panel, { timeout: 9000 }).then(() => true).catch(() => false);
     check('«cierra esto» la cierra (' + panel + ')', cierra);
   }
+  // --- audio y Bluetooth (aparatos de mentira): elegir salida, emparejar/conectar y que el sonido salga por los auriculares
+  await c.evaluate(() => window.PCPI_DEMO.say('abre el bluetooth'));
+  check('la voz abre la hoja de audio y Bluetooth', await c.waitForFunction(() => document.getElementById('apanel').classList.contains('on'), null, { timeout: 9000 }).then(() => true).catch(() => false));
+  check('la hoja lista el altavoz de la Pi y los auriculares de ejemplo', await c.waitForFunction(() => document.querySelectorAll('#a-out .adev').length >= 1 && document.querySelectorAll('#a-bt .adev').length >= 1, null, { timeout: 9000 }).then(() => true).catch(() => false));
+  await c.click('#a-bt button[aria-label="Conectar Auriculares demo"]');
+  check('conectar los auriculares los deja como salida de sonido (En uso)', await c.waitForFunction(() => [...document.querySelectorAll('#a-out .adev.on .nm')].some(x => x.textContent === 'Auriculares demo'), null, { timeout: 12000 }).then(() => true).catch(() => false));
+  check('aparece el icono de Bluetooth en Casa', await c.evaluate(() => !document.getElementById('chip-bt').hidden));
+  await c.click('#a-out .adev:not(.on)'); // vuelve al altavoz de la Pi
+  check('elegir otra salida la cambia', await c.waitForFunction(() => [...document.querySelectorAll('#a-out .adev.on .nm')].some(x => x.textContent === 'Altavoz de la Pi'), null, { timeout: 9000 }).then(() => true).catch(() => false));
+  await c.evaluate(() => window.PCPI_DEMO.say('cierra esto'));
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '));
   await browser.close();
   for (const r of resultados) console.log((r.ok ? 'OK   ' : 'FAIL ') + r.nombre + (r.ok ? '' : '  -> ' + r.extra));
