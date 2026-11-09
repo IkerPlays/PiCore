@@ -59,6 +59,10 @@ Para conseguir un «Oye Pi» bueno hace falta **tu voz real**:
 
 `arecord -l` lista las tarjetas. Para la Logitech C270 sale algo como `card 2: C270`. **Mejor usa el nombre que el número**: el número (`plughw:2,0`) puede cambiar al reiniciar si conectas otro aparato USB, y entonces la Pi deja de oírte. Con `arecord -L` ves los nombres; para la C270 sería `device = plughw:CARD=C270,DEV=0`.
 
+### Elegir el micrófono desde la pantalla (o por voz)
+
+En **Casa → Sistema → Audio y Bluetooth**, la lista **Entrada** cambia el micrófono por defecto de PipeWire, y el servicio de voz se reinicia solo para usarlo. Por voz: «qué micrófono uso». Un micrófono Bluetooth solo existe en el perfil de manos libres (calidad de teléfono, peor para el reconocimiento). **Sin probar con micrófonos reales**: si tienes `device =` fijo en la configuración, ese manda sobre la elección de la pantalla; déjalo en `default` para que siga a la lista.
+
 ## Qué falta por probar en la Pi
 
 La detección está probada con el modelo real y ruido sintético (no se activa), y la lógica de turnos tiene tests. **No he podido probar con voz real ni con un micrófono**, así que los umbrales hay que ajustarlos en tu casa.
