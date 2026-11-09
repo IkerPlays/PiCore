@@ -42,6 +42,10 @@
 
 - En la sección «Más adelante: batería y SSD», con su límite: sin medida de batería no hace nada.
 
+## Alarmas: el pitido empieza suave y sube de volumen
+
+- Cinco escalones (35 %, 50 %, 70 %, 85 %, 100 %) de 6 s cada uno: despierta sin dar un susto. Es solo la amplitud del propio pitido; el volumen del sistema no se toca. Sin probar con altavoz real.
+
 ## Voz: si el micrófono se desconecta, la pantalla lo dice
 
 - Antes seguía poniendo «Di Hey Jarvis» aunque `arecord` hubiera muerto. Ahora el asistente publica el estado `nomic`, Casa muestra «Sin micrófono: conéctalo» y la hoja Sistema da un aviso. Cuando vuelve el audio, todo vuelve a la normalidad solo. Probado con un asistente de prueba; sin probar desenchufando un micrófono real.

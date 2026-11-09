@@ -176,6 +176,19 @@ class StoreTest(unittest.TestCase):
         timers.Ringer(lambda: estado["on"], play=play, gap=0.0, audio=a2)._run()
         self.assertEqual(a2.log, [])
 
+    def test_the_beep_starts_soft_and_gets_louder(self):
+        self.assertEqual([timers.ramp_gain(s) for s in (0, 5, 6, 12, 24, 100)], [0.35, 0.35, 0.5, 0.7, 1.0, 1.0])
+        def pico(wav):
+            import io, wave
+            with wave.open(io.BytesIO(wav)) as w:
+                datos = w.readframes(w.getnframes())
+            import struct
+            return max(abs(x) for x in struct.unpack("<%dh" % (len(datos) // 2), datos))
+        suave, fuerte = pico(timers.make_alarm_wav(0.35)), pico(timers.make_alarm_wav(1.0))
+        self.assertLess(suave, fuerte * 0.4)
+        self.assertGreater(fuerte, 10000)
+        self.assertEqual(timers.make_alarm_wav(), timers.make_alarm_wav(1.0))
+
     def test_alarm_next_occurrence(self):
         now = time.mktime((2026, 11, 6, 10, 0, 0, 0, 0, -1))
         nxt = timers.next_occurrence(7, 30, now)

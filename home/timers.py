@@ -171,13 +171,22 @@ class TimerStore:
         return any(t.get("ringing_since") for t in self.items)
 
 
-def make_alarm_wav():
-    """WAV con tres pitidos (880 Hz) para aplay: ~1,2 s."""
+RAMP = (0.35, 0.5, 0.7, 0.85, 1.0)       # el pitido sube de volumen: empieza suave y llega al maximo
+RAMP_STEP_S = 6                            # segundos en cada escalon
+
+
+def ramp_gain(elapsed):
+    """Ganancia (0-1) del pitido tras `elapsed` segundos sonando."""
+    return RAMP[min(len(RAMP) - 1, max(0, int(elapsed // RAMP_STEP_S)))]
+
+
+def make_alarm_wav(gain=1.0):
+    """WAV con tres pitidos (880 Hz) para aplay: ~1,2 s. `gain` (0-1) baja el volumen del propio pitido."""
     rate, buf = 16000, io.BytesIO()
     frames = bytearray()
     for _ in range(3):
         n = int(rate * 0.18)
-        frames += b"".join(struct.pack("<h", int(14000 * math.sin(2 * math.pi * 880 * i / rate) * (1 - i / n * 0.3))) for i in range(n))
+        frames += b"".join(struct.pack("<h", int(14000 * gain * math.sin(2 * math.pi * 880 * i / rate) * (1 - i / n * 0.3))) for i in range(n))
         frames += bytes(int(rate * 0.12) * 2)
     with wave.open(buf, "wb") as w:
         w.setnchannels(1)
@@ -193,7 +202,8 @@ class Ringer:
     def __init__(self, is_ringing, play=None, gap=0.6, sleep=time.sleep, audio=None):
         self.is_ringing, self.gap, self.sleep = is_ringing, gap, sleep
         self.audio = audio                       # algo con status() y set_mute(accion) (home/sound.py): para que una alarma no suene en silencio
-        self.wav = make_alarm_wav()
+        self.wavs = [make_alarm_wav(g) for g in RAMP]
+        self.wav = self.wavs[0]
         self.play = play or self._aplay
         self.thread = None
         self.lock = threading.Lock()
@@ -226,6 +236,7 @@ class Ringer:
         volver_a_silenciar = self._unmute()
         try:
             while self.is_ringing() and time.time() - t0 < RING_MAX_S:
+                self.wav = self.wavs[RAMP.index(ramp_gain(time.time() - t0))]      # cada vez mas fuerte, hasta el maximo
                 self.play()
                 self.sleep(self.gap)
         finally:
