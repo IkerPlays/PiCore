@@ -24,6 +24,52 @@ import server  # noqa: E402
 import sound  # noqa: E402
 
 
+WPCTL_STATUS = """PipeWire 'pipewire-0' [1.0.5, pi@picore, cookie:123456]
+ └─ Clients:
+        33. WirePlumber                         [1.0.5, pi@picore, pid:800]
+
+Audio
+ ├─ Devices:
+ │      47. Built-in Audio                      [alsa]
+ │      48. WH-1000XM4                          [bluez5]
+ │
+ ├─ Sinks:
+ │      49. Built-in Audio Stereo               [vol: 0.40]
+ │  *   58. WH-1000XM4                          [vol: 0.50 MUTED]
+ │
+ ├─ Sink endpoints:
+ │
+ ├─ Sources:
+ │  *   50. Built-in Audio Mono                 [vol: 1.00]
+ │      59. WH-1000XM4 Headset                  [vol: 0.80]
+ │
+ ├─ Source endpoints:
+ │
+ └─ Streams:
+        62. Chromium
+             64. output_FL  > Built-in Audio Stereo:playback_FL [active]
+
+Video
+ └─ Devices:
+        70. Camera                              [v4l2]
+"""
+INSPECT_BT = '  id 58, type PipeWire:Interface:Node\n    device.api = "bluez5"\n    node.name = "bluez_output.AA_BB_CC_DD_EE_FF.1"\n    api.bluez5.address = "aa:bb:cc:dd:ee:ff"\n'
+INSPECT_ALSA = '  id 49, type PipeWire:Interface:Node\n    node.name = "alsa_output.platform-soc_sound.stereo-fallback"\n'
+
+
+def pw_run(calls=None):
+    """wpctl de mentira con una salida y una entrada de la Pi y unos auriculares Bluetooth (ids 58 y 59)."""
+    def run(cmd, **kw):
+        if calls is not None:
+            calls.append(list(cmd))
+        if cmd[:2] == ["wpctl", "status"]:
+            return SimpleNamespace(returncode=0, stdout=WPCTL_STATUS)
+        if cmd[:2] == ["wpctl", "inspect"]:
+            return SimpleNamespace(returncode=0, stdout=INSPECT_BT if cmd[2] in ("58", "59") else INSPECT_ALSA)
+        return SimpleNamespace(returncode=0, stdout="")
+    return run
+
+
 def fake_run(table, calls=None):
     """run() de mentira: `table` = {primer_argumento: (codigo, salida)}; anota cada orden."""
     def run(cmd, **kw):
@@ -49,6 +95,38 @@ class ParseTest(unittest.TestCase):
         self.assertEqual(sound.parse_amixer(out), (62, False))
         self.assertEqual(sound.parse_amixer("  Mono: Playback 0 [0%] [off]"), (0, True))
         self.assertIsNone(sound.parse_amixer("sin porcentaje"))
+
+    def test_lists_outputs_and_inputs_from_wpctl_status(self):
+        r = sound.parse_wpctl_devices(WPCTL_STATUS)
+        self.assertEqual([(d["id"], d["default"], d["volume"], d["muted"]) for d in r["outputs"]], [(49, False, 40, False), (58, True, 50, True)])
+        self.assertEqual([(d["id"], d["name"], d["default"]) for d in r["inputs"]], [(50, "Built-in Audio Mono", True), (59, "WH-1000XM4 Headset", False)])
+        self.assertEqual(sound.parse_wpctl_devices(""), {"outputs": [], "inputs": []})
+        self.assertEqual(sound.parse_wpctl_devices("Video\n └─ Devices:\n        70. Camera [vol: 0.5]\n"), {"outputs": [], "inputs": []})   # fuera de «Audio» no cuenta
+
+    def test_detects_bluetooth_nodes(self):
+        self.assertEqual(sound.parse_inspect(INSPECT_BT), {"node_name": "bluez_output.AA_BB_CC_DD_EE_FF.1", "bluetooth": True, "address": "AA:BB:CC:DD:EE:FF"})
+        self.assertFalse(sound.parse_inspect(INSPECT_ALSA)["bluetooth"])
+        self.assertEqual(sound.parse_inspect("")["bluetooth"], False)
+
+    def test_devices_mark_bluetooth_and_survive_no_pipewire(self):
+        d = sound.devices(pw_run())
+        self.assertTrue(d["available"])
+        self.assertEqual([(x["id"], x["bluetooth"]) for x in d["outputs"]], [(49, False), (58, True)])
+        self.assertEqual(d["outputs"][1]["address"], "AA:BB:CC:DD:EE:FF")
+        self.assertEqual([(x["id"], x["bluetooth"]) for x in d["inputs"]], [(50, False), (59, True)])
+        self.assertEqual(sound.devices(fake_run({"status": (127, "")})), {"available": False, "outputs": [], "inputs": []})
+
+    def test_set_default_only_accepts_existing_ids_of_that_kind(self):
+        calls = []
+        sound.set_default("output", 58, pw_run(calls))
+        self.assertIn(["wpctl", "set-default", "58"], calls)
+        calls.clear()
+        for tipo, dev in (("output", 59), ("input", 58), ("output", 999), ("output", "58; rm -rf /"), ("output", True), ("altavoz", 58), ("input", "")):
+            with self.assertRaises(ValueError, msg=(tipo, dev)):
+                sound.set_default(tipo, dev, pw_run(calls))
+        self.assertFalse([c for c in calls if c[:2] == ["wpctl", "set-default"]], "un id raro nunca llega a wpctl set-default")
+        sound.set_default("input", "59", pw_run(calls))
+        self.assertIn(["wpctl", "set-default", "59"], calls)
 
     def test_targets(self):
         self.assertEqual(sound.parse_target("40"), ("set", 40))

@@ -50,6 +50,10 @@
 
 - Junto a la versión: «PiCore abc1234 2026-11-08 · Atlantic/Canary 19:32». Sirve para ver de un vistazo si la hora y la zona son las que esperas (de ellas dependen las alarmas).
 
+## Audio: listar y elegir salida y entrada (base para Bluetooth)
+
+- `home/sound.py` lee `wpctl status` y `wpctl inspect` para listar las **salidas** y **entradas** de audio, marcando cuáles son **Bluetooth** y cuál es la elegida; `pcpi-sound devices | use-output ID | use-input ID` las muestra y cambia. Solo acepta un identificador que exista ahora mismo en esa lista (nunca llega a `wpctl set-default` un valor raro). Probado con la salida de `wpctl` copiada de PipeWire 1.0 (formato de ejemplo); sin probar en una Pi real.
+
 ## Voz: velocidad de la voz de la Pi configurable (`tts_speed`)
 
 - En `[voice]`, de 90 a 260 palabras por minuto (160 por defecto). Fuera de rango o ilegible se corrige solo. No he podido oír el resultado en una Pi.

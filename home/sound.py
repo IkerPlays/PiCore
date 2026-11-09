@@ -50,6 +50,72 @@ def status(run=subprocess.run):
     return {"available": False, "volume": 0, "muted": False, "backend": None}
 
 
+_DEV_LINE = re.compile(r"^[\s│├└─|*]*?(\*)?\s*(\d+)\.\s+(.+?)\s+\[vol:\s*([0-9]*\.?[0-9]+)(\s+MUTED)?\]\s*$")
+
+
+def parse_wpctl_devices(out):
+    """Salidas (Sinks) y entradas (Sources) de `wpctl status`: {outputs: [...], inputs: [...]}, cada una
+    {id, name, default, volume, muted}. Solo mira la seccion «Audio» y las listas Sinks / Sources (no los streams)."""
+    res, seccion, en_audio = {"outputs": [], "inputs": []}, None, False
+    for raw in (out or "").splitlines():
+        limpio = raw.strip(" │├└─|\t")
+        if raw and not raw[0].isspace() and raw[0] not in "│├└":
+            en_audio = limpio == "Audio"                              # «Audio» / «Video» / «Settings» van sin sangria
+            seccion = None
+            continue
+        if not en_audio:
+            continue
+        if limpio.endswith(":") and limpio[:-1] in ("Devices", "Sinks", "Sink endpoints", "Sources", "Source endpoints", "Streams", "Filters"):
+            seccion = limpio[:-1]
+            continue
+        if seccion not in ("Sinks", "Sources"):
+            continue
+        m = _DEV_LINE.match(raw)
+        if m:
+            res["outputs" if seccion == "Sinks" else "inputs"].append({
+                "id": int(m.group(2)), "name": m.group(3).strip()[:80], "default": bool(m.group(1)),
+                "volume": max(0, min(150, round(float(m.group(4)) * 100))), "muted": bool(m.group(5))})
+    return res
+
+
+def parse_inspect(out):
+    """De `wpctl inspect ID`: {node_name, bluetooth, address}. Un nodo es Bluetooth si su nombre empieza por bluez o el aparato usa la API bluez5."""
+    nombre = re.search(r'node\.name\s*=\s*"([^"]*)"', out or "")
+    api = re.search(r'device\.api\s*=\s*"([^"]*)"', out or "")
+    mac = re.search(r'api\.bluez5\.address\s*=\s*"([0-9A-Fa-f:]{17})"', out or "")
+    n = nombre.group(1) if nombre else ""
+    return {"node_name": n, "bluetooth": n.startswith("bluez") or (api is not None and api.group(1) == "bluez5"),
+            "address": mac.group(1).upper() if mac else None}
+
+
+def devices(run=subprocess.run):
+    """{available, outputs, inputs}: las salidas y entradas de audio con su estado y si son Bluetooth. Sin PipeWire (wpctl) -> available False."""
+    code, out = _run(["wpctl", "status"], run)
+    if code != 0 or not out:
+        return {"available": False, "outputs": [], "inputs": []}
+    res = parse_wpctl_devices(out)
+    for lista in (res["outputs"], res["inputs"]):
+        for d in lista:
+            c, o = _run(["wpctl", "inspect", str(d["id"])], run)
+            info = parse_inspect(o) if c == 0 else {"bluetooth": False, "address": None}
+            d["bluetooth"], d["address"] = info["bluetooth"], info["address"]
+    return {"available": True, **res}
+
+
+def set_default(kind, dev_id, run=subprocess.run):
+    """Elige la salida (`output`) o la entrada (`input`) de audio por defecto. Solo acepta un id que exista ahora mismo en esa lista."""
+    if kind not in ("output", "input"):
+        raise ValueError("tipo invalido")
+    if isinstance(dev_id, bool) or not re.fullmatch(r"\d{1,6}", str(dev_id)):
+        raise ValueError("dispositivo invalido")
+    cur = devices(run)
+    if int(dev_id) not in {d["id"] for d in cur["outputs" if kind == "output" else "inputs"]}:
+        raise ValueError("ese dispositivo no existe")
+    if _run(["wpctl", "set-default", str(int(dev_id))], run)[0] != 0:
+        raise ValueError("no pude cambiarlo")
+    return devices(run)
+
+
 def parse_target(value):
     """'40' -> ('set', 40); '+5' / '-5' -> ('add', +5 / -5). Fuera de 0..100 se recorta; algo raro -> ValueError."""
     v = str(value).strip()
