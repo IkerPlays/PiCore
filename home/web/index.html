@@ -1018,7 +1018,8 @@ function renderSystem() {
   stat(sy.mem_avail_mb != null ? sy.mem_avail_mb + " MB" : "--", "memoria libre");
   stat(lastCpu != null ? lastCpu + " °C" : "--", "temperatura");
   stat(sy.update && sy.update.available ? "Sí" : "No", "actualización");
-  $("s-ver").hidden = !lastVersion; $("s-ver").textContent = lastVersion ? "PiCore " + lastVersion : "";
+  const tz = sysInfo && sysInfo.tz ? " · " + sysInfo.tz + " " + new Date().toLocaleTimeString("es-ES", {hour: "2-digit", minute: "2-digit"}) : "";
+  $("s-ver").hidden = !lastVersion; $("s-ver").textContent = lastVersion ? "PiCore " + lastVersion + tz : "";
   const h = $("s-health"); h.textContent = "";
   for (const it of (sy.health || [])) {
     const d = document.createElement("div"); d.className = "hl " + it.level; const t = document.createElement("span"); t.textContent = it.text; d.append(t);

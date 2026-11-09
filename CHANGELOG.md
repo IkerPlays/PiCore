@@ -42,6 +42,10 @@
 
 - En la sección «Más adelante: batería y SSD», con su límite: sin medida de batería no hace nada.
 
+## Hoja Sistema: muestra la zona horaria y la hora de la Pi
+
+- Junto a la versión: «PiCore abc1234 2026-11-08 · Atlantic/Canary 19:32». Sirve para ver de un vistazo si la hora y la zona son las que esperas (de ellas dependen las alarmas).
+
 ## Voz: velocidad de la voz de la Pi configurable (`tts_speed`)
 
 - En `[voice]`, de 90 a 260 palabras por minuto (160 por defecto). Fuera de rango o ilegible se corrige solo. No he podido oír el resultado en una Pi.

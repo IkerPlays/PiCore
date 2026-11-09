@@ -51,6 +51,11 @@ class ChecksTest(unittest.TestCase):
         info = lv({"update": {"available": False}, "clock": {"plausible": True, "synced": False, "year": 2026}})
         self.assertEqual(info[0]["level"], "info")
 
+    def test_system_info_carries_the_timezone_for_the_sheet(self):
+        info = server.system_info({"cpu_temp": 40})
+        self.assertIn("tz", info)                                               # None si no hay timedatectl; el nombre si lo hay
+        self.assertIn("health", info)
+
     def test_utc_timezone_is_pointed_out(self):
         r = lv({"update": {"available": False}, "clock": {"plausible": True, "synced": True, "year": 2026, "tz": "Etc/UTC"}})
         self.assertEqual(r[0]["level"], "info")

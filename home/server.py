@@ -1462,7 +1462,7 @@ def system_info(st):
         except OSError:
             music_mb = 0
         base = {**st, "update": health.update_state(), "music_mb": music_mb, "clock": health.clock_state()}
-        return {"disk": health.disk_info(), "mem_avail_mb": health.mem_available_mb(), "update": base["update"],
+        return {"disk": health.disk_info(), "mem_avail_mb": health.mem_available_mb(), "update": base["update"], "tz": base["clock"].get("tz"),
                 "health": health.checks(base)}
     return cached("system", 20, build)
 

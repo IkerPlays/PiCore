@@ -165,7 +165,7 @@
   }
   function systemInfo() {
     const u = S.update;
-    return { disk: { free_gb: 21.4, total_gb: 58.0, pct: 63 }, mem_avail_mb: 5120, update: { available: u.available, behind: u.behind, checked: Date.now() / 1000 - 3600 },
+    return { tz: "Atlantic/Canary", disk: { free_gb: 21.4, total_gb: 58.0, pct: 63 }, mem_avail_mb: 5120, update: { available: u.available, behind: u.behind, checked: Date.now() / 1000 - 3600 },
       health: [{ level: "ok", text: "Todo en orden (es una demo: estos datos son de ejemplo)." }], update_run: { state: u.state, tail: u.tail } };
   }
   function status() {
