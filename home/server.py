@@ -558,6 +558,7 @@ def status():
         "music": music_info(),
         "ui": dict(UI),
         "audio": audio_info(),
+        "bt": bt_info(),
         "dev": {"enabled": dev_enabled(cp), "flags": devmode.get_flags()},
         "system": {**system_info({"cpu_temp": cpu_temp(), "net": net_summary(), "pihole": cached("pihole", 10, lambda: pihole_stats(cp)), "ai": ai_info(cp),
                                   "setup": setup_state(cp), "audio": audio_info()}), "update_run": health.update_run_state()},
@@ -1016,7 +1017,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self._host_ok():
             return self._send(403, {"error": "host no permitido"})
         paths = ("/api/mode", "/api/pihole", "/api/camera", "/api/notes", "/api/notes/delete", "/api/notes/export", "/api/bookmarks", "/api/music", "/api/dev", "/api/audio", "/api/settings", "/api/loaded",
-                 "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display", "/api/motion", "/api/timers", "/api/ask", "/api/system", "/api/ui")
+                 "/api/wifi/connect", "/api/wifi/forget", "/api/wifi/pihole", "/api/wifi/portal", "/api/display", "/api/motion", "/api/timers", "/api/ask", "/api/system", "/api/ui", "/api/bt")
         if self.path not in paths or self.headers.get("X-PCPI") != "1":
             return self._send(403, {"error": "prohibido"})
         try:
@@ -1081,7 +1082,15 @@ class Handler(BaseHTTPRequestHandler):
                 except SettingsError as e:
                     return self._send(502, {"error": str(e)})
             if self.path == "/api/audio":
-                return self._send(200, audio_post(body))
+                try:
+                    return self._send(200, audio_post(body))
+                except ValueError as e:
+                    return self._send(400, {"error": str(e)})
+            if self.path == "/api/bt":
+                try:
+                    return self._send(200, bt_request(body.get("action"), body.get("address")))
+                except ValueError as e:
+                    return self._send(400, {"error": str(e)})
             if self.path == "/api/dev":
                 try:
                     return self._send(200, dev_post(body))
@@ -1410,15 +1419,80 @@ class SettingsError(Exception):
     pass
 
 
+def _dev_list(lista):
+    """Normaliza una lista de salidas/entradas que deja pcpi-session (nunca se fia de su forma)."""
+    out = []
+    for d in (lista or [])[:12]:
+        try:
+            out.append({"id": int(d["id"]), "name": str(d.get("name", ""))[:80], "default": bool(d.get("default")),
+                        "bluetooth": bool(d.get("bluetooth")), "volume": max(0, min(150, int(d.get("volume", 0)))), "muted": bool(d.get("muted"))})
+        except (KeyError, TypeError, ValueError, AttributeError):
+            continue
+    return out
+
+
+def audio_devices():
+    """Salidas y entradas de audio (con las Bluetooth marcadas) que deja pcpi-session en /run/pcpi/audio-devices.json."""
+    try:
+        d = json.loads((run_dir() / "audio-devices.json").read_text())
+        if isinstance(d, dict) and d.get("available") is True:
+            return {"available": True, "outputs": _dev_list(d.get("outputs")), "inputs": _dev_list(d.get("inputs"))}
+    except (OSError, ValueError, TypeError):
+        pass
+    return {"available": False, "outputs": [], "inputs": []}
+
+
+BT_MAC = re.compile(r"^[0-9A-F]{2}(:[0-9A-F]{2}){5}$")
+
+
+def bt_info():
+    """Estado del Bluetooth que deja pcpi-session en /run/pcpi/bt.json: {available, powered, busy, message, devices: [...]}."""
+    vacio = {"available": False, "powered": False, "busy": False, "message": "", "devices": []}
+    try:
+        d = json.loads((run_dir() / "bt.json").read_text())
+        if not isinstance(d, dict) or d.get("available") is not True:
+            return vacio
+        devs = []
+        for x in (d.get("devices") or [])[:24]:
+            if not isinstance(x, dict):
+                continue
+            mac = str(x.get("address", "")).upper()
+            if BT_MAC.fullmatch(mac):
+                devs.append({"address": mac, "name": str(x.get("name", mac))[:60], "paired": bool(x.get("paired")), "connected": bool(x.get("connected")),
+                             "audio": bool(x.get("audio")), "rssi": x.get("rssi") if isinstance(x.get("rssi"), int) else None})
+        return {"available": True, "powered": bool(d.get("powered")), "busy": bool(d.get("busy")), "message": str(d.get("message", ""))[:120], "devices": devs}
+    except (OSError, ValueError, TypeError, AttributeError):
+        return vacio
+
+
+def bt_request(act, mac=None):
+    """Pide a pcpi-session una orden de Bluetooth (el servidor no habla con BlueZ). Lista CERRADA de acciones; la MAC se valida aqui y otra vez en bt.py."""
+    if act in ("scan", "power_on", "power_off"):
+        line = {"scan": "scan", "power_on": "power on", "power_off": "power off"}[act]
+    elif act in ("pair", "connect", "disconnect", "forget"):
+        m = str(mac or "").strip().upper()
+        if isinstance(mac, bool) or not BT_MAC.fullmatch(m):
+            raise ValueError("direccion bluetooth invalida")
+        line = "%s %s" % (act, m)
+    else:
+        raise ValueError("accion invalida")
+    d = run_dir()
+    d.mkdir(parents=True, exist_ok=True)
+    tmp = d / "bt.req.tmp"
+    tmp.write_text(line + "\n")
+    os.replace(tmp, d / "bt")
+    return {"ok": True}
+
+
 def audio_info():
     """Estado del sonido que deja pcpi-session en /run/pcpi/audio.json. Sin el (emulador, sin sesion grafica) -> no disponible."""
     try:
         d = json.loads((run_dir() / "audio.json").read_text())
         if isinstance(d, dict) and d.get("available") is True:
-            return {"available": True, "volume": max(0, min(100, int(d.get("volume", 0)))), "muted": bool(d.get("muted"))}
+            return {"available": True, "volume": max(0, min(100, int(d.get("volume", 0)))), "muted": bool(d.get("muted")), **{k: v for k, v in audio_devices().items() if k != "available"}}
     except (OSError, ValueError, TypeError):
         pass
-    return {"available": False, "volume": 0, "muted": False}
+    return {"available": False, "volume": 0, "muted": False, "outputs": [], "inputs": []}
 
 
 def audio_request(act, value=None):
@@ -1431,6 +1505,10 @@ def audio_request(act, value=None):
             line = "volume %s%d" % (v[0], min(int(v[1:]), 99))
         else:
             line = "volume %d" % min(int(v), 100)
+    elif act in ("use_output", "use_input"):
+        if isinstance(value, bool) or not re.fullmatch(r"\d{1,6}", str(value)):
+            raise ValueError("dispositivo invalido")
+        line = "%s %d" % (act.replace("_", "-"), int(value))
     elif act in ("mute", "unmute", "test"):
         line = act
     else:

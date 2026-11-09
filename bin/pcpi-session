@@ -180,6 +180,8 @@ last_audio=-1
 audio_refresh() {
   command -v pcpi-sound >/dev/null || return 0
   pcpi-sound status > "$RUN/audio.tmp" 2>/dev/null; mv -f "$RUN/audio.tmp" "$RUN/audio.json" 2>/dev/null || true
+  # salidas y entradas (con las Bluetooth marcadas): las que la pantalla ofrece para elegir
+  pcpi-sound devices > "$RUN/audio-devices.tmp" 2>/dev/null; mv -f "$RUN/audio-devices.tmp" "$RUN/audio-devices.json" 2>/dev/null || true
 }
 sync_audio() {
   if [ -e "$RUN/audio" ]; then
@@ -190,6 +192,11 @@ sync_audio() {
     case "$a" in
       volume) case "$v" in [0-9]|[0-9][0-9]|100|[+-][0-9]|[+-][0-9][0-9]) pcpi-sound volume "$v" > "$RUN/audio.tmp" 2>/dev/null; mv -f "$RUN/audio.tmp" "$RUN/audio.json" 2>/dev/null || true ;; esac ;;
       mute|unmute) pcpi-sound "$a" > "$RUN/audio.tmp" 2>/dev/null; mv -f "$RUN/audio.tmp" "$RUN/audio.json" 2>/dev/null || true ;;
+      use-output|use-input)                       # elegir la salida o el microfono (el numero sale de la lista que publica audio_refresh)
+        case "$v" in [0-9]|[0-9][0-9]|[0-9][0-9][0-9]|[0-9][0-9][0-9][0-9]|[0-9][0-9][0-9][0-9][0-9]|[0-9][0-9][0-9][0-9][0-9][0-9]) pcpi-sound "$a" "$v" >/dev/null 2>&1 || true
+          # un micro nuevo: el asistente de voz tiene que reabrir la captura para oirlo
+          [ "$a" = use-input ] && { systemctl --user restart pcpi-voice >/dev/null 2>&1 || true; }
+          audio_refresh ;; esac ;;
       test) ( pcpi-sound test >/dev/null 2>&1 ) 9>&- & ;;
     esac
     last_audio=$SECONDS
@@ -198,6 +205,68 @@ sync_audio() {
   if [ "$last_audio" -lt 0 ] || [ $((SECONDS - last_audio)) -ge "$AUDIO_EVERY" ]; then
     last_audio=$SECONDS
     audio_refresh
+  fi
+}
+
+# Bluetooth de audio: el servidor deja una peticion en /run/pcpi/bt («scan», «pair MAC», «connect MAC», «disconnect MAC», «forget MAC», «power on|off»);
+# SOLO esta sesion habla con BlueZ y PipeWire. El estado (aparatos, ocupado, mensaje) queda en /run/pcpi/bt.json y se refresca cada BT_EVERY s.
+BT_EVERY="${PCPI_BT_EVERY:-30}"
+last_bt=-1
+bt_busy=0
+bt_publish() {            # bt_publish "mensaje" busy(0/1)
+  command -v pcpi-bt >/dev/null || return 0
+  local st
+  st="$(pcpi-bt status 2>/dev/null)" || true
+  [ -n "$st" ] || st='{"available": false, "powered": false, "devices": []}'
+  python3 - "$st" "${1:-}" "${2:-0}" > "$RUN/bt.tmp" 2>/dev/null <<'PY' && mv -f "$RUN/bt.tmp" "$RUN/bt.json" 2>/dev/null || true
+import json, sys
+d = json.loads(sys.argv[1]); d["message"] = sys.argv[2]; d["busy"] = sys.argv[3] == "1"
+print(json.dumps(d, ensure_ascii=False))
+PY
+}
+bt_job() {                # se ejecuta en segundo plano: una orden de Bluetooth a la vez
+  local a="$1" m="${2:-}" out="" msg=""
+  case "$a" in
+    scan)       bt_publish "Buscando aparatos…" 1; out="$(pcpi-bt scan 2>/dev/null)" || true; msg="Búsqueda terminada" ;;
+    power)      out="$(pcpi-bt power "$m" 2>/dev/null)" || true ;;
+    pair)       bt_publish "Emparejando…" 1; out="$(pcpi-bt pair "$m" 2>/dev/null)" || true ;;
+    connect)    bt_publish "Conectando…" 1; out="$(pcpi-bt connect "$m" 2>/dev/null)" || true ;;
+    disconnect) out="$(pcpi-bt disconnect "$m" 2>/dev/null)" || true ;;
+    forget)     out="$(pcpi-bt forget "$m" 2>/dev/null)" || true ;;
+  esac
+  [ -n "$out" ] && msg="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1]).get("message", ""))' "$out" 2>/dev/null || true)"
+  case "$a" in
+    pair|connect)  # si conecto, el sonido sale por el: PipeWire tarda un par de segundos en crear su salida
+      case "$out" in *'"ok": true'*) pcpi-sound use-bluetooth "$m" >/dev/null 2>&1 || true ;; esac ;;
+  esac
+  audio_refresh
+  bt_publish "$msg" 0
+  rm -f "$RUN/bt.busy" 2>/dev/null || true
+}
+sync_bt() {
+  command -v pcpi-bt >/dev/null || return 0
+  if [ -e "$RUN/bt" ] && [ ! -e "$RUN/bt.busy" ]; then
+    local a="" m=""
+    read -r a m < "$RUN/bt" 2>/dev/null || true
+    rm -f "$RUN/bt" 2>/dev/null || true
+    case "$a" in
+      scan|pair|connect|disconnect|forget|power)
+        case "$a:$m" in
+          scan:|power:on|power:off) ;;
+          pair:??:??:??:??:??:??|connect:??:??:??:??:??:??|disconnect:??:??:??:??:??:??|forget:??:??:??:??:??:??) ;;
+          *) return 0 ;;
+        esac
+        : > "$RUN/bt.busy" 2>/dev/null || true
+        ( bt_job "$a" "$m" ) >/dev/null 2>&1 9>&- &
+        last_bt=$SECONDS
+        return 0 ;;
+    esac
+  elif [ -e "$RUN/bt" ]; then
+    return 0                  # ocupado: la peticion se queda esperando
+  fi
+  if [ ! -e "$RUN/bt.busy" ] && { [ "$last_bt" -lt 0 ] || [ $((SECONDS - last_bt)) -ge "$BT_EVERY" ]; }; then
+    last_bt=$SECONDS
+    ( bt_publish "" 0 ) >/dev/null 2>&1 9>&- &
   fi
 }
 
@@ -373,6 +442,7 @@ while true; do
   sync_dev
   sync_power
   sync_audio
+  sync_bt
   sync_update
   sync_auto
   tick=$((tick + 1))

@@ -128,6 +128,21 @@ class ParseTest(unittest.TestCase):
         sound.set_default("input", "59", pw_run(calls))
         self.assertIn(["wpctl", "set-default", "59"], calls)
 
+    def test_use_bluetooth_waits_for_the_sink_and_sets_it_as_default(self):
+        calls, esperas = [], []
+        r = sound.use_bluetooth("aa:bb:cc:dd:ee:ff", pw_run(calls), sleep=esperas.append)
+        self.assertEqual(r["output_id"], 58)
+        self.assertTrue(r["ok"])
+        self.assertEqual(esperas, [])                                         # el 58 ya era el predeterminado: no hace falta ni cambiarlo
+        # un aparato cuya salida aun no existe: espera, reintenta y al final lo dice
+        lentas = []
+        r = sound.use_bluetooth("11:22:33:44:55:66", pw_run(lentas), sleep=esperas.append, tries=3)
+        self.assertFalse(r["ok"])
+        self.assertEqual(len(esperas), 2)
+        self.assertFalse([c for c in lentas if c[:2] == ["wpctl", "set-default"]])
+        with self.assertRaises(ValueError):
+            sound.use_bluetooth("no-es-mac", pw_run())
+
     def test_targets(self):
         self.assertEqual(sound.parse_target("40"), ("set", 40))
         self.assertEqual(sound.parse_target("+5"), ("add", 5))
@@ -262,9 +277,10 @@ class ApiTest(unittest.TestCase):
         run = T / "run"
         run.mkdir(exist_ok=True)
         (run / "audio.json").unlink(missing_ok=True)
-        self.assertEqual(json.load(urllib.request.urlopen(self.base + "/api/status"))["audio"], {"available": False, "volume": 0, "muted": False})
+        self.assertEqual(json.load(urllib.request.urlopen(self.base + "/api/status"))["audio"], {"available": False, "volume": 0, "muted": False, "outputs": [], "inputs": []})
         (run / "audio.json").write_text(json.dumps({"available": True, "volume": 400, "muted": True, "backend": "wpctl"}))
-        self.assertEqual(json.load(urllib.request.urlopen(self.base + "/api/status"))["audio"], {"available": True, "volume": 100, "muted": True})
+        (run / "audio-devices.json").unlink(missing_ok=True)
+        self.assertEqual(json.load(urllib.request.urlopen(self.base + "/api/status"))["audio"], {"available": True, "volume": 100, "muted": True, "outputs": [], "inputs": []})
         (run / "audio.json").write_text("{no json")
         self.assertFalse(json.load(urllib.request.urlopen(self.base + "/api/status"))["audio"]["available"])
 
@@ -279,6 +295,36 @@ class ApiTest(unittest.TestCase):
             self.assertEqual(self.post({"action": act}), 200)
             self.assertEqual(self.req_file().read_text().strip(), act)
         self.assertFalse((T / "run" / "audio.req.tmp").exists())
+
+    def test_device_lists_are_sanitised_and_shown_in_status(self):
+        run = T / "run"
+        run.mkdir(exist_ok=True)
+        (run / "audio.json").write_text(json.dumps({"available": True, "volume": 50, "muted": False}))
+        (run / "audio-devices.json").write_text(json.dumps({"available": True,
+            "outputs": [{"id": 49, "name": "Altavoz", "default": False, "volume": 40}, {"id": 58, "name": "WH-1000XM4" * 20, "default": True, "bluetooth": True, "volume": 900, "muted": True},
+                        {"id": "x"}, "basura", {"name": "sin id"}],
+            "inputs": [{"id": 50, "name": "Micro", "default": True}]}))
+        a = json.load(urllib.request.urlopen(self.base + "/api/status"))["audio"]
+        self.assertEqual([(d["id"], d["bluetooth"], d["default"]) for d in a["outputs"]], [(49, False, False), (58, True, True)])
+        self.assertEqual(a["outputs"][1]["volume"], 150)
+        self.assertLessEqual(len(a["outputs"][1]["name"]), 80)
+        self.assertEqual(a["inputs"][0]["name"], "Micro")
+        (run / "audio-devices.json").write_text("{roto")
+        self.assertEqual(json.load(urllib.request.urlopen(self.base + "/api/status"))["audio"]["outputs"], [])
+        (run / "audio-devices.json").unlink()
+
+    def test_choosing_an_output_or_input_writes_a_validated_request(self):
+        self.req_file().unlink(missing_ok=True)
+        self.assertEqual(self.post({"action": "use_output", "value": 58}, hdr=False), 403)
+        self.assertFalse(self.req_file().exists())
+        self.assertEqual(self.post({"action": "use_output", "value": 58}), 200)
+        self.assertEqual(self.req_file().read_text().strip(), "use-output 58")
+        self.assertEqual(self.post({"action": "use_input", "value": "59"}), 200)
+        self.assertEqual(self.req_file().read_text().strip(), "use-input 59")
+        self.req_file().unlink()
+        for malo in ("58; reboot", "-1", "", "x", True, None, "9" * 20):
+            self.assertEqual(self.post({"action": "use_output", "value": malo}), 400, malo)
+        self.assertFalse(self.req_file().exists(), "un valor raro no deja ninguna peticion")
 
     def test_bad_requests(self):
         for body in ({"action": "volume", "value": "alto"}, {"action": "volume", "value": True}, {"action": "volume"}, {"action": "volume", "value": "4;5"},

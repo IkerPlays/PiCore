@@ -50,6 +50,12 @@
 
 - Junto a la versión: «PiCore abc1234 2026-11-08 · Atlantic/Canary 19:32». Sirve para ver de un vistazo si la hora y la zona son las que esperas (de ellas dependen las alarmas).
 
+## Bluetooth de audio: servidor y supervisor de sesión
+
+- **Servidor:** `POST /api/bt` (acciones `scan`, `power_on`, `power_off`, `pair`, `connect`, `disconnect`, `forget`; la MAC se valida y es lista cerrada) y `POST /api/audio` con `use_output` / `use_input`. Escriben una petición en `/run/pcpi/` y `GET /api/status` enseña `bt` (aparatos) y `audio.outputs` / `audio.inputs` (con las Bluetooth marcadas), siempre saneados.
+- **`pcpi-session`** (la única que llega a BlueZ y PipeWire) ejecuta la petición, una Bluetooth a la vez y en segundo plano; tras conectar, deja el aparato como **salida de sonido**; al cambiar de micrófono **reinicia el servicio de voz** para que reabra la captura. Publica `/run/pcpi/bt.json` y `audio-devices.json`.
+- Probado de extremo a extremo con un `bluetoothctl` y un `wpctl` de mentira (incluidas peticiones peligrosas, que se ignoran); sin probar con aparatos Bluetooth reales.
+
 ## Bluetooth de audio: módulo `home/bt.py` y herramienta `pcpi-bt`
 
 - Habla con BlueZ (`bluetoothctl`): lista aparatos y su estado, busca, **empareja** (sin PIN, con un agente «Just Works», que sirve para auriculares, altavoces y la mayoría de micrófonos), confía, conecta, desconecta y olvida. Cada dirección MAC se valida antes de llegar a `bluetoothctl`. Los aparatos que piden PIN o confirmación se dicen claramente y no se emparejan desde aquí. Probado con la salida de ejemplo de `bluetoothctl`; **sin probar con un aparato Bluetooth real**.

@@ -116,6 +116,24 @@ def set_default(kind, dev_id, run=subprocess.run):
     return devices(run)
 
 
+def use_bluetooth(mac, run=subprocess.run, sleep=None, tries=6):
+    """Tras conectar un aparato Bluetooth, PipeWire tarda un par de segundos en crear su salida: la espera y la deja como salida por defecto.
+    Devuelve {ok, output_id, message}. No toca la entrada (un micro Bluetooth solo aparece con el perfil de manos libres)."""
+    import time
+    sleep = sleep or time.sleep
+    mac = str(mac or "").strip().upper()
+    if not re.fullmatch(r"([0-9A-F]{2}:){5}[0-9A-F]{2}", mac):
+        raise ValueError("direccion bluetooth invalida")
+    for i in range(tries):
+        for d in devices(run)["outputs"]:
+            if d.get("bluetooth") and d.get("address") == mac:
+                if d["default"] or _run(["wpctl", "set-default", str(d["id"])], run)[0] == 0:
+                    return {"ok": True, "output_id": d["id"], "message": "El sonido sale por %s" % d["name"]}
+        if i < tries - 1:
+            sleep(1.0)
+    return {"ok": False, "output_id": None, "message": "Conectado, pero PipeWire aún no ofrece su salida de audio"}
+
+
 def parse_target(value):
     """'40' -> ('set', 40); '+5' / '-5' -> ('add', +5 / -5). Fuera de 0..100 se recorta; algo raro -> ValueError."""
     v = str(value).strip()

@@ -8,6 +8,7 @@
   pcpi-sound devices         salidas y entradas de audio (incluye Bluetooth) en JSON
   pcpi-sound use-output 58   elige la salida (el numero sale de «devices»)
   pcpi-sound use-input 59    elige la entrada (microfono)
+  pcpi-sound use-bluetooth AA:BB:CC:DD:EE:FF   deja como salida ese aparato Bluetooth (ya conectado)
 
 Usa PipeWire (wpctl) o, si no esta, ALSA (amixer)."""
 import json
@@ -37,6 +38,10 @@ def main(argv):
             out = sound.devices()
         elif cmd in ("use-output", "use-input") and len(argv) > 2:
             out = sound.set_default("output" if cmd == "use-output" else "input", argv[2])
+        elif cmd == "use-bluetooth" and len(argv) > 2:
+            out = sound.use_bluetooth(argv[2])
+            print(json.dumps(out, ensure_ascii=False))
+            return 0 if out["ok"] else 1
         elif cmd == "test":
             ok = sound.play_test()
             print("Sonando…" if ok else "No pude reproducir: ¿hay altavoz y aplay/paplay/pw-play?", file=sys.stdout if ok else sys.stderr)

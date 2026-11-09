@@ -195,5 +195,208 @@ class CliTest(unittest.TestCase):
             self.assertIn("pcpi-bt", r.stdout)
 
 
+import json  # noqa: E402
+import os  # noqa: E402
+import tempfile  # noqa: E402
+import time  # noqa: E402
+
+ROOT = Path(__file__).resolve().parent.parent
+
+BTCTL_SHIM = """echo "bt $@" >> LOG
+if [ $# -eq 0 ]; then cat > /dev/null; echo "Pairing successful"; exit 0; fi
+case "$1" in
+  show) cat TDIR/show;;
+  devices) cat TDIR/devices;;
+  info) cat TDIR/info/$2 2>/dev/null;;
+  connect) echo "Attempting to connect to $2"; echo "Connection successful";;
+  disconnect) echo "Successful disconnected";;
+  remove) echo "Device has been removed";;
+  *) :;;
+esac
+"""
+WPCTL_SHIM = """echo "wpctl $@" >> LOG
+case "$1" in
+  status) cat <<'EOS'
+Audio
+ ├─ Devices:
+ │      48. WH-1000XM4                          [bluez5]
+ │
+ ├─ Sinks:
+ │      49. Built-in Audio Stereo               [vol: 0.40]
+ │      58. WH-1000XM4                          [vol: 0.50]
+ │
+ ├─ Sources:
+ │  *   50. Built-in Audio Mono                 [vol: 1.00]
+ │
+ └─ Streams:
+EOS
+;;
+  inspect) if [ "$2" = 58 ]; then echo '    node.name = "bluez_output.AA_BB_CC_DD_EE_FF.1"'; echo '    api.bluez5.address = "AA:BB:CC:DD:EE:FF"'; else echo '    node.name = "alsa_output.x"'; fi;;
+  get-volume) echo "Volume: 0.50";;
+esac
+"""
+
+
+def shim(dirpath, name, body):
+    p = Path(dirpath) / name
+    p.write_text("#!/bin/bash\n" + body)
+    p.chmod(0o755)
+
+
+class SessionTest(unittest.TestCase):
+    """pcpi-session recibe la peticion del servidor, la pasa a pcpi-bt (con un bluetoothctl y un wpctl de mentira) y publica el estado."""
+
+    def setUp(self):
+        self.t = Path(tempfile.mkdtemp())
+        self.shims = self.t / "shims"
+        self.shims.mkdir()
+        self.log = self.t / "log"
+        self.log.write_text("")
+        (self.t / "info").mkdir()
+        for mac, texto in INFO.items():
+            (self.t / "info" / mac).write_text(texto)
+        (self.t / "show").write_text(SHOW)
+        (self.t / "devices").write_text(DEVICES)
+        shim(self.shims, "bluetoothctl", BTCTL_SHIM.replace("LOG", str(self.log)).replace("TDIR", str(self.t)))
+        shim(self.shims, "wpctl", WPCTL_SHIM.replace("LOG", str(self.log)))
+        shim(self.shims, "systemctl", 'echo "systemctl $@" >> %s\n' % self.log)
+        shim(self.shims, "curl", "exit 0\n")
+        shim(self.shims, "chromium", "sleep 600\n")
+        shim(self.shims, "pcpi-sound", 'exec %s %s "$@"\n' % (sys.executable, ROOT / "bin/pcpi-sound"))
+        shim(self.shims, "pcpi-bt", 'exec %s %s "$@"\n' % (sys.executable, ROOT / "bin/pcpi-bt"))
+        (self.t / "home").mkdir()
+        self.run_dir = self.t / "run"
+        self.run_dir.mkdir()
+        (self.t / "mode").write_text("iker\n")
+        env = {**os.environ, "PATH": "%s:%s" % (self.shims, os.environ["PATH"]), "HOME": str(self.t / "home"), "XDG_RUNTIME_DIR": str(self.t), "PCPI_PORT": "1",
+               "PCPI_RUN_DIR": str(self.run_dir), "PCPI_TICK": "0.2", "PCPI_MODE_FILE": str(self.t / "mode"), "PCPI_UPDATE_FIRST": "99999", "PCPI_UPDATE_EVERY": "99999",
+               "PCPI_AUDIO_EVERY": "99999", "PCPI_BT_EVERY": "99999"}
+        env.pop("WAYLAND_DISPLAY", None)
+        self.proc = subprocess.Popen(["bash", str(ROOT / "bin/pcpi-session")], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def tearDown(self):
+        self.proc.terminate()
+        self.proc.wait(5)
+        subprocess.run(["pkill", "-f", str(self.t / "home/.cache/")])
+
+    def esperar(self, cond, seg=15):
+        fin = time.time() + seg
+        while time.time() < fin:
+            if cond():
+                return True
+            time.sleep(0.15)
+        return False
+
+    def estado(self):
+        try:
+            return json.loads((self.run_dir / "bt.json").read_text())
+        except (OSError, ValueError):
+            return None
+
+    def test_publishes_the_state_at_start(self):
+        self.assertTrue(self.esperar(lambda: (self.estado() or {}).get("available")))
+        e = self.estado()
+        self.assertEqual([d["address"] for d in e["devices"]], ["AA:BB:CC:DD:EE:FF", "11:22:33:44:55:66"])
+        self.assertFalse(e["busy"])
+        self.assertTrue(self.esperar(lambda: (self.run_dir / "audio-devices.json").exists()))
+        d = json.loads((self.run_dir / "audio-devices.json").read_text())
+        self.assertEqual([x["bluetooth"] for x in d["outputs"]], [False, True])
+
+    def test_connect_request_connects_and_routes_the_sound(self):
+        self.assertTrue(self.esperar(lambda: (self.estado() or {}).get("available")))
+        (self.run_dir / "bt").write_text("connect AA:BB:CC:DD:EE:FF\n")
+        self.assertTrue(self.esperar(lambda: "bt connect AA:BB:CC:DD:EE:FF" in self.log.read_text()))
+        self.assertTrue(self.esperar(lambda: "wpctl set-default 58" in self.log.read_text()), self.log.read_text())     # el sonido sale por el
+        self.assertTrue(self.esperar(lambda: (self.estado() or {}).get("message") == "Conectado"))
+        self.assertFalse((self.run_dir / "bt").exists())
+        self.assertFalse((self.run_dir / "bt.busy").exists())
+
+    def test_choosing_an_input_restarts_the_voice_service(self):
+        self.assertTrue(self.esperar(lambda: (self.run_dir / "audio-devices.json").exists()))
+        (self.run_dir / "audio").write_text("use-input 50\n")
+        self.assertTrue(self.esperar(lambda: "wpctl set-default 50" in self.log.read_text()), self.log.read_text())
+        self.assertTrue(self.esperar(lambda: "systemctl --user restart pcpi-voice" in self.log.read_text()))
+
+    def test_dangerous_requests_are_ignored(self):
+        self.assertTrue(self.esperar(lambda: (self.estado() or {}).get("available")))
+        for linea in ("connect AA:BB:CC:DD:EE:FF; touch /tmp/pwn", "reboot", "pair no-es-una-mac", "power quizas", "forget"):
+            (self.run_dir / "bt").write_text(linea + "\n")
+            self.assertTrue(self.esperar(lambda: not (self.run_dir / "bt").exists()), linea)
+        time.sleep(0.8)
+        log = self.log.read_text()
+        for malo in ("touch", "reboot", "bt connect AA", "bt pair", "bt power", "bt remove"):
+            self.assertNotIn(malo, log, malo)
+        self.assertFalse(Path("/tmp/pwn").exists())
+
+
+class ApiTest(unittest.TestCase):
+    """El servidor valida, escribe la peticion en /run/pcpi/bt y enseña el estado que deja pcpi-session (sin fiarse de su forma)."""
+
+    @classmethod
+    def setUpClass(cls):
+        import threading
+        cls.t = Path(tempfile.mkdtemp())
+        os.environ.update({"PCPI_CONF": str(cls.t / "none.conf"), "PCPI_MODE_FILE": str(cls.t / "mode"), "PCPI_RUN_DIR": str(cls.t / "run"),
+                           "PCPI_NOWPLAYING": str(cls.t / "np.json"), "PCPI_VOICE_STATE": str(cls.t / "v.json"), "PCPI_TIMERS": str(cls.t / "t.json"),
+                           "PCPI_BOOKMARKS": str(cls.t / "bm.json"), "PCPI_MUSIC_DIR": str(cls.t / "music")})
+        import server
+        cls.server = server
+        cls.srv = server.make_server("127.0.0.1", 0)
+        cls.base = "http://127.0.0.1:%d" % cls.srv.server_address[1]
+        threading.Thread(target=cls.srv.serve_forever, daemon=True).start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.srv.shutdown()
+
+    def post(self, body, hdr=True):
+        import urllib.error
+        import urllib.request
+        r = urllib.request.Request(self.base + "/api/bt", data=json.dumps(body).encode(), headers={"X-PCPI": "1"} if hdr else {})
+        try:
+            with urllib.request.urlopen(r) as resp:
+                return resp.status
+        except urllib.error.HTTPError as e:
+            return e.code
+
+    def req(self):
+        return self.t / "run" / "bt"
+
+    def test_requests_are_validated_and_closed_list(self):
+        (self.t / "run").mkdir(exist_ok=True)
+        self.req().unlink(missing_ok=True)
+        self.assertEqual(self.post({"action": "scan"}, hdr=False), 403)
+        self.assertFalse(self.req().exists())
+        for body, linea in (({"action": "scan"}, "scan"), ({"action": "power_on"}, "power on"), ({"action": "power_off"}, "power off"),
+                            ({"action": "pair", "address": "aa:bb:cc:dd:ee:ff"}, "pair AA:BB:CC:DD:EE:FF"), ({"action": "connect", "address": "AA:BB:CC:DD:EE:FF"}, "connect AA:BB:CC:DD:EE:FF"),
+                            ({"action": "disconnect", "address": "AA:BB:CC:DD:EE:FF"}, "disconnect AA:BB:CC:DD:EE:FF"), ({"action": "forget", "address": "AA:BB:CC:DD:EE:FF"}, "forget AA:BB:CC:DD:EE:FF")):
+            self.assertEqual(self.post(body), 200, body)
+            self.assertEqual(self.req().read_text().strip(), linea)
+        self.req().unlink()
+        for malo in ({"action": "connect"}, {"action": "connect", "address": "no"}, {"action": "connect", "address": "AA:BB:CC:DD:EE:FF; reboot"}, {"action": "connect", "address": True},
+                     {"action": "rm -rf"}, {"action": "power"}, {}, {"address": "AA:BB:CC:DD:EE:FF"}):
+            self.assertEqual(self.post(malo), 400, malo)
+        self.assertFalse(self.req().exists(), "una peticion mala no deja nada escrito")
+
+    def test_status_shows_the_state_of_the_session_sanitised(self):
+        import urllib.request
+        run = self.t / "run"
+        run.mkdir(exist_ok=True)
+        (run / "bt.json").unlink(missing_ok=True)
+        self.assertEqual(json.load(urllib.request.urlopen(self.base + "/api/status"))["bt"]["available"], False)
+        (run / "bt.json").write_text(json.dumps({"available": True, "powered": True, "busy": True, "message": "Conectando…" * 40, "devices": [
+            {"address": "aa:bb:cc:dd:ee:ff", "name": "WH-1000XM4", "paired": True, "connected": True, "audio": True, "rssi": -60},
+            {"address": "no-es-mac", "name": "malo"}, {"address": "11:22:33:44:55:66", "name": "x" * 200, "paired": False, "rssi": "fuerte"}, "basura"]}))
+        b = json.load(urllib.request.urlopen(self.base + "/api/status"))["bt"]
+        self.assertEqual([d["address"] for d in b["devices"]], ["AA:BB:CC:DD:EE:FF", "11:22:33:44:55:66"])
+        self.assertTrue(b["busy"] and b["powered"])
+        self.assertLessEqual(len(b["message"]), 120)
+        self.assertLessEqual(len(b["devices"][1]["name"]), 60)
+        self.assertIsNone(b["devices"][1]["rssi"])
+        (run / "bt.json").write_text("{roto")
+        self.assertFalse(json.load(urllib.request.urlopen(self.base + "/api/status"))["bt"]["available"])
+        (run / "bt.json").unlink()
+
+
 if __name__ == "__main__":
     unittest.main()
