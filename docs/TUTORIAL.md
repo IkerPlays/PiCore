@@ -351,6 +351,19 @@ pcpi-doctor
 
 > **¿Necesitas pedir ayuda?** Ejecuta `pcpi-doctor --report`: guarda el diagnóstico, la versión del sistema y tu configuración (con las contraseñas como `******`) en `~/picore-informe.txt`. Revísalo y adjúntalo a tu [incidencia](https://github.com/IkerPlays/PiCore/issues/new/choose).
 
+#### Avisos del doctor y de la hoja Sistema que conviene entender
+
+| Aviso | Qué significa y qué hacer |
+|---|---|
+| **«La hora de la Pi parece falsa»** | La Pi 5 **no tiene pila de reloj**: si arrancó sin internet cree que es 1970 y las alarmas, los temporizadores y el calendario fallan. Conéctala a internet un minuto (se corrige sola) o pon la hora a mano: `sudo date -s '2026-11-08 12:00'`. |
+| **«La zona horaria es UTC»** | Las alarmas y la hora que ves irán desfasadas respecto a la tuya. `sudo raspi-config` → *Localisation Options* → *Timezone*. |
+| **«La hora no está sincronizada»** | Solo informa: si acabas de encender y hay wifi, se arregla sola en unos segundos. |
+| **«El país de la wifi no está puesto (00)»** | Algunas redes de 5 GHz no se ven. `sudo raspi-config` → *Localisation Options* → *WLAN Country*. Si la wifi aparece bloqueada: `sudo rfkill unblock wifi`. |
+| **«El micrófono se llama por número»** | El número de una tarjeta USB puede cambiar al reiniciar. Usa el nombre (`arecord -L`), por ejemplo `device = plughw:CARD=C270,DEV=0`. |
+| **«Sin micrófono: conéctalo»** (en Casa) | El micrófono se desconectó; al volver a enchufarlo la voz se recupera sola. |
+
+Lo que vence mientras la Pi está **apagada** (una alarma de las 7 si la enciendes a las 9) **no suena**: llegaría tarde. Las alarmas diarias se reprograman solas para el día siguiente.
+
 ### 5.8 Cambiar o actualizar el código más adelante
 
 | Quiero… | Hago… |

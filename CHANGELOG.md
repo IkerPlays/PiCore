@@ -42,6 +42,10 @@
 
 - En la sección «Más adelante: batería y SSD», con su límite: sin medida de batería no hace nada.
 
+## Tutorial: tabla de avisos del doctor y de la hoja Sistema
+
+- Explica hora falsa, zona UTC, hora sin sincronizar, país de la wifi, micrófono por número y «Sin micrófono», y qué pasa con lo que vence con la Pi apagada.
+
 ## Hoja Sistema: muestra la zona horaria y la hora de la Pi
 
 - Junto a la versión: «PiCore abc1234 2026-11-08 · Atlantic/Canary 19:32». Sirve para ver de un vistazo si la hora y la zona son las que esperas (de ellas dependen las alarmas).
