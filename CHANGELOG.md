@@ -6,6 +6,11 @@
 
 
 
+## Microfono elegido en pantalla tambien para la voz
+
+- `install.sh` instala `pipewire-alsa` (el puente que hace que `arecord -D default` siga la entrada elegida)
+- `pcpi-doctor` avisa si falta ese puente. **Sin comprobar en una Pi real**
+
 ## Bluetooth por voz, instalador y doctor
 
 - Voz: «conecta los auriculares», «desconecta el Bluetooth», «busca aparatos Bluetooth», «pon el sonido en los auriculares / en el altavoz de la Pi», «por dónde sale el sonido», «qué micrófono uso» (también en el simulador)
