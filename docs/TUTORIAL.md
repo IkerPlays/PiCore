@@ -971,6 +971,7 @@ Límites, para no llevarte sorpresas:
 
 - Solo se emparejan aparatos que no piden PIN («Just Works»), que son casi todos los auriculares y altavoces.
 - Un micrófono Bluetooth solo funciona en el perfil de manos libres (calidad de teléfono).
+- Al arrancar, la Pi intenta reconectar sola el ultimo aparato de audio (una vez; enciendelo antes de que arranque la sesion). Si lo olvidas en la hoja, deja de hacerlo.
 - Si el aparato no aparece: `pcpi-bt status`, `rfkill list bluetooth` y `./pcpi-doctor`.
 - **No se ha probado con aparatos reales todavía**: está comprobado solo con simulaciones.
 

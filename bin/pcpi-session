@@ -213,6 +213,8 @@ sync_audio() {
 BT_EVERY="${PCPI_BT_EVERY:-30}"
 last_bt=-1
 bt_busy=0
+bt_auto=0                 # reconexion automatica al ultimo aparato: se intenta una vez por sesion
+BT_LAST="${PCPI_BT_LAST:-${XDG_CONFIG_HOME:-$HOME/.config}/pcpi/bt-last}"
 bt_publish() {            # bt_publish "mensaje" busy(0/1)
   command -v pcpi-bt >/dev/null || return 0
   local st
@@ -237,7 +239,11 @@ bt_job() {                # se ejecuta en segundo plano: una orden de Bluetooth 
   [ -n "$out" ] && msg="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1]).get("message", ""))' "$out" 2>/dev/null || true)"
   case "$a" in
     pair|connect)  # si conecto, el sonido sale por el: PipeWire tarda un par de segundos en crear su salida
-      case "$out" in *'"ok": true'*) pcpi-sound use-bluetooth "$m" >/dev/null 2>&1 || true ;; esac ;;
+      case "$out" in *'"ok": true'*)
+        pcpi-sound use-bluetooth "$m" >/dev/null 2>&1 || true
+        mkdir -p "$(dirname "$BT_LAST")" 2>/dev/null && printf '%s\n' "$m" > "$BT_LAST" 2>/dev/null || true ;; esac ;;
+    forget)        # si olvido el aparato recordado, no lo reconecto mas
+      [ "$(cat "$BT_LAST" 2>/dev/null)" = "$m" ] && rm -f "$BT_LAST" 2>/dev/null || true ;;
   esac
   audio_refresh
   bt_publish "$msg" 0
@@ -263,6 +269,18 @@ sync_bt() {
     esac
   elif [ -e "$RUN/bt" ]; then
     return 0                  # ocupado: la peticion se queda esperando
+  fi
+  if [ "$bt_auto" = 0 ] && [ ! -e "$RUN/bt.busy" ] && [ ! -e "$RUN/bt" ]; then
+    bt_auto=1
+    local last=""
+    read -r last < "$BT_LAST" 2>/dev/null || true
+    case "$last" in
+      ??:??:??:??:??:??)     # solo una direccion valida; si el aparato esta apagado simplemente no conecta
+        : > "$RUN/bt.busy" 2>/dev/null || true
+        ( bt_job connect "$last" ) >/dev/null 2>&1 9>&- &
+        last_bt=$SECONDS
+        return 0 ;;
+    esac
   fi
   if [ ! -e "$RUN/bt.busy" ] && { [ "$last_bt" -lt 0 ] || [ $((SECONDS - last_bt)) -ge "$BT_EVERY" ]; }; then
     last_bt=$SECONDS

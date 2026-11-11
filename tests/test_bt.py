@@ -243,7 +243,7 @@ def shim(dirpath, name, body):
     p.chmod(0o755)
 
 
-class SessionTest(unittest.TestCase):
+class _SesionBase(unittest.TestCase):
     """pcpi-session recibe la peticion del servidor, la pasa a pcpi-bt (con un bluetoothctl y un wpctl de mentira) y publica el estado."""
 
     def setUp(self):
@@ -272,7 +272,14 @@ class SessionTest(unittest.TestCase):
                "PCPI_RUN_DIR": str(self.run_dir), "PCPI_TICK": "0.2", "PCPI_MODE_FILE": str(self.t / "mode"), "PCPI_UPDATE_FIRST": "99999", "PCPI_UPDATE_EVERY": "99999",
                "PCPI_AUDIO_EVERY": "99999", "PCPI_BT_EVERY": "99999"}
         env.pop("WAYLAND_DISPLAY", None)
+        self.antes()
         self.proc = subprocess.Popen(["bash", str(ROOT / "bin/pcpi-session")], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def antes(self):
+        """Gancho para preparar ficheros antes de arrancar la sesion."""
+
+    def ultimo(self):
+        return self.t / "home/.config/pcpi/bt-last"
 
     def tearDown(self):
         self.proc.terminate()
@@ -293,6 +300,8 @@ class SessionTest(unittest.TestCase):
         except (OSError, ValueError):
             return None
 
+class SessionTest(_SesionBase):
+
     def test_publishes_the_state_at_start(self):
         self.assertTrue(self.esperar(lambda: (self.estado() or {}).get("available")))
         e = self.estado()
@@ -311,6 +320,14 @@ class SessionTest(unittest.TestCase):
         self.assertFalse((self.run_dir / "bt").exists())
         self.assertFalse((self.run_dir / "bt.busy").exists())
 
+    def test_connecting_remembers_the_device(self):
+        self.assertTrue(self.esperar(lambda: (self.estado() or {}).get("available")))
+        (self.run_dir / "bt").write_text("connect 11:22:33:44:55:66\n")
+        self.assertTrue(self.esperar(lambda: self.ultimo().exists()), self.log.read_text())
+        self.assertEqual(self.ultimo().read_text().strip(), "11:22:33:44:55:66")
+        (self.run_dir / "bt").write_text("forget 11:22:33:44:55:66\n")      # olvidarlo borra el recuerdo
+        self.assertTrue(self.esperar(lambda: not self.ultimo().exists()))
+
     def test_choosing_an_input_restarts_the_voice_service(self):
         self.assertTrue(self.esperar(lambda: (self.run_dir / "audio-devices.json").exists()))
         (self.run_dir / "audio").write_text("use-input 50\n")
@@ -327,6 +344,24 @@ class SessionTest(unittest.TestCase):
         for malo in ("touch", "reboot", "bt connect AA", "bt pair", "bt power", "bt remove"):
             self.assertNotIn(malo, log, malo)
         self.assertFalse(Path("/tmp/pwn").exists())
+
+
+class ReconexionTest(_SesionBase):
+    """Al arrancar la sesion se reconecta solo al ultimo aparato recordado (una vez)."""
+
+    def antes(self):
+        self.ultimo().parent.mkdir(parents=True)
+        self.ultimo().write_text("AA:BB:CC:DD:EE:FF\n")
+
+    def test_reconnects_the_last_device_at_start(self):
+        self.assertTrue(self.esperar(lambda: "bt connect AA:BB:CC:DD:EE:FF" in self.log.read_text()), self.log.read_text())
+        self.assertTrue(self.esperar(lambda: "wpctl set-default 58" in self.log.read_text()))
+
+    def test_a_garbage_memory_is_ignored(self):
+        self.ultimo().write_text("; touch /tmp/pwn2\n")
+        self.assertTrue(self.esperar(lambda: (self.estado() or {}).get("available")))
+        time.sleep(0.8)
+        self.assertNotIn("connect", self.log.read_text())
 
 
 class ApiTest(unittest.TestCase):

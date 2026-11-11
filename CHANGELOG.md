@@ -6,6 +6,12 @@
 
 
 
+## Bluetooth: reconecta solo al ultimo aparato
+
+- Al conectar un aparato de audio, `pcpi-session` recuerda su direccion en `~/.config/pcpi/bt-last`; al arrancar la sesion intenta reconectarlo **una vez** (si esta apagado, no pasa nada)
+- «Olvidar» ese aparato borra el recuerdo; solo se acepta una direccion con formato valido
+- Tests con `bluetoothctl` y `wpctl` simulados. **Sin probar con aparatos reales**
+
 ## Microfono elegido en pantalla tambien para la voz
 
 - `install.sh` instala `pipewire-alsa` (el puente que hace que `arecord -D default` siga la entrada elegida)
