@@ -10,6 +10,13 @@ El detalle paso a paso, con fechas, está en el [registro de cambios](../CHANGEL
 - Las alertas de la hoja Sistema traen su botón («Elegir ciudad», «Conectar Pi-hole», «Abrir Wi-Fi»).
 - El servidor solo escribe una lista cerrada de ajustes y valida cada valor.
 
+## Audio y Bluetooth
+
+- Hoja **Audio y Bluetooth** (Casa): busca, empareja, conecta y olvida auriculares o altavoces; elige la **salida** y el **micrófono**.
+- Por voz: «conecta los auriculares», «pon el sonido en el altavoz de la Pi», «qué micrófono uso».
+- Reconecta solo al último aparato al arrancar. Sin PIN; el micrófono Bluetooth es de manos libres. **Sin probar con aparatos reales.**
+- `pcpi-bt` y `pcpi-sound devices` en la terminal; `pcpi-doctor` comprueba adaptador, bloqueo y puente ALSA–PipeWire.
+
 ## Voz (Whisper, sin nube)
 
 Además de la hora, el tiempo, los modos, la música y el brillo, ahora entiende:

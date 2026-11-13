@@ -22,7 +22,7 @@ La web explica qué es PiCore, cómo funciona y para qué sirve, y el **simulado
 
 | Modo | Qué hace |
 |---|---|
-| **Casa** | Estilo Alexa con animaciones suaves: hora, tiempo, Pi-hole, **Musix** (YT Music, MP3 Player y DYMusic), asistente de voz local, cámara, temporizadores, calendario y Wi-Fi |
+| **Casa** | Estilo Alexa con animaciones suaves: hora, tiempo, Pi-hole, **Musix** (YT Music, MP3 Player y DYMusic), asistente de voz local, cámara, temporizadores, calendario, Wi-Fi y **Bluetooth** (auriculares, altavoces, micrófono) |
 | **Iker** | Bloc de notas (etiquetas, búsqueda, PDF, copias automáticas) e internet con marcadores |
 | **Dev** | Consola de comandos (la ejecuta tu sesión, con tus permisos), terminal real, explorador de la API y experimentos que se encienden y apagan |
 | **Escritorio** | Raspberry Pi OS normal |
@@ -73,6 +73,7 @@ Después cierra sesión y vuelve a entrar. Para comprobar que todo va: `pcpi-doc
 ```bash
 pcpi-mode home      # modo Casa (también: iker, dev, desktop, status)
 pcpi-wifi list      # Wi-Fi desde la terminal (connect, status, forget, pihole, portal)
+pcpi-bt status      # Bluetooth desde la terminal (scan, pair, connect, disconnect, forget, power)
 pcpi-setup          # asistente: ciudad, contraseña de Pi-hole, micrófono (con prueba), mini pantalla
 pcpi-doctor         # diagnóstico
 pcpi-update         # actualizar PiCore (copia previa + git pull + reinstalar con tus opciones)
