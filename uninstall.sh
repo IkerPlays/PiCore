@@ -30,6 +30,7 @@ echo "==> Borrando archivos"
 sudo rm -rf "$R/opt/pcpi" "$R/run/pcpi"
 sudo rm -f "$R"/usr/local/bin/pcpi-*
 rm -f "$HOME_DIR/.config/systemd/user/pcpi-voice.service" "$HOME_DIR/.local/share/applications/pcpi-mode-menu.desktop"
+rm -f "$HOME_DIR/.config/pcpi/bt-last"; rmdir "$HOME_DIR/.config/pcpi" 2>/dev/null || true     # el aparato Bluetooth recordado
 rm -rf "$HOME_DIR"/.cache/pcpi-kiosk* "$HOME_DIR"/.cache/pcpi-portal "$HOME_DIR"/.cache/pcpi-web
 
 echo "Tus copias de seguridad de ~/pcpi-backups no se tocan."

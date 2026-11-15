@@ -1224,6 +1224,8 @@ pcpi-config get|set SECCION CLAVE [VALOR] # leer/cambiar un ajuste sin abrir el 
 pcpi-mode home | iker | desktop | dev    # cambiar de modo (muestra la pantalla de Carga)
 pcpi-ask "pregunta"                      # preguntar a la IA local (si instalaste --ai)
 pcpi-sound volume 40 | mute | test       # volumen del sistema y prueba de sonido
+pcpi-sound devices                       # salidas y entradas de audio (con sus numeros)
+pcpi-bt scan | status | connect MAC      # Bluetooth (tambien: pair, disconnect, forget, power on|off)
 pcpi-update                              # actualizar PiCore (copia previa + git pull + reinstalar)
 pcpi-backup create [USB o carpeta]       # copia de seguridad de todo lo tuyo en un archivo
 pcpi-backup restore ARCHIVO              # restaurarla
