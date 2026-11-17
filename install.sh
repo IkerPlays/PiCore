@@ -90,6 +90,10 @@ PCPI_CONF="$R/etc/pcpi/pcpi.conf" "$PREFIX/bin/pcpi-config" get boot intro4_url 
 sudo mkdir -p "$R/etc/tmpfiles.d"
 echo 'd /run/pcpi 1777 root root -' | sudo tee "$R/etc/tmpfiles.d/pcpi.conf" >/dev/null
 sudo systemd-tmpfiles --create "$R/etc/tmpfiles.d/pcpi.conf"
+# Registros del sistema con tope (la microSD se desgasta con escrituras): 50 MB en disco y 30 MB en RAM como maximo
+sudo mkdir -p "$R/etc/systemd/journald.conf.d"
+printf '[Journal]\nSystemMaxUse=50M\nRuntimeMaxUse=30M\n' | sudo tee "$R/etc/systemd/journald.conf.d/pcpi.conf" >/dev/null
+sudo systemctl restart systemd-journald 2>/dev/null || true
 
 step "Wi-Fi (NetworkManager)"
 # El servidor cambia de red y de DNS por ti: necesita el grupo netdev (permiso de NetworkManager).

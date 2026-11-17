@@ -6,6 +6,11 @@
 
 
 
+## Registros del sistema con tope (cuida la microSD)
+
+- `install.sh` crea `/etc/systemd/journald.conf.d/pcpi.conf` con `SystemMaxUse=50M` y `RuntimeMaxUse=30M`; `uninstall.sh` lo borra
+- No cambia si los registros son persistentes o no: solo limita cuanto ocupan. **Sin comprobar en una Pi real** (probado con el instalador en un arbol alternativo)
+
 ## Bluetooth: bateria de los auriculares
 
 - `pcpi-bt status` lee `Battery Percentage` de BlueZ; la hoja Audio y Bluetooth muestra «Bateria N %» en los aparatos conectados que la informan

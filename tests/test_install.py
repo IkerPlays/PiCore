@@ -76,6 +76,9 @@ class InstallerTest(unittest.TestCase):
         self.assertEqual(stat.S_IMODE((self.r / "var/lib/pcpi").stat().st_mode), 0o700)        # las notas son privadas
         self.assertEqual(self.read("etc/pcpi/mode").strip(), "desktop")
         self.assertEqual(self.read("etc/tmpfiles.d/pcpi.conf").strip(), "d /run/pcpi 1777 root root -")
+        j = self.read("etc/systemd/journald.conf.d/pcpi.conf")                       # los registros tienen tope (cuida la microSD)
+        self.assertIn("SystemMaxUse=50M", j)
+        self.assertIn("RuntimeMaxUse=30M", j)
 
     def test_remembers_install_options_for_pcpi_update(self):
         self.install("--camera", "--pihole")
@@ -274,6 +277,7 @@ class InstallerTest(unittest.TestCase):
         self.assertEqual(list((self.r / "usr/local/bin").glob("pcpi-*")), [])
         self.assertFalse((self.r / "etc/systemd/system/pcpi-home.service").exists())
         self.assertFalse((self.r / "etc/tmpfiles.d/pcpi.conf").exists())
+        self.assertFalse((self.r / "etc/systemd/journald.conf.d/pcpi.conf").exists())
         self.assertFalse((self.home / ".config/autostart/pcpi-session.desktop").exists())
         self.assertFalse((self.home / ".config/systemd/user/pcpi-voice.service").exists())
         self.assertTrue((self.r / "etc/pcpi/pcpi.conf").exists())                        # tu configuracion se queda

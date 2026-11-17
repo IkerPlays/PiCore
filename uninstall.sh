@@ -21,7 +21,7 @@ pkill -f -- "--user-data-dir=$HOME_DIR/.cache/pcpi-portal" 2>/dev/null
 pkill -f -- "--user-data-dir=$HOME_DIR/.cache/pcpi-web" 2>/dev/null
 sudo systemctl disable --now pcpi-home.service pcpi-stats.service 2>/dev/null
 sudo rm -f "$R/etc/systemd/system/pcpi-home.service" "$R/etc/systemd/system/pcpi-stats.service" \
-           "$R/etc/tmpfiles.d/pcpi.conf" \
+           "$R/etc/tmpfiles.d/pcpi.conf" "$R/etc/systemd/journald.conf.d/pcpi.conf" \
            "$R/etc/udev/rules.d/90-pcpi-backlight.rules"
 sudo systemctl daemon-reload
 
