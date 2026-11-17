@@ -751,10 +751,7 @@ def boot_info(cp, query=""):
         "intro_slot": slot,
         "intro_skip_after": skip_after,
         "media": assets.loading_media(),
-        "fake": cp.getboolean("boot", "fake_loading", fallback=True),
-        "fake_seconds": num("fake_seconds", 6, 1, 30),
         "min_seconds": num("min_seconds", 3, 0, 30),
-        "skip_button": cp.getboolean("boot", "skip_button", fallback=True),
         "media_seconds": num("media_seconds", 3, 1, 20),
         "mode": get_mode(),
     }

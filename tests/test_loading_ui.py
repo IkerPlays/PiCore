@@ -60,7 +60,7 @@ class LoadingUiTest(unittest.TestCase):
         (a / "loading/images/1.png").write_bytes(png())
         (a / "loading/images/2.png").write_bytes(png(rgb=(177, 140, 255)))
         (a / "loading/gifs/g.gif").write_bytes(GIF)
-        (t / "pcpi.conf").write_text("[boot]\nmin_seconds = 1\nfake_seconds = 4\nmedia_seconds = 1\nintro = true\n")
+        (t / "pcpi.conf").write_text("[boot]\nmin_seconds = 1\nmedia_seconds = 1\nintro = true\n")
         (t / "mode").write_text("home\n")
         port = free_port()
         env = {**os.environ, "PCPI_ASSETS": str(a), "PCPI_CONF": str(t / "pcpi.conf"), "PCPI_MODE_FILE": str(t / "mode"),

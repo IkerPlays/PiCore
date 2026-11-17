@@ -815,9 +815,7 @@ Hay dos pantallas especiales que cuidan la «entrada» al sistema:
 | **Inicio** | Solo al **encender** el PC | Una pantalla **en blanco** que reproduce **uno de tus vídeos** de `extra-assets/start/` (hasta 4, elegido al azar). Cuando acaba, empieza la carga del **último modo que usaste** |
 | **Carga** | Tras el Inicio **y cada vez que cambias de modo** | Un pop-up **«Cargando…»** con barra de progreso y porcentaje, y debajo van pasando tus imágenes, GIFs y vídeos pequeños |
 
-**Cómo funciona la barra:** carga de verdad (servidor, página de destino y tus archivos) y esa carga real llega al **100 % real, pero se muestra como 85 %**. Entonces aparece un **efecto de televisión antigua con «▶▶ x2»** y la barra y el porcentaje suben **más rápido** hasta el 100 %. Durante ese tramo final hay un botón pequeño **«Saltar ⏭»** en la esquina de la pantalla táctil para pasar directamente.
-
-> 📝 **Sé claro con tu yo del futuro:** ese tramo final del 85 % al 100 % es **una animación** (no carga nada más); está pensado como efecto visual. Si no te gusta puedes quitarlo: `pcpi-config set boot fake_loading false`.
+**Cómo funciona la barra:** carga de verdad (servidor, página de destino y tus archivos) y la barra y el porcentaje **siguen esa carga real de 0 a 100 %** (con un tiempo mínimo para que se vea).
 
 **Dónde pones tus archivos** (la carpeta `extra-assets/` del proyecto):
 
@@ -860,7 +858,7 @@ scp *.gif iker@pcpi.local:~/PiCore/extra-assets/loading/gifs/
 | No salen mis imágenes de carga | Extensión no válida o carpeta equivocada; tras copiarlas, ejecuta `./install.sh` |
 | Quiero quitar el vídeo de inicio | `pcpi-config set boot intro false` (se aplica al momento) |
 
-Ajustes disponibles (sección `[boot]` de `/etc/pcpi/pcpi.conf`): `intro`, `fake_loading`, `fake_seconds`, `min_seconds`, `skip_button`, `media_seconds`. Cada uno está explicado en `config/pcpi.conf.example`.
+Ajustes disponibles (sección `[boot]` de `/etc/pcpi/pcpi.conf`): `intro`, `min_seconds`, `media_seconds` (y las de los vídeos de inicio). Cada uno está explicado en `config/pcpi.conf.example`.
 
 ---
 

@@ -154,17 +154,17 @@ class HttpTest(unittest.TestCase):
         d = json.loads(body)
         self.assertEqual(d["intro"], "/assets/start/Inicio.mp4")
         self.assertEqual(len(d["media"]), 5)
-        self.assertTrue(d["fake"] and d["skip_button"])
-        self.assertEqual((d["fake_seconds"], d["min_seconds"]), (6, 3))
+        self.assertEqual(d["min_seconds"], 3)
+        for viejo in ("fake", "fake_seconds", "skip_button"):       # la carga x2 ya no existe
+            self.assertNotIn(viejo, d)
 
     def test_boot_info_config(self):
         Path(os.environ["PCPI_CONF"]).write_text(
-            "[boot]\nintro = false\nfake_loading = no\nfake_seconds = 999\nmin_seconds = abc\nskip_button = false\n")
+            "[boot]\nintro = false\nfake_loading = no\nfake_seconds = 999\nmin_seconds = abc\nskip_button = false\n")   # claves viejas: se ignoran
         try:
             d = json.loads(self.req("/api/boot?boot=1")[1])
             self.assertIsNone(d["intro"])
-            self.assertFalse(d["fake"] or d["skip_button"])
-            self.assertEqual(d["fake_seconds"], 30)          # tope
+            self.assertNotIn("fake", d)                      # las claves de la carga x2 se ignoran sin dar error
             self.assertEqual(d["min_seconds"], 3)            # valor ilegible -> por defecto
         finally:
             Path(os.environ["PCPI_CONF"]).unlink()

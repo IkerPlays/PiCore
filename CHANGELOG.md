@@ -6,6 +6,13 @@
 
 
 
+## Pantalla de carga normal (sin efecto x2)
+
+- Se quita el efecto de tele «x2» y el botón «Saltar» de la **carga**: ahora la barra sigue el progreso real de 0 a 100 %
+- Se retiran `fake_loading`, `fake_seconds` y `skip_button` del servidor y del ejemplo de configuración; si siguen en tu `pcpi.conf`, se ignoran sin error
+- El botón «Saltar» de los **vídeos de inicio** (el del vídeo 4) sigue igual
+- Prueba de navegador y tests de `/api/boot` actualizados
+
 ## Bluetooth: reconecta solo al ultimo aparato
 
 - Al conectar un aparato de audio, `pcpi-session` recuerda su direccion en `~/.config/pcpi/bt-last`; al arrancar la sesion intenta reconectarlo **una vez** (si esta apagado, no pasa nada)

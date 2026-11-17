@@ -312,7 +312,7 @@
         intro = man.start[i].url; slot = man.start[i].slot;
       }
       const media = man && man.loading && man.loading.length ? man.loading : BOOT_MEDIA;
-      return J({ download: null, intro, intro_slot: slot, intro_skip_after: 0, media, fake: true, fake_seconds: 5, min_seconds: 3, skip_button: true, media_seconds: 2.5 });
+      return J({ download: null, intro, intro_slot: slot, intro_skip_after: 0, media, min_seconds: 3, media_seconds: 2.5 });
     }
     if (p === "/api/download") return J({ state: "done", bytes: 0, total: 0, percent: 100, error: null });
 
