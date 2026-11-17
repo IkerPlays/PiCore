@@ -450,6 +450,15 @@ class IntentTest(unittest.TestCase):
             self.assertEqual((r.name, r.arg[0]), ("bt", arg), frase)
         self.assertEqual(i.parse("abre el bluetooth").arg, ("open", "audio"))
 
+    def test_bateria_de_los_auriculares_no_es_la_de_la_pi(self):
+        self.assertEqual(i.parse("cuanta bateria tienen los auriculares").arg[0], "battery")
+        self.assertEqual(i.parse("cuanta bateria tienen los auriculares").name, "bt")
+        self.assertEqual(i.parse("cuanta bateria queda").name, "battery")
+        devs = [{"name": "Casco", "connected": True, "battery": 90}]
+        self.assertEqual(i.say_bt_battery(devs), "Casco tiene el 90 por ciento de batería")
+        self.assertIn("no informa", i.say_bt_battery([{"name": "Casco", "connected": True, "battery": None}]))
+        self.assertIn("No hay", i.say_bt_battery([{"name": "Casco", "connected": False}]))
+
     def test_decir_dispositivo_y_elegir_aparato(self):
         outs = [{"name": "Altavoz de la Pi", "default": False}, {"name": "Casco", "default": True, "bluetooth": True}]
         self.assertEqual(i.say_default_device(outs, "out"), "El sonido sale por Casco (Bluetooth)")

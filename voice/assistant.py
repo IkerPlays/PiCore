@@ -109,6 +109,8 @@ def voice_bt(cfg, what):
     except (urllib.error.URLError, ValueError):
         return "No he podido consultar el audio"
     bt, au = st.get("bt") or {}, st.get("audio") or {}
+    if what == "battery":
+        return intents.say_bt_battery(bt.get("devices"))
     if what == "which_out":
         return intents.say_default_device(au.get("outputs"), "out")
     if what == "which_in":

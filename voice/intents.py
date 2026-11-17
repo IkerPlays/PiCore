@@ -440,6 +440,8 @@ def parse(text):
             return Intent("chat", "¿De cuánto? Dime, por ejemplo: pon un temporizador de diez minutos")
     if has("brillo") and has("que brillo", "cuanto brillo", "nivel de brillo", "como esta el brillo"):
         return Intent("brightness_query", None)
+    if has("bateria") and has("auriculares", "cascos", "bluetooth", "altavoz portatil"):
+        return Intent("bt", ("battery", None))
     if has("bateria") and has("cuanto", "cuanta", "nivel", "como esta", "esta cargando", "cargando"):
         return Intent("battery", None)
     if has("cuanto queda", "cuanto falta") and not has("camara"):
@@ -726,6 +728,17 @@ def say_default_device(lista, tipo):
         return "No sé %s" % ("por dónde sale el sonido" if tipo == "out" else "qué micrófono uso")
     bt = " (Bluetooth)" if cur.get("bluetooth") else ""
     return ("El sonido sale por %s%s" if tipo == "out" else "Uso el micrófono %s%s") % (cur["name"], bt)
+
+
+def say_bt_battery(devices):
+    """«Los Casco tienen el 90 % de batería» a partir de la lista de aparatos de bt.devices (el conectado que informe de su batería)."""
+    con = [d for d in (devices or []) if d.get("connected")]
+    if not con:
+        return "No hay ningún aparato Bluetooth conectado"
+    d = next((x for x in con if isinstance(x.get("battery"), int)), None)
+    if d is None:
+        return "%s no informa de su batería" % con[0].get("name", "El aparato")
+    return "%s tiene el %d por ciento de batería" % (d.get("name", "El aparato"), d["battery"])
 
 
 def pick_bt_device(devices, want="disconnected"):

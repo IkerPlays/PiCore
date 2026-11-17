@@ -9,6 +9,7 @@
 ## Bluetooth: bateria de los auriculares
 
 - `pcpi-bt status` lee `Battery Percentage` de BlueZ; la hoja Audio y Bluetooth muestra «Bateria N %» en los aparatos conectados que la informan
+- Por voz: «cuánta batería tienen los auriculares» (no se confunde con la batería de la Pi)
 - El servidor descarta valores fuera de 0-100. El simulador enseña una bateria de demostracion. **Sin probar con aparatos reales** (no todos informan de su bateria)
 
 ## Pantalla de carga normal (sin efecto x2)

@@ -572,6 +572,7 @@
     if (has("bluetooth", "auriculares", "cascos", "sonido", "microfono")) {   // Bluetooth y salida/entrada de audio por voz
       const B = S.bt, au = audioDevices(), cur = l => (l.find(x => x.default) || {});
       if (has("por donde sale el sonido", "que altavoz uso", "que salida de audio")) { const c = cur(au.outputs); return "El sonido sale por " + c.name + (c.bluetooth ? " (Bluetooth)" : ""); }
+      if (has("bateria") && has("auriculares", "cascos", "bluetooth")) { const d = B.devs.find(x => x.connected && x.audio); return d ? d.name + " tiene el " + (d.battery || 80) + " por ciento de batería" : "No hay ningún aparato Bluetooth conectado"; }
       if (has("que microfono uso", "que microfono esta")) { const c = cur(au.inputs); return "Uso el micrófono " + c.name + (c.bluetooth ? " (Bluetooth)" : ""); }
       if (has("bluetooth", "auriculares", "cascos")) {
         const piOut = has("altavoz de la pi", "altavoz de la raspberry", "altavoz normal");
