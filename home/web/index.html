@@ -766,6 +766,7 @@ function btRow(d) {
   row.innerHTML = ico(d.audio ? "headphones" : "bluetooth");
   const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = d.name; row.append(nm);
   const t = document.createElement("span"); t.className = "tag"; t.textContent = d.connected ? "Conectado" : d.paired ? "Emparejado" : "Nuevo"; row.append(t);
+  if (d.connected && typeof d.battery === "number") { const b = document.createElement("span"); b.className = "tag"; b.textContent = "Bateria " + d.battery + "%"; row.append(b); }
   const act = (txt, body, label) => { const x = document.createElement("button"); x.type = "button"; x.textContent = txt; x.setAttribute("aria-label", label + " " + d.name); x.disabled = !!(btState && btState.busy); x.onclick = () => { sendBt(body); btHint = ""; }; row.append(x); };
   if (d.connected) act("Desconectar", {action: "disconnect", address: d.address}, "Desconectar");
   else if (d.paired) act("Conectar", {action: "connect", address: d.address}, "Conectar");

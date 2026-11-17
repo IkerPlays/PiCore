@@ -170,7 +170,7 @@
     };
   }
   function btInfo() {
-    return { available: true, powered: S.bt.powered, busy: S.bt.busy, message: S.bt.message, devices: S.bt.powered ? S.bt.devs.filter(x => !x.hidden).map(x => ({ address: x.address, name: x.name, paired: x.paired, connected: x.connected, audio: x.audio, rssi: -60 })) : [] };
+    return { available: true, powered: S.bt.powered, busy: S.bt.busy, message: S.bt.message, devices: S.bt.powered ? S.bt.devs.filter(x => !x.hidden).map(x => ({ address: x.address, name: x.name, paired: x.paired, connected: x.connected, audio: x.audio, rssi: -60, battery: x.connected && x.audio ? (x.battery || 80) : null })) : [] };
   }
   function displayInfo() {
     const d = S.display, h = new Date().getHours(), night = h >= 22 || h < 7;

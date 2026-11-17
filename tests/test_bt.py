@@ -31,6 +31,7 @@ INFO = {
 \tUUID: Audio Sink                (0000110b-0000-1000-8000-00805f9b34fb)
 \tUUID: Headset                   (00001108-0000-1000-8000-00805f9b34fb)
 \tRSSI: 0xffffffc4 (-60)
+\tBattery Percentage: 0x5a (90)
 """,
     "11:22:33:44:55:66": """Device 11:22:33:44:55:66 (public)
 \tName: Mi altavoz
@@ -85,6 +86,11 @@ class ParseTest(unittest.TestCase):
         self.assertEqual([x["address"] for x in d], ["AA:BB:CC:DD:EE:FF", "11:22:33:44:55:66", "77:88:99:AA:BB:CC", "DD:EE:FF:00:11:22"])
         self.assertEqual(d[0]["name"], "WH-1000XM4")
         self.assertEqual(bt.parse_devices("\x1b[0;94mDevice AA:BB:CC:DD:EE:FF Color\x1b[0m")[0]["name"], "Color")
+
+    def test_battery_percentage(self):
+        self.assertEqual(bt.parse_info(INFO["AA:BB:CC:DD:EE:FF"])["battery"], 90)
+        self.assertIsNone(bt.parse_info(INFO["11:22:33:44:55:66"])["battery"])
+        self.assertEqual(bt.parse_info("Battery Percentage: 0xff (255)\n")["battery"], 100)      # tope
 
     def test_info(self):
         i = bt.parse_info(INFO["AA:BB:CC:DD:EE:FF"])
@@ -420,14 +426,16 @@ class ApiTest(unittest.TestCase):
         (run / "bt.json").unlink(missing_ok=True)
         self.assertEqual(json.load(urllib.request.urlopen(self.base + "/api/status"))["bt"]["available"], False)
         (run / "bt.json").write_text(json.dumps({"available": True, "powered": True, "busy": True, "message": "Conectando…" * 40, "devices": [
-            {"address": "aa:bb:cc:dd:ee:ff", "name": "WH-1000XM4", "paired": True, "connected": True, "audio": True, "rssi": -60},
-            {"address": "no-es-mac", "name": "malo"}, {"address": "11:22:33:44:55:66", "name": "x" * 200, "paired": False, "rssi": "fuerte"}, "basura"]}))
+            {"address": "aa:bb:cc:dd:ee:ff", "name": "WH-1000XM4", "paired": True, "connected": True, "audio": True, "rssi": -60, "battery": 90},
+            {"address": "no-es-mac", "name": "malo"}, {"address": "11:22:33:44:55:66", "name": "x" * 200, "paired": False, "rssi": "fuerte", "battery": 400}, "basura"]}))
         b = json.load(urllib.request.urlopen(self.base + "/api/status"))["bt"]
         self.assertEqual([d["address"] for d in b["devices"]], ["AA:BB:CC:DD:EE:FF", "11:22:33:44:55:66"])
         self.assertTrue(b["busy"] and b["powered"])
         self.assertLessEqual(len(b["message"]), 120)
         self.assertLessEqual(len(b["devices"][1]["name"]), 60)
         self.assertIsNone(b["devices"][1]["rssi"])
+        self.assertEqual(b["devices"][0]["battery"], 90)
+        self.assertIsNone(b["devices"][1]["battery"])               # fuera de 0-100: se descarta
         (run / "bt.json").write_text("{roto")
         self.assertFalse(json.load(urllib.request.urlopen(self.base + "/api/status"))["bt"]["available"])
         (run / "bt.json").unlink()

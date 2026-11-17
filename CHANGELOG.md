@@ -6,6 +6,11 @@
 
 
 
+## Bluetooth: bateria de los auriculares
+
+- `pcpi-bt status` lee `Battery Percentage` de BlueZ; la hoja Audio y Bluetooth muestra «Bateria N %» en los aparatos conectados que la informan
+- El servidor descarta valores fuera de 0-100. El simulador enseña una bateria de demostracion. **Sin probar con aparatos reales** (no todos informan de su bateria)
+
 ## Pantalla de carga normal (sin efecto x2)
 
 - Se quita el efecto de tele «x2» y el botón «Saltar» de la **carga**: ahora la barra sigue el progreso real de 0 a 100 %

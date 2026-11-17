@@ -1456,7 +1456,8 @@ def bt_info():
             mac = str(x.get("address", "")).upper()
             if BT_MAC.fullmatch(mac):
                 devs.append({"address": mac, "name": str(x.get("name", mac))[:60], "paired": bool(x.get("paired")), "connected": bool(x.get("connected")),
-                             "audio": bool(x.get("audio")), "rssi": x.get("rssi") if isinstance(x.get("rssi"), int) else None})
+                             "audio": bool(x.get("audio")), "rssi": x.get("rssi") if isinstance(x.get("rssi"), int) else None,
+                             "battery": x["battery"] if isinstance(x.get("battery"), int) and not isinstance(x.get("battery"), bool) and 0 <= x["battery"] <= 100 else None})
         return {"available": True, "powered": bool(d.get("powered")), "busy": bool(d.get("busy")), "message": str(d.get("message", ""))[:120], "devices": devs}
     except (OSError, ValueError, TypeError, AttributeError):
         return vacio

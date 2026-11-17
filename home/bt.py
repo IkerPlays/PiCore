@@ -51,16 +51,18 @@ def parse_devices(out):
 
 
 def parse_info(out):
-    """`bluetoothctl info MAC` -> {name, paired, connected, trusted, icon, audio, rssi}. `audio` = el aparato ofrece audio (altavoz, auriculares, micro)."""
+    """`bluetoothctl info MAC` -> {name, paired, connected, trusted, icon, audio, rssi, battery (% o None)}. `audio` = el aparato ofrece audio (altavoz, auriculares, micro)."""
     t = clean(out)
     flag = lambda k: bool(re.search(r"^\s*%s:\s*yes\s*$" % k, t, re.M | re.I))
     nombre = re.search(r"^\s*Alias:\s*(.+)$", t, re.M) or re.search(r"^\s*Name:\s*(.+)$", t, re.M)
     icono = re.search(r"^\s*Icon:\s*(\S+)", t, re.M)
     rssi = re.search(r"^\s*RSSI:\s*(?:0x[0-9a-fA-F]+\s*)?\((-?\d+)\)", t, re.M)
+    bat = re.search(r"^\s*Battery Percentage:\s*(?:0x[0-9a-fA-F]+\s*)?\((\d{1,3})\)", t, re.M)
     uuids = " ".join(re.findall(r"UUID:\s*(.+)", t))
     audio = (icono is not None and icono.group(1) in ICONOS_AUDIO) or bool(re.search(r"Audio Sink|Audio Source|Headset|Handsfree|A/V Remote", uuids))
     return {"name": nombre.group(1).strip()[:60] if nombre else "", "paired": flag("Paired"), "connected": flag("Connected"), "trusted": flag("Trusted"),
-            "icon": icono.group(1) if icono else None, "audio": audio, "rssi": int(rssi.group(1)) if rssi else None}
+            "icon": icono.group(1) if icono else None, "audio": audio, "rssi": int(rssi.group(1)) if rssi else None,
+            "battery": min(100, int(bat.group(1))) if bat else None}
 
 
 def controller(run=subprocess.run):
@@ -84,7 +86,8 @@ def status(run=subprocess.run, only_audio=True):
         c2, o2 = _run(["info", d["address"]], run)
         info = parse_info(o2) if c2 == 0 else {}
         d.update({"name": info.get("name") or d["name"], "paired": info.get("paired", False), "connected": info.get("connected", False),
-                  "trusted": info.get("trusted", False), "audio": info.get("audio", False), "rssi": info.get("rssi")})
+                  "trusted": info.get("trusted", False), "audio": info.get("audio", False), "rssi": info.get("rssi"),
+                  "battery": info.get("battery")})
         if info.get("audio") or not only_audio or info.get("paired"):
             devs.append(d)
     devs.sort(key=lambda d: (not d["connected"], not d["paired"], d["name"].lower()))
