@@ -6,6 +6,11 @@
 
 
 
+## Hoja de audio: «Probar sonido»
+
+- La hoja «Audio y Bluetooth» tiene su propio botón «Probar sonido» bajo la lista de salidas, para oír que el aparato elegido suena sin salir de la hoja (usa la misma orden que el botón de Sistema)
+- Prueba de navegador y de desbordes al dia. **Sin probar con altavoces reales**
+
 ## Registros del sistema con tope (cuida la microSD)
 
 - `install.sh` crea `/etc/systemd/journald.conf.d/pcpi.conf` con `SystemMaxUse=50M` y `RuntimeMaxUse=30M`; `uninstall.sh` lo borra

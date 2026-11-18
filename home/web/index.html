@@ -447,6 +447,7 @@
   <h3>Audio y Bluetooth <button id="a-close" aria-label="Cerrar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></h3>
   <div class="sec" id="a-out-h">El sonido sale por</div>
   <div class="adevs" id="a-out" role="radiogroup" aria-label="Salida de sonido"></div>
+  <div class="snd-actions" id="a-test-row"><button id="a-test"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg> Probar sonido</button><span id="a-test-msg" aria-live="polite"></span></div>
   <div class="sec" id="a-in-h">Micrófono</div>
   <div class="adevs" id="a-in" role="radiogroup" aria-label="Entrada de audio (micrófono)"></div>
   <div class="sec" id="a-bt-h">Bluetooth</div>
@@ -742,6 +743,7 @@ $("v-mute").onclick = () => {
   vUser = true; setTimeout(() => { vUser = false; }, 1800);                                                          // ...y un estado viejo del servidor no lo deshace
   sendAudio({action: mute ? "mute" : "unmute"});
 };
+$("a-test").onclick = () => { sendAudio({action: "test"}); $("a-test-msg").textContent = "Sonando…"; setTimeout(() => { $("a-test-msg").textContent = ""; }, 1800); };
 $("v-test").onclick = () => { sendAudio({action: "test"}); $("vnote").textContent = "Sonando…"; setTimeout(() => { $("vnote").textContent = ""; }, 1800); };
 
 /* ---- audio y bluetooth: salida, microfono y aparatos (lo ejecuta pcpi-session; sin PipeWire/BlueZ la hoja lo dice) ---- */
@@ -779,7 +781,7 @@ function renderAudio() {
   const au = audio || {}, outs = au.outputs || [], ins = au.inputs || [];
   const fill = (id, list, kind) => { const box = $(id); box.textContent = ""; list.forEach(d => box.append(devButton(d, kind))); };
   fill("a-out", outs, "out"); fill("a-in", ins, "in");
-  $("a-out-h").hidden = $("a-out").hidden = !outs.length; $("a-in-h").hidden = $("a-in").hidden = !ins.length;
+  $("a-out-h").hidden = $("a-out").hidden = $("a-test-row").hidden = !outs.length; $("a-in-h").hidden = $("a-in").hidden = !ins.length;
   const bt = btState, ok = !!(bt && bt.available);
   $("a-bt-power").hidden = $("a-scan").hidden = $("a-bt").hidden = !ok;
   const box = $("a-bt"); box.textContent = "";

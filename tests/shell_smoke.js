@@ -58,6 +58,8 @@ const check = (nombre, ok, extra) => resultados.push({ nombre, ok: !!ok, extra }
   check('aparece el icono de Bluetooth en Casa', await c.evaluate(() => !document.getElementById('chip-bt').hidden));
   await c.click('#a-out .adev:not(.on)'); // vuelve al altavoz de la Pi
   check('elegir otra salida la cambia', await c.waitForFunction(() => [...document.querySelectorAll('#a-out .adev.on .nm')].some(x => x.textContent === 'Altavoz de la Pi'), null, { timeout: 9000 }).then(() => true).catch(() => false));
+  await c.click('#a-test');
+  check('«Probar sonido» de la hoja de audio dice que suena', await c.waitForFunction(() => document.getElementById('a-test-msg').textContent === 'Sonando…', null, { timeout: 3000 }).then(() => true).catch(() => false));
   await c.evaluate(() => window.PCPI_DEMO.say('cierra esto'));
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '));
   await browser.close();
