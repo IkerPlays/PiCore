@@ -124,6 +124,9 @@ def voice_bt(cfg, what):
         return "El sonido sale por " + d["name"]
     if not bt.get("available"):
         return "No tengo Bluetooth en esta Pi"
+    if what in ("power_on", "power_off"):
+        api(cfg, "/api/bt", {"action": what})
+        return "Bluetooth " + ("encendido" if what == "power_on" else "apagado")
     if what == "scan":
         api(cfg, "/api/bt", {"action": "scan"})
         return "Busco aparatos Bluetooth. Ponlos en modo de emparejamiento"

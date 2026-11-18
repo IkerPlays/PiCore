@@ -6,6 +6,10 @@
 
 
 
+## Voz: enciende y apaga el Bluetooth
+
+- «enciende el Bluetooth» / «apaga el Bluetooth» (también en el simulador). Apagar el adaptador desconecta los aparatos. Sin probar con aparatos reales
+
 ## Hoja de audio: «Probar sonido»
 
 - La hoja «Audio y Bluetooth» tiene su propio botón «Probar sonido» bajo la lista de salidas, para oír que el aparato elegido suena sin salir de la hoja (usa la misma orden que el botón de Sistema)

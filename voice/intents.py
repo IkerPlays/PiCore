@@ -494,6 +494,10 @@ def parse(text):
         if has("activa", "enciende", "reanuda", "habilita", "pon"):
             return Intent("pihole_enable", None)
     if has("bluetooth", "auriculares", "cascos", "altavoz portatil") or (has("sonido") and has("altavoz de la pi", "altavoz de la raspberry")):
+        if has("bluetooth") and has("apaga", "desactiva", "apagar", "desactivar"):
+            return Intent("bt", ("power_off", None))
+        if has("bluetooth") and has("enciende", "activa", "encender", "activar", "prende"):
+            return Intent("bt", ("power_on", None))
         if has("busca", "escanea", "buscar") and has("aparatos", "dispositivos", "bluetooth"):
             return Intent("bt", ("scan", None))
         if has("desconecta", "desconectar", "quita los auriculares", "quita el bluetooth"):

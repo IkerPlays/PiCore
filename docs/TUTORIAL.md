@@ -608,7 +608,7 @@ Cómo funciona: la palabra de activación («Hey Jarvis») sigue siendo detectad
 | «sube la música» · «baja la música» · «quita el sonido» | Cambia el volumen o silencia (igual que «sube el volumen» y «silencia») |
 | «sube el volumen y pon música» | Se pueden encadenar dos órdenes con «y» o «luego»: las hace una detrás de otra |
 | «abre el tiempo» · «abre los temporizadores» · «abre los ajustes» · «abre el wifi» · «abre el Bluetooth» · «abre Musix» · «cierra esto» | Abre o cierra esa hoja en la pantalla de Casa |
-| «conecta los auriculares» · «desconecta el Bluetooth» · «busca aparatos Bluetooth» · «pon el sonido en los auriculares» · «pon el sonido en el altavoz de la Pi» · «por dónde sale el sonido» · «qué micrófono uso» · «cuánta batería tienen los auriculares» | Maneja el Bluetooth y elige por dónde suena y qué micrófono se usa (sin probar con aparatos reales) |
+| «conecta los auriculares» · «desconecta el Bluetooth» · «busca aparatos Bluetooth» · «pon el sonido en los auriculares» · «pon el sonido en el altavoz de la Pi» · «por dónde sale el sonido» · «qué micrófono uso» · «cuánta batería tienen los auriculares» · «enciende el Bluetooth» · «apaga el Bluetooth» | Maneja el Bluetooth y elige por dónde suena y qué micrófono se usa (sin probar con aparatos reales) |
 | «abre las notas» · «abre la consola» | Pasa a modo Iker o a modo Dev |
 | «vuelve a casa» | Vuelve al modo Casa (igual que «modo casa») |
 | «cómo te llamas» · «me oyes» · «buenas noches» · «adiós» · «dónde vives» · «quién te hizo» | Pequeñas respuestas de cortesía y de charla, sin internet |

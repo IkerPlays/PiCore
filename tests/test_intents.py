@@ -445,7 +445,7 @@ class IntentTest(unittest.TestCase):
         for frase, arg in (("conecta los auriculares", "connect"), ("desconecta el bluetooth", "disconnect"),
                            ("busca aparatos bluetooth", "scan"), ("pon el sonido en los auriculares", "output_bt"),
                            ("pon el sonido en el altavoz de la pi", "output_pi"), ("por donde sale el sonido", "which_out"),
-                           ("que microfono uso", "which_in")):
+                           ("que microfono uso", "which_in"), ("apaga el bluetooth", "power_off"), ("enciende el bluetooth", "power_on")):
             r = i.parse(frase)
             self.assertEqual((r.name, r.arg[0]), ("bt", arg), frase)
         self.assertEqual(i.parse("abre el bluetooth").arg, ("open", "audio"))

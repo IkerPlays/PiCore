@@ -578,6 +578,8 @@
         const piOut = has("altavoz de la pi", "altavoz de la raspberry", "altavoz normal");
         if (piOut && has("pon el sonido", "sonido en", "sonido por", "usa")) { B.out = 49; saveBt(); return "El sonido sale por Altavoz de la Pi"; }
         if (has("pon el sonido", "sonido en", "sonido por", "usa")) { const o = au.outputs.find(x => x.bluetooth); if (!o) return "No hay ningún aparato Bluetooth conectado"; B.out = o.id; saveBt(); return "El sonido sale por " + o.name; }
+        if (has("bluetooth") && has("apaga", "desactiva")) { B.powered = false; B.devs.forEach(x => { x.connected = false; }); fixSel(); saveBt(); return "Bluetooth apagado"; }
+        if (has("bluetooth") && has("enciende", "activa")) { B.powered = true; saveBt(); return "Bluetooth encendido"; }
         if (has("busca", "escanea") && has("aparatos", "dispositivos", "bluetooth")) { B.found = true; B.devs.forEach(x => { x.hidden = false; }); saveBt(); return "Busco aparatos Bluetooth. Ponlos en modo de emparejamiento"; }
         if (has("desconecta", "quita los auriculares", "quita el bluetooth")) { const d = B.devs.find(x => x.connected); if (!d) return "No hay ningún aparato conectado"; d.connected = false; fixSel(); saveBt(); return "Desconecto " + d.name; }
         if (has("conecta", "empareja", "enlaza")) { const d = B.devs.find(x => !x.hidden && !x.connected && x.paired) || B.devs.find(x => !x.hidden && !x.connected); if (!d) return "No veo ningún aparato. Pídeme que busque aparatos Bluetooth"; d.paired = d.connected = true; B.out = btOut(d); saveBt(); return "Conecto " + d.name; }
